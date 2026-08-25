@@ -1,9 +1,10 @@
 from __future__ import annotations
-import hashlib, io, json, pathlib, sqlite3, tempfile, zipfile
+import hashlib, io, json, pathlib, tempfile, zipfile
 from collections import Counter
 from typing import Any
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
+from api.db import init_db, query_all, upsert_flows
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
 from shared.schemas import FlowVerdict
@@ -24,7 +25,6 @@ if _dist.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
-_DB = pathlib.Path(__file__).resolve().parent / "flows.db"
 
 def _compute_summary(flows: list[FlowVerdict]) -> dict[str, Any]:
     if not flows:
@@ -54,51 +54,6 @@ def _is_malformed(filename: str, data: bytes) -> bool:
     if len(data) < 10:
         return True
     return False
-
-def _init_db():
-    try:
-        con = sqlite3.connect(str(_DB))
-        con.execute("CREATE TABLE IF NOT EXISTS flows (flow_id TEXT PRIMARY KEY, data TEXT)")
-        con.commit()
-        con.close()
-    except Exception:
-        pass
-
-def _db_upsert(flows: list[FlowVerdict]):
-    try:
-        _init_db()
-        con = sqlite3.connect(str(_DB))
-        for f in flows:
-            # JSONB-like: store JSON text, query via json_extract if needed
-            con.execute("INSERT OR REPLACE INTO flows (flow_id, data) VALUES (?, ?)", (f.flow_id, json.dumps(f.model_dump())))
-        con.commit()
-        con.close()
-    except Exception:
-        pass
-
-def _db_query_all() -> list[FlowVerdict] | None:
-    try:
-        if not _DB.exists():
-            return None
-        con = sqlite3.connect(str(_DB))
-        # SQLite JSONB query: use json_extract if compiled with JSON1, else plain text
-        try:
-            rows = con.execute("SELECT data FROM flows").fetchall()
-        except Exception:
-            return None
-        out = []
-        for (data,) in rows:
-            try:
-                d = json.loads(data)
-                out.append(FlowVerdict.model_validate(d))
-            except Exception:
-                continue
-        con.close()
-        if out:
-            return out
-        return None
-    except Exception:
-        return None
 
 def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
     """Real reassemble→parse→validate→assess pipeline (imports, not subprocess). Branch when not USE_STUB."""
@@ -232,7 +187,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                             continue
             _last_result = flows
             _last_summary = _compute_summary(flows)
-            _db_upsert(flows)
+            upsert_flows(flows)
             return [f.model_dump() for f in flows]
         except zipfile.BadZipFile:
             _last_result = []
@@ -256,7 +211,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                 return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
         _last_result = validated_single
         _last_summary = _compute_summary(validated_single)
-        _db_upsert(validated_single)
+        upsert_flows(validated_single)
         return [f.model_dump() for f in validated_single]
     except Exception as exc:
         _last_result = []
@@ -271,7 +226,7 @@ def get_flows() -> Any:
         return [f.model_dump() for f in _last_result]
     # SQLite JSONB query when not USE_STUB (stub→real flip)
     if not USE_STUB:
-        db_flows = _db_query_all()
+        db_flows = query_all()
         if db_flows:
             return [f.model_dump() for f in db_flows]
     flows = stub_reassemble("fallback")
