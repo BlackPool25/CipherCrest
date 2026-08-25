@@ -1,0 +1,24 @@
+check_id,check_name,spec_citation,severity,weight,remediation,family_trigger
+1,TLS version deprecated,RFC8996 §4-5,Critical,25,"Upgrade to TLS 1.2+ (prefer 1.3) per RFC8996 §4; disable 1.0/1.1",family-04 TLS1.0 family-05 TLS1.1
+2,TLS version outdated,NIST SP 800-52r2 §3.3.1,Medium,7,"Plan migration to TLS 1.3 per NIST 800-52r2",family-01/02/03/07/08/10 TLS1.2
+3,Weak cipher (RC4/NULL/EXPORT/DES),RFC7465 §2,CRITICAL,25,"Replace with ECDHE AES128-GCM-SHA256 per Mozilla intermediate",family-04 RC4-SHA family-08 DES-CBC-SHA
+4,3DES SWEET32,"NIST SP 800-67, CVE-2016-2183 SWEET32",High,15,"Disable 3DES; use AES-GCM/ChaCha20-Poly1305",family-03 DES-CBC3-SHA
+5,CBC without AEAD,"RFC3268 §4, RFC5116",Medium,7,"Use AEAD only (AES-GCM/ChaCha20) per Mozilla intermediate",family-03/04/05/07/08/10 non-AEAD
+6,Weak KEX (no FS),"NIST SP 800-52r2 §3.2, RFC8446 §E.1",High,15,"Use ECDHE (P-256/X25519) per RFC8446",family-03/04/05/08/09/10 RSA/unknown no FS
+7,Weak pubkey (<2048 / <P-256),"NIST SP 800-57 §5.6.1",High,15,"Rotate to RSA-2048/ECDSA P-256 SHA-256 (<1024 Critical)",family-08 rsa1024 via validator chain
+8,Weak sigalg (SHA1/MD5),"RFC9155 §4, CABF BR §7.1.3",High,15,"Reissue with SHA-256 per CABF BR",family-07 SHA1 expired
+9,Certificate expired,RFC5280 §6.1.3,Critical,25,"Renew cert; automate renewal <30d",family-07 expired
+10,Certificate not yet valid,RFC5280 §6.1.3,High,15,"Fix clock or reissue with valid notBefore",validator notBefore future
+11,Chain incomplete/self-signed,RFC5280 §6,High,15,"Provision missing intermediate; use public CA or private trust anchor (Medium if privateCA)",family-05 selfsigned family-10 chain-incomplete
+12,Hostname mismatch,"RFC7817 §4, RFC6125 §6",High,15,"Fix SAN to include mail.lab.local per RFC7817",validator san_match False
+13,No forward secrecy,"RFC8446 §E.1, NIST 800-52r2",High,15,"Enable ECDHE (TLS 1.3 always FS Medium)",family-03/04/05/08/09/10 fs_flag False
+14,STARTTLS not offered,"RFC3207 §4.1, M3AAWG §3.2",High,15,"Enforce STARTTLS or use implicit TLS 465/993",family-09 stripped
+15a,STARTTLS stripping suspected,"RFC3207, CVE-2021-38502 EAST 320k",Critical/High,25/15,"Enforce STARTTLS + alert; Critical if 2 prior upgraded same 5-tuple else High low-conf downgrade possible",family-09 single High low-conf triple Critical
+15b,Pre-TLS injection possible,"Postfix CVE-2011-0411, GHSA-9j88",High/Info,15/1,"Fix unflushed buffer: discard pre-TLS pipelined bytes before ClientHello; High if pre_tls_buffer_len>0 else Info no artifact",family-01 High family-09 Info
+16,Implicit TLS absent,RFC8314 §3,Info,1,"Prefer implicit TLS 993/995 per RFC8314; Info unless Medium where opportunistic",all STARTTLS upgrade vs implicit
+16b,MX/MTA-STS/DANE,"RFC8461 §3, RFC7672 §5.1",Info,1,"Enforce MTA-STS/DANE where applicable; MX mail.lab.local per fixture",all Info enforce lane
+16c,0-RTT / ECH,"RFC8446 §8, RFC9846 §8, RFC9849 ECH",Medium/Info,7/1,"Bound ticket_age + anti-replay per RFC8446 §8; ECH outer INFO Inner not parsed RFC9849",early_data_offered true && ticket reusable → Medium else Info
+17,Certificate expiry <30d,"CABF BR §6.3.2, NIST 800-52r2",Medium,7,"Renew cert; automate renewal",cert days_to_expiry <30
+18,KeyUsage missing,RFC5280 §4.2.1.3,High/Info,15/1,"Add keyUsage digitalSignature,keyEncipherment per RFC5280; Info if leaf absent honest R1",leaf_present true missing → High else Info
+19,ExtendedKeyUsage not serverAuth,RFC5280 §4.2.1.12,High/Info,15/1,"Add EKU serverAuth 1.3.6.1.5.5.7.3.1 per RFC5280; Info if leaf absent honest",leaf_present true missing → High else Info
+20,pathLen violation,RFC5280 §4.2.1.9,High/Info,15/1,"Fix intermediate pathLenConstraint or reduce chain depth; Info if leaf absent honest",chain_length exceeds pathLenConstraint
