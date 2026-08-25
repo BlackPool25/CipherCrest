@@ -1,0 +1,8 @@
+PASS empty                -> rs=  0 rl=Low      ps=100 (expected 0/Low/100)
+PASS 1 Info               -> rs=  1 rl=Low      ps= 99 (expected 1/Low/99)
+PASS 3 Info               -> rs=  3 rl=Low      ps= 97 (expected 3/Low/97)
+PASS 1 Critical           -> rs= 25 rl=High     ps= 75 (expected 25/High/75)
+PASS 4 Critical cap       -> rs=100 rl=Critical ps=  0 (expected 100/Critical/0)
+PASS 10 threshold Medium  -> rs= 10 rl=Medium   ps= 90 (expected 10/Medium/90)
+PASS 25 threshold High    -> rs= 25 rl=High     ps= 75 (expected 25/High/75)
+PASS 40 threshold Critical -> rs= 40 rl=Critical ps= 60 (expected 40/Critical/60)
