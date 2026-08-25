@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="task-10-EVIDENCE_Day7" tests="24" failures="0" errors="0" skipped="0">
+  <testcase classname="EVIDENCE_Day7" name="test_EVIDENCE_exists_and_SYSTEM_5_8" />
+  <testcase classname="EVIDENCE_Day7" name="test_STARTTLS_F1" />
+  <testcase classname="EVIDENCE_Day7" name="test_cipher_100" />
+  <testcase classname="EVIDENCE_Day7" name="test_prec1" />
+  <testcase classname="EVIDENCE_Day7" name="test_weak_100" />
+  <testcase classname="EVIDENCE_Day7" name="test_14_20_REAL" />
+  <testcase classname="EVIDENCE_Day7" name="test_ML_Day8_10" />
+  <testcase classname="EVIDENCE_Day7" name="test_calibration_curve_png_exists" />
+  <testcase classname="EVIDENCE_Day7" name="test_risk_pr_exists" />
+  <testcase classname="EVIDENCE_Day7" name="test_risk_pkl_exists" />
+  <testcase classname="EVIDENCE_Day7" name="test_anomaly_pkl_exists" />
+  <testcase classname="EVIDENCE_Day7" name="test_gt_100_lines" />
+  <testcase classname="EVIDENCE_Day7" name="test_WEAK_SUPERVISION_verbatim" />
+  <testcase classname="EVIDENCE_Day7" name="test_n_eff_disclosure" />
+  <testcase classname="EVIDENCE_Day7" name="test_2bin_caveat" />
+  <testcase classname="EVIDENCE_Day7" name="test_prior_inversion_disclosure" />
+  <testcase classname="EVIDENCE_Day7" name="test_predict_fix" />
+  <testcase classname="EVIDENCE_Day7" name="test_not_claim_8_8_green_SYSTEM_5_8_only" />
+  <testcase classname="EVIDENCE_Day7" name="test_ThreatMatrix_23x3" />
+  <testcase classname="EVIDENCE_Day7" name="test_Vite_lt_3670016" />
+  <testcase classname="EVIDENCE_Day7" name="test_wheelhouse_345M" />
+  <testcase classname="EVIDENCE_Day7" name="test_splits_31" />
+  <testcase classname="EVIDENCE_Day7" name="test_R1_R8_present" />
+  <testcase classname="EVIDENCE_Day7" name="test_per_port_present" />
+</testsuite>

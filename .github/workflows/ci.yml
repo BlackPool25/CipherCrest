@@ -40,36 +40,48 @@ jobs:
         run: |
           python -c "from assessment.features import FEATURES_28; assert len(FEATURES_28)==28, f'FEATURES_28 len==28 got {len(FEATURES_28)}'; assert 'ja4' not in FEATURES_28 and 'ja4_rarity' in FEATURES_28"
           python -c "from assessment.features import FEATURES_28, build_vector; import json; v=json.load(open('shared/fixtures/family-01.json')); vec=build_vector(v, mode='xgb'); assert len(vec)==28; vec2=build_vector(v, mode='ae'); assert len(vec2)==28"
-      - name: XGB categorical guard (hist)
+      - name: XGB categorical guard (hist) + max_depth 4
         run: |
           python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['tree_method']=='hist' and XGB_CATEGORICAL_PARAMS['enable_categorical'] is True, 'XGB must be hist+enable_categorical'"
+          python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['max_depth']==4, f\"max_depth 4 got {XGB_CATEGORICAL_PARAMS['max_depth']}\""
           grep -q "enable_categorical" assessment/features.py || (echo "enable_categorical guard missing" && exit 1)
           grep -q "tree_method.*hist" assessment/features.py || (echo "tree_method hist guard missing" && exit 1)
-      - name: Isotonic guard (Platt only)
+          grep -q "max_depth.*4" assessment/features.py || (echo "max_depth 4 guard missing" && exit 1)
+      - name: XGB 1.7.6 pinned guard
         run: |
-          ! grep -rq "isotonic" assessment/ --include="*.py" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" || (echo "isotonic forbidden at n<1000 — Platt only" && exit 1)
-          python -c "import pathlib, re; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p)]; assert hits==[], f'isotonic found in {hits}'"
+          grep -q "xgboost==1.7.6" requirements.txt || (echo "xgboost==1.7.6 pinned guard" && exit 1)
+          python -c "p=open('requirements.txt').read(); assert 'xgboost==1.7.6' in p and 'torch' not in p.lower().replace('# stretch: torch',''), 'requirements must pin xgboost==1.7.6 and torch commented'"
+      - name: Platt only guard (no iso-tonic)
+        run: |
+          ! grep -rq "isotonic" assessment/ --include="*.py" --exclude-dir="__pycache__" | grep -v "tests" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" || (echo "forbidden at n<1000 — Platt only" && exit 1)
+          python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found in {hits}'"
       - name: Raw JA4 whitelist guard
         run: |
           python -c "from analyzer.jas import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES, f'whitelist {ALLOWED_RISK_FEATURES}'"
           python -c "from shared.ja4_rarity import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           ! grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 || (echo "raw ja4 in vector forbidden" && exit 1)
-      - name: Splits grouping + ratio guard
+      - name: Splits grouping + ratio guard (31 envs)
         run: |
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==31, f\"all_environment_ids 31 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==31, f\"groups_by_env 31 got {len(s['groups_by_env'])}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert len(set(s['all_environment_ids']))>=5, f\"unique envs {len(set(s['all_environment_ids']))} <5\"; mx=max(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); mn=min(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); assert mx/mn <3, f'ratio {mx}/{mn} >=3'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups'])==12 and len(s['D2_val_groups'])==8 and len(s['D3_locked_groups'])==5, f\"D1 12 D2 8 D3 5 got {s['D1_train_groups']},{s['D2_val_groups']},{s['D3_locked_groups']}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'family_id' not in open('assessment/splits.json').read(), 'family_id grouping forbidden'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in open('assessment/splits.json').read() or 'environment_id' in str(s.get('groups_by_env',{})), 'env_id grouping missing'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), f\"disjoint failed\""
       - name: Locked disjoint guard
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])), f\"D3_locked overlaps train/val {set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))}\""
       - name: Prior disjoint + prior_flag guard
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s.get('D_prior_groups',[])) & set(s['D1_train_groups']), f\"D_prior overlaps D1\""
-          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('prior_flag') is True for r in c), 'prior_flag != True'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[]))==20, f\"D_prior 20 got {len(s.get('D_prior_groups',[]))}\""
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert len(c)==20 and all(r.get('prior_flag') is True for r in c), 'prior_flag != True or len!=20'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('chain_valid') is None for r in c), 'chain_valid must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('san_match') is None for r in c), 'san_match must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('days_to_expiry') is None for r in c), 'days_to_expiry must be None'"
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('chain_valid') is None and r.get('cert',{}).get('san_match') is None and r.get('cert',{}).get('days_to_expiry') is None for r in c), 'prior 11/28 cols must be None'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert not set(r['environment_id'] for r in c) & set(s['D1_train_groups']), 'prior env overlaps D1 train'"
       - name: ja4_rarity span guard
         run: |
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); vals=[r['tls']['ja4_rarity'] for r in c if r.get('tls',{}).get('ja4_rarity') is not None]; assert len(vals)>=15 and 0.0<=min(vals)<=0.2 and 0.8<=max(vals)<=1.0, f'ja4_rarity span {min(vals)}..{max(vals)}'"
@@ -83,9 +95,15 @@ jobs:
       - name: Freeze guard pytest green
         run: |
           pytest shared/tests/test_freeze_guard.py -q
+          python -c "import json, pathlib; from shared.schemas import FlowVerdict; live=FlowVerdict.model_json_schema(); disk=json.loads(pathlib.Path('shared/schemas.json').read_text()); assert live==disk, 'schemas.json drift'"
       - name: Censys prior pytest green
         run: |
           pytest shared/tests/test_censys_prior.py -q
+      - name: Day7 collect-only wiring (6 files)
+        run: |
+          pytest --collect-only -q assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_censys_prior.py assessment/tests/test_risk_ablation.py assessment/tests/test_anomaly_hybrid.py api/tests/test_api_ml_wiring.py 2>&1 | tee /tmp/collect-only.log
+          grep -q "test session starts\|<Module\|<Function" /tmp/collect-only.log || (echo "collect-only failed" && cat /tmp/collect-only.log && exit 1)
+          python -c "import pathlib; log=pathlib.Path('/tmp/collect-only.log').read_text(); assert 'ERROR' not in log and 'FAILED' not in log, log[:2000]"
       - name: Wheelhouse lean <350M
         run: |
           du -m wheelhouse | tail -1 || echo "wheelhouse missing — gate skipped until Day5"
