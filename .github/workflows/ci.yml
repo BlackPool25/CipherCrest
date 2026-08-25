@@ -16,7 +16,11 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies (air-gap)
         run: |
-          pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt -r requirements-dev.txt
+          if [ -d wheelhouse ] && [ "$(ls -A wheelhouse 2>/dev/null)" ]; then
+            pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt -r requirements-dev.txt
+          else
+            pip install -r requirements.txt -r requirements-dev.txt
+          fi
       - name: Run schema tests
         run: |
           pytest shared/tests/test_schema.py shared/tests/test_freeze_guard.py shared/tests/test_ja4_grease.py shared/tests/test_ja4_rarity.py -q
