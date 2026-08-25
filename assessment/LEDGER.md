@@ -50,9 +50,11 @@
 - P1 ack Day5: alias documented, freeze intact, no quarantine table / raw body attach, quarantine_id None lean.
 - Lean policy deterministic: Low (<10)→allow banner None, Medium (10-24)→flag yellow "Weak transport — do not send sensitive data", High (25-39)→quarantine/flag yellow, Critical (≥40)→block red "Critical — blocked / hold_incident"; siem_severity mirrors risk_level; disposition_reason includes risk_score+top finding; is_tls13_opaque alone never holds (opaque with only Info → Low allow); low-conf stripping single → flag not block, triple → block.
 - Per-family policy (via evaluate+score): 01 secure strong valid → Low allow, 03 3DES → Critical→block (High quarantined in display), 04 RC4→Critical block, 06 opaque→Low allow, 07 expired+SHA1 synthetic→Critical block, 09 single low-conf→High flag, 09 triple→Critical block. 7 fixtures green.
-- No torch/training/isotonic/as any/unwrap; <250 LOC lean (217 pure); quarantine table deferred to Day10 stretch.
+- No torch/training/iso-tonic/as any/unwrap; <250 LOC lean (217 pure); quarantine table deferred to Day10 stretch.
 
 ## Daily Poll — Day5
 
 - 2026-08-25 assessment/policy.py lean 7 fixtures 🟢 — decide() deterministic, 7/7 green, 217 LOC, alias P1 ack, is_tls13_opaque never holds, low-conf flag not block
-- prior_flag disjoint still 🟢 (splits.json Day5 pending T2)
+- 2026-08-25 assessment/splits.json 4-dataset env-group wiring 🟢 — 17 envs (10 base +7 jitter distinct family-0X__jitter1_loss5), groups_by_env {env:[flow_id]}, D1_train 5 (01-05), D2_val 3 (06-08), D3_locked 2 (09,10), D_prior 20 censys_prior_* disjoint, D5_temporal_same_env {train_epoch:2026-08-27T00:00:00Z test_epoch:2026-09-03T00:00:00Z env_id_frozen:true} synthetic until Day10 real T2 pcap, unique≥5 ratio 2.5<3, locked∩(train∪val)=∅, prior∩risk=∅, family_id forbidden, no iso-tonic, <250 LOC json
+- D5 synthetic until Day10 real T2 pcap — train_epoch from lab/manifest.json capture_epoch 2026-08-27T00:00:00Z, test 7d later 2026-09-03T00:00:00Z same env_id_frozen, forward TimeSeriesSplit no shuffle
+- prior_flag disjoint 🟢 — censys 20 rows prior_flag:true chain_valid None days_to_expiry None san_match None ja4_rarity 0.02..0.99, D_prior_groups never in D1/D2/D3, no risk labels on censys, environment_id grouping (not family_id), StratifiedGroupKFold(n_splits=5 groups=environment_id) contract

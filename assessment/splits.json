@@ -1,0 +1,118 @@
+{
+  "all_environment_ids": [
+    "family-01__postfix3.9_loss0",
+    "family-02__postfix3.9_loss0",
+    "family-03__postfix3.9_loss0",
+    "family-04__postfix3.9_loss0",
+    "family-05__postfix3.9_loss0",
+    "family-06__postfix3.9_loss0",
+    "family-07__postfix3.9_loss0",
+    "family-08__postfix3.9_loss0",
+    "family-09__postfix3.9_loss0",
+    "family-10__postfix3.9_loss0",
+    "family-02__jitter1_loss5",
+    "family-03__jitter1_loss5",
+    "family-04__jitter1_loss5",
+    "family-05__jitter1_loss5",
+    "family-07__jitter1_loss5",
+    "family-08__jitter1_loss5",
+    "family-10__jitter1_loss5"
+  ],
+  "groups_by_env": {
+    "family-01__postfix3.9_loss0": [
+      "family-01"
+    ],
+    "family-02__postfix3.9_loss0": [
+      "family-02"
+    ],
+    "family-03__postfix3.9_loss0": [
+      "family-03"
+    ],
+    "family-04__postfix3.9_loss0": [
+      "family-04"
+    ],
+    "family-05__postfix3.9_loss0": [
+      "family-05"
+    ],
+    "family-06__postfix3.9_loss0": [
+      "family-06"
+    ],
+    "family-07__postfix3.9_loss0": [
+      "family-07"
+    ],
+    "family-08__postfix3.9_loss0": [
+      "family-08"
+    ],
+    "family-09__postfix3.9_loss0": [
+      "family-09"
+    ],
+    "family-10__postfix3.9_loss0": [
+      "family-10"
+    ],
+    "family-02__jitter1_loss5": [
+      "family-02-jitter-01"
+    ],
+    "family-03__jitter1_loss5": [
+      "family-03-jitter-01"
+    ],
+    "family-04__jitter1_loss5": [
+      "family-04-jitter-01"
+    ],
+    "family-05__jitter1_loss5": [
+      "family-05-jitter-01"
+    ],
+    "family-07__jitter1_loss5": [
+      "family-07-jitter-01"
+    ],
+    "family-08__jitter1_loss5": [
+      "family-08-jitter-01"
+    ],
+    "family-10__jitter1_loss5": [
+      "family-10-jitter-01"
+    ]
+  },
+  "D1_train_groups": [
+    "family-01__postfix3.9_loss0",
+    "family-02__postfix3.9_loss0",
+    "family-03__postfix3.9_loss0",
+    "family-04__postfix3.9_loss0",
+    "family-05__postfix3.9_loss0"
+  ],
+  "D2_val_groups": [
+    "family-06__postfix3.9_loss0",
+    "family-07__postfix3.9_loss0",
+    "family-08__postfix3.9_loss0"
+  ],
+  "D3_locked_groups": [
+    "family-09__postfix3.9_loss0",
+    "family-10__postfix3.9_loss0"
+  ],
+  "D_prior_groups": [
+    "censys_prior_0c4550a7",
+    "censys_prior_19012b9a",
+    "censys_prior_1a502783",
+    "censys_prior_2e9669d7",
+    "censys_prior_3854e08e",
+    "censys_prior_38e8178d",
+    "censys_prior_3d370b77",
+    "censys_prior_40a594ab",
+    "censys_prior_53a55632",
+    "censys_prior_54a9bd32",
+    "censys_prior_702eb105",
+    "censys_prior_74425964",
+    "censys_prior_a78d059c",
+    "censys_prior_c71e38a4",
+    "censys_prior_e1acdd94",
+    "censys_prior_e483cbe6",
+    "censys_prior_eba7c739",
+    "censys_prior_f0ffdaa4",
+    "censys_prior_fbacb073",
+    "censys_prior_fdba9518"
+  ],
+  "D5_temporal_same_env": {
+    "train_epoch": "2026-08-27T00:00:00Z",
+    "test_epoch": "2026-09-03T00:00:00Z",
+    "env_id_frozen": true,
+    "note": "D5 synthetic until Day10 real T2 pcap"
+  }
+}
