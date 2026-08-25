@@ -83,6 +83,34 @@ def test_triple_count():
     assert b"RCPT TO" in raw3, "flow3 stripped must contain RCPT TO"
 
 
+def test_reassembler_triple_pre_tls_gate():
+    """Reassembler parity: flows 1-2 pre_tls>0 with 0x16 0x03, flow3 pre_tls 0 no ClientHello."""
+    from lab.reassembler.reassemble import reassemble
+
+    flows = [TRIPLE_DIR / f"flow{i}.pcap" for i in (1, 2, 3)]
+    for p in flows:
+        assert p.exists()
+    r1 = reassemble(str(flows[0]))
+    r2 = reassemble(str(flows[1]))
+    r3 = reassemble(str(flows[2]))
+    for r in (r1, r2):
+        assert r["pre_tls_buffer_len"] > 0, f"{r['pcap']} expected pre_tls>0 got {r['pre_tls_buffer_len']}"
+        assert r["pre_tls_buffer_injection_possible"] is True
+        assert r["starttls_detected"] is True
+        assert "coverage_ratio" in r and "pre_tls_buffer_len" in r
+        for pf in r["per_flow"]:
+            assert "coverage_ratio" in pf and "pre_tls_buffer_len" in pf
+    assert r3["pre_tls_buffer_len"] == 0, f"flow3 stripped pre_tls expected 0 got {r3['pre_tls_buffer_len']}"
+    assert r3["pre_tls_buffer_injection_possible"] is False
+    assert r3["starttls_detected"] is False
+    raw3 = flows[2].read_bytes()
+    assert b"\x16\x03" not in raw3, "flow3 reassembled stripped must have no 0x16 0x03"
+    # every flow asserts coverage_ratio + pre_tls via reassemble
+    for r in (r1, r2, r3):
+        assert "coverage_ratio" in r
+        assert r["coverage_ratio"] > 0.8
+
+
 def test_single_vs_triple_severity():
     """Single-flow stripped is High low-conf (honest), triple history escalates to Critical."""
     # family-09 single-flow honest: High, not Critical
