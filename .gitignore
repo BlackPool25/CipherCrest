@@ -14,7 +14,9 @@ node_modules/
 # local tooling & generated artifacts (not for repo)
 .codegraph
 .momo/
-.omo/
+# .omo/plans are tracked for provenance; ignore ephemeral session state
+.omo/run-continuation/
+.omo/evidence/ulw/
 .serena/
 evidence-day2.zip
 dashboard/dist/
