@@ -3,5 +3,6 @@ pyod==2.0.5
 scikit-learn==1.5.0
 cryptography==43.*
 fastapi==0.115.*
+python-multipart
 pydantic==2.11.*
 # stretch: torch==2.4.0
