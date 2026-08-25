@@ -1,0 +1,25 @@
+POST /analyze zip 3 -> 200 3
+{
+  "flow_id": "family-01",
+  "environment_id": "family-01__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "e15cced1-c53f-486c-a09e-c4b5f3756d75",
+  "app_protocol": "smtp",
+  "starttls_mode": "upgrade",
+  "tls": {
+    "version": "TLS1.2",
+    "is_deprecated": false,
+    "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+    "cipher_strength": "strong",
+    "is_aead": true,
+    "kex": "ECDHE",
+    "fs_flag": true,
+    "ja4": null,
+    "ja4_rarity": null,
+    "ja4s": null,
+    "early_data_offered": false,
+    "early_data_accepted": false,
+    "psk_offered": false,
+    "
+POST family-06.pcap -> 200 True
+jq .[0].cert.is_tls13_opaque==true -> True

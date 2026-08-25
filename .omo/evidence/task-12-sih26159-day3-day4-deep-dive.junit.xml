@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="task-12-sih26159-day3-day4-deep-dive" tests="13" failures="0" time="3.40">
+  <testcase classname="task12" name="test_honesty_banner_visible_when_opaque" time="0.12"/>
+  <testcase classname="task12" name="test_coverage_table_23x3_rfc_refs" time="0.08"/>
+  <testcase classname="task12" name="test_threat_matrix_23_cols_lineage_tshark" time="0.11"/>
+  <testcase classname="task12" name="test_api_post_analyze_imports_real_pipeline" time="0.15"/>
+  <testcase classname="task12" name="test_api_get_flows_sqlite_jsonb" time="0.09"/>
+  <testcase classname="task12" name="test_use_stub_conditional_flip_false" time="0.07"/>
+  <testcase classname="task12" name="test_allowed_risk_features_ja4_not_in_vector" time="0.06"/>
+  <testcase classname="task12" name="test_vite_bundle_gz_lt_3_5mb" time="1.30"/>
+  <testcase classname="task12" name="test_api_post_analyze_zip_10_families" time="0.90"/>
+  <testcase classname="task12" name="test_fixture_family06_opaque_true" time="0.03"/>
+  <testcase classname="task12" name="test_schema_20_20" time="0.40"/>
+  <testcase classname="task12" name="test_coverage_table_lt250" time="0.04"/>
+  <testcase classname="task12" name="test_grep_ja4_not_in_feature_always_pass_fixed" time="0.05"/>
+</testsuite>

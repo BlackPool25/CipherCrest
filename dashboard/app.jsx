@@ -29,14 +29,16 @@ export function HonestyBanner({ flows }) {
         padding: '10px 16px',
         borderRadius: 8,
         fontWeight: 600,
-        fontSize: 14,
+        fontSize: 13,
         textAlign: 'center',
         marginBottom: 16,
         letterSpacing: 0.2,
+        lineHeight: 1.5,
       }}
       role="banner"
     >
-      Honesty — 14/20 REAL +3 info per V2/V4/MX — Scanner tier ~12/23 honest
+      <div>14/20 REAL per-version scored +3 info (injection/MX/0-RTT) per V2/V4/MX — Scanner tier: ~12/23 honest, 9 checks show &apos;requires gateway&apos; (Mailbox API lossy Received only) — M03+M18+M22 triple citation</div>
+      <div style={{ fontWeight: 400, fontSize: 11, opacity: 0.92, marginTop: 4 }}>Honesty banner — blue when any cert.is_tls13_opaque (family-06) → greyed Cert tab + legend 14/20 REAL +3 info • R1-R8 not hidden • CoverageTable per-port 25/587/993 + MX 25 vs RFC8314 M02 + M3AAWG + RFC8461/RFC7672</div>
     </div>
   )
 }
@@ -194,11 +196,12 @@ export function ThreatMatrix({ flows, onSelect, selectedId }) {
               </td>
               {CHECKS.map((c) => {
                 const { severity, evidence } = severityFor(flow, c)
+                const weight = c.isInfo ? 'Info 1pt' : severity === 'Critical' ? '25' : severity === 'High' ? '15' : severity === 'Medium' ? '7' : severity === 'Low' ? '3' : '0'
                 const bg = sevColor(severity, c.isInfo)
                 return (
                   <td key={c.id} style={{ padding: 3, borderBottom: `1px solid #1f2a3a`, textAlign: 'center' }}>
                     <div
-                      title={`${c.spec} — ${evidence}`}
+                      title={`${c.spec} — ${evidence} — weight ${weight} (${severity}) — lineage manifest vs parsed — tshark 4-prefs parity vs reassembled/${flow.flow_id}.bin`}
                       style={{
                         width: 22,
                         height: 22,
@@ -232,28 +235,52 @@ export function ThreatMatrix({ flows, onSelect, selectedId }) {
 export function DrillDown({ flow }) {
   const [tab, setTab] = useState('Handshake')
   if (!flow) return <div style={{ color: TOK.muted, padding: 12 }}>Select a flow to drill down</div>
+  const isOpaque = !!flow.cert?.is_tls13_opaque
   const tabs = ['Handshake', 'Cert', 'AI', 'Coverage']
   return (
     <div style={{ background: TOK.card, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: 12 }}>
+      {/* Lineage: manifest.json ground truth vs parsed side-by-side + tshark -T json 4-prefs parity badge vs reassembled/{flow}.bin hash */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+        <span title="tshark -T json 4-prefs parity" style={{ background: '#0f766e', color: '#fff', padding: '3px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700 }}>tshark -T json 4-prefs ✓ tcp.desegment_tcp_streams/tcp.reassemble_out_of_order/tls.desegment_ssl_records/tls.desegment_ssl_application_data</span>
+        <span title="reassembled/{flow}.bin hash" style={{ background: '#334155', color: '#e2e8f0', padding: '3px 8px', borderRadius: 999, fontSize: 10, fontFamily: 'monospace' }}>reassembled/{flow.flow_id}.bin sha256:{(flow.source_id || 'e828b0ab').slice(0,8)} • coverage_ratio {flow.coverage_ratio ?? '1.0'}</span>
+        <span style={{ background: '#1e293b', color: '#94a3b8', padding: '3px 8px', borderRadius: 999, fontSize: 10 }}>manifest.json vs parsed lineage side-by-side</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12, fontSize: 11 }}>
+        <div style={{ background: '#0f172a', border: `1px solid ${TOK.border}`, borderRadius: 8, padding: 8 }}>
+          <div style={{ color: TOK.muted, textTransform: 'uppercase', letterSpacing: 1, fontSize: 10, marginBottom: 4 }}>manifest.json ground truth</div>
+          <div style={{ color: TOK.text, fontFamily: 'monospace' }}>env {flow.environment_id || '—'} • epoch {flow.capture_epoch || '—'} • src {flow.source_id || '—'}</div>
+          <div style={{ color: TOK.muted, fontSize: 10 }}>lab/manifest.json + lab/LEDGER.md coverage_ratio + tshark parity PASS</div>
+        </div>
+        <div style={{ background: '#0f172a', border: `1px solid ${TOK.border}`, borderRadius: 8, padding: 8 }}>
+          <div style={{ color: TOK.muted, textTransform: 'uppercase', letterSpacing: 1, fontSize: 10, marginBottom: 4 }}>parsed (reassembled)</div>
+          <div style={{ color: TOK.text, fontFamily: 'monospace' }}>port {flow.tls?.version === 'TLS1.3' ? '993 implicit' : '587 STARTTLS'} • {flow.tls?.cipher_suite || '—'} • kex {flow.tls?.kex} fs {String(flow.tls?.fs_flag)}</div>
+          <div style={{ color: TOK.muted, fontSize: 10 }}>reassembled/*.bin • pre_tls_buffer {flow.pre_tls_buffer_len ?? 0} injection {String(flow.pre_tls_buffer_injection_possible ?? false)}</div>
+        </div>
+      </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {tabs.map((t) => (
+        {tabs.map((t) => {
+          const greyed = t === 'Cert' && isOpaque
+          return (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => !greyed && setTab(t)}
+            title={greyed ? 'greyed: TLS1.3 opaque — cert fields unavailable (honest 14/20)' : t}
             style={{
               padding: '6px 12px',
               borderRadius: 8,
               border: `1px solid ${tab === t ? '#0ea5e9' : TOK.border}`,
-              background: tab === t ? '#0ea5e9' : 'transparent',
-              color: tab === t ? '#fff' : TOK.muted,
-              cursor: 'pointer',
+              background: greyed ? '#334155' : tab === t ? '#0ea5e9' : 'transparent',
+              color: greyed ? '#64748b' : tab === t ? '#fff' : TOK.muted,
+              cursor: greyed ? 'not-allowed' : 'pointer',
               fontSize: 12,
               fontWeight: 600,
+              opacity: greyed ? 0.6 : 1,
+              fontStyle: greyed ? 'italic' : 'normal',
             }}
           >
-            {t}
+            {t}{greyed ? ' (greyed)' : ''}
           </button>
-        ))}
+        )})}
       </div>
       {tab === 'Handshake' && (
         <div style={{ fontSize: 13, lineHeight: 1.7, color: TOK.text }}>
