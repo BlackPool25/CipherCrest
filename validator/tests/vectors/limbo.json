@@ -1,0 +1,142 @@
+[
+  {
+    "id": "cabf-valid-rsa2048",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/rsa2048.crt",
+    "desc": "CABF valid RSA2048 chain"
+  },
+  {
+    "id": "cabf-valid-p256",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/p256.crt",
+    "desc": "CABF valid P256 chain"
+  },
+  {
+    "id": "cabf-valid-rsa2048-dup",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/rsa2048.crt",
+    "desc": "CABF valid RSA2048 repeat"
+  },
+  {
+    "id": "cabf-valid-p256-dup",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/p256.crt",
+    "desc": "CABF valid P256 repeat"
+  },
+  {
+    "id": "cabf-invalid-chain-incomplete",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/chain-incomplete.crt",
+    "desc": "CABF chain incomplete withheld intermediate"
+  },
+  {
+    "id": "cabf-invalid-expired",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/expired.crt",
+    "desc": "CABF expired leaf"
+  },
+  {
+    "id": "cabf-invalid-selfsigned",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/selfsigned.crt",
+    "desc": "CABF self-signed not in store"
+  },
+  {
+    "id": "cabf-invalid-rsa1024",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/rsa1024.crt",
+    "desc": "CABF RSA1024 self-signed invalid"
+  },
+  {
+    "id": "cabf-valid-rsa2048-3",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/rsa2048.crt",
+    "desc": "CABF valid RSA2048 third"
+  },
+  {
+    "id": "cabf-valid-p256-3",
+    "expected": true,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/p256.crt",
+    "desc": "CABF valid P256 third"
+  },
+  {
+    "id": "cabf-invalid-expired-2",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/expired.crt",
+    "desc": "CABF expired repeat"
+  },
+  {
+    "id": "cabf-invalid-chain-incomplete-2",
+    "expected": false,
+    "stratum": "cabf",
+    "cert_path": "lab/certs/chain-incomplete.crt",
+    "desc": "CABF chain incomplete repeat"
+  },
+  {
+    "id": "priv-invalid-selfsigned",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/selfsigned.crt",
+    "desc": "privateCA self-signed"
+  },
+  {
+    "id": "priv-invalid-expired",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/expired.crt",
+    "desc": "privateCA expired"
+  },
+  {
+    "id": "priv-invalid-rsa1024",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/rsa1024.crt",
+    "desc": "privateCA rsa1024 weak"
+  },
+  {
+    "id": "priv-invalid-chain-incomplete",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/chain-incomplete.crt",
+    "desc": "privateCA chain incomplete"
+  },
+  {
+    "id": "priv-valid-rsa2048",
+    "expected": true,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/rsa2048.crt",
+    "desc": "privateCA valid rsa2048 via Store"
+  },
+  {
+    "id": "priv-valid-p256",
+    "expected": true,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/p256.crt",
+    "desc": "privateCA valid p256 via Store"
+  },
+  {
+    "id": "priv-invalid-selfsigned-2",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/selfsigned.crt",
+    "desc": "privateCA self-signed repeat"
+  },
+  {
+    "id": "priv-invalid-expired-2",
+    "expected": false,
+    "stratum": "private_ca",
+    "cert_path": "lab/certs/expired.crt",
+    "desc": "privateCA expired repeat"
+  }
+]

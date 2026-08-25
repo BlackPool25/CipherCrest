@@ -1,0 +1,5 @@
+validator/tests/test_badssl.py::test_badssl_precision VerificationError: validation failed: cert is not valid at validation time (encountered processing <Certificate(subject=<Name(CN=mail.lab.local)>, ...)>)
+badssl precision bad=1.000 (8/8) good=1.000 (2/2) overall=1.000 >0.9
+precision >90% stratified badssl passed
+validator/tests/test_badssl.py::test_badssl_precision
+  /home/shreyas/projects/CipherCrest/validator/chain.py:18: CryptographyDeprecationWarning: Parsed a serial number which wasn't positive (i.e., it was negative or zero), which is disallowed by RFC 5280. Loading this certificate will cause an exception in a future release of cryptography.

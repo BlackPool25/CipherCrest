@@ -1,0 +1,5 @@
+validator/tests/test_chain_limbo.py::test_precision VerificationError: validation failed: candidates exhausted: all candidates exhausted with no interior errors
+precision CABF prec=1.000 acc=1.000 >0.9 {'tp': 6, 'tn': 6, 'fp': 0, 'fn': 0, 'acc': 1.0, 'prec': 1.0}
+precision privateCA prec=1.000 acc=1.000 >0.9 {'tp': 2, 'tn': 6, 'fp': 0, 'fn': 0, 'acc': 1.0, 'prec': 1.0}
+validator/tests/test_chain_limbo.py::test_precision
+  /home/shreyas/projects/CipherCrest/validator/chain.py:18: CryptographyDeprecationWarning: Parsed a serial number which wasn't positive (i.e., it was negative or zero), which is disallowed by RFC 5280. Loading this certificate will cause an exception in a future release of cryptography.
