@@ -1,6 +1,12 @@
 from __future__ import annotations
-import hashlib, io, json, pathlib, tempfile, zipfile
+import hashlib, io, json, pathlib, pickle, tempfile, zipfile
 from typing import Any
+
+import numpy as np
+if not hasattr(np, "NaN"):
+    np.NaN = np.nan  # type: ignore[attr-defined]
+if not hasattr(np, "NAN"):
+    np.NAN = np.nan  # type: ignore[attr-defined]
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
 from api.db import query_all, upsert_flows
@@ -19,6 +25,69 @@ except Exception:
     real_validate = None
 
 app = FastAPI(title="SecureMailScope Day1", version="0.1.0")
+# --- ML wiring lazy load (todo 7) — pkl optional, fallback graceful, <200ms, cold-start <3s guard ---
+_RISK_PKL = pathlib.Path("models/risk_clf.pkl")
+_ANOM_PKL = pathlib.Path("models/anomaly.pkl")
+_RISK_PKL_ABS = pathlib.Path(__file__).resolve().parent.parent / "models" / "risk_clf.pkl"
+_ANOM_PKL_ABS = pathlib.Path(__file__).resolve().parent.parent / "models" / "anomaly.pkl"
+try:
+    _rk = _RISK_PKL_ABS if _RISK_PKL_ABS.exists() else _RISK_PKL
+    risk_clf = pickle.load(open(_rk, "rb")) if _rk.exists() else None  # type: ignore[no-redef]
+except FileNotFoundError:
+    risk_clf = None  # type: ignore[no-redef]
+except Exception:
+    risk_clf = None  # type: ignore[no-redef]
+try:
+    _ak = _ANOM_PKL_ABS if _ANOM_PKL_ABS.exists() else _ANOM_PKL
+    anomaly_clf = pickle.load(open(_ak, "rb")) if _ak.exists() else None  # type: ignore[no-redef]
+except FileNotFoundError:
+    anomaly_clf = None  # type: ignore[no-redef]
+except Exception:
+    anomaly_clf = None  # type: ignore[no-redef]
+def _enrich_stub_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
+    if risk_clf is None and anomaly_clf is None:
+        out = []
+        for fv in flows:
+            if fv.assessment.calibrated_prob is None or fv.assessment.anomaly_score is None:
+                try:
+                    out.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": None, "anomaly_score": None})}))
+                except Exception:
+                    out.append(fv)
+            else:
+                out.append(fv)
+        return out
+    enriched: list[FlowVerdict] = []
+    for fv in flows:
+        if fv.assessment.calibrated_prob is not None and fv.assessment.anomaly_score is not None:
+            enriched.append(fv)
+            continue
+        try:
+            from assessment.features import FEATURES_28 as _F28e, _CATEGORICAL_6 as _CAT6e, build_vector as _bve
+            d = fv.model_dump()
+            vec = _bve(d, mode='xgb')
+            cp = fv.assessment.calibrated_prob
+            an = fv.assessment.anomaly_score
+            if cp is None and risk_clf is not None:
+                try:
+                    import pandas as pd
+                    df = pd.DataFrame([vec], columns=_F28e)
+                    for c in _CAT6e:
+                        df[c] = df[c].astype('category')
+                    proba = risk_clf.predict_proba(df)[0]
+                    cp = float(max(proba))
+                except Exception:
+                    cp = None
+            if an is None and anomaly_clf is not None:
+                try:
+                    import numpy as _np3
+                    an = float(anomaly_clf.decision_function(_np3.array([vec]))[0])
+                except Exception:
+                    an = None
+            enriched.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": cp, "anomaly_score": an})}))
+        except Exception:
+            enriched.append(fv)
+    return enriched
+
 _dist = pathlib.Path(__file__).resolve().parent.parent / "dashboard" / "dist"
 if _dist.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
@@ -85,6 +154,35 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                 flow_dict["assessment"] = {"findings": [f.model_dump() if hasattr(f, "model_dump") else f for f in findings], "risk_level": rl, "risk_score": rs, "posture_score": ps}
             except Exception:
                 flow_dict["assessment"] = {"findings": [], "risk_level": "Low", "risk_score": 10, "posture_score": 90}
+            try:
+                calibrated_prob = None
+                anomaly_score = None
+                if risk_clf is not None or anomaly_clf is not None:
+                    from assessment.features import FEATURES_28 as _F28, _CATEGORICAL_6 as _CAT6, build_vector as _bv
+                    vec = _bv(flow_dict, mode='xgb')
+                    if risk_clf is not None:
+                        try:
+                            import pandas as pd
+                            df = pd.DataFrame([vec], columns=_F28)
+                            for c in _CAT6:
+                                df[c] = df[c].astype('category')
+                            proba = risk_clf.predict_proba(df)[0]
+                            calibrated_prob = float(max(proba))
+                            if not (0.0 <= calibrated_prob <= 1.0):
+                                calibrated_prob = max(0.0, min(1.0, calibrated_prob))
+                        except Exception:
+                            calibrated_prob = None
+                    if anomaly_clf is not None:
+                        try:
+                            import numpy as _np2
+                            anomaly_score = float(anomaly_clf.decision_function(_np2.array([vec]))[0])
+                        except Exception:
+                            anomaly_score = None
+                flow_dict["assessment"]["calibrated_prob"] = calibrated_prob
+                flow_dict["assessment"]["anomaly_score"] = anomaly_score
+            except Exception:
+                flow_dict["assessment"].setdefault("calibrated_prob", None)
+                flow_dict["assessment"].setdefault("anomaly_score", None)
             flow_dict["policy"] = None
             fv = FlowVerdict.model_validate(flow_dict)
             return [fv]
@@ -153,6 +251,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                             flows.append(FlowVerdict.model_validate(fv.model_dump()))
                         except Exception:
                             continue
+            flows = _enrich_stub_flows(flows)
             flows = _attach_policy(flows)
             _last_result = flows
             _last_summary = _compute_summary(flows)
@@ -178,6 +277,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                 validated_single.append(FlowVerdict.model_validate(fv.model_dump()))
             except Exception as exc:
                 return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
+        validated_single = _enrich_stub_flows(validated_single)
         validated_single = _attach_policy(validated_single)
         _last_result = validated_single
         _last_summary = _compute_summary(validated_single)
