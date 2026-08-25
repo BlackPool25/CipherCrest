@@ -89,3 +89,70 @@ def test_ja4_grease_not_hardcoded():
         assert False, "no censys row ja4 found in offline bundle — sampling broken"
     # sanity: filter_grease removes 0x0a0a
     assert filter_grease([0x0A0A, 0x1301]) == [0x1301]
+
+
+# ---- TDD extensions — Day7 lean 20 prior_flag disjoint 11/28 caveat (T4) ----
+
+SPLITS = pathlib.Path("assessment/splits.json")
+
+
+def test_lean_20_rows_not_200():
+    """Lean till Day10: exactly 20 rows, not 200 — re-verified, not regenerated."""
+    rows = _load()
+    assert len(rows) == 20, f"lean 20 required, got {len(rows)} — do NOT regenerate to 200"
+    # all rows must have prior_flag true and dataset_caveat prior-only
+    for r in rows:
+        assert r.get("prior_flag") is True
+        assert r.get("dataset_caveat") == "prior-only, 7 cert cols synthetic null"
+
+
+def test_prior_disjoint_D1_train_groups():
+    """prior ∩ D1 empty — reads splits.json, censys must not enter D1_train_groups."""
+    rows = _load()
+    assert SPLITS.exists(), f"{SPLITS} missing — splits.json must exist for disjoint guard"
+    splits = json.loads(SPLITS.read_text(encoding="utf-8"))
+    d1 = set(splits.get("D1_train_groups", []))
+    # also check D_prior_groups exists and matches fixture env ids
+    d_prior = set(splits.get("D_prior_groups", []))
+    prior_envs = {r.get("environment_id") for r in rows}
+    prior_fids = {r.get("flow_id") for r in rows}
+    # prior_flag disjoint from D1
+    assert not prior_envs & d1, f"prior envs leaked into D1_train_groups: {prior_envs & d1}"
+    assert not prior_fids & d1, f"prior flow_ids leaked into D1_train_groups: {prior_fids & d1}"
+    # D_prior_groups must exactly match fixture envs (20)
+    assert prior_envs == d_prior, f"D_prior_groups mismatch: fixture {prior_envs} vs splits {d_prior}"
+    assert len(d_prior) == 20, f"D_prior_groups must be 20, got {len(d_prior)}"
+
+
+def test_tls_ja4_rarity_0_1_and_span():
+    """tls.ja4_rarity 0..1 and span 0.02..0.99 (min≤0.2 max≥0.8) — lean 20 must inject extremes."""
+    rows = _load()
+    vals = [r["tls"]["ja4_rarity"] for r in rows]
+    assert len(vals) == 20, f"need 20 tls.ja4_rarity values, got {len(vals)}"
+    assert all(0.0 <= v <= 1.0 for v in vals), f"tls.ja4_rarity out of 0..1: {vals}"
+    assert 0.0 <= min(vals) <= 0.2, f"min tls.ja4_rarity {min(vals)} not ≤0.2 — inject 0.02 extreme"
+    assert 0.8 <= max(vals) <= 1.0, f"max tls.ja4_rarity {max(vals)} not ≥0.8 — inject 0.99 extreme"
+    # also check top-level ja4_rarity if present equals tls.ja4_rarity
+    for r in rows:
+        if "ja4_rarity" in r:
+            assert r["ja4_rarity"] == r["tls"]["ja4_rarity"]
+
+
+def test_cert_chain_length_none_and_caveat():
+    """11/28 caveat extended: chain_valid/days_to_expiry/san_match/chain_length None, miss 1, caveat present."""
+    rows = _load()
+    for r in rows:
+        cert = r.get("cert", {})
+        assert cert.get("chain_valid") is None, f"chain_valid must be None {r.get('flow_id')}"
+        assert cert.get("days_to_expiry") is None
+        assert cert.get("san_match") is None
+        assert cert.get("chain_length") is None, f"chain_length must be None {r.get('flow_id')}"
+        miss = r.get("miss_indicators", {})
+        assert miss.get("days_to_expiry") == 1
+        assert miss.get("chain_valid") == 1
+        assert miss.get("san_match") == 1
+        assert r.get("dataset_caveat") == "prior-only, 7 cert cols synthetic null"
+        assert r.get("cert_missing_reason") is None
+        # port and version caveats
+        assert r.get("port") in (25, 587, 993), f"port {r.get('port')} not in 25/587/993"
+        assert r.get("version_inferred") in ("TLS1.3", "TLS1.2")

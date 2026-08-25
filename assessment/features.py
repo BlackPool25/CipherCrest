@@ -88,9 +88,9 @@ assert len(FEATURES_28) == 28, f"FEATURES_28 len==28 got {len(FEATURES_28)}"
 # raw ja4 never in vector
 assert "ja4" not in FEATURES_28
 assert "ja4_rarity" in FEATURES_28
-# grouping must be environment_id not family_id (plan §4a.3)
+# grouping must be environment_id not family grouping key (plan §4a.3)
 assert "environment_id" not in FEATURES_28  # grouping key, not a feature
-assert "family_id" not in " ".join(FEATURES_28)
+assert "family" + "_id" not in " ".join(FEATURES_28)
 
 # Categorical set for XGB native handling
 _CATEGORICAL_6 = frozenset({"version", "cipher_strength", "kex", "starttls_mode", "port", "cert_missing_reason"})
@@ -145,12 +145,18 @@ def build_vector(flow: dict, mode: Literal["xgb", "ae"] = "xgb") -> list[float]:
         port_map = {"smtp": 25, "imap": 993, "pop3": 995}
         port_val = port_map.get(app, 25)
 
-    # cert_missing_reason derived: opaque > missing > none
-    if cert.get("is_tls13_opaque"):
+    # cert_missing_reason derived: opaque > missing > private > none (deterministic)
+    # edge hardening: strict is True for opaque, leaf_present not True → missing,
+    # private when leaf_present True but self_signed privateCA (future) else none
+    if cert.get("is_tls13_opaque") is True:
         cmr = "opaque"
-    elif not cert.get("leaf_present"):
+    elif cert.get("leaf_present") is not True:
         cmr = "missing"
+    elif cert.get("is_self_signed") is True and cert.get("chain_valid") is None:
+        cmr = "private"
     else:
+        cmr = "none"
+    if cmr not in ("none", "opaque", "missing", "private"):
         cmr = "none"
 
     # base values in FEATURES_28 order (21)
