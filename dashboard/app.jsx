@@ -311,6 +311,7 @@ export function DrillDown({ flow }) {
           <div><b>risk_level:</b> {flow.assessment?.risk_level} score={flow.assessment?.risk_score}</div>
           <div><b>risk prob placeholder:</b> calibrated_prob={flow.assessment?.calibrated_prob ?? '—'} anomaly={flow.assessment?.anomaly_score ?? '—'}</div>
           <div style={{ marginTop: 8, color: TOK.muted, fontSize: 12 }}>ML/Risk/Anomaly Day7+ — stub placeholder per plan; raw ja4 not in feature vector (ja4_rarity only)</div>
+          <div style={{ marginTop: 6, color: TOK.muted, fontSize: 10, fontStyle: 'italic' }}>Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.</div>
         </div>
       )}
       {tab === 'Coverage' && (

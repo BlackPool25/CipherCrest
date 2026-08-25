@@ -38,3 +38,11 @@ Notes:
 - 2026-08-25 Day6 09:00 honesty 14/20 REAL 🟢 — is_tls13_opaque true family-06 TLS_AES_128_GCM_SHA256 opaque leaf_present False all cert fields None honest per shared/schemas.py model_validator; early_data_offered false + ech_outer false deferred; CoverageTable 23×3 20 scored color +3 greyed info 15b/16b/16c honest
 - Schemas freeze intact 🟢 — shared/schemas.py TLS Ja4/ja4_rarity Optional additive-only P1 CODEOWNER Day2 00:00; shared/tests/test_freeze_guard.py 6 passed; fixtures parity FlowVerdict.model_validate_json 20/20
 - GREASE 16 invariant 🟢 — filter_grease covers 16 GREASE values, ja4_rarity lookup via shared/data/censys_top_ja4.json offline, 09 stripped JA4 none honest
+
+## Daily Poll — Day7 (2026-08-25) — cipher 100% GREASE 16 unchanged 🟢
+
+- 2026-08-25 Day7 09:00 jitter 21 audit 🟢 — lab jitter 21 GREASE 16 filter_grease distinct per slice 0x8a8a/0x3a3a etc via shared/ja4_rarity.py GREASE_VALUES cipher shuffle + ja4_rarity sampled; analyzer cipher exact 100% vs tshark unchanged >98%
+- 2026-08-25 Day7 12:00 splits 31 prior disjoint 🟢 — assessment/splits.json 31 envs unchanged cipher 100% honesty intact; raw ja4 never in ALLOWED_RISK_FEATURES only ja4_rarity 0..1
+- 2026-08-25 Day7 15:00 features 28 TDD 🟢 — FEATURES_28 28 cipher_strength/kex/version etc 28 NaN-free build_vector xgb/ae deterministic; analyzer JA4 GREASE 16 invariant polled
+- 2026-08-25 Day7 18:00 XGB Platt cv2 + ECOD lean + api wiring 🟢 — cipher 100% GREASE 16 unchanged, no torch, wheelhouse 345M <350, Vite 157k <3670016, shared/progress.md Day7 4 rows polled, shared/schemas.py freeze additive-only P1 intact shared/tests/test_freeze_guard.py 6 passed
+- cipher 100% GREASE 16 + JA4 rarity 0..1 + STARTTLS Bennett + FS flag + is_tls13_opaque intact — analyzer/LEDGER.md 10 families + jitter 21 share same cipher lineage, 31 envs audit via lab/LEDGER.md 🟢

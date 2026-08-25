@@ -1,0 +1,4 @@
+/home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/pyod/models/ecod.py:23: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  return np.nan_to_num(skew_sp(X, axis=axis))
+pkl ok
+score_flow ok 24.251982881785814

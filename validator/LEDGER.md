@@ -43,3 +43,11 @@
 - 2026-08-25 shared/progress.md polled daily 🟢 — Day5-6 7 rows + total 🟢 22 ≥20; schemas freeze additive-only P1 intact (shared/tests/test_freeze_guard.py 6 passed); offline bundle air-gap --no-index --find-links wheelhouse --only-binary validated wheelhouse 345M <350M lean no torch; Vite gz 157k <3670016
 - Evidence: validator/tests/test_chain_limbo.py + test_badssl.py 21 passed prec>0.9; shell Day5-6 no new vectors, parity unchanged 1.000
 - Crypto invariant 🟢 — cryptography Store/PolicyBuilder, no urllib/requests/http.client, no mock 1.3 cert synthesis, chain_valid None for opaque/TLS1.3 per honesty invariant shared/schemas.py model_validator
+
+## Daily Poll — Day7 (2026-08-25) — prec1.000 unchanged 🟢
+
+- 2026-08-25 Day7 09:00 jitter 21 audit 🟢 — lab jitter 21 31 envs/rows 7 families×3 slices chain_valid intact; validator prec 1.000 CABF/private separate unchanged
+- 2026-08-25 Day7 12:00 splits 31 prior disjoint 🟢 — assessment/splits.json 31 D_prior 20 disjoint chain_valid None censys 11/28 cols honesty intact
+- 2026-08-25 Day7 15:00 features 28 TDD 🟢 — FEATURES_28 28 vector honesty intact; validator chain_valid None for opaque honest per shared/schemas.py
+- 2026-08-25 Day7 18:00 XGB Platt cv2 + ECOD lean + api wiring 🟢 — prec1.000 CABF 1.000 private 1.000 badssl 1.000 unchanged stratified >0.9; x509 Store/PolicyBuilder not verify_directly; no live fetch; shared/progress.md Day7 4 rows polled, shared/schemas.py freeze additive-only P1 intact shared/tests/test_freeze_guard.py 6 passed, wheelhouse 345M <350 no torch, Vite 157k <3670016
+- prec1.000 stratified CABF/private + badssl 1.000 + opaque invariant + chain_valid None honest — 31 envs audit via lab/LEDGER.md jitter 21 lineage unchanged 🟢

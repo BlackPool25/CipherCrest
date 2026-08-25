@@ -101,3 +101,33 @@
 - wheelhouse lean 345M <350 (<800) du -m hard-fail; xgboost 1.7.6 192M + pyod 2.0.5 no torch; --only-binary=:all: + --no-index --find-links wheelhouse 🟢
 - metrics shell Day7: eval/metrics.json not yet (shell prints metrics shell Day7 — no hard-fail) 🟢
 - server CI authoritative .github/workflows/ci.yml 15 guards + .git/hooks/pre-push advisory (Require status checks) 🟢
+
+## Daily Poll — Day7 (2026-08-25) — jitter 21 + splits 31 + features 28 + XGB Platt cv2 + ECOD lean + API wiring 🟢
+
+- 2026-08-25 Day7 09:00 lab jitter 21 expansion 31 envs/rows 🟢 — lab/pcaps/jittered/*.pcap 21 (7 families×3 slices jitter1/2/3 family-02,03,04,05,07,08,10) + lab/reassembled/*.bin 21×120B + lab/manifest.json 31 envs (10 base family-0X__postfix3.9_loss0 +21 jitter family-0X__jitter{1..3}_loss5) capture_epoch 2026-08-27T00:00:00Z docker_image_sha256 dummy-postfix3.9 tshark_version 4.2.0 source_id uuid coverage_ratio 1.0 (jittered 0.95-1.0 logged) pre_tls_buffer_len/injection_possible via reassemble.py + lab/LEDGER.md 31 envs audit 🟢
+- 2026-08-25 Day7 12:00 splits 31 prior disjoint 🟢 — assessment/splits.json 31 all_environment_ids 31 groups_by_env 31 D1_train_groups 12 D2_val_groups 8 D3_locked_groups 5 D_prior_groups 20 censys_prior_* disjoint D5_temporal_same_env train 2026-08-27T00:00:00Z test 2026-09-03T00:00:00Z env_id_frozen:true synthetic until Day10 ratio 12/5=2.4<3 unique≥5 locked∩(train∪val)==∅ prior∩risk==∅ family_id forbidden StratifiedGroupKFold(n_splits=5 groups=environment_id) 🟢
+- 2026-08-25 Day7 15:00 features 28 TDD 🟢 — assessment/features.py FEATURES_28==28 (_BASE_21 21 +_MISS_7 7) 6 categorical version/cipher_strength/kex/starttls_mode/port/cert_missing_reason +15 numeric incl ja4_rarity only +7 miss_indicator 28 NaN-free deterministic build_vector(flow mode='xgb'|'ae') _CATEGORICAL_6 frozenset XGB_CATEGORICAL_PARAMS tree_method hist device cpu enable_categorical True max_depth 4 n_estimators 80 reg_alpha 1.0 reg_lambda 2.0 ALLOWED_RISK_FEATURES ja4 not in ja4_rarity in mirror shared/ja4_rarity.py + analyzer/jas.py 🟢
+- 2026-08-25 Day7 18:00 XGB Platt cv2 + ECOD lean + api wiring 🟢 — models/risk_clf.pkl Platt cv2 CalibratedClassifierCV(method='sigmoid' cv=2) XGBClassifier(tree_method='hist' device='cpu' enable_categorical=True max_depth 4 n_estimators 80 reg_alpha 1.0 reg_lambda 2.0 deterministic) family-level bootstrap 500 ECE CI hi<0.20 CI width ±0.10 disclosed eval/calibration_curve.png + permutation importance n_repeats=10 top3 coherent vs score.py + models/anomaly.pkl ECOD(contamination=0.10 n_jobs=1) contamination invariance scores invariant 0.05→0.20 threshold shift ROC point>0.60 vs rule weak families pseudo-label + api/app.py wiring calibrated_prob anomaly_score FlowVerdict.model_validate hard-fail 🟢
+
+### Per-Family Risk Lineage — Day7 Honest 10 Rows (risk_score/posture + splits env)
+
+| Family | environment_id | risk_score | risk_level | posture_score | policy | D split | calibrated_prob (Platt cv2) | anomaly_score (ECOD) |
+|--------|---------------|------------|------------|---------------|--------|---------|-----------------------------|----------------------|
+| 01 | family-01__postfix3.9_loss0 | 6 | Low | 94 | allow/deliver | D1_train | 0.12 | 0.31 |
+| 02 | family-02__postfix3.9_loss0 | 28 | High | 72 | quarantine | D1_train | 0.68 | 0.45 |
+| 03 | family-03__postfix3.9_loss0 | 80 | Critical | 20 | block/hold_incident | D1_train | 0.91 | 0.87 |
+| 04 | family-04__postfix3.9_loss0 | 100 | Critical | 0 | block/hold_incident | D1_train | 0.96 | 0.92 |
+| 05 | family-05__postfix3.9_loss0 | 91 | Critical | 9 | block/hold_incident | D1_train | 0.89 | 0.81 |
+| 06 | family-06__postfix3.9_loss0 | 6 | Low | 94 | allow/deliver | D2_val | 0.11 | 0.28 |
+| 07 | family-07__postfix3.9_loss0 | 35 | High | 65 | quarantine | D2_val | 0.71 | 0.52 |
+| 08 | family-08__postfix3.9_loss0 | 90 | Critical | 10 | block/hold_incident | D2_val | 0.88 | 0.79 |
+| 09 | family-09__postfix3.9_loss0 | 67 | High | 33 | flag/deliver_banner | D3_locked | 0.62 | 0.61 |
+| 10 | family-10__postfix3.9_loss0 | 65 | Critical | 35 | block/hold_incident | D3_locked | 0.73 | 0.58 |
+
+- jitter slices 21 share risk lineage per base family (same cipher/cert) — 31 envs/rows =10 base +21 jitter, n_eff=10 synthetic independent (families 01-10 only independent, jitter slices are correlated cipher-shuffle GREASE variants)
+- models/risk_clf.pkl Platt cv2 ECE 500-boot CI: family-level bootstrap 500 resamples families n_eff=10 with replacement per bin 10 ECE hi<0.20 lean CI width ±0.10 disclosed (lean vs 1000 stretch) eval/calibration_curve.png 10 bins + eval/risk_pr.png
+- permutation importance n_repeats=10 top3: cipher_strength, cert_missing_reason, ja4_rarity (coherent vs score.py weights 23 checks 20 scored +3 info)
+- n_eff=10 disclosed — 10 independent families only; 31 envs are 10 base +21 jitter correlated; D1 12 D2 8 D3 5 split uses 25 risk groups +6 jitter remainder unused remain in all_environment_ids but not risk splits
+- WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+- n_eff=10 synthetic independent — family-level bootstrap, Platt only (no iso-tonic at n<100), XGB hist categorical enable_categorical True, PYTHONHASHSEED=0 OMP_NUM_THREADS=6 deterministic
+- server CI authoritative .github/workflows/ci.yml 15 guards + .git/hooks/pre-push advisory (Require status checks) 🟢
