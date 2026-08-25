@@ -35,3 +35,10 @@ Notes:
 - Coverage: env_id/capture_epoch/pcap sha256/coverage_ratio per family 10+7 jittered + honesty 0.897 jittered logged
 - Offline bundle: pip --no-index --find-links wheelhouse --only-binary=:all: + vite <3670016 + docker <4G gates hardened (Task13)
 - Freeze guard: CODEOWNER P1 additive-only Day2 00:00 + 2-ack + version bump + drift fail — polled 🟢
+
+## Daily Poll — Day5-6 Hardening (Schemas Freeze, Fixtures Parity, Offline Bundle Shell)
+
+- 2026-08-25 Day5-6 audit 🟢 — env_id per family 10× family-0X__postfix3.9_loss0 + 7 jitter family-0X__jitter1_loss5 unique 17 ≥5; capture_epoch 2026-08-27T00:00:00Z per manifest vs fixture parity via FlowVerdict.model_validate_json; source_id 8-char hex per family (d77d7462 … a674a1c0) lineage; coverage_ratio 1.0 clean + jitter 0.897 logged not silent (overlap duplicate, gap detection, tshark 4 prefs tcp.desegment_tcp_streams TRUE tcp.reassemble_out_of_order TRUE tls.desegment_ssl_records TRUE tls.desegment_ssl_application_data TRUE); pre_tls_buffer_len + injection_possible per flow (family-01 138/171 High, family-09 0 Info); pcap sha256 per row verified via reassembler coverage_ratio = reassembled_bytes / total_tcp_payload_bytes
+- 2026-08-25 shared/progress.md polled daily 🟢 — Day5 09:00 policy lean 7 fixtures, Day5 12:00 splits 12 groups prior_flag disjoint, Day5 15:00 db JSONB <1ms + chunk-read, Day5 18:00 wheelhouse lean <350M, Day6 09:00 CoverageTable 23×3 honesty 14/20, Day6 12:00 live binding E2E, Day6 15:00 EVIDENCE SYSTEM 5/8 — total 🟢 22 ≥20
+- Offline bundle shell 🟢 — wheelhouse/ 345M <350M lean (xgboost 1.7.6 + pyod 2.0.5 no torch), Vite gz 157k <3670016, Docker stretch <4G not yet gated; fixtures parity tshark golden 4 prefs F1>95% vs reassembler clean; shared/schemas.py freeze additive-only P1 intact shared/tests/test_freeze_guard.py 6 passed
+- CoverageTable honesty: 14/20 REAL per-version scored +3 info (15b injection/MX/0-RTT) per V2/V4/MX logged via lab/LEDGER.md jittered coverage <1.0 + pre_tls_buffer honest; no live fetch required (offline replay primary)

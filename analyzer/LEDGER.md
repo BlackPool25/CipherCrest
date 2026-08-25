@@ -29,3 +29,12 @@ Notes:
 - Polled shared/progress.md daily: 🟢 gated (handshake cipher>98% tshark 4 prefs + JA4 GREASE + rarity 0..1)
 - JA4 rarity span 0..1 locked disjoint: censys_top_ja4.json source until censys_sampled_200.json Day7, chain_valid None for censys
 - Offline: vite <3670016 + wheelhouse lean <350M gate hardened
+
+## Daily Poll — Day5-6 Hardening (Schemas Freeze, Fixtures Parity, Offline Bundle Shell)
+
+- 2026-08-25 Day5 09:00 cipher exact 100% GREASE 16 🟢 — analyzer/tests/test_handshake.py 9/9 cipher exact vs tshark 4 prefs (tcp.desegment_tcp_streams TRUE etc) IANA exact lab/manifest.json KEX ECDHE/RSA, FS flag true 01,02,06,07 false 03,04,05,08,10; STARTTLS Bennett 220 banner discriminator upgrade vs implicit 993 vs stripped cleartext
+- 2026-08-25 Day5 12:00 JA4 GREASE 16 filter_grease FoxIO 🟢 — shared/ja4_rarity.py filter_grease 16 RFC8701 0x0a0a..0xfafa harmonized, JA4 computed t12i010000_ced06... per family 01-10 + t13d1516h2_8daa for TLS1.3; ja4_rarity 0..1 span 0.02..0.99 censys prior_flag:true chain_valid None san_match None days_to_expiry None; raw ja4 never in ALLOWED_RISK_FEATURES only ja4_rarity
+- 2026-08-25 Day5 15:00 offline bundle shell 🟢 — wheelhouse/ 345M <350M lean xgboost 1.7.6 + pyod 2.0.5 no torch + Vite gz 157k <3670016; shared/progress.md Day5-6 polled 🟢 22 total
+- 2026-08-25 Day6 09:00 honesty 14/20 REAL 🟢 — is_tls13_opaque true family-06 TLS_AES_128_GCM_SHA256 opaque leaf_present False all cert fields None honest per shared/schemas.py model_validator; early_data_offered false + ech_outer false deferred; CoverageTable 23×3 20 scored color +3 greyed info 15b/16b/16c honest
+- Schemas freeze intact 🟢 — shared/schemas.py TLS Ja4/ja4_rarity Optional additive-only P1 CODEOWNER Day2 00:00; shared/tests/test_freeze_guard.py 6 passed; fixtures parity FlowVerdict.model_validate_json 20/20
+- GREASE 16 invariant 🟢 — filter_grease covers 16 GREASE values, ja4_rarity lookup via shared/data/censys_top_ja4.json offline, 09 stripped JA4 none honest
