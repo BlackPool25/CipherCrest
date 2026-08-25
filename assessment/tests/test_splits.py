@@ -123,3 +123,77 @@ def test_all_environment_ids_completeness():
     # D splits must be subset of all_envs
     for env in s["D1_train_groups"] + s["D2_val_groups"] + s["D3_locked_groups"]:
         assert env in all_envs
+
+
+# --- todo2 strict 31-env frozen extensions (TDD failing first) ---
+def test_all_environment_ids_31_strict():
+    s = _load_splits()
+    assert len(s["all_environment_ids"]) == 31, f"all_environment_ids {len(s['all_environment_ids'])} !=31"
+    assert len(set(s["all_environment_ids"])) == 31
+
+
+def test_groups_by_env_31_strict():
+    s = _load_splits()
+    assert len(s["groups_by_env"]) == 31, f"groups_by_env {len(s['groups_by_env'])} !=31"
+    # each env maps to at least one flow_id
+    for env, flows in s["groups_by_env"].items():
+        assert isinstance(flows, list) and len(flows) >= 1, f"{env} empty flow list"
+
+
+def test_risk_groups_25_and_ratio():
+    s = _load_splits()
+    d1, d2, d3 = s["D1_train_groups"], s["D2_val_groups"], s["D3_locked_groups"]
+    assert len(d1) == 12, f"D1 {len(d1)} !=12"
+    assert len(d2) == 8, f"D2 {len(d2)} !=8"
+    assert len(d3) == 5, f"D3 {len(d3)} !=5"
+    assert len(d1) + len(d2) + len(d3) == 25
+    assert len(set(d1 + d2 + d3)) >= 5  # unique>=5
+    sizes = [len(d1), len(d2), len(d3)]
+    ratio = max(sizes) / min(sizes)
+    assert ratio < 3, f"max/min ratio {ratio} >=3 (need 12/5=2.4)"
+
+
+def test_d3_not_in_d1_d2_strict():
+    s = _load_splits()
+    d1, d2, d3 = set(s["D1_train_groups"]), set(s["D2_val_groups"]), set(s["D3_locked_groups"])
+    assert not d3 & (d1 | d2), f"D3 ∩ (D1∪D2) non-empty {d3 & (d1|d2)}"
+
+
+def test_d_prior_not_in_d1_strict():
+    s = _load_splits()
+    d1 = set(s["D1_train_groups"])
+    d_prior = set(s["D_prior_groups"])
+    assert len(d_prior) == 20, f"D_prior {len(d_prior)} !=20"
+    assert not d_prior & d1, f"D_prior ∩ D1 non-empty {d_prior & d1}"
+
+
+def test_d5_temporal_env_frozen_strict():
+    s = _load_splits()
+    d5 = s["D5_temporal_same_env"]
+    assert d5["train_epoch"] != d5["test_epoch"]
+    assert d5["env_id_frozen"] is True
+    assert d5["train_epoch"] == "2026-08-27T00:00:00Z"
+    assert d5["test_epoch"] == "2026-09-03T00:00:00Z"
+
+
+def test_family_id_forbidden_strict():
+    text = SPLITS.read_text()
+    assert "family_id" not in text
+
+
+def test_isotonic_forbidden_in_assessment():
+    needle = "iso" + "tonic"
+    result = subprocess.run(
+        ["grep", "-rq", needle, "assessment/", "--exclude-dir=__pycache__", "--exclude=test_splits.py", "--exclude=test_features.py"],
+        capture_output=True,
+    )
+    assert result.returncode != 0, "iso" + "tonic forbidden in assessment/"
+
+
+def test_groups_by_env_from_manifest():
+    # groups_by_env keys must exactly match manifest environment_id values
+    manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
+    manifest_envs = {v["environment_id"] for v in manifest.values()}
+    s = _load_splits()
+    assert set(s["all_environment_ids"]) == manifest_envs, "all_environment_ids != manifest environment_ids"
+    assert set(s["groups_by_env"].keys()) == manifest_envs

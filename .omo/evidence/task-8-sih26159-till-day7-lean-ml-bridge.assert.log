@@ -1,0 +1,10 @@
+=== 4 shell assertions from Acceptance criteria ===
+1: test -d wheelhouse && du <350
+PASS assertion 1 du <350: 345	wheelhouse
+2: pip dry-run Would install
+PASS assertion 2 Would install
+3: ! torch
+PASS assertion 3 ! torch
+4: gzip bundle <3670016
+PASS assertion 4 gzip <3670016: 157567
+=== ALL 4 ASSERTIONS PASS ===
