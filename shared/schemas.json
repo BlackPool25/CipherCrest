@@ -1,0 +1,605 @@
+{
+  "$defs": {
+    "Assessment": {
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "risk_level": {
+          "enum": [
+            "Critical",
+            "High",
+            "Medium",
+            "Low"
+          ],
+          "title": "Risk Level",
+          "type": "string"
+        },
+        "risk_score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Risk Score",
+          "type": "integer"
+        },
+        "anomaly_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anomaly Score"
+        },
+        "posture_score": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Posture Score"
+        },
+        "calibrated_prob": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calibrated Prob"
+        }
+      },
+      "required": [
+        "findings",
+        "risk_level",
+        "risk_score"
+      ],
+      "title": "Assessment",
+      "type": "object"
+    },
+    "Cert": {
+      "additionalProperties": false,
+      "description": "Certificate honesty invariant.\n\nInvariant: if is_tls13_opaque == True \u2192 leaf_present == False and\nall cert-detail fields (not_before, not_after, days_to_expiry,\nis_expired, is_self_signed, chain_length, chain_valid, san_match,\npubkey_algo, pubkey_bits, sigalg, sigalg_weak, keysize_weak,\nocsp_must_staple, crl_unknown_reason) must be None (or remain at\ndefault None). Only ocsp_stapled_status may be 'opaque' in the\nopaque branch; all other cert fields are honest None to avoid\nfabricating X.509 data when TLS 1.3 encrypts the Certificate\nmessage.",
+      "properties": {
+        "leaf_present": {
+          "title": "Leaf Present",
+          "type": "boolean"
+        },
+        "is_tls13_opaque": {
+          "title": "Is Tls13 Opaque",
+          "type": "boolean"
+        },
+        "not_before": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Before"
+        },
+        "not_after": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not After"
+        },
+        "days_to_expiry": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Days To Expiry"
+        },
+        "is_expired": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Expired"
+        },
+        "is_self_signed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Self Signed"
+        },
+        "chain_length": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chain Length"
+        },
+        "chain_valid": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chain Valid"
+        },
+        "san_match": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "San Match"
+        },
+        "pubkey_algo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pubkey Algo"
+        },
+        "pubkey_bits": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pubkey Bits"
+        },
+        "sigalg": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sigalg"
+        },
+        "sigalg_weak": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sigalg Weak"
+        },
+        "keysize_weak": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Keysize Weak"
+        },
+        "ocsp_stapled_status": {
+          "enum": [
+            "good",
+            "revoked",
+            "unknown",
+            "opaque",
+            "not_stapled"
+          ],
+          "title": "Ocsp Stapled Status",
+          "type": "string"
+        },
+        "ocsp_must_staple": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ocsp Must Staple"
+        },
+        "crl_unknown_reason": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crl Unknown Reason"
+        }
+      },
+      "required": [
+        "leaf_present",
+        "is_tls13_opaque",
+        "ocsp_stapled_status"
+      ],
+      "title": "Cert",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "check": {
+          "title": "Check",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "Critical",
+            "High",
+            "Medium",
+            "Low",
+            "Info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "spec": {
+          "title": "Spec",
+          "type": "string"
+        },
+        "evidence": {
+          "title": "Evidence",
+          "type": "string"
+        },
+        "remediation": {
+          "title": "Remediation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check",
+        "severity",
+        "spec",
+        "evidence",
+        "remediation"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "PolicyDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "allow",
+            "quarantine",
+            "block",
+            "flag"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "disposition_reason": {
+          "title": "Disposition Reason",
+          "type": "string"
+        },
+        "banner_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Banner Text"
+        },
+        "quarantine_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quarantine Id"
+        },
+        "siem_severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Siem Severity"
+        },
+        "arf_report_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arf Report Id"
+        }
+      },
+      "required": [
+        "action",
+        "disposition_reason"
+      ],
+      "title": "PolicyDecision",
+      "type": "object"
+    },
+    "TLS": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "enum": [
+            "TLS1.0",
+            "TLS1.1",
+            "TLS1.2",
+            "TLS1.3",
+            "unknown"
+          ],
+          "title": "Version",
+          "type": "string"
+        },
+        "is_deprecated": {
+          "title": "Is Deprecated",
+          "type": "boolean"
+        },
+        "cipher_suite": {
+          "title": "Cipher Suite",
+          "type": "string"
+        },
+        "cipher_strength": {
+          "enum": [
+            "strong",
+            "medium",
+            "weak",
+            "unknown"
+          ],
+          "title": "Cipher Strength",
+          "type": "string"
+        },
+        "is_aead": {
+          "title": "Is Aead",
+          "type": "boolean"
+        },
+        "kex": {
+          "enum": [
+            "ECDHE",
+            "RSA",
+            "DHE",
+            "unknown"
+          ],
+          "title": "Kex",
+          "type": "string"
+        },
+        "fs_flag": {
+          "title": "Fs Flag",
+          "type": "boolean"
+        },
+        "ja4": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ja4"
+        },
+        "ja4_rarity": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Population rarity 0..1 from offline shared/data/censys_top_ja4.json",
+          "title": "Ja4 Rarity"
+        },
+        "ja4s": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ja4S"
+        },
+        "early_data_offered": {
+          "default": false,
+          "title": "Early Data Offered",
+          "type": "boolean"
+        },
+        "early_data_accepted": {
+          "default": false,
+          "title": "Early Data Accepted",
+          "type": "boolean"
+        },
+        "psk_offered": {
+          "default": false,
+          "title": "Psk Offered",
+          "type": "boolean"
+        },
+        "ticket_age": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticket Age"
+        },
+        "ech_outer_present": {
+          "default": false,
+          "title": "Ech Outer Present",
+          "type": "boolean"
+        },
+        "handshake_success": {
+          "title": "Handshake Success",
+          "type": "boolean"
+        },
+        "alert_after_starttls": {
+          "title": "Alert After Starttls",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "version",
+        "is_deprecated",
+        "cipher_suite",
+        "cipher_strength",
+        "is_aead",
+        "kex",
+        "fs_flag",
+        "handshake_success",
+        "alert_after_starttls"
+      ],
+      "title": "TLS",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "flow_id": {
+      "title": "Flow Id",
+      "type": "string"
+    },
+    "app_protocol": {
+      "enum": [
+        "smtp",
+        "imap",
+        "pop3"
+      ],
+      "title": "App Protocol",
+      "type": "string"
+    },
+    "starttls_mode": {
+      "enum": [
+        "upgrade",
+        "implicit",
+        "none",
+        "stripped"
+      ],
+      "title": "Starttls Mode",
+      "type": "string"
+    },
+    "tls": {
+      "$ref": "#/$defs/TLS"
+    },
+    "cert": {
+      "$ref": "#/$defs/Cert"
+    },
+    "assessment": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PolicyDecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "flow_id",
+    "app_protocol",
+    "starttls_mode",
+    "tls",
+    "cert",
+    "assessment"
+  ],
+  "title": "FlowVerdict",
+  "type": "object"
+}
