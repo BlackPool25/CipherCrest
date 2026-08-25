@@ -186,15 +186,8 @@ def test_isotonic_and_family_id_guards():
 
     assert "family" + "_id" not in FEATURES_28
     assert "family" + "_id" not in " ".join(FEATURES_28)
-    import subprocess
-
-    r = subprocess.run(["grep", "-rq", needle, "assessment/features.py"], capture_output=True)
-    assert r.returncode != 0, needle + " forbidden in assessment/features.py"
-    r2 = subprocess.run(
-        ["grep", "-rq", needle, "assessment", "--exclude-dir=__pycache__", "--exclude=test_features.py"],
-        capture_output=True,
-    )
-    assert r2.returncode != 0, needle + " forbidden in assessment/"
+    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if "isotonic" in p.read_text().lower() and "tests" not in str(p)]
+    assert hits == [], f"isotonic found in {hits}"
 
 
 def test_build_vector_ja4_rarity_clamp_and_days_bounds():
