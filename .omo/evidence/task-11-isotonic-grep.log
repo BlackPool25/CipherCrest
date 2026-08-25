@@ -1,0 +1,5 @@
+# grep -r isotonic assessment/ should find nothing (Platt only)
+$ ! grep -rq "isotonic" assessment/ && echo "PASS: no isotonic in assessment/"
+PASS: no isotonic in assessment/
+$ grep -rq "isotonic" assessment/; echo "exit:$?"
+exit:1 (not found — guard PASS)

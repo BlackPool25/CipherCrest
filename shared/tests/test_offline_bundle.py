@@ -87,11 +87,13 @@ def test_wheelhouse_size():
             # du output: "size\tpath"
             size_m = int(r.stdout.strip().split()[0])
             assert size_m < 800, f"wheelhouse {size_m}MB >=800MB — exceeds offline bundle limit"
-            # lean without torch <350MB
-            # if torch not in wheelhouse, stricter check
+            # lean without torch <350MB — Day5-6 hard-fail (T6 345M)
             has_torch = any("torch" in p.name.lower() for p in wh.glob("*.whl"))
             if not has_torch:
                 assert size_m < 350, f"lean wheelhouse {size_m}MB >=350MB without torch — bloat"
+                # lean must contain ECOD+XGB only, no torch
+                assert any("xgboost" in p.name.lower() for p in wh.glob("*.whl")), "xgboost wheel missing lean"
+                assert any("pyod" in p.name.lower() for p in wh.glob("*.whl")), "pyod ECOD wheel missing lean"
             else:
                 # with torch still <800 already checked
                 pass

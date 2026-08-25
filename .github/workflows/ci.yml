@@ -33,12 +33,64 @@ jobs:
       - name: Schema drift guard
         run: |
           python shared/scripts/gen_schemas_json.py && git diff --exit-code shared/schemas.json || (echo "drift: shared/schemas.json != FlowVerdict.model_json_schema()" && exit 1)
-      - name: Isotonic guard
+      - name: Schema drift python guard (freeze)
         run: |
-          ! grep -rq "isotonic" assessment/ || (echo "isotonic forbidden at n<1000" && exit 1)
-      - name: Raw JA4 guard
+          python -c "import json, pathlib; from shared.schemas import FlowVerdict; live=FlowVerdict.model_json_schema(); disk=json.loads(pathlib.Path('shared/schemas.json').read_text()); assert live==disk, 'shared/schemas.json drift vs FlowVerdict.model_json_schema()'"
+      - name: Features 28 contract
         run: |
-          ! grep -R "ja4.*in.*feature" assessment/ | grep -v ja4_rarity || (echo "raw ja4 in vector forbidden" && exit 1)
+          python -c "from assessment.features import FEATURES_28; assert len(FEATURES_28)==28, f'FEATURES_28 len==28 got {len(FEATURES_28)}'; assert 'ja4' not in FEATURES_28 and 'ja4_rarity' in FEATURES_28"
+          python -c "from assessment.features import FEATURES_28, build_vector; import json; v=json.load(open('shared/fixtures/family-01.json')); vec=build_vector(v, mode='xgb'); assert len(vec)==28; vec2=build_vector(v, mode='ae'); assert len(vec2)==28"
+      - name: XGB categorical guard (hist)
+        run: |
+          python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['tree_method']=='hist' and XGB_CATEGORICAL_PARAMS['enable_categorical'] is True, 'XGB must be hist+enable_categorical'"
+          grep -q "enable_categorical" assessment/features.py || (echo "enable_categorical guard missing" && exit 1)
+          grep -q "tree_method.*hist" assessment/features.py || (echo "tree_method hist guard missing" && exit 1)
+      - name: Isotonic guard (Platt only)
+        run: |
+          ! grep -rq "isotonic" assessment/ --include="*.py" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" || (echo "isotonic forbidden at n<1000 — Platt only" && exit 1)
+          python -c "import pathlib, re; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p)]; assert hits==[], f'isotonic found in {hits}'"
+      - name: Raw JA4 whitelist guard
+        run: |
+          python -c "from analyzer.jas import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES, f'whitelist {ALLOWED_RISK_FEATURES}'"
+          python -c "from shared.ja4_rarity import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
+          python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
+          ! grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 || (echo "raw ja4 in vector forbidden" && exit 1)
+      - name: Splits grouping + ratio guard
+        run: |
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(set(s['all_environment_ids']))>=5, f\"unique envs {len(set(s['all_environment_ids']))} <5\"; mx=max(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); mn=min(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); assert mx/mn <3, f'ratio {mx}/{mn} >=3'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert 'family_id' not in open('assessment/splits.json').read(), 'family_id grouping forbidden'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in open('assessment/splits.json').read() or 'environment_id' in str(s.get('groups_by_env',{})), 'env_id grouping missing'"
+      - name: Locked disjoint guard
+        run: |
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])), f\"D3_locked overlaps train/val {set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))}\""
+      - name: Prior disjoint + prior_flag guard
+        run: |
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s.get('D_prior_groups',[])) & set(s['D1_train_groups']), f\"D_prior overlaps D1\""
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('prior_flag') is True for r in c), 'prior_flag != True'"
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('chain_valid') is None for r in c), 'chain_valid must be None'"
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('san_match') is None for r in c), 'san_match must be None'"
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('days_to_expiry') is None for r in c), 'days_to_expiry must be None'"
+      - name: ja4_rarity span guard
+        run: |
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); vals=[r['tls']['ja4_rarity'] for r in c if r.get('tls',{}).get('ja4_rarity') is not None]; assert len(vals)>=15 and 0.0<=min(vals)<=0.2 and 0.8<=max(vals)<=1.0, f'ja4_rarity span {min(vals)}..{max(vals)}'"
+      - name: Grouping env_id + D5 temporal guard
+        run: |
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in str(s) or 'environment_id' in open('assessment/splits.json').read()"
+          python -c "import json; s=json.load(open('assessment/splits.json')); t=s['D5_temporal_same_env']; assert t['train_epoch']!=t['test_epoch'] and t['env_id_frozen'] is True, f'D5 guard {t}'"
+      - name: Metrics shell Day7 (no fail)
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('eval/metrics.json'); data=json.load(open(p)) if p.exists() else []; print(f'metrics shell Day7: {len(data) if isinstance(data,list) else \"dict\"} rows — no hard-fail')"
+      - name: Freeze guard pytest green
+        run: |
+          pytest shared/tests/test_freeze_guard.py -q
+      - name: Censys prior pytest green
+        run: |
+          pytest shared/tests/test_censys_prior.py -q
+      - name: Wheelhouse lean <350M
+        run: |
+          du -m wheelhouse | tail -1 || echo "wheelhouse missing — gate skipped until Day5"
+          test ! -d wheelhouse || bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 350 ] || (echo "wheelhouse lean <350M failed $(du -m wheelhouse | tail -1)" && exit 1)'
+          python -c "import pathlib; wh=pathlib.Path('wheelhouse'); has_torch=any('torch' in p.name.lower() for p in wh.glob('*.whl')) if wh.exists() else False; assert not has_torch, 'lean wheelhouse must not contain torch'"
       - name: Vite bundle size
         run: |
           test -f dashboard/dist/assets/*.js && bash -c '[ $(gzip -c dashboard/dist/assets/*.js | wc -c) -lt 3670016 ]' || echo "vite bundle gate skipped until dist built"
