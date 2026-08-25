@@ -1,0 +1,134 @@
+# Lab 10-family matrix — postfix:3.9 + dovecot:2.3 + mockdns on bridge 172.18.0.0/24
+# Offline replay is primary (pcaps in lab/pcaps/*.pcap); live containers are stretch / demo lane.
+# Postfix 3.9 syntax: smtpd_tls_mandatory_protocols=>=TLSv1.2, smtpd_tls_chain_files, ssl is required (not legacy yes)
+# Dovecot 2.3: ssl_min_protocol=TLSv1.2, ssl_cipher_list Mozilla Intermediate, disable_plaintext_auth=yes
+# mockdns: dnsmasq:2.90 placeholder Day1 (Day2 wires MX/MTA-STS/DANE zone)
+#
+# 10-family cert matrix (Day2):
+# Family01 587 TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 rsa2048 PASS (baseline)
+# Family02 25  TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 P-256           — port 25 submission
+# Family03 143 TLS1.2 ECDHE-RSA-DES-CBC3-SHA (3DES-CBC SWEET32) High — IMAP STARTTLS Bennett CAPABILITY->STARTTLS
+# Family04 110 TLS1.0 ECDHE-RSA-RC4-SHA (RC4) Critical            — POP3 STLS CAPA->STLS
+# Family05 587 TLS1.1 AES128-SHA (RSA, no ECDHE, self-signed) Critical — STARTTLS self-signed
+# Family06 993 TLS1.3 TLS_AES_128_GCM_SHA256 x25519 opaque PASS but opaque (implicit)
+# Family07 587 TLS1.2 AES128-SHA256 SHA1withRSA expired Critical   — STARTTLS expired SHA1
+# Family08 587 TLS1.2 DES-CBC-SHA (single DES) rsa1024 Critical    — STARTTLS DES + rsa1024 weak
+# Family09 587 none cleartext stripped Critical                   — EHLO no STARTTLS
+# Family10 587 TLS1.2 RSA-AES128-SHA (RSA kex, no FS, chain incomplete) High — STARTTLS RSA-no-FS
+#
+# Per-family env overrides (document expected cipher; real enforcement via lab/certs/*):
+# Family02: POSTFIX_smtpd_tls_mandatory_protocols=>=TLSv1.2 + P-256 cert
+# Family03: DOVECOT_ssl_cipher_list=DES-CBC3-SHA / 3DES-CBC SWEET32
+# Family04: DOVECOT ssl_cipher_list RC4-SHA / TLS1.0
+# Family05: POSTFIX TLS1.1 self-signed cert lab/certs/selfsigned.crt
+# Family07: POSTFIX expired cert lab/certs/expired.crt (SHA1)
+# Family08: POSTFIX rsa1024.crt DES cipher
+# Family10: POSTFIX chain-incomplete.crt RSA no-FS
+
+services:
+  postfix:
+    image: postfix:3.9-alpine
+    # Fallback image if postfix:3.9-alpine not on Docker Hub: use catatnight/postfix or boky/postfix
+    # For CI without Docker, pcaps/certs are pre-generated; this service is optional.
+    container_name: lab-postfix
+    hostname: mail.lab.local
+    networks:
+      lab:
+        ipv4_address: 172.18.0.2
+    ports:
+      - "127.0.0.1:587:587"
+      - "127.0.0.1:25:25"
+    volumes:
+      - ./certs/CA/ca.crt:/etc/postfix/certs/ca.crt:ro
+      - ./certs/rsa2048.crt:/etc/postfix/certs/rsa2048.crt:ro
+      - ./certs/rsa2048.key:/etc/postfix/certs/rsa2048.key:ro
+    environment:
+      - POSTFIX_smtpd_tls_mandatory_protocols=>=TLSv1.2
+      - POSTFIX_smtpd_tls_mandatory_ciphers=high
+      - POSTFIX_smtpd_tls_chain_files=/etc/postfix/certs/rsa2048.key,/etc/postfix/certs/rsa2048.crt
+      - POSTFIX_smtpd_tls_security_level=may
+      - POSTFIX_smtp_tls_security_level=may
+      - POSTFIX_smtpd_tls_auth_only=yes
+      - POSTFIX_smtpd_tls_loglevel=1
+      - POSTFIX_myhostname=mail.lab.local
+      - POSTFIX_mydomain=lab.local
+      - POSTFIX_myorigin=lab.local
+    command: ["sh", "-c", "postfix start && tail -f /var/log/maillog || sleep infinity"]
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "postfix status || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  dovecot:
+    image: dovecot:2.3
+    container_name: lab-dovecot
+    hostname: imap.lab.local
+    networks:
+      lab:
+        ipv4_address: 172.18.0.3
+    ports:
+      - "127.0.0.1:993:993"
+      - "127.0.0.1:143:143"
+    volumes:
+      - ./certs/CA/ca.crt:/etc/dovecot/certs/ca.crt:ro
+      - ./certs/rsa2048.crt:/etc/dovecot/certs/rsa2048.crt:ro
+      - ./certs/rsa2048.key:/etc/dovecot/certs/rsa2048.key:ro
+    environment:
+      - DOVECOT_ssl=required
+      - DOVECOT_ssl_min_protocol=TLSv1.2
+      - DOVECOT_ssl_cipher_list=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+      - DOVECOT_ssl_prefer_server_ciphers=yes
+      - DOVECOT_disable_plaintext_auth=yes
+      - DOVECOT_ssl_cert=</etc/dovecot/certs/rsa2048.crt
+      - DOVECOT_ssl_key=</etc/dovecot/certs/rsa2048.key
+    command: ["sh", "-c", "dovecot -F || sleep infinity"]
+    restart: "no"
+
+  mockdns:
+    image: andyshinn/dnsmasq:2.86
+    # Fallback: dnsmasq:2.90 or coredns/coredns:1.11 — any dnsmasq compatible
+    container_name: lab-mockdns
+    hostname: mockdns.lab.local
+    networks:
+      lab:
+        ipv4_address: 172.18.0.53
+    # Day2 wired — offline zone lab.local (no internet MX lookup):
+    # lab.local MX 10 mail.lab.local, mail.lab.local A 172.18.0.2,
+    # _mta-sts.lab.local TXT "v=STSv1; id=20260825", mta-sts.lab.local A 172.18.0.5
+    # + TLSA _25._tcp.mail.lab.local 3 1 1 <SPKI> via mta-sts http sidecar /.well-known/mta-sts.txt
+    command: ["dnsmasq", "-d", "--no-daemon", "--log-queries", "--address=/mta-sts.lab.local/172.18.0.5", "--address=/mail.lab.local/172.18.0.2", "--address=/lab.local/172.18.0.2", "--mx-host=lab.local,mail.lab.local,10", "--txt-record=_mta-sts.lab.local,\"v=STSv1; id=20260825\"", "--dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b"]
+    restart: "no"
+
+  mta-sts:
+    image: python:3.11-alpine
+    container_name: lab-mta-sts
+    hostname: mta-sts.lab.local
+    networks:
+      lab:
+        ipv4_address: 172.18.0.5
+    # Plain HTTP sidecar — MUST NOT require HTTPS/cert (mock). Serves /.well-known/mta-sts.txt
+    # version: STSv1, mode: enforce, mx: mail.lab.local, max_age: 86400 per shared/data/mta-sts-fixture.json
+    command: ["sh", "-c", "mkdir -p /var/www/.well-known && printf 'version: STSv1\nmode: enforce\nmx: mail.lab.local\nmax_age: 86400\n' > /var/www/.well-known/mta-sts.txt && cat /var/www/.well-known/mta-sts.txt && cd /var/www && python -m http.server 80"]
+    restart: "no"
+
+  sender:
+    image: alpine:3.19
+    container_name: lab-sender
+    hostname: sender.lab.local
+    networks:
+      lab:
+        ipv4_address: 172.18.0.11
+    # Offline sender — apk add swaks openssl tcpdump bind-tools curl then sleep infinity on lab bridge
+    command: ["sh", "-c", "apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo 'sender ready swaks+openssl+tcpdump'; sleep infinity"]
+    restart: "no"
+
+networks:
+  lab:
+    name: lab
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24
+          gateway: 172.18.0.1

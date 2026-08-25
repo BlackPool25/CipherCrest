@@ -1,0 +1,122 @@
+{
+  "family-01": {
+    "port": 587,
+    "tls": "1.2",
+    "cipher": "ECDHE-RSA-AES128-GCM-SHA256",
+    "kex": "ECDHE",
+    "cert": "rsa2048",
+    "cert_file": "lab/certs/rsa2048.crt",
+    "starttls": "upgrade",
+    "flag": "PASS",
+    "pcap": "lab/pcaps/family-01.pcap",
+    "description": "Postfix 587 STARTTLS upgrade TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 P-256 rsa2048 SHA256 90d — PASS"
+  },
+  "family-02": {
+    "port": 25,
+    "tls": "1.2",
+    "cipher": "ECDHE-RSA-AES256-GCM-SHA384",
+    "kex": "ECDHE",
+    "cert": "p256",
+    "cert_file": "lab/certs/p256.crt",
+    "starttls": "upgrade",
+    "flag": "PASS",
+    "pcap": "lab/pcaps/family-02.pcap",
+    "description": "Postfix 25 STARTTLS TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 P-256 — PASS"
+  },
+  "family-03": {
+    "port": 143,
+    "tls": "1.2",
+    "cipher": "DES-CBC3-SHA",
+    "kex": "RSA",
+    "cert": "rsa2048",
+    "cert_file": "lab/certs/rsa2048.crt",
+    "starttls": "upgrade",
+    "flag": "High",
+    "pcap": "lab/pcaps/family-03.pcap",
+    "description": "Dovecot 143 STARTTLS CAPABILITY->STARTTLS TLS1.2 DES-CBC3-SHA SWEET32 3DES-CBC High"
+  },
+  "family-04": {
+    "port": 110,
+    "tls": "1.0",
+    "cipher": "RC4-SHA",
+    "kex": "RSA",
+    "cert": "rsa2048",
+    "cert_file": "lab/certs/rsa2048.crt",
+    "starttls": "upgrade",
+    "flag": "Critical",
+    "pcap": "lab/pcaps/family-04.pcap",
+    "description": "Dovecot 110 STLS CAPA->STLS TLS1.0 RC4-SHA RC4 Critical"
+  },
+  "family-05": {
+    "port": 587,
+    "tls": "1.1",
+    "cipher": "AES128-SHA",
+    "kex": "RSA",
+    "cert": "selfsigned",
+    "cert_file": "lab/certs/selfsigned.crt",
+    "starttls": "upgrade",
+    "flag": "Critical",
+    "pcap": "lab/pcaps/family-05.pcap",
+    "description": "Postfix 587 STARTTLS TLS1.1 AES128-SHA self-signed Critical"
+  },
+  "family-06": {
+    "port": 993,
+    "tls": "1.3",
+    "cipher": "TLS_AES_128_GCM_SHA256",
+    "kex": "ECDHE",
+    "cert": "opaque",
+    "cert_file": null,
+    "starttls": "implicit",
+    "flag": "PASS but opaque",
+    "pcap": "lab/pcaps/family-06.pcap",
+    "description": "Dovecot 993 implicit TLS1.3 TLS_AES_128_GCM_SHA256 x25519 FS — PASS but opaque (is_tls13_opaque True)"
+  },
+  "family-07": {
+    "port": 587,
+    "tls": "1.2",
+    "cipher": "AES128-SHA256",
+    "kex": "ECDHE",
+    "cert": "expired",
+    "cert_file": "lab/certs/expired.crt",
+    "starttls": "upgrade",
+    "flag": "Critical",
+    "pcap": "lab/pcaps/family-07.pcap",
+    "description": "Postfix 587 STARTTLS TLS1.2 AES128-SHA256 SHA1 expired Critical"
+  },
+  "family-08": {
+    "port": 587,
+    "tls": "1.2",
+    "cipher": "DES-CBC-SHA",
+    "kex": "RSA",
+    "cert": "rsa1024",
+    "cert_file": "lab/certs/rsa1024.crt",
+    "starttls": "upgrade",
+    "flag": "Critical",
+    "pcap": "lab/pcaps/family-08.pcap",
+    "description": "Postfix 587 STARTTLS TLS1.2 DES-CBC-SHA DES single rsa1024 Critical"
+  },
+  "family-09": {
+    "port": 587,
+    "tls": "none",
+    "cipher": "none",
+    "kex": "unknown",
+    "cert": "none",
+    "cert_file": null,
+    "starttls": "cleartext",
+    "flag": "Critical stripping possible",
+    "pcap": "lab/pcaps/family-09.pcap",
+    "description": "Cleartext stripped — EHLO without STARTTLS, MAIL/RCPT/DATA in clear — Critical downgrade possible (low conf single-flow)"
+  },
+  "family-10": {
+    "port": 587,
+    "tls": "1.2",
+    "cipher": "RSA-AES256-SHA",
+    "kex": "RSA",
+    "cert": "chain-incomplete",
+    "cert_file": "lab/certs/chain-incomplete.crt",
+    "starttls": "upgrade",
+    "flag": "High",
+    "pcap": "lab/pcaps/family-10.pcap",
+    "description": "Postfix 587 STARTTLS TLS1.2 RSA-AES256-SHA RSA-no-FS chain-incomplete High"
+  }
+}
