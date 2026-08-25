@@ -1,10 +1,16 @@
-"""USE_STUB flag — Day1-2 True (fixture passthrough), flips to False at Day3 when reassembled/*.bin green.
+"""USE_STUB flag — Day1-2 True (fixture passthrough), flips to False at Day3 when ledger 🟢.
 
 When USE_STUB is True, api/app.py imports from shared.mocks.reassembler_stub /
 validator_stub and returns validated FlowVerdict fixtures without invoking real
 reassembly or X.509 validation. At Day3 the flag flips to False once
-lab/reassembler/reassemble.py produces reassembled/*.bin with coverage green,
-at which point the real pipeline is wired and stubs become fallback only.
+shared/progress.md has >=3 🟢, lab/LEDGER.md has >=3 coverage_ratio, and
+lab/pcaps/jittered/*.pcap exists — polling ledger not time.
 """
 
-USE_STUB: bool = True
+import pathlib
+
+USE_STUB: bool = not (
+    pathlib.Path("shared/progress.md").read_text(encoding="utf-8").count("🟢") >= 3
+    and pathlib.Path("lab/LEDGER.md").read_text(encoding="utf-8").count("coverage_ratio") >= 3
+    and any(pathlib.Path("lab/pcaps/jittered").glob("*.pcap"))
+)

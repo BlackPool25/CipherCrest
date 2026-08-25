@@ -1,0 +1,53 @@
+{
+  "flow_id": "family-07",
+  "environment_id": "family-07__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "07507ddf-f34e-4811-a12a-ff013b667577",
+  "app_protocol": "smtp",
+  "starttls_mode": "upgrade",
+  "tls": {
+    "version": "TLS1.2",
+    "is_deprecated": false,
+    "cipher_suite": "AES128-SHA256",
+    "cipher_strength": "medium",
+    "is_aead": false,
+    "kex": "ECDHE",
+    "fs_flag": true,
+    "ja4": "t12i010000_8ab899ea9ea2_000000000000",
+    "ja4_rarity": null,
+    "ja4s": "t12_000000000000_000000000000",
+    "early_data_offered": false,
+    "early_data_accepted": false,
+    "psk_offered": false,
+    "ticket_age": null,
+    "ech_outer_present": false,
+    "handshake_success": true,
+    "alert_after_starttls": false
+  },
+  "cert": {
+    "leaf_present": false,
+    "is_tls13_opaque": false,
+    "not_before": null,
+    "not_after": null,
+    "days_to_expiry": null,
+    "is_expired": null,
+    "is_self_signed": null,
+    "chain_length": null,
+    "chain_valid": null,
+    "san_match": null,
+    "pubkey_algo": null,
+    "pubkey_bits": null,
+    "sigalg": null,
+    "sigalg_weak": null,
+    "keysize_weak": null,
+    "ocsp_stapled_status": "unknown",
+    "ocsp_must_staple": null,
+    "crl_unknown_reason": null
+  },
+  "assessment": {
+    "findings": [],
+    "risk_level": "Low",
+    "risk_score": 10
+  },
+  "policy": null
+}

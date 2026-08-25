@@ -38,5 +38,8 @@
     "risk_level": "Low",
     "risk_score": 10
   },
-  "policy": null
+  "policy": null,
+  "environment_id": "family-01__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "e15cced1-c53f-486c-a09e-c4b5f3756d75"
 }

@@ -39,12 +39,15 @@
         "check": "STARTTLS stripping",
         "severity": "High",
         "spec": "RFC3207",
-        "evidence": "EHLO no STARTTLS advertisement, cleartext fallback — single-flow low confidence (needs history triple to confirm stripping)",
-        "remediation": "Enforce STARTTLS or use implicit TLS on 465/993 — correlate with 2 prior STARTTLS successes on same 5-tuple to escalate to Critical"
+        "evidence": "EHLO no STARTTLS advertisement, cleartext fallback \u2014 single-flow low confidence (needs history triple to confirm stripping)",
+        "remediation": "Enforce STARTTLS or use implicit TLS on 465/993 \u2014 correlate with 2 prior STARTTLS successes on same 5-tuple to escalate to Critical"
       }
     ],
     "risk_level": "High",
     "risk_score": 75
   },
-  "policy": null
+  "policy": null,
+  "environment_id": "family-09__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "c3a9939c-a731-4896-8b6b-83a451ec9778"
 }

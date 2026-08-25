@@ -1,0 +1,22 @@
+[
+  {"flow_id": "weberblog-01-flow01", "coverage_ratio": 1.0, "pre_tls_buffer_len": 138, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow02", "coverage_ratio": 1.0, "pre_tls_buffer_len": 142, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow03", "coverage_ratio": 1.0, "pre_tls_buffer_len": 135, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow04", "coverage_ratio": 1.0, "pre_tls_buffer_len": 140, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow05", "coverage_ratio": 1.0, "pre_tls_buffer_len": 139, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow06", "coverage_ratio": 0.98, "pre_tls_buffer_len": 132, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": true},
+  {"flow_id": "weberblog-01-flow07", "coverage_ratio": 1.0, "pre_tls_buffer_len": 0, "pre_tls_buffer_injection_possible": false, "banner": "* OK", "starttls_detected": false, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow08", "coverage_ratio": 1.0, "pre_tls_buffer_len": 0, "pre_tls_buffer_injection_possible": false, "banner": "* OK", "starttls_detected": false, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow09", "coverage_ratio": 1.0, "pre_tls_buffer_len": 0, "pre_tls_buffer_injection_possible": false, "banner": "+OK", "starttls_detected": false, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow10", "coverage_ratio": 1.0, "pre_tls_buffer_len": 145, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow11", "coverage_ratio": 1.0, "pre_tls_buffer_len": 137, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow12", "coverage_ratio": 1.0, "pre_tls_buffer_len": 136, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow13", "coverage_ratio": 1.0, "pre_tls_buffer_len": 141, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow14", "coverage_ratio": 1.0, "pre_tls_buffer_len": 0, "pre_tls_buffer_injection_possible": false, "banner": "220", "starttls_detected": false, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow15", "coverage_ratio": 1.0, "pre_tls_buffer_len": 134, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow16", "coverage_ratio": 1.0, "pre_tls_buffer_len": 133, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow17", "coverage_ratio": 0.99, "pre_tls_buffer_len": 130, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": true, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow18", "coverage_ratio": 1.0, "pre_tls_buffer_len": 143, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow19", "coverage_ratio": 1.0, "pre_tls_buffer_len": 139, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false},
+  {"flow_id": "weberblog-01-flow20", "coverage_ratio": 1.0, "pre_tls_buffer_len": 138, "pre_tls_buffer_injection_possible": true, "banner": "220", "starttls_detected": true, "gap_detected": false, "overlap_detected": false}
+]

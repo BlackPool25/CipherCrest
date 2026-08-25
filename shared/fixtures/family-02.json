@@ -1,21 +1,32 @@
 {
-  "flow_id": "family-06",
-  "app_protocol": "imap",
-  "starttls_mode": "implicit",
+  "flow_id": "family-02",
+  "environment_id": "family-02__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "e2ba2965-5961-43a7-8d4d-bf647a1029f7",
+  "app_protocol": "smtp",
+  "starttls_mode": "upgrade",
   "tls": {
-    "version": "TLS1.3",
+    "version": "TLS1.2",
     "is_deprecated": false,
-    "cipher_suite": "TLS_AES_128_GCM_SHA256",
+    "cipher_suite": "ECDHE-RSA-AES256-GCM-SHA384",
     "cipher_strength": "strong",
     "is_aead": true,
     "kex": "ECDHE",
     "fs_flag": true,
+    "ja4": "t12i010000_a17193ba21fd_000000000000",
+    "ja4_rarity": null,
+    "ja4s": "t12_000000000000_000000000000",
+    "early_data_offered": false,
+    "early_data_accepted": false,
+    "psk_offered": false,
+    "ticket_age": null,
+    "ech_outer_present": false,
     "handshake_success": true,
     "alert_after_starttls": false
   },
   "cert": {
     "leaf_present": false,
-    "is_tls13_opaque": true,
+    "is_tls13_opaque": false,
     "not_before": null,
     "not_after": null,
     "days_to_expiry": null,
@@ -29,17 +40,14 @@
     "sigalg": null,
     "sigalg_weak": null,
     "keysize_weak": null,
-    "ocsp_stapled_status": "opaque",
+    "ocsp_stapled_status": "unknown",
     "ocsp_must_staple": null,
     "crl_unknown_reason": null
   },
   "assessment": {
     "findings": [],
     "risk_level": "Low",
-    "risk_score": 15
+    "risk_score": 10
   },
-  "policy": null,
-  "environment_id": "family-06__postfix3.9_loss0",
-  "capture_epoch": "2026-08-27T00:00:00Z",
-  "source_id": "e828b0ab-bcb7-492a-9abd-1ea73b67726c"
+  "policy": null
 }
