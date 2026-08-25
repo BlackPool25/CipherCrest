@@ -42,3 +42,17 @@
 - Polled shared/progress.md daily: 🟢 gated (23 checks, no iso-tonic at n<100, raw ja4 not as feature, family-grouping forbidden)
 - prior_flag disjoint: shared/data/censys_top_ja4.json source until censys_sampled_200.json Day7
 - locked disjoint + ja4_rarity 0..1 span + chain_valid None censys 11/28 cols hardened
+
+## Honesty Annex — P1 ack Day5 alias, freeze intact
+
+- PolicyDecision wire literals frozen per shared/CONTRIBUTING.md P1 Day2 00:00 additive-only: `allow/quarantine/block/flag` unchanged (shared/schemas.py:123). No mutation.
+- Spec display mapping via assessment/policy.py `_ALIAS = {"allow":"deliver","flag":"deliver_banner","quarantine":"quarantine","block":"hold_incident"}` + `to_spec_action()` only in policy layer; dashboard/EVIDENCE use spec, wire stays frozen. `PolicyDecision.model_json_schema()["properties"]["action"]["enum"] == ["allow","quarantine","block","flag"]` verified in tests.
+- P1 ack Day5: alias documented, freeze intact, no quarantine table / raw body attach, quarantine_id None lean.
+- Lean policy deterministic: Low (<10)→allow banner None, Medium (10-24)→flag yellow "Weak transport — do not send sensitive data", High (25-39)→quarantine/flag yellow, Critical (≥40)→block red "Critical — blocked / hold_incident"; siem_severity mirrors risk_level; disposition_reason includes risk_score+top finding; is_tls13_opaque alone never holds (opaque with only Info → Low allow); low-conf stripping single → flag not block, triple → block.
+- Per-family policy (via evaluate+score): 01 secure strong valid → Low allow, 03 3DES → Critical→block (High quarantined in display), 04 RC4→Critical block, 06 opaque→Low allow, 07 expired+SHA1 synthetic→Critical block, 09 single low-conf→High flag, 09 triple→Critical block. 7 fixtures green.
+- No torch/training/isotonic/as any/unwrap; <250 LOC lean (217 pure); quarantine table deferred to Day10 stretch.
+
+## Daily Poll — Day5
+
+- 2026-08-25 assessment/policy.py lean 7 fixtures 🟢 — decide() deterministic, 7/7 green, 217 LOC, alias P1 ack, is_tls13_opaque never holds, low-conf flag not block
+- prior_flag disjoint still 🟢 (splits.json Day5 pending T2)
