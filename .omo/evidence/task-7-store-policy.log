@@ -1,0 +1,87 @@
+Store/PolicyBuilder log 2026-08-25T09:29:45Z
+privateCA: subject=CN=lab.local
+issuer=CN=lab.local
+ca-bundle certs: 146
+intermediates dir: total 0
+drwxr-xr-x. 1 shreyas shreyas  0 Aug 25 14:59 .
+drwxr-xr-x. 1 shreyas shreyas 78 Aug 25 14:59 ..
+PolicyBuilder usage: 5:from cryptography.x509.verification import Store, PolicyBuilder, VerificationError
+91:    verifier = PolicyBuilder().store(store).time(vt).max_chain_depth(6).build_server_verifier(DNSName(HOSTNAME))
+171:    ap = argparse.ArgumentParser(description="RFC5280 Store/PolicyBuilder chain validator")
+Store usage: 5:from cryptography.x509.verification import Store, PolicyBuilder, VerificationError
+48:    return Store(certs) if certs else Store([])
+171:    ap = argparse.ArgumentParser(description="RFC5280 Store/PolicyBuilder chain validator")
+max_chain_depth: 91:    verifier = PolicyBuilder().store(store).time(vt).max_chain_depth(6).build_server_verifier(DNSName(HOSTNAME))
+DNSName: 4:from cryptography.x509 import load_der_x509_certificate, load_pem_x509_certificate, DNSName
+91:    verifier = PolicyBuilder().store(store).time(vt).max_chain_depth(6).build_server_verifier(DNSName(HOSTNAME))
+143:        sans = ext.get_values_for_type(x509.DNSName)
+load_der: 4:from cryptography.x509 import load_der_x509_certificate, load_pem_x509_certificate, DNSName
+18:        certs.append(load_der_x509_certificate(der))
+28:            certs.append(load_der_x509_certificate(der))
+32:        return [load_der_x509_certificate(raw)]
+verify_directly absent: 0
+0
+/home/shreyas/projects/CipherCrest/validator/chain.py:18: CryptographyDeprecationWarning: Parsed a serial number which wasn't positive (i.e., it was negative or zero), which is disallowed by RFC 5280. Loading this certificate will cause an exception in a future release of cryptography.
+  certs.append(load_der_x509_certificate(der))
+{
+  "leaf_present": true,
+  "is_tls13_opaque": false,
+  "not_before": "2026-08-25T04:11:15+00:00",
+  "not_after": "2026-11-23T04:11:15+00:00",
+  "days_to_expiry": 89,
+  "is_expired": false,
+  "is_self_signed": false,
+  "chain_length": 2,
+  "chain_valid": true,
+  "san_match": true,
+  "pubkey_algo": "RSA",
+  "pubkey_bits": 2048,
+  "sigalg": "sha256",
+  "sigalg_weak": false,
+  "keysize_weak": false,
+  "ocsp_stapled_status": "not_stapled",
+  "ocsp_must_staple": false,
+  "crl_unknown_reason": false
+}
+--- chain-incomplete ---
+/home/shreyas/projects/CipherCrest/validator/chain.py:18: CryptographyDeprecationWarning: Parsed a serial number which wasn't positive (i.e., it was negative or zero), which is disallowed by RFC 5280. Loading this certificate will cause an exception in a future release of cryptography.
+  certs.append(load_der_x509_certificate(der))
+VerificationError: validation failed: candidates exhausted: all candidates exhausted with no interior errors
+{
+  "leaf_present": true,
+  "is_tls13_opaque": false,
+  "not_before": "2026-08-25T09:28:23+00:00",
+  "not_after": "2026-11-23T09:28:23+00:00",
+  "days_to_expiry": 89,
+  "is_expired": false,
+  "is_self_signed": false,
+  "chain_length": 1,
+  "chain_valid": false,
+  "san_match": true,
+  "pubkey_algo": "RSA",
+  "pubkey_bits": 2048,
+  "sigalg": "sha256",
+  "sigalg_weak": false,
+  "keysize_weak": false,
+  "ocsp_stapled_status": "not_stapled",
+--- expired ---
+/home/shreyas/projects/CipherCrest/validator/chain.py:18: CryptographyDeprecationWarning: Parsed a serial number which wasn't positive (i.e., it was negative or zero), which is disallowed by RFC 5280. Loading this certificate will cause an exception in a future release of cryptography.
+  certs.append(load_der_x509_certificate(der))
+VerificationError: validation failed: cert is not valid at validation time (encountered processing <Certificate(subject=<Name(CN=mail.lab.local)>, ...)>)
+{
+  "leaf_present": true,
+  "is_tls13_opaque": false,
+  "not_before": "2026-07-26T04:26:28+00:00",
+  "not_after": "2026-08-24T04:26:28+00:00",
+  "days_to_expiry": -2,
+  "is_expired": true,
+  "is_self_signed": true,
+  "chain_length": 1,
+  "chain_valid": false,
+  "san_match": true,
+  "pubkey_algo": "RSA",
+  "pubkey_bits": 2048,
+  "sigalg": "sha256",
+  "sigalg_weak": false,
+  "keysize_weak": false,
+  "ocsp_stapled_status": "not_stapled",
