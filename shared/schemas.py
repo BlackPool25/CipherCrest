@@ -132,6 +132,13 @@ class FlowVerdict(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
 
     flow_id: str
+    environment_id: str | None = Field(default=None)
+    capture_epoch: str | None = Field(default=None)
+    source_id: str | None = Field(default=None)
+    # lineage coverage — additive Optional per R1-R8, keeps extra='forbid' honest
+    coverage_ratio: float | None = Field(default=None, ge=0, le=1)
+    pre_tls_buffer_len: int | None = Field(default=None, ge=0)
+    pre_tls_buffer_injection_possible: bool | None = Field(default=None)
     app_protocol: Literal["smtp", "imap", "pop3"]
     starttls_mode: Literal["upgrade", "implicit", "none", "stripped"]
     tls: TLS

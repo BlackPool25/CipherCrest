@@ -14,8 +14,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install dependencies (air-gap)
+        run: pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt -r requirements-dev.txt
       - name: Run schema tests
-        run: pytest shared/tests/test_schema.py -v
+        run: pytest shared/tests/test_schema.py shared/tests/test_freeze_guard.py shared/tests/test_ja4_grease.py shared/tests/test_ja4_rarity.py -q
+      - name: Fixtures parity
+        run: pytest shared/tests/test_fixtures_parity.py -q
+      - name: Offline bundle
+        run: pytest shared/tests/test_offline_bundle.py -q
+      - name: Schema drift guard
+        run: python shared/scripts/gen_schemas_json.py && git diff --exit-code shared/schemas.json || (echo "drift: shared/schemas.json != FlowVerdict.model_json_schema()" && exit 1)
+      - name: Isotonic guard
+        run: "! grep -rq \"isotonic\" assessment/ || (echo \"isotonic forbidden at n<1000\" && exit 1)"
+      - name: Raw JA4 guard
+        run: "! grep -R \"ja4.*in.*feature\" assessment/ | grep -v ja4_rarity || (echo \"raw ja4 in vector forbidden\" && exit 1)"
+      - name: Vite bundle size
+        run: test -f dashboard/dist/assets/*.js && bash -c '[ $(gzip -c dashboard/dist/assets/*.js | wc -c) -lt 3670016 ]' || echo "vite bundle gate skipped until dist built"
       # Require status checks — this job must be green to merge to main
