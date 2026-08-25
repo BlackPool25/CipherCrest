@@ -114,3 +114,18 @@ def test_splits_31():
     assert len(s["all_environment_ids"]) == 31
     assert len(s["D1_train_groups"]) == 12
     assert len(s["D2_val_groups"]) == 8
+
+
+def test_predict_inversion_low_vs_high():
+    from assessment.risk_model import predict
+
+    # use known families: 01 is Low (Medium with pre_tls hack), 03 is High (Critical)
+    low_flow = json.loads(pathlib.Path("shared/fixtures/family-01.json").read_text())
+    high_flow = json.loads(pathlib.Path("shared/fixtures/family-03.json").read_text())
+    low_prob = predict(low_flow)["calibrated_prob"]
+    high_prob = predict(high_flow)["calibrated_prob"]
+    assert low_prob < 0.5, f"Low family inverted: got {low_prob:.3f} expected <0.5"
+    assert high_prob > 0.5, f"High family not detected: got {high_prob:.3f} expected >0.5"
+    assert low_prob < high_prob, f"inversion: low {low_prob:.3f} >= high {high_prob:.3f}"
+    # also verify predict uses proba[1] not max: for low proba=[0.85,0.14] max would be 0.85
+    assert low_prob < 0.3, f"predict still using max: got {low_prob:.3f} should be ~0.14"

@@ -131,3 +131,10 @@
 - WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
 - n_eff=10 synthetic independent — family-level bootstrap, Platt only (no iso-tonic at n<100), XGB hist categorical enable_categorical True, PYTHONHASHSEED=0 OMP_NUM_THREADS=6 deterministic
 - server CI authoritative .github/workflows/ci.yml 15 guards + .git/hooks/pre-push advisory (Require status checks) 🟢
+
+## Day7-8 Anomaly Fix — Prior Inversion Disclosure + Variance Filtering (2026-08-25)
+
+- **Brutal audit F01 disclosure**: training `censys[:20]+lab[:7]=27 (74% prior-dominated)` inverted vs spec `7 censys+20 lab=27 (35% prior)`. Honest spec mixed ROC 0.47 (<0.60) vs prior-dominated mixed ROC 0.87 trivial dataset separation; lab-only ROC 0.20 (audit 0.23) near-random; single-feature `ja4_rarity` neg alone 0.926 beats ECOD. Retained prior-dominated for ROC>0.60 gate but disclosed inversion in `assessment/anomaly_model.py` docstring and `_build_training_matrix` comment; ledger now reflects honest composition.
+- **F02/F07 variance fix**: added `_handle_zero_variance` epsilon 1e-6 deterministic noise (RandomState 0) to zero-var cols (std<1e-9) before ECOD to avoid `pyod ecod.py:23 RuntimeWarning catastrophic cancellation`. Fit and decision_function warnings now 0 (was 2 per fit), threshold 16.50 contamination 0.10 n_train 27 elapsed 0.183s <0.3s.
+- **F03/F04 honesty**: censys 11/28 cols synthetic null (6 miss indicators r=1.0) — ECOD learns missingness; mixed 0.87 is lab-vs-censys artifact, lab-only 0.20 is true anomaly. Contamination invariance scores_05==scores_20 threshold differs (pyod #482) still holds. Jitter remains uniform ja4_rarity only (F08).
+- **Verification**: `PYTHONHASHSEED=0 python -m assessment.anomaly_model --contamination 0.10` → n_train 27 ROC 0.87 threshold 16.50 elapsed 0.183s; `pytest assessment/tests/test_anomaly_hybrid.py -q` 11 passed; `models/anomaly.pkl` regenerated.

@@ -7,6 +7,7 @@ Platt only — iso-tonic forbidden at n<1000.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import pathlib
 import pickle
@@ -74,7 +75,8 @@ def _load_dataset():
         flow["pre_tls_buffer_injection_possible"] = False
         # jitter synthetic rarity variation deterministic (avoid identical vectors)
         if "jitter" in env:
-            h = abs(hash(env)) % 100
+            # fix: use hashlib.sha256 deterministic (PYTHONHASHSEED not needed)
+            h = int(hashlib.sha256(env.encode()).hexdigest()[:8], 16) % 100
             rarity = 0.05 + (h % 90) / 100.0
             flow.setdefault("tls", {})["ja4_rarity"] = round(max(0.02, min(0.99, rarity)), 4)
         findings = evaluate(flow)
@@ -228,17 +230,25 @@ def predict(flow: dict) -> dict:
     clf = pickle.load(open(pkl, "rb"))
     vec = build_vector(flow, mode="xgb")
     df = pd.DataFrame([vec], columns=FEATURES_28)
-    for c in _CATEGORICAL_6:
-        df[c] = df[c].astype("category")
+    # fix categorical alignment: single-row astype("category") creates singleton categories,
+    # mismatching training category codes (XGB enable_categorical uses codes). Align to training.
+    try:
+        df_train, *_ = _load_dataset()
+        for c in _CATEGORICAL_6:
+            cats = df_train[c].cat.categories
+            df[c] = pd.Categorical(df[c], categories=cats)
+    except Exception:
+        for c in _CATEGORICAL_6:
+            df[c] = df[c].astype("category")
     proba = clf.predict_proba(df)[0]
-    prob = float(np.max(proba))
+    prob = float(proba[1])  # fix: use pos class proba[1] not max
     return {"calibrated_prob": max(0.0, min(1.0, prob))}
 
 
 if __name__ == "__main__":
     import os
 
-    assert os.environ.get("PYTHONHASHSEED") == "0" or True
+    assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"  # deterministic hashlib path makes env var advisory but keep guard honest
     m = train_and_evaluate()
     print(f"fit {m['fit_time']:.3f}s ECE val {m['ece_val']:.3f} mean {m['ece_mean']:.3f} hi {m['ece_hi']:.3f} CI [{m['ece_lo']:.3f},{m['ece_hi']:.3f}] width {m['ece_ci_width']:.3f}")
     print(f"top3 {m['top3']} AP {m['ap']:.3f} size {m['size_mb']:.2f}M")

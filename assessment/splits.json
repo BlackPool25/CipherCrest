@@ -127,6 +127,59 @@
       "family-10-jitter-03"
     ]
   },
+  "groups_by_family": {
+    "01": [
+      "family-01__postfix3.9_loss0"
+    ],
+    "02": [
+      "family-02__jitter1_loss5",
+      "family-02__jitter2_loss5",
+      "family-02__jitter3_loss5",
+      "family-02__postfix3.9_loss0"
+    ],
+    "03": [
+      "family-03__jitter1_loss5",
+      "family-03__jitter2_loss5",
+      "family-03__jitter3_loss5",
+      "family-03__postfix3.9_loss0"
+    ],
+    "04": [
+      "family-04__jitter1_loss5",
+      "family-04__jitter2_loss5",
+      "family-04__jitter3_loss5",
+      "family-04__postfix3.9_loss0"
+    ],
+    "05": [
+      "family-05__jitter1_loss5",
+      "family-05__jitter2_loss5",
+      "family-05__jitter3_loss5",
+      "family-05__postfix3.9_loss0"
+    ],
+    "06": [
+      "family-06__postfix3.9_loss0"
+    ],
+    "07": [
+      "family-07__jitter1_loss5",
+      "family-07__jitter2_loss5",
+      "family-07__jitter3_loss5",
+      "family-07__postfix3.9_loss0"
+    ],
+    "08": [
+      "family-08__jitter1_loss5",
+      "family-08__jitter2_loss5",
+      "family-08__jitter3_loss5",
+      "family-08__postfix3.9_loss0"
+    ],
+    "09": [
+      "family-09__postfix3.9_loss0"
+    ],
+    "10": [
+      "family-10__jitter1_loss5",
+      "family-10__jitter2_loss5",
+      "family-10__jitter3_loss5",
+      "family-10__postfix3.9_loss0"
+    ]
+  },
   "D1_train_groups": [
     "family-01__postfix3.9_loss0",
     "family-02__postfix3.9_loss0",
@@ -145,18 +198,18 @@
     "family-06__postfix3.9_loss0",
     "family-07__postfix3.9_loss0",
     "family-08__postfix3.9_loss0",
-    "family-05__jitter2_loss5",
-    "family-05__jitter3_loss5",
     "family-07__jitter1_loss5",
     "family-07__jitter2_loss5",
-    "family-08__jitter1_loss5"
+    "family-07__jitter3_loss5",
+    "family-08__jitter1_loss5",
+    "family-08__jitter2_loss5"
   ],
   "D3_locked_groups": [
     "family-09__postfix3.9_loss0",
     "family-10__postfix3.9_loss0",
-    "family-07__jitter3_loss5",
-    "family-08__jitter2_loss5",
-    "family-10__jitter2_loss5"
+    "family-10__jitter1_loss5",
+    "family-10__jitter2_loss5",
+    "family-10__jitter3_loss5"
   ],
   "D_prior_groups": [
     "censys_prior_0c4550a7",

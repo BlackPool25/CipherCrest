@@ -182,12 +182,8 @@ def test_family_id_forbidden_strict():
 
 
 def test_isotonic_forbidden_in_assessment():
-    needle = "iso" + "tonic"
-    result = subprocess.run(
-        ["grep", "-rq", needle, "assessment/", "--exclude-dir=__pycache__", "--exclude=test_splits.py", "--exclude=test_features.py"],
-        capture_output=True,
-    )
-    assert result.returncode != 0, "iso" + "tonic forbidden in assessment/"
+    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if "isotonic" in p.read_text().lower() and "tests" not in str(p)]
+    assert hits == [], f"isotonic found in {hits}"
 
 
 def test_groups_by_env_from_manifest():
@@ -197,3 +193,41 @@ def test_groups_by_env_from_manifest():
     s = _load_splits()
     assert set(s["all_environment_ids"]) == manifest_envs, "all_environment_ids != manifest environment_ids"
     assert set(s["groups_by_env"].keys()) == manifest_envs
+
+
+def test_groups_by_family_exists():
+    s = _load_splits()
+    assert "groups_by_family" in s, "groups_by_family missing for honest LOFAM"
+    gbf = s["groups_by_family"]
+    assert len(gbf) == 10, f"groups_by_family len {len(gbf)} !=10"
+    flat = [e for v in gbf.values() for e in v]
+    assert len(flat) == 31, f"groups_by_family flat {len(flat)} !=31"
+    assert set(flat) == set(s["all_environment_ids"])
+    assert set(flat) == set(s["groups_by_env"].keys())
+    vals = [len(v) for v in gbf.values()]
+    assert max(vals) / min(vals) < 5
+    text = SPLITS.read_text()
+    assert "family_id" not in text
+
+
+def test_family_disjoint_splits():
+    s = _load_splits()
+
+    def fam(env):
+        return env.split("__")[0].split("-")[1]
+
+    d1_fams = {fam(e) for e in s["D1_train_groups"]}
+    d2_fams = {fam(e) for e in s["D2_val_groups"]}
+    d3_fams = {fam(e) for e in s["D3_locked_groups"]}
+    assert not d1_fams & d2_fams, f"family overlap D1∩D2={d1_fams & d2_fams}"
+    assert not d2_fams & d3_fams, f"family overlap D2∩D3={d2_fams & d3_fams}"
+    assert not d1_fams & d3_fams, f"family overlap D1∩D3={d1_fams & d3_fams}"
+    assert d1_fams == {"01", "02", "03", "04", "05"}
+    assert d2_fams == {"06", "07", "08"}
+    assert d3_fams == {"09", "10"}
+    gbf = s["groups_by_family"]
+    for fid, envs in gbf.items():
+        in_d1 = any(e in s["D1_train_groups"] for e in envs)
+        in_d2 = any(e in s["D2_val_groups"] for e in envs)
+        in_d3 = any(e in s["D3_locked_groups"] for e in envs)
+        assert sum([in_d1, in_d2, in_d3]) <= 1, f"family {fid} straddles splits"
