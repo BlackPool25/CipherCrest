@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "wrk_sih26159_day1day2",
+  "active_work_id": "wrk_sih26159_day3day4",
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -14,6 +14,19 @@
       "started_at": "2026-08-25T04:00:00Z",
       "ended_at": "2026-08-25T10:35:00Z",
       "elapsed_ms": 23700000
+    },
+    "wrk_sih26159_day3day4": {
+      "work_id": "wrk_sih26159_day3day4",
+      "active_plan": ".omo/plans/sih26159-day3-day4-deep-dive.md",
+      "plan_name": "sih26159-day3-day4-deep-dive",
+      "session_ids": [
+        "codex:ses_current_atlas"
+      ],
+      "status": "completed",
+      "worktree_path": null,
+      "started_at": "2026-08-25T08:52:42Z",
+      "ended_at": "2026-08-25T10:07:05Z",
+      "elapsed_ms": 4463061
     }
   }
 }

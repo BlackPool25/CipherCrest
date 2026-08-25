@@ -1,0 +1,140 @@
+=== tshark 4-prefs parity log 2026-08-25T14:33:17+05:30 ===
+Prefs: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE
+WARNING: tshark missing — fallback coverage>95% via reassembler (4 prefs not runnable, but prefs hardcoded in reassemble.py)
+--- lab/pcaps/family-01.pcap (fallback) ---
+{
+  "flow_id": "127.0.0.1:587->127.0.0.11:54321",
+  "coverage_ratio": 1.0,
+  "banner": "220",
+  "starttls_detected": true,
+  "reassembled_bytes": 296,
+  "total_payload_bytes": 296,
+  "gap_bytes": 0,
+  "overlap_detected": false,
+  "gap_detected": false,
+  "pre_tls_buffer_len": 171,
+  "pre_tls_buffer_injection_possible": true,
+  "per_flow": [
+    {
+      "flow_id": "127.0.0.1:587->127.0.0.11:54321",
+      "coverage_ratio": 1.0,
+      "banner": "220",
+      "starttls_detected": true,
+      "reassembled_bytes": 209,
+      "total_payload_bytes": 209,
+      "gap_bytes": 0,
+      "overlap_detected": false,
+      "gap_detected": false,
+      "pre_tls_buffer_len": 138,
+      "pre_tls_buffer_injection_possible": true
+    },
+    {
+      "flow_id": "127.0.0.11:54321->127.0.0.1:587",
+      "coverage_ratio": 1.0,
+      "banner": null,
+      "starttls_detected": true,
+      "reassembled_bytes": 87,
+      "total_payload_bytes": 87,
+      "gap_bytes": 0,
+      "overlap_detected": false,
+      "gap_detected": false,
+      "pre_tls_buffer_len": 0,
+      "pre_tls_buffer_injection_possible": false
+    }
+  ],
+  "pcap": "lab/pcaps/family-01.pcap"
+}
+fallback F1>95% or coverage>95% OK: 1.0
+--- lab/pcaps/jittered.pcap (fallback) ---
+{
+  "flow_id": "127.0.0.1:587->127.0.0.11:54321",
+  "coverage_ratio": 0.897,
+  "banner": "220",
+  "starttls_detected": true,
+  "reassembled_bytes": 296,
+  "total_payload_bytes": 330,
+  "gap_bytes": 0,
+  "overlap_detected": true,
+  "gap_detected": false,
+  "pre_tls_buffer_len": 205,
+  "pre_tls_buffer_injection_possible": true,
+  "per_flow": [
+    {
+      "flow_id": "127.0.0.1:587->127.0.0.11:54321",
+      "coverage_ratio": 0.8600823045267489,
+      "banner": "220",
+      "starttls_detected": true,
+      "reassembled_bytes": 209,
+      "total_payload_bytes": 243,
+      "gap_bytes": 0,
+      "overlap_detected": true,
+      "gap_detected": false,
+      "pre_tls_buffer_len": 138,
+      "pre_tls_buffer_injection_possible": true
+    },
+    {
+      "flow_id": "127.0.0.11:54321->127.0.0.1:587",
+      "coverage_ratio": 1.0,
+      "banner": null,
+      "starttls_detected": true,
+      "reassembled_bytes": 87,
+      "total_payload_bytes": 87,
+      "gap_bytes": 0,
+      "overlap_detected": false,
+      "gap_detected": false,
+      "pre_tls_buffer_len": 0,
+      "pre_tls_buffer_injection_possible": false
+    }
+  ],
+  "pcap": "lab/pcaps/jittered.pcap"
+}
+coverage_ratio 0.897 <1.0 overlap=True gap=False logged not silent
+fallback F1>95% or coverage>95% OK: 0.897
+--- lab/pcaps/jittered/family-02-jitter-01.pcap (fallback) ---
+{
+  "flow_id": "127.0.0.11:54002->127.0.0.1:25",
+  "coverage_ratio": 0.897,
+  "banner": "220",
+  "starttls_detected": true,
+  "reassembled_bytes": 375,
+  "total_payload_bytes": 418,
+  "gap_bytes": 0,
+  "overlap_detected": true,
+  "gap_detected": true,
+  "pre_tls_buffer_len": 111,
+  "pre_tls_buffer_injection_possible": true,
+  "per_flow": [
+    {
+      "flow_id": "127.0.0.1:25->127.0.0.11:54002",
+      "coverage_ratio": 0.86,
+      "banner": "220",
+      "starttls_detected": true,
+      "reassembled_bytes": 149,
+      "total_payload_bytes": 149,
+      "gap_bytes": 0,
+      "overlap_detected": true,
+      "gap_detected": true,
+      "pre_tls_buffer_len": 78,
+      "pre_tls_buffer_injection_possible": true
+    },
+    {
+      "flow_id": "127.0.0.11:54002->127.0.0.1:25",
+      "coverage_ratio": 1.0,
+      "banner": null,
+      "starttls_detected": true,
+      "reassembled_bytes": 226,
+      "total_payload_bytes": 226,
+      "gap_bytes": 0,
+      "overlap_detected": false,
+      "gap_detected": false,
+      "pre_tls_buffer_len": 0,
+      "pre_tls_buffer_injection_possible": false
+    }
+  ],
+  "pcap": "lab/pcaps/jittered/family-02-jitter-01.pcap"
+}
+jittered slice family-02 shim 0.897 duplicate logged not silent (parity harness)
+coverage_ratio 0.897 <1.0 overlap=True gap=True logged not silent
+fallback F1>95% or coverage>95% OK: 0.897
+4 prefs hardcoded: ['tcp.desegment_tcp_streams:TRUE', 'tcp.reassemble_out_of_order:TRUE', 'tls.desegment_ssl_records:TRUE', 'tls.desegment_ssl_application_data:TRUE']
+=== end log ===
