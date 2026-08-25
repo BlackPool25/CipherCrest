@@ -325,7 +325,7 @@ export default function App() {
   const [flows, setFlows] = useState([])
   const [selectedId, setSelectedId] = useState(null)
 
-  // polling via fetch('/api/flows') not re-parse — 5s interval
+  // polling via fetch('/api/flows') not re-parse — 5s interval (SWR stale-while-revalidate)
   useEffect(() => {
     let alive = true
     const load = () =>
@@ -333,12 +333,15 @@ export default function App() {
         if (!alive) return
         setFlows(data)
         if (data.length) setSelectedId((prev) => prev || data[0].flow_id)
-      })
+      }).catch(() => {})
     load()
     const iv = setInterval(load, 5000)
+    const onFocus = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onFocus)
     return () => {
       alive = false
       clearInterval(iv)
+      document.removeEventListener('visibilitychange', onFocus)
     }
   }, [])
 

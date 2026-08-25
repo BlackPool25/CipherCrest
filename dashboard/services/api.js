@@ -1,6 +1,7 @@
 export async function fetchFlows() {
   try {
-    const res = await fetch('/api/flows')
+    // SWR polling 5s: Cache-Control no-cache + stale-while-revalidate semantics via interval
+    const res = await fetch('/api/flows', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
     if (!res.ok) throw new Error(`GET /api/flows ${res.status}`)
     const data = await res.json()
     if (Array.isArray(data) && data.length > 0) return data

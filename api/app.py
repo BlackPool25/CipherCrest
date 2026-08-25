@@ -1,14 +1,14 @@
 from __future__ import annotations
 import hashlib, io, json, pathlib, tempfile, zipfile
-from collections import Counter
 from typing import Any
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
-from api.db import init_db, query_all, upsert_flows
+from api.db import query_all, upsert_flows
+from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
 from shared.schemas import FlowVerdict
-from lab.reassembler.reassemble import reassemble as real_reassemble, get_tshark_prefs, build_tshark_cmd
+from lab.reassembler.reassemble import reassemble as real_reassemble
 from analyzer.parse import parse_pcap as real_parse
 from analyzer.jas import analyze_pcap as real_jas
 from assessment.rules import evaluate as real_evaluate
@@ -24,42 +24,6 @@ if _dist.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
-_PCAP_MAGICS = (b"\xd4\xc3\xb2\xa1", b"\xa1\xb2\xc3\xd4", b"\x0a\x0d\x0d\x0a")
-
-def _compute_summary(flows: list[FlowVerdict]) -> dict[str, Any]:
-    if not flows:
-        return {"proto_counts": {}, "starttls_modes": {}, "deprecated_count": 0, "opaque_count": 0, "posture": 0, "risk_dist": {}, "policy_dist": {}}
-    proto_counts = dict(Counter(f.app_protocol for f in flows))
-    starttls_modes = dict(Counter(f.starttls_mode for f in flows))
-    deprecated_count = sum(1 for f in flows if f.tls.is_deprecated)
-    opaque_count = sum(1 for f in flows if f.cert.is_tls13_opaque)
-    risk_dist = dict(Counter(f.assessment.risk_level for f in flows))
-    policy_dist = dict(Counter((f.policy.action if f.policy else "none") for f in flows))
-    posture_scores = [f.assessment.posture_score for f in flows if f.assessment.posture_score is not None]
-    if posture_scores:
-        posture = int(sum(posture_scores) / len(posture_scores))
-    else:
-        avg_risk = sum(f.assessment.risk_score for f in flows) / len(flows)
-        posture = int(100 - avg_risk)
-        posture = max(0, min(100, posture))
-    return {"proto_counts": proto_counts, "starttls_modes": starttls_modes, "deprecated_count": deprecated_count, "opaque_count": opaque_count, "posture": posture, "risk_dist": risk_dist, "policy_dist": policy_dist}
-
-def _is_malformed(filename: str, data: bytes) -> bool:
-    if data == b"random":
-        return True
-    if filename == "bad":
-        return True
-    if filename.endswith(".zip"):
-        return False
-    if len(data) < 4:
-        return True
-    if filename and not any(filename.endswith(ext) for ext in (".pcap", ".pcapng", ".cap", ".zip")):
-        return True
-    if data[:4] not in _PCAP_MAGICS:
-        return True
-    if len(data) < 10:
-        return True
-    return False
 
 def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
     try:
@@ -189,6 +153,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                             flows.append(FlowVerdict.model_validate(fv.model_dump()))
                         except Exception:
                             continue
+            flows = _attach_policy(flows)
             _last_result = flows
             _last_summary = _compute_summary(flows)
             upsert_flows(flows)
@@ -213,6 +178,7 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                 validated_single.append(FlowVerdict.model_validate(fv.model_dump()))
             except Exception as exc:
                 return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
+        validated_single = _attach_policy(validated_single)
         _last_result = validated_single
         _last_summary = _compute_summary(validated_single)
         upsert_flows(validated_single)
@@ -231,6 +197,7 @@ def get_flows() -> Any:
     if not USE_STUB:
         db_flows = query_all()
         if db_flows:
+            db_flows = _attach_policy(db_flows)
             return [f.model_dump() for f in db_flows]
     flows = stub_reassemble("fallback")
     validated = []
