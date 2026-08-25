@@ -1,0 +1,110 @@
+shared/tests/test_schema.py::test_fixtures_schema
+shared/tests/test_schema.py::test_opaque_invariant
+shared/tests/test_schema.py::test_defs
+shared/tests/test_schema.py::test_ja4_rarity_span_locked
+lab/reassembler/tests/test_reassembly.py::test_tshark_4_prefs_hardened
+lab/reassembler/tests/test_reassembly.py::test_baseline_coverage_characterization
+lab/reassembler/tests/test_reassembly.py::test_reassembly_f1
+lab/reassembler/tests/test_reassembly.py::test_reassembly_f1_coverage_fallback
+lab/reassembler/tests/test_reassembly.py::test_banner_discriminator
+lab/reassembler/tests/test_reassembly.py::test_coverage_ratio_clean
+lab/reassembler/tests/test_reassembly.py::test_clean_corpus_10_coverages_1_0
+lab/reassembler/tests/test_reassembly.py::test_jittered_corpus_7_and_legacy
+lab/reassembler/tests/test_reassembly.py::test_weberblog_or_synthetic_fallback
+lab/reassembler/tests/test_reassembly.py::test_cli_json_output
+lab/reassembler/tests/test_reassembly.py::test_family03_3des_sweet32_distinct
+lab/reassembler/tests/test_reassembly.py::test_family04_deprecated
+lab/reassembler/tests/test_reassembly.py::test_10families_distinct_ciphers
+analyzer/tests/test_handshake.py::test_cipher_exact
+analyzer/tests/test_handshake.py::test_family06_opaque
+analyzer/tests/test_handshake.py::test_family01_ecdhe_fs_aead
+analyzer/tests/test_handshake.py::test_family09_stripped
+analyzer/tests/test_handshake.py::test_family04_deprecated_weak
+analyzer/tests/test_handshake.py::test_family05_deprecated_weak
+analyzer/tests/test_handshake.py::test_version_logic
+analyzer/tests/test_handshake.py::test_tshark_prefs_logged
+analyzer/tests/test_handshake.py::test_schemas_forbid_tls_extra
+analyzer/tests/test_handshake.py::test_no_cert_der_parse
+analyzer/tests/test_handshake.py::test_malformed_unknown_version
+validator/tests/test_chain_limbo.py::test_rsa2048_valid
+validator/tests/test_chain_limbo.py::test_chain_incomplete_invalid
+validator/tests/test_chain_limbo.py::test_expired_is_expired
+validator/tests/test_chain_limbo.py::test_p256_valid
+validator/tests/test_chain_limbo.py::test_policybuilder_present
+validator/tests/test_chain_limbo.py::test_dual_store_exists
+validator/tests/test_chain_limbo.py::test_cli_json
+validator/tests/test_chain_limbo.py::test_limbovectors
+validator/tests/test_chain_limbo.py::test_precision
+validator/tests/test_chain_limbo.py::test_no_live_fetch_and_no_mock13
+validator/tests/test_chain_limbo.py::test_family07_expired_critical
+validator/tests/test_chain_limbo.py::test_family08_rsa1024_des_critical
+validator/tests/test_chain_limbo.py::test_family10_chain_incomplete_high
+validator/tests/test_chain_limbo.py::test_family06_opaque_invariant
+assessment/tests/test_rules.py::test_23_checks_spec_cited
+assessment/tests/test_rules.py::test_weak_recall
+assessment/tests/test_rules.py::test_family03_3des_high
+assessment/tests/test_rules.py::test_rc4_critical
+assessment/tests/test_rules.py::test_downgrade_possible_single_high
+assessment/tests/test_rules.py::test_triple_critical_via_history
+assessment/tests/test_rules.py::test_family06_opaque_no_cert_weak
+assessment/tests/test_rules.py::test_pre_tls_injection_high_else_info
+assessment/tests/test_rules.py::test_scoring_weights_info_unless_high
+assessment/tests/test_rules.py::test_spec_citations_present
+assessment/tests/test_rules.py::test_remediation_per_check
+assessment/tests/test_rules.py::test_never_body_decrypt_never_pqc
+assessment/tests/test_rules.py::test_no_iso_tonic
+assessment/tests/test_rules.py::test_no_raw_ja4_vector
+assessment/tests/test_rules.py::test_malformed_input_not_crash
+assessment/tests/test_rules.py::test_cap100
+assessment/tests/test_rules.py::test_ech_outer_info
+assessment/tests/test_policy.py::test_family01_low_allow
+assessment/tests/test_policy.py::test_family03_high_quarantine
+assessment/tests/test_policy.py::test_family04_critical_block
+assessment/tests/test_policy.py::test_family09_single_flag_lowconf
+assessment/tests/test_policy.py::test_family09_triple_block
+assessment/tests/test_policy.py::test_family06_opaque_low
+assessment/tests/test_policy.py::test_family07_expired_sha1_critical
+assessment/tests/test_policy.py::test_alias_schema_frozen
+assessment/tests/test_policy.py::test_malformed_opaque_no_crash
+assessment/tests/test_policy.py::test_dict_and_model_input
+api/tests/test_api.py::test_analyze_single_pcap
+api/tests/test_api.py::test_analyze_zip
+api/tests/test_api.py::test_malformed
+api/tests/test_api.py::test_missing_returns_422
+assessment/tests/test_splits.py::test_splits_file_exists
+assessment/tests/test_splits.py::test_unique_envs_and_ratio
+assessment/tests/test_splits.py::test_groups_disjoint
+assessment/tests/test_splits.py::test_d3_locked_disjoint
+assessment/tests/test_splits.py::test_d_prior_disjoint
+assessment/tests/test_splits.py::test_prior_flag_disjoint_and_no_risk_labels
+assessment/tests/test_splits.py::test_d5_temporal_same_env
+assessment/tests/test_splits.py::test_family_id_forbidden
+assessment/tests/test_splits.py::test_no_forbidden_calibration_in_assessment
+assessment/tests/test_splits.py::test_environment_id_grouping
+assessment/tests/test_splits.py::test_all_environment_ids_completeness
+shared/tests/test_censys_prior.py::test_prior_flag
+shared/tests/test_censys_prior.py::test_chain_valid_none
+shared/tests/test_censys_prior.py::test_ja4_rarity_span
+shared/tests/test_censys_prior.py::test_prior_disjoint_env
+shared/tests/test_censys_prior.py::test_ja4_grease_not_hardcoded
+
+89 tests collected in 1.05s
+--- plain per-file ---
+== shared/tests/test_schema.py ==
+4 tests collected in 0.01s
+== lab/reassembler/tests/test_reassembly.py ==
+13 tests collected in 0.01s
+== analyzer/tests/test_handshake.py ==
+11 tests collected in 0.01s
+== validator/tests/test_chain_limbo.py ==
+14 tests collected in 0.03s
+== assessment/tests/test_rules.py ==
+17 tests collected in 0.01s
+== assessment/tests/test_policy.py ==
+10 tests collected in 0.01s
+== api/tests/test_api.py ==
+4 tests collected in 1.04s
+== assessment/tests/test_splits.py ==
+11 tests collected in 0.01s
+== shared/tests/test_censys_prior.py ==
+5 tests collected in 0.01s

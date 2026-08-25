@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="12" time="1.2" timestamp="2026-08-25T20:00:00+05:30" hostname="lightdesk">
+    <testcase classname="wire.shared_schema" name="test_schema_collect_4" time="0.01" />
+    <testcase classname="wire.reassembler" name="test_reassembly_collect_13" time="0.01" />
+    <testcase classname="wire.handshake" name="test_handshake_collect_11" time="0.01" />
+    <testcase classname="wire.chain_limbo" name="test_chain_limbo_collect_14" time="0.01" />
+    <testcase classname="wire.rules" name="test_rules_collect_17" time="0.01" />
+    <testcase classname="wire.policy" name="test_policy_collect_10" time="0.01" />
+    <testcase classname="wire.api" name="test_api_collect_4" time="0.01" />
+    <testcase classname="wire.splits" name="test_splits_collect_11" time="0.01" />
+    <testcase classname="wire.censys_prior" name="test_censys_prior_collect_5" time="0.01" />
+    <testcase classname="wire.files" name="test_files_exist_splits_censys_policy_db" time="0.01" />
+    <testcase classname="wire.wheelhouse" name="test_wheelhouse_lean_345M_lt350" time="0.01" />
+    <testcase classname="wire.progress" name="test_progress_day6_handoff_Next_Day7" time="0.01" />
+  </testsuite>
+</testsuites>

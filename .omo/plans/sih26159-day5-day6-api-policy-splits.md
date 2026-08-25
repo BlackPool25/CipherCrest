@@ -159,7 +159,7 @@ Your next move: approve plan → `/start-work sih26159-day5-day6-api-policy-spli
   QA scenarios (name the exact tool + invocation): happy - `pytest shared/tests/test_censys_prior.py -xvs` → prior_flag true + chain_valid None; failure - inject `isotonic` into `assessment/risk_model.py` stub → `grep -rq isotonic` fails CI; edge - `censys_sampled_200.json` ja4_rarity all uniform 0.5 → variance filter drops but guard still green (span check allows 0.4-0.6 lean); Evidence .omo/evidence/ulw/.../task-11-sih26159-day5-day6-api-policy-splits.junit.xml + `grep -r isotonic assessment/` log + `du -m wheelhouse` log
   Commit: Y | test(ci): hard-fail guards isotonic/ja4/grouping/prior
 
-- [ ] 12. final verification wave — wire check (exists, not green) for Day5-6 SYSTEM gates
+- [x] 12. final verification wave — wire check (exists, not green) for Day5-6 SYSTEM gates
   What to do / Must NOT do: Run `pytest --collect-only` for each Day5-6 gate without requiring green on still-optional Day7 ML: `pytest shared/tests/test_schema.py --collect-only -q` (20/20), `pytest lab/reassembler/tests/test_reassembly.py --collect-only -q` (F1>95% vs tshark 4 prefs), `pytest analyzer/tests/test_handshake.py --collect-only -q` (cipher>98%), `pytest validator/tests/test_chain_limbo.py --collect-only -q` (prec>90%), `pytest assessment/tests/test_rules.py --collect-only -q` (weak 100%), `pytest assessment/tests/test_policy.py --collect-only -q` (7 fixtures), `pytest api/tests/test_api.py --collect-only -q` (POST /analyze), `pytest assessment/tests/test_splits.py --collect-only -q` (groups disjoint), `pytest shared/tests/test_censys_prior.py --collect-only -q` (prior_flag), `[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 350 ]` wheelhouse lean. Do NOT run full `pytest -q` (would fail on Day7 ML not yet green) — this is a wiring check that files exist and gates are collectible. Log `shared/progress.md` Day6 🟢 handoff `Next: Day7 XGB Platt cv=2 lean + ECOD`.
   Parallelization: Wave 4 | Blocked by: 10,11 | Blocks: -
   References (executor has NO interview context - be exhaustive): shared/tests/test_schema.py, lab/reassembler/tests/test_reassembly.py, analyzer/tests/test_handshake.py, analyzer/tests/test_ja4.py, validator/tests/test_chain_limbo.py, validator/tests/test_badssl.py, assessment/tests/test_rules.py, assessment/tests/test_policy.py, assessment/tests/test_splits.py, shared/tests/test_censys_prior.py, api/tests/test_api.py, wheelhouse/, shared/progress.md
@@ -169,10 +169,10 @@ Your next move: approve plan → `/start-work sih26159-day5-day6-api-policy-spli
 
 ## Final verification wave
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
-- [ ] F1. Plan compliance audit — every todo has References + Acceptance + QA + Commit + linked Day3-4 work (LEDGER parity, 23-check, 14/20 banner)
-- [ ] F2. Code quality review — no file >250 LOC without split, no `as any`/`unwrap`/`panic`, `extra='forbid'` holds, P1 CODEOWNER `shared/` unbroken
-- [ ] F3. Real manual QA — `POST /analyze` zip 10 → `GET /flows` <50ms + dashboard 23×3 honest via `curl -F` + `TestClient` (agent-executed, no human)
-- [ ] F4. Scope fidelity — lean policy only, splits 12 lean groups prior_flag disjoint, wheelhouse lean <350M no torch, quarantine/siem/arf/milter absent, SYSTEM 5/8 EVIDENCE not 8/8
+- [x] F1. Plan compliance audit — every todo has References + Acceptance + QA + Commit + linked Day3-4 work (LEDGER parity, 23-check, 14/20 banner)
+- [x] F2. Code quality review — no file >250 LOC without split, no `as any`/`unwrap`/`panic`, `extra='forbid'` holds, P1 CODEOWNER `shared/` unbroken
+- [x] F3. Real manual QA — `POST /analyze` zip 10 → `GET /flows` <50ms + dashboard 23×3 honest via `curl -F` + `TestClient` (agent-executed, no human)
+- [x] F4. Scope fidelity — lean policy only, splits 12 lean groups prior_flag disjoint, wheelhouse lean <350M no torch, quarantine/siem/arf/milter absent, SYSTEM 5/8 EVIDENCE not 8/8
 
 ## Commit strategy
 - Atomic per todo: `feat(assessment): lean policy decide 7 fixtures`, `feat(assessment): splits.json 4-dataset env groups`, `feat(shared): censys prior shell 20 lean prior_flag guards`, `feat(api): SQLite JSONB hardening <1ms lookup`, `feat(api): POST /analyze chunk-read + zip fan-out`, `chore(offline): wheelhouse lean <350M --only-binary`, `feat(dashboard): honesty 14/20 + 23×3 CoverageTable`, `feat(api): live binding E2E zip→db→dashboard`, `docs(ledgers): Day5-6 progress + LEDGER audit`, `docs(eval): EVIDENCE_Day5-6 SYSTEM 5/8 snapshots`, `test(ci): hard-fail guards isotonic/ja4/grouping/prior`, `chore(verify): wire check Day5-6 SYSTEM collect-only`
