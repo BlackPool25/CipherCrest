@@ -105,7 +105,7 @@ jobs:
       - name: Day7 collect-only wiring (6 files)
         run: |
           pytest --collect-only -q assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_censys_prior.py assessment/tests/test_risk_ablation.py assessment/tests/test_anomaly_hybrid.py api/tests/test_api_ml_wiring.py 2>&1 | tee /tmp/collect-only.log
-          grep -q "test session starts\|<Module\|<Function" /tmp/collect-only.log || (echo "collect-only failed" && cat /tmp/collect-only.log && exit 1)
+          grep -q "test session starts\|<Module\|<Function\|tests collected" /tmp/collect-only.log || (echo "collect-only failed" && cat /tmp/collect-only.log && exit 1)
           python -c "import pathlib; log=pathlib.Path('/tmp/collect-only.log').read_text(); assert 'ERROR' not in log and 'FAILED' not in log, log[:2000]"
       - name: Wheelhouse lean <350M
         run: |
