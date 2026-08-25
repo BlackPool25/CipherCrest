@@ -1,0 +1,7 @@
+pydantic==2.11.*
+fastapi==0.115.*
+uvicorn
+cryptography
+scapy
+dpkt
+ja4

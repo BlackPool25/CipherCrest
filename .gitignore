@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+dist/
+wheelhouse/
+.env
+.venv
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+.DS_Store
