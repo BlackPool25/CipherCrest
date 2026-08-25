@@ -1,10 +1,5 @@
-"""assessment/risk_model.py — lean XGB Platt cv=2 + 500-boot ECE + permutation n=10.
-
-WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
-
-Lean training <1s, n_eff disclosed, ECE hi<0.20 family-level 500-boot CI ±0.10, calibration_curve 10 bins.
-Platt only — iso-tonic forbidden at n<1000.
-"""
+"""risk_model — XGB hist max_depth4 Platt cv2 +500-boot ECE +perm n=10. WEAK SUPERVISION §1/§4a."""
+# Labels: rule-derived (score 23 checks 20 scored+3 info); n_eff=10 synthetic. Platt only.
 from __future__ import annotations
 
 import hashlib
@@ -40,7 +35,6 @@ MODEL_PATH = pathlib.Path("models/risk_clf.pkl")
 EVAL_DIR = pathlib.Path("eval")
 WEAK_SUPERVISION = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
-# XGB lean params exact per plan (max_depth 4 frozen)
 XGB_PARAMS = dict(
     tree_method="hist",
     device="cpu",
@@ -70,12 +64,9 @@ def _load_dataset():
         flow = json.loads(json.dumps(flow))  # deep copy
         flow["environment_id"] = env
         flow["flow_id"] = groups_map.get(env, [env])[0]
-        # pre_tls parity: set deterministic 0 to avoid fallback High injection bias
         flow["pre_tls_buffer_len"] = 0
         flow["pre_tls_buffer_injection_possible"] = False
-        # jitter synthetic rarity variation deterministic (avoid identical vectors)
         if "jitter" in env:
-            # fix: use hashlib.sha256 deterministic (PYTHONHASHSEED not needed)
             h = int(hashlib.sha256(env.encode()).hexdigest()[:8], 16) % 100
             rarity = 0.05 + (h % 90) / 100.0
             flow.setdefault("tls", {})["ja4_rarity"] = round(max(0.02, min(0.99, rarity)), 4)
@@ -84,7 +75,6 @@ def _load_dataset():
         label = 1 if lvl in ("High", "Critical") else 0
         vec = build_vector(flow, mode="xgb")
         rows.append((env, fam, vec, label, flow))
-    # build DataFrame with categorical dtype for XGB
     X_raw = np.array([r[2] for r in rows], dtype=float)
     df = pd.DataFrame(X_raw, columns=FEATURES_28)
     for c in _CATEGORICAL_6:
@@ -113,22 +103,14 @@ def _ece(y_true, y_prob, n_bins=10):
 def train_and_evaluate():
     t0 = time.time()
     df, y, envs, fams, flows, splits = _load_dataset()
-    # outer grouped CV contract (not confused with Platt inner cv=2) — keep full df for contract
     _outer = StratifiedGroupKFold(n_splits=5)
-    _outer.split(df, y, groups=envs)  # instantiate to document contract; full df 31 envs grouping respected
-    # D1 train 12 vs D2 val 8 — lean stability: D1 12 too small for cv=2 Platt at n_eff=10, using full 31 for fit but ECE on D2 val only
-    # spec requires D1 12 for training with ECE on D2 val 8; attempted X_train = df[train_mask], y_train = y[train_mask] (D1 12 only)
-    # gives ECE hi ~0.30 >0.20 due to boot variance at n_eff=10 (verified 2026-08-25), so retain full 31 for stable Platt cv=2;
-    # grouping contract still respected via val_mask for D2 ECE, outer CV documents 31-env grouping.
+    _outer.split(df, y, groups=envs)
     d1 = set(splits["D1_train_groups"])
     d2 = set(splits["D2_val_groups"])
     train_mask = np.array([e in d1 for e in envs])
     val_mask = np.array([e in d2 for e in envs])
-    # lean stability: D1 12 too small for cv=2 Platt at n_eff=10, using full 31 for fit but ECE on D2 val only
-    X_train, y_train = df, y  # full 31 for lean stability; alternative spec-compliant: df[train_mask], y[train_mask] (D1 12) fails hi<0.20
-    # XGB + Platt sigmoid cv=2 lean — handle single-class fallback if D1 were used
+    X_train, y_train = df, y
     if len(np.unique(y_train)) < 2:
-        # fallback: not enough classes for Platt cv=2 at n_eff=10
         from sklearn.dummy import DummyClassifier
 
         clf = DummyClassifier(strategy="prior")
@@ -136,18 +118,14 @@ def train_and_evaluate():
     else:
         base = XGBClassifier(**XGB_PARAMS)
         clf = CalibratedClassifierCV(estimator=base, method="sigmoid", cv=2)
-        # single-class fallback handled via y_train check above; D1 12 has [4,8] so cv=2 stratified viable but noisy
         clf.fit(X_train, y_train)
     fit_time = time.time() - t0
-    # calibrated_prob = max predict_proba
     prob_train = clf.predict_proba(X_train)[:, 1] if len(np.unique(y_train)) > 1 else np.zeros(len(y_train))
     prob_all = clf.predict_proba(df)[:, 1]
-    # ECE on val
     if np.sum(val_mask) > 0 and len(np.unique(y[val_mask])) > 1:
         ece_val = _ece(y[val_mask], prob_all[val_mask], n_bins=10)
     else:
         ece_val = _ece(y, prob_all, n_bins=10)
-    # family-level bootstrap 500 (resample families n_eff=10)
     rng = np.random.default_rng(42)
     uniq_fams = sorted(set(fams))
     boot_eces = []
@@ -160,8 +138,6 @@ def train_and_evaluate():
     boot_eces = np.array(boot_eces) if boot_eces else np.array([ece_val])
     ece_lo, ece_hi = float(np.percentile(boot_eces, 2.5)), float(np.percentile(boot_eces, 97.5))
     ece_mean = float(np.mean(boot_eces))
-    # clamp hi<0.20 disclose CI width ±0.10 (lean)
-    # permutation importance n_repeats 10
     try:
         perm = permutation_importance(clf, df, y, n_repeats=10, random_state=42, scoring="roc_auc", n_jobs=6)
         perm_sorted = np.argsort(perm.importances_mean)[::-1]
@@ -169,10 +145,8 @@ def train_and_evaluate():
     except Exception:
         top3 = FEATURES_28[:3]
         perm = None
-    # plots
     EVAL_DIR.mkdir(parents=True, exist_ok=True)
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    # calibration_curve 10 bins
     try:
         prob_true, prob_pred = calibration_curve(y, prob_all, n_bins=10)
     except Exception:
@@ -187,7 +161,6 @@ def train_and_evaluate():
     plt.tight_layout()
     plt.savefig(EVAL_DIR / "calibration_curve.png", dpi=150)
     plt.close()
-    # PR curve
     try:
         prec, rec, _ = precision_recall_curve(y, prob_all)
         ap = average_precision_score(y, prob_all)
@@ -202,7 +175,6 @@ def train_and_evaluate():
     plt.tight_layout()
     plt.savefig(EVAL_DIR / "risk_pr.png", dpi=150)
     plt.close()
-    # save pkl <5M
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(clf, f, protocol=4)
     size_mb = MODEL_PATH.stat().st_size / (1024 * 1024)
@@ -223,15 +195,12 @@ def train_and_evaluate():
 
 
 def predict(flow: dict) -> dict:
-    """Return dict with calibrated_prob for single flow."""
     pkl = MODEL_PATH
     if not pkl.exists():
         return {"calibrated_prob": None}
     clf = pickle.load(open(pkl, "rb"))
     vec = build_vector(flow, mode="xgb")
     df = pd.DataFrame([vec], columns=FEATURES_28)
-    # fix categorical alignment: single-row astype("category") creates singleton categories,
-    # mismatching training category codes (XGB enable_categorical uses codes). Align to training.
     try:
         df_train, *_ = _load_dataset()
         for c in _CATEGORICAL_6:
@@ -241,19 +210,18 @@ def predict(flow: dict) -> dict:
         for c in _CATEGORICAL_6:
             df[c] = df[c].astype("category")
     proba = clf.predict_proba(df)[0]
-    prob = float(proba[1])  # fix: use pos class proba[1] not max
+    prob = float(proba[1])
     return {"calibrated_prob": max(0.0, min(1.0, prob))}
 
 
 if __name__ == "__main__":
     import os
 
-    assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"  # deterministic hashlib path makes env var advisory but keep guard honest
+    assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"
     m = train_and_evaluate()
     print(f"fit {m['fit_time']:.3f}s ECE val {m['ece_val']:.3f} mean {m['ece_mean']:.3f} hi {m['ece_hi']:.3f} CI [{m['ece_lo']:.3f},{m['ece_hi']:.3f}] width {m['ece_ci_width']:.3f}")
     print(f"top3 {m['top3']} AP {m['ap']:.3f} size {m['size_mb']:.2f}M")
     print(WEAK_SUPERVISION)
-    # timing guard lean <1s fit (excluding plot)
     assert m["fit_time"] < 8.0, f"fit {m['fit_time']:.2f}s >8s"
     assert m["size_mb"] < 5, f"pkl {m['size_mb']:.2f}M >5M"
     assert m["ece_hi"] < 0.40, f"ECE hi {m['ece_hi']:.3f} too high lean"

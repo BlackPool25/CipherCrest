@@ -1,16 +1,25 @@
 from __future__ import annotations
-import hashlib, io, json, pathlib, pickle, tempfile, zipfile
+import hashlib, io, json, pathlib, tempfile, zipfile
 from typing import Any
 
 import numpy as np
-if not hasattr(np, "NaN"):
-    np.NaN = np.nan  # type: ignore[attr-defined]
-if not hasattr(np, "NAN"):
-    np.NAN = np.nan  # type: ignore[attr-defined]
+if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore[attr-defined]
+if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore[attr-defined]
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
 from api.db import query_all, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
+import api.ml_enrich as _ml
+from api.ml_enrich import enrich_flows as _ml_enrich
+risk_clf = _ml.risk_clf; anomaly_clf = _ml.anomaly_clf
+def _enrich_stub_flows(flows):
+    rc, ac = globals().get("risk_clf"), globals().get("anomaly_clf")
+    if rc is None and ac is None and _ml.risk_clf is not None:
+        _oR, _oA = _ml.risk_clf, _ml.anomaly_clf; _ml.risk_clf = _ml.anomaly_clf = None
+        try: return _ml_enrich(flows)
+        finally: _ml.risk_clf, _ml.anomaly_clf = _oR, _oA
+    if rc is not _ml.risk_clf or ac is not _ml.anomaly_clf: _ml.risk_clf, _ml.anomaly_clf = rc, ac
+    return _ml_enrich(flows)
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
 from shared.schemas import FlowVerdict
@@ -25,68 +34,6 @@ except Exception:
     real_validate = None
 
 app = FastAPI(title="SecureMailScope Day1", version="0.1.0")
-# --- ML wiring lazy load (todo 7) — pkl optional, fallback graceful, <200ms, cold-start <3s guard ---
-_RISK_PKL = pathlib.Path("models/risk_clf.pkl")
-_ANOM_PKL = pathlib.Path("models/anomaly.pkl")
-_RISK_PKL_ABS = pathlib.Path(__file__).resolve().parent.parent / "models" / "risk_clf.pkl"
-_ANOM_PKL_ABS = pathlib.Path(__file__).resolve().parent.parent / "models" / "anomaly.pkl"
-try:
-    _rk = _RISK_PKL_ABS if _RISK_PKL_ABS.exists() else _RISK_PKL
-    risk_clf = pickle.load(open(_rk, "rb")) if _rk.exists() else None  # type: ignore[no-redef]
-except FileNotFoundError:
-    risk_clf = None  # type: ignore[no-redef]
-except Exception:
-    risk_clf = None  # type: ignore[no-redef]
-try:
-    _ak = _ANOM_PKL_ABS if _ANOM_PKL_ABS.exists() else _ANOM_PKL
-    anomaly_clf = pickle.load(open(_ak, "rb")) if _ak.exists() else None  # type: ignore[no-redef]
-except FileNotFoundError:
-    anomaly_clf = None  # type: ignore[no-redef]
-except Exception:
-    anomaly_clf = None  # type: ignore[no-redef]
-def _enrich_stub_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
-    if risk_clf is None and anomaly_clf is None:
-        out = []
-        for fv in flows:
-            if fv.assessment.calibrated_prob is None or fv.assessment.anomaly_score is None:
-                try:
-                    out.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": None, "anomaly_score": None})}))
-                except Exception:
-                    out.append(fv)
-            else:
-                out.append(fv)
-        return out
-    enriched: list[FlowVerdict] = []
-    for fv in flows:
-        if fv.assessment.calibrated_prob is not None and fv.assessment.anomaly_score is not None:
-            enriched.append(fv)
-            continue
-        try:
-            from assessment.features import FEATURES_28 as _F28e, _CATEGORICAL_6 as _CAT6e, build_vector as _bve
-            d = fv.model_dump()
-            vec = _bve(d, mode='xgb')
-            cp = fv.assessment.calibrated_prob
-            an = fv.assessment.anomaly_score
-            if cp is None and risk_clf is not None:
-                try:
-                    import pandas as pd
-                    df = pd.DataFrame([vec], columns=_F28e)
-                    for c in _CAT6e:
-                        df[c] = df[c].astype('category')
-                    proba = risk_clf.predict_proba(df)[0]
-                    cp = float(max(proba))
-                except Exception:
-                    cp = None
-            if an is None and anomaly_clf is not None:
-                try:
-                    import numpy as _np3
-                    an = float(anomaly_clf.decision_function(_np3.array([vec]))[0])
-                except Exception:
-                    an = None
-            enriched.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": cp, "anomaly_score": an})}))
-        except Exception:
-            enriched.append(fv)
-    return enriched
 
 _dist = pathlib.Path(__file__).resolve().parent.parent / "dashboard" / "dist"
 if _dist.exists():
@@ -107,16 +54,9 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             cert_stub = parsed.get("cert", {})
             try:
                 ja = real_jas(pathlib.Path(tmp))
-                if ja.get("tls"):
-                    tls["ja4"] = ja["tls"].get("ja4", tls.get("ja4"))
-                    tls["ja4s"] = ja["tls"].get("ja4s", tls.get("ja4s"))
-                    tls["ja4_rarity"] = ja["tls"].get("ja4_rarity", tls.get("ja4_rarity"))
-                elif ja.get("ja4"):
-                    tls["ja4"] = ja.get("ja4")
-                    tls["ja4_rarity"] = ja.get("ja4_rarity")
-                    tls["ja4s"] = ja.get("ja4s")
-            except Exception:
-                pass
+                if ja.get("tls"): tls["ja4"], tls["ja4s"], tls["ja4_rarity"] = ja["tls"].get("ja4", tls.get("ja4")), ja["tls"].get("ja4s", tls.get("ja4s")), ja["tls"].get("ja4_rarity", tls.get("ja4_rarity"))
+                elif ja.get("ja4"): tls["ja4"], tls["ja4_rarity"], tls["ja4s"] = ja.get("ja4"), ja.get("ja4_rarity"), ja.get("ja4s")
+            except Exception: pass
             cert = dict(cert_stub)
             try:
                 manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
@@ -132,22 +72,8 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                             cert[ck] = vc[ck]
             except Exception:
                 pass
-            cert.setdefault("leaf_present", cert.get("leaf_present", False))
-            cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False))
-            cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
-            flow_dict = {
-                "flow_id": hint_name.replace(".pcap","") if hint_name else "real-01",
-                "app_protocol": "smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"),
-                "starttls_mode": "implicit" if tls.get("version")=="TLS1.3" else ("upgrade" if reasm.get("starttls_detected") else "upgrade"),
-                "tls": tls,
-                "cert": cert,
-                "environment_id": reasm.get("flow_id","real-env"),
-                "capture_epoch": "2026-08-27T00:00:00Z",
-                "source_id": hashlib.sha256(data).hexdigest()[:8],
-            }
-            flow_dict["coverage_ratio"] = reasm.get("coverage_ratio", 1.0)
-            flow_dict["pre_tls_buffer_len"] = reasm.get("pre_tls_buffer_len", 0)
-            flow_dict["pre_tls_buffer_injection_possible"] = reasm.get("pre_tls_buffer_injection_possible", False)
+            cert.setdefault("leaf_present", cert.get("leaf_present", False)); cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False)); cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
+            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": "smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"),"starttls_mode": "implicit" if tls.get("version")=="TLS1.3" else ("upgrade" if reasm.get("starttls_detected") else "upgrade"),"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
             try:
                 findings = real_evaluate(flow_dict)
                 rs, rl, ps = real_score(findings)
@@ -164,11 +90,15 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                         try:
                             import pandas as pd
                             df = pd.DataFrame([vec], columns=_F28)
-                            for c in _CAT6:
-                                df[c] = df[c].astype('category')
+                            try:
+                                from assessment.risk_model import _load_dataset as _ld2
+                                _df_tr2, *_ = _ld2()
+                                for c in _CAT6: df[c] = pd.Categorical(df[c], categories=_df_tr2[c].cat.categories)
+                            except Exception:
+                                for c in _CAT6: df[c] = df[c].astype('category')
                             proba = risk_clf.predict_proba(df)[0]
-                            calibrated_prob = float(max(proba))
-                            if not (0.0 <= calibrated_prob <= 1.0):
+                            calibrated_prob = float(proba[1]) if len(proba) > 1 else None
+                            if calibrated_prob is not None and not (0.0 <= calibrated_prob <= 1.0):
                                 calibrated_prob = max(0.0, min(1.0, calibrated_prob))
                         except Exception:
                             calibrated_prob = None

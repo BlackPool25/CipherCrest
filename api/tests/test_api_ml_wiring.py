@@ -106,3 +106,42 @@ def test_calibrated_prob_via_dummy_pcap_zip():
         if f.get("flow_id") == "error":
             continue
         assert "calibrated_prob" in f.get("assessment", {})
+
+
+def test_api_calibrated_prob_is_pos_class_not_max_inversion():
+    """Regression for F1 REJECT: api must use proba[1] not max(proba)."""
+    import json
+
+    from assessment.risk_model import predict as risk_predict
+
+    f01 = json.loads(pathlib.Path("shared/fixtures/family-01.json").read_text())
+    f03 = json.loads(pathlib.Path("shared/fixtures/family-03.json").read_text())
+    p01 = risk_predict(f01)["calibrated_prob"]
+    p03 = risk_predict(f03)["calibrated_prob"]
+    assert p01 is not None and p01 < 0.5, f"family-01 calibrated_prob should be <0.5 got {p01} (inverted if 0.85)"
+    assert p03 is not None and p03 > 0.5, f"family-03 calibrated_prob should be >0.5 got {p03}"
+    assert 0.05 < p01 < 0.35, f"family-01 expected ~0.14 got {p01}"
+    assert 0.75 < p03 < 0.99, f"family-03 expected ~0.92 got {p03}"
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name in ("family-01", "family-03"):
+            data = pathlib.Path(f"lab/pcaps/{name}.pcap").read_bytes()
+            zf.writestr(f"{name}.pcap", data)
+    buf.seek(0)
+    r = client.post("/analyze", files={"pcap": ("both.zip", buf.getvalue(), "application/zip")})
+    assert r.status_code == 200, r.text
+    flows = r.json()
+    by_id = {f.get("flow_id"): f for f in flows if f.get("flow_id") != "error"}
+    assert "family-01" in by_id, f"missing family-01 in {list(by_id)}"
+    assert "family-03" in by_id, f"missing family-03 in {list(by_id)}"
+    api_p01 = by_id["family-01"]["assessment"]["calibrated_prob"]
+    api_p03 = by_id["family-03"]["assessment"]["calibrated_prob"]
+    assert api_p01 is not None, "api family-01 calibrated_prob is None (model missing?)"
+    assert api_p03 is not None, "api family-03 calibrated_prob is None"
+    assert api_p01 < 0.5, f"API family-01 inverted: expected <0.5 got {api_p01} (max vs proba[1])"
+    assert api_p03 > 0.5, f"API family-03 expected >0.5 got {api_p03}"
+    assert abs(api_p01 - p01) < 0.05, f"api vs risk_model mismatch family-01 {api_p01} vs {p01}"
+    assert abs(api_p03 - p03) < 0.05, f"api vs risk_model mismatch family-03 {api_p03} vs {p03}"
+    assert api_p01 < 0.35, f"API still inverted max(proba) ~0.85, got {api_p01}"
+    assert api_p03 > 0.75, f"API family-03 should be high ~0.92 got {api_p03}"

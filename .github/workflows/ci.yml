@@ -9,6 +9,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      PYTHONHASHSEED: "0"
+      OMP_NUM_THREADS: "6"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -112,3 +115,11 @@ jobs:
       - name: Vite bundle size
         run: |
           test -f dashboard/dist/assets/*.js && bash -c '[ $(gzip -c dashboard/dist/assets/*.js | wc -c) -lt 3670016 ]' || echo "vite bundle gate skipped until dist built"
+      - name: Deterministic env guard
+        run: |
+          test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)
+          test "$OMP_NUM_THREADS" = "6" || (echo "OMP_NUM_THREADS=6 missing" && exit 1)
+      - name: LOC ceiling 250
+        run: |
+          for f in assessment/risk_model.py assessment/policy.py assessment/anomaly_model.py assessment/features.py shared/schemas.py api/app.py api/db.py; do lines=$(wc -l < "$f"); if [ "$lines" -ge 250 ]; then echo "$f $lines >=250"; exit 1; fi; done
+          echo "wc -l guard passed"
