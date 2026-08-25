@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "wrk_sih26159_day3day4",
+  "active_work_id": "wrk_sih26159_day5day6",
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -27,6 +27,19 @@
       "started_at": "2026-08-25T08:52:42Z",
       "ended_at": "2026-08-25T10:07:05Z",
       "elapsed_ms": 4463061
+    },
+    "wrk_sih26159_day5day6": {
+      "work_id": "wrk_sih26159_day5day6",
+      "active_plan": ".omo/plans/sih26159-day5-day6-api-policy-splits.md",
+      "plan_name": "sih26159-day5-day6-api-policy-splits",
+      "session_ids": [
+        "codex:ses_atlas_day5day6"
+      ],
+      "status": "completed",
+      "worktree_path": null,
+      "started_at": "2026-08-25T17:30:00Z",
+      "ended_at": "2026-08-25T20:53:13Z",
+      "elapsed_ms": 12193000
     }
   }
 }
