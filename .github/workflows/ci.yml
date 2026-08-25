@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt
       - name: Run schema tests
         run: pytest shared/tests/test_schema.py -v
       # Require status checks — this job must be green to merge to main

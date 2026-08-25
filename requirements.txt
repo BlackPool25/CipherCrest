@@ -4,4 +4,3 @@ uvicorn
 cryptography
 scapy
 dpkt
-ja4
