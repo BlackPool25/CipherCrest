@@ -2,6 +2,7 @@
 
 MUST NOT call ja4db.com live. MUST NOT feed raw ja4 to risk model — only rarity.
 JA4 table stores normalized JA4 after GREASE filtering; rarity = 1 - percentile (freq).
+FoxIO technical_details §4 + issue #305: GREASE MUST be stripped before JA4 hash.
 """
 from __future__ import annotations
 
@@ -9,7 +10,8 @@ import json
 import pathlib
 from functools import lru_cache
 
-# GREASE values per RFC 8701: 0x0a0a, 0x1a1a, ..., 0xfafa
+# GREASE values per RFC 8701: 0x0a0a, 0x1a1a, ..., 0xfafa — exactly 16 values.
+# MUST NOT invent beyond RFC8701 — see RFC 8701 section 3.1
 GREASE_VALUES: frozenset[int] = frozenset(
     {
         0x0A0A,
@@ -30,6 +32,31 @@ GREASE_VALUES: frozenset[int] = frozenset(
         0xFAFA,
     }
 )
+
+# Whitelist guard: raw JA4 hash is spoofable (curl-cffi impersonate=chrome131)
+# and MUST NEVER be an ML feature. Only numeric ja4_rarity (0..1) is allowed.
+ALLOWED_RISK_FEATURES: frozenset[str] = frozenset(
+    {
+        "cipher_strength",
+        "kex",
+        "fs_flag",
+        "pubkey_bits",
+        "sigalg_weak",
+        "days_to_expiry",
+        "chain_valid",
+        "ja4_rarity",
+        "chain_depth",
+        "san_match",
+        "starttls_mode",
+        "port",
+        "cert_missing_reason",
+        "miss_indicator_*",
+    }
+)
+
+# Hard guard: fail fast if raw ja4 leaks into feature whitelist
+assert "ja4" not in ALLOWED_RISK_FEATURES, "raw ja4 MUST NOT be in ALLOWED_RISK_FEATURES"
+assert "ja4_rarity" in ALLOWED_RISK_FEATURES, "ja4_rarity must be whitelisted"
 
 _TABLE_PATH = pathlib.Path(__file__).parent / "data" / "censys_top_ja4.json"
 

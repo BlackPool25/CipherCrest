@@ -9,7 +9,13 @@
     "starttls": "upgrade",
     "flag": "PASS",
     "pcap": "lab/pcaps/family-01.pcap",
-    "description": "Postfix 587 STARTTLS upgrade TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 P-256 rsa2048 SHA256 90d — PASS"
+    "description": "Postfix 587 STARTTLS upgrade TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 P-256 rsa2048 SHA256 90d \u2014 PASS",
+    "environment_id": "family-01__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "e15cced1-c53f-486c-a09e-c4b5f3756d75"
   },
   "family-02": {
     "port": 25,
@@ -21,7 +27,13 @@
     "starttls": "upgrade",
     "flag": "PASS",
     "pcap": "lab/pcaps/family-02.pcap",
-    "description": "Postfix 25 STARTTLS TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 P-256 — PASS"
+    "description": "Postfix 25 STARTTLS TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 P-256 \u2014 PASS",
+    "environment_id": "family-02__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "e2ba2965-5961-43a7-8d4d-bf647a1029f7"
   },
   "family-03": {
     "port": 143,
@@ -33,7 +45,13 @@
     "starttls": "upgrade",
     "flag": "High",
     "pcap": "lab/pcaps/family-03.pcap",
-    "description": "Dovecot 143 STARTTLS CAPABILITY->STARTTLS TLS1.2 DES-CBC3-SHA SWEET32 3DES-CBC High"
+    "description": "Dovecot 143 STARTTLS CAPABILITY->STARTTLS TLS1.2 DES-CBC3-SHA SWEET32 3DES-CBC High",
+    "environment_id": "family-03__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "a6c4ddc4-e5a5-4726-83bb-4606f977daf0"
   },
   "family-04": {
     "port": 110,
@@ -45,7 +63,13 @@
     "starttls": "upgrade",
     "flag": "Critical",
     "pcap": "lab/pcaps/family-04.pcap",
-    "description": "Dovecot 110 STLS CAPA->STLS TLS1.0 RC4-SHA RC4 Critical"
+    "description": "Dovecot 110 STLS CAPA->STLS TLS1.0 RC4-SHA RC4 Critical",
+    "environment_id": "family-04__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "a1190b1b-c0fb-4f9c-b576-9776927cc465"
   },
   "family-05": {
     "port": 587,
@@ -57,7 +81,13 @@
     "starttls": "upgrade",
     "flag": "Critical",
     "pcap": "lab/pcaps/family-05.pcap",
-    "description": "Postfix 587 STARTTLS TLS1.1 AES128-SHA self-signed Critical"
+    "description": "Postfix 587 STARTTLS TLS1.1 AES128-SHA self-signed Critical",
+    "environment_id": "family-05__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "b1e1b5a6-259e-4c62-bb22-aedd621bf8a4"
   },
   "family-06": {
     "port": 993,
@@ -69,7 +99,13 @@
     "starttls": "implicit",
     "flag": "PASS but opaque",
     "pcap": "lab/pcaps/family-06.pcap",
-    "description": "Dovecot 993 implicit TLS1.3 TLS_AES_128_GCM_SHA256 x25519 FS — PASS but opaque (is_tls13_opaque True)"
+    "description": "Dovecot 993 implicit TLS1.3 TLS_AES_128_GCM_SHA256 x25519 FS \u2014 PASS but opaque (is_tls13_opaque True)",
+    "environment_id": "family-06__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "e828b0ab-bcb7-492a-9abd-1ea73b67726c"
   },
   "family-07": {
     "port": 587,
@@ -81,7 +117,13 @@
     "starttls": "upgrade",
     "flag": "Critical",
     "pcap": "lab/pcaps/family-07.pcap",
-    "description": "Postfix 587 STARTTLS TLS1.2 AES128-SHA256 SHA1 expired Critical"
+    "description": "Postfix 587 STARTTLS TLS1.2 AES128-SHA256 SHA1 expired Critical",
+    "environment_id": "family-07__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "07507ddf-f34e-4811-a12a-ff013b667577"
   },
   "family-08": {
     "port": 587,
@@ -93,7 +135,13 @@
     "starttls": "upgrade",
     "flag": "Critical",
     "pcap": "lab/pcaps/family-08.pcap",
-    "description": "Postfix 587 STARTTLS TLS1.2 DES-CBC-SHA DES single rsa1024 Critical"
+    "description": "Postfix 587 STARTTLS TLS1.2 DES-CBC-SHA DES single rsa1024 Critical",
+    "environment_id": "family-08__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "df1ab1cd-d3d3-442f-98e9-334a54251937"
   },
   "family-09": {
     "port": 587,
@@ -105,7 +153,13 @@
     "starttls": "cleartext",
     "flag": "Critical stripping possible",
     "pcap": "lab/pcaps/family-09.pcap",
-    "description": "Cleartext stripped — EHLO without STARTTLS, MAIL/RCPT/DATA in clear — Critical downgrade possible (low conf single-flow)"
+    "description": "Cleartext stripped \u2014 EHLO without STARTTLS, MAIL/RCPT/DATA in clear \u2014 Critical downgrade possible (low conf single-flow)",
+    "environment_id": "family-09__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "c3a9939c-a731-4896-8b6b-83a451ec9778"
   },
   "family-10": {
     "port": 587,
@@ -117,6 +171,12 @@
     "starttls": "upgrade",
     "flag": "High",
     "pcap": "lab/pcaps/family-10.pcap",
-    "description": "Postfix 587 STARTTLS TLS1.2 RSA-AES256-SHA RSA-no-FS chain-incomplete High"
+    "description": "Postfix 587 STARTTLS TLS1.2 RSA-AES256-SHA RSA-no-FS chain-incomplete High",
+    "environment_id": "family-10__postfix3.9_loss0",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "c0e0202f-b250-42aa-a706-9de95ea24feb"
   }
 }
