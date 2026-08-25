@@ -1,0 +1,34 @@
+# OCSP Staple Parse Log — Task 8 (B) Honest Mode
+# LE 2025 OCSP deprecation: OCSP retired Aug 2025, short-lived certs use CRL; staple legacy but checked if present.
+# No live fetch — only reports what handshake carried.
+
+{
+  "san_match": true,
+  "sans": [
+    "mail.lab.local",
+    "lab.local"
+  ],
+  "cn": "mail.lab.local",
+  "used_cn_fallback": false,
+  "srv_id": false,
+  "severity": null,
+  "evidence": "SAN ['mail.lab.local', 'lab.local'] vs mail.lab.local",
+  "ocsp_must_staple": false,
+  "ocsp_stapled_status": "unknown",
+  "ocsp_staple_requested": false,
+  "this_update": null,
+  "next_update": null,
+  "pubkey_algo": "RSA",
+  "pubkey_bits": 2048
+}
+--- pcap ocsp_info family-01 (no staple) ---
+{'ocsp_staple_requested': False, 'ocsp_stapled_status': 'unknown', 'ocsp_staple_opaque': False, 'ocsp_must_staple': False, 'legend': 'LE 2025: OCSP retired, short-lived CRL; staple legacy', 'this_update': None, 'next_update': None, 'reason': 'unknown — no fetch, no staple observed'}
+{'ocsp_staple_requested': False, 'ocsp_stapled_status': 'opaque', 'ocsp_staple_opaque': True, 'ocsp_must_staple': False, 'legend': 'staple encrypted like cert (TLS1.3)', 'this_update': None, 'next_update': None, 'reason': 'opaque — TLS1.3 encrypts Certificate/CertificateStatus'}
+{'ocsp_staple_requested': False, 'ocsp_stapled_status': 'unknown', 'ocsp_staple_opaque': False, 'ocsp_must_staple': False, 'legend': 'LE 2025: OCSP retired, short-lived CRL; staple legacy', 'this_update': None, 'next_update': None, 'reason': 'unknown — no fetch, no staple observed'}
+{'ocsp_staple_requested': False, 'ocsp_stapled_status': 'opaque', 'ocsp_staple_opaque': True, 'ocsp_must_staple': False, 'legend': 'staple encrypted like cert (TLS1.3)', 'this_update': None, 'next_update': None, 'reason': 'opaque — TLS1.3 encrypts Certificate/CertificateStatus'}
+rsa2048.crt must_staple False
+p256.crt must_staple False
+expired.crt must_staple False
+selfsigned.crt must_staple False
+chain-incomplete.crt must_staple False
+rsa1024.crt must_staple False
