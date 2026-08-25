@@ -8,7 +8,6 @@ from api.db import init_db, query_all, upsert_flows
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
 from shared.schemas import FlowVerdict
-# real pipeline imports (not subprocess) — reassemble→parse→validate→assess
 from lab.reassembler.reassemble import reassemble as real_reassemble, get_tshark_prefs, build_tshark_cmd
 from analyzer.parse import parse_pcap as real_parse
 from analyzer.jas import analyze_pcap as real_jas
@@ -25,6 +24,7 @@ if _dist.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
+_PCAP_MAGICS = (b"\xd4\xc3\xb2\xa1", b"\xa1\xb2\xc3\xd4", b"\x0a\x0d\x0d\x0a")
 
 def _compute_summary(flows: list[FlowVerdict]) -> dict[str, Any]:
     if not flows:
@@ -51,25 +51,27 @@ def _is_malformed(filename: str, data: bytes) -> bool:
         return True
     if filename.endswith(".zip"):
         return False
+    if len(data) < 4:
+        return True
+    if filename and not any(filename.endswith(ext) for ext in (".pcap", ".pcapng", ".cap", ".zip")):
+        return True
+    if data[:4] not in _PCAP_MAGICS:
+        return True
     if len(data) < 10:
         return True
     return False
 
 def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
-    """Real reassemble→parse→validate→assess pipeline (imports, not subprocess). Branch when not USE_STUB."""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pcap") as tf:
             tf.write(data)
             tf.flush()
             tmp = tf.name
         try:
-            # 1 reassemble
             reasm = real_reassemble(tmp)
-            # 2 parse
             parsed = real_parse(tmp)
             tls = parsed.get("tls", {})
             cert_stub = parsed.get("cert", {})
-            # 3 jas
             try:
                 ja = real_jas(pathlib.Path(tmp))
                 if ja.get("tls"):
@@ -82,9 +84,7 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                     tls["ja4s"] = ja.get("ja4s")
             except Exception:
                 pass
-            # 4 cert validate if non-opaque and cert file known via manifest
             cert = dict(cert_stub)
-            # enrich cert via validator if cert_file resolvable
             try:
                 manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
                 fam = None
@@ -99,11 +99,9 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                             cert[ck] = vc[ck]
             except Exception:
                 pass
-            # ensure required cert keys
             cert.setdefault("leaf_present", cert.get("leaf_present", False))
             cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False))
             cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
-            # 5 assessment
             flow_dict = {
                 "flow_id": hint_name.replace(".pcap","") if hint_name else "real-01",
                 "app_protocol": "smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"),
@@ -114,19 +112,16 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                 "capture_epoch": "2026-08-27T00:00:00Z",
                 "source_id": hashlib.sha256(data).hexdigest()[:8],
             }
-            # enrich coverage lineage
             flow_dict["coverage_ratio"] = reasm.get("coverage_ratio", 1.0)
             flow_dict["pre_tls_buffer_len"] = reasm.get("pre_tls_buffer_len", 0)
             flow_dict["pre_tls_buffer_injection_possible"] = reasm.get("pre_tls_buffer_injection_possible", False)
-            # evaluate findings via rules + score
             try:
                 findings = real_evaluate(flow_dict)
                 rs, rl, ps = real_score(findings)
                 flow_dict["assessment"] = {"findings": [f.model_dump() if hasattr(f, "model_dump") else f for f in findings], "risk_level": rl, "risk_score": rs, "posture_score": ps}
-            except Exception as e:
+            except Exception:
                 flow_dict["assessment"] = {"findings": [], "risk_level": "Low", "risk_score": 10, "posture_score": 90}
             flow_dict["policy"] = None
-            # family-09 stripped High low-conf not Critical guard: if stripped single -> keep High via evaluate already handles
             fv = FlowVerdict.model_validate(flow_dict)
             return [fv]
         finally:
@@ -141,8 +136,18 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
     if pcap is None:
         raise HTTPException(status_code=422, detail="missing pcap file")
     try:
-        data: bytes = await pcap.read()
+        buf = io.BytesIO()
+        total = 0
+        while chunk := await pcap.read(1*1024*1024):
+            total += len(chunk)
+            if total > 100*1024*1024:
+                raise HTTPException(status_code=413, detail="pcap too large >100MB")
+            buf.write(chunk)
+        buf.seek(0)
+        data = buf.getvalue()
         filename: str = pcap.filename or ""
+    except HTTPException:
+        raise
     except Exception as exc:
         return [{"flow_id": "error", "error": f"read failed: {exc}"}]
     if _is_malformed(filename, data):
@@ -151,9 +156,9 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
         return [{"flow_id": "error", "error": "malformed pcap"}]
     if filename.endswith(".zip"):
         try:
-            buf = io.BytesIO(data)
+            zbuf = io.BytesIO(data)
             flows: list[FlowVerdict] = []
-            with zipfile.ZipFile(buf) as zf:
+            with zipfile.ZipFile(zbuf) as zf:
                 names = [n for n in zf.namelist() if not n.endswith("/")]
                 if not names:
                     return [{"flow_id": "error", "error": "malformed pcap"}]
@@ -165,7 +170,6 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                     if USE_STUB:
                         part = stub_reassemble(inner_name)
                     else:
-                        # Oracle Top2 fix: branch to real_reassemble when not USE_STUB (fix dead stub both branches)
                         real_part = _real_pipeline_for_bytes(inner_bytes, inner_name)
                         part = real_part if real_part else stub_reassemble(inner_name)
                     for fv in part:
@@ -224,7 +228,6 @@ def get_flows() -> Any:
     global _last_result
     if _last_result is not None:
         return [f.model_dump() for f in _last_result]
-    # SQLite JSONB query when not USE_STUB (stub→real flip)
     if not USE_STUB:
         db_flows = query_all()
         if db_flows:
