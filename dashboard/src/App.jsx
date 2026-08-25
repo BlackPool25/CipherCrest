@@ -325,11 +325,21 @@ export default function App() {
   const [flows, setFlows] = useState([])
   const [selectedId, setSelectedId] = useState(null)
 
+  // polling via fetch('/api/flows') not re-parse — 5s interval (necessary: documents polling contract)
   useEffect(() => {
-    fetchFlows().then((data) => {
-      setFlows(data)
-      if (data.length) setSelectedId(data[0].flow_id)
-    })
+    let alive = true
+    const load = () =>
+      fetchFlows().then((data) => {
+        if (!alive) return
+        setFlows(data)
+        if (data.length) setSelectedId((prev) => prev || data[0].flow_id)
+      })
+    load()
+    const iv = setInterval(load, 5000)
+    return () => {
+      alive = false
+      clearInterval(iv)
+    }
   }, [])
 
   const selected = flows.find((f) => f.flow_id === selectedId) || flows[0] || null

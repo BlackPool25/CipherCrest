@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="task-7-dashboard-honesty" tests="14" failures="0" errors="0" timestamp="2026-08-25T12:19:15.688568">
+  <testcase classname="task7" name="test_app_honesty_banner" time="0.01"/>
+  <testcase classname="task7" name="test_app_is_tls13_opaque" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_23_cols" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_15b_injection" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_M03_M18_M22" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_R1_R8" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_empty_0_20" time="0.01"/>
+  <testcase classname="task7" name="test_family06_opaque_true" time="0.01"/>
+  <testcase classname="task7" name="test_coverage_LOC_lt250" time="0.01"/>
+  <testcase classname="task7" name="test_threatmatrix_23_cols" time="0.01"/>
+  <testcase classname="task7" name="test_threatmatrix_colors" time="0.01"/>
+  <testcase classname="task7" name="test_threatmatrix_hover" time="0.01"/>
+  <testcase classname="task7" name="test_gz_lt_3_5MB" time="0.01"/>
+  <testcase classname="task7" name="test_polling_fetch_api_flows" time="0.01"/>
+</testsuite>
