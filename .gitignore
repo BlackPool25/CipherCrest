@@ -10,3 +10,12 @@ wheelhouse/
 htmlcov/
 node_modules/
 .DS_Store
+
+# local tooling & generated artifacts (not for repo)
+.codegraph
+.momo/
+.omo/
+.serena/
+evidence-day2.zip
+dashboard/dist/
+dashboard/node_modules/
