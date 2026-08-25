@@ -1,0 +1,117 @@
+=== Task 6 wheelhouse lean <350M ===
+Tue Aug 25 05:44:13 PM IST 2026
+--- requirements.txt ---
+xgboost==1.7.6
+pyod==2.0.5
+scikit-learn==1.5.0
+cryptography==43.0.1
+fastapi==0.115.12
+pydantic==2.11.7
+# stretch: torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
+# note: xgboost 2.1.0 pulls nvidia-nccl-cu12 327M -> 627M >350 lean fail; using 1.7.6 last lean manylinux2014 without nvidia dep (345M)
+# note: pyod 1.1.0 sdist only no cp312 wheel for --only-binary=:all: -> using 2.0.5 first binary wheel
+--- ls -lh wheelhouse | head -40 ---
+total 345M
+-rw-r--r--. 1 shreyas shreyas  14K Aug 25 17:43 annotated_types-0.8.0-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 123K Aug 25 17:43 anyio-4.14.2-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 217K Aug 25 17:43 cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 355K Aug 25 17:43 contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 3.9M Aug 25 17:43 cryptography-43.0.1-cp39-abi3-manylinux_2_28_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 8.2K Aug 25 17:43 cycler-0.12.1-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  93K Aug 25 17:43 fastapi-0.115.12-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 4.8M Aug 25 17:43 fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  67K Aug 25 17:43 idna-3.19-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 302K Aug 25 17:43 joblib-1.5.3-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 1.5M Aug 25 17:43 kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  58M Aug 25 17:43 llvmlite-0.49.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 9.6M Aug 25 17:43 matplotlib-3.11.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 3.8M Aug 25 17:43 numba-0.67.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  16M Aug 25 17:43 numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 127K Aug 25 17:43 packaging-26.3-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 6.7M Aug 25 17:43 pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  48K Aug 25 17:43 pycparser-3.0-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 435K Aug 25 17:43 pydantic-2.11.7-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 2.0M Aug 25 17:43 pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas 196K Aug 25 17:43 pyod-2.0.5-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 120K Aug 25 17:43 pyparsing-3.3.2-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 225K Aug 25 17:43 python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  13M Aug 25 17:43 scikit_learn-1.5.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  34M Aug 25 17:43 scipy-1.18.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+-rw-r--r--. 1 shreyas shreyas  11K Aug 25 17:43 six-1.17.0-py2.py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  71K Aug 25 17:43 starlette-0.46.2-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  19K Aug 25 17:43 threadpoolctl-3.6.0-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  45K Aug 25 17:43 typing_extensions-4.16.0-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas  15K Aug 25 17:43 typing_inspection-0.4.4-py3-none-any.whl
+-rw-r--r--. 1 shreyas shreyas 192M Aug 25 17:43 xgboost-1.7.6-py3-none-manylinux2014_x86_64.whl
+--- du -m wheelhouse ---
+345	wheelhouse
+345M	wheelhouse
+--- ls wheelhouse/*.whl | grep checks ---
+annotated_types-0.8.0-py3-none-any.whl
+anyio-4.14.2-py3-none-any.whl
+cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+cryptography-43.0.1-cp39-abi3-manylinux_2_28_x86_64.whl
+cycler-0.12.1-py3-none-any.whl
+fastapi-0.115.12-py3-none-any.whl
+fonttools-4.63.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+idna-3.19-py3-none-any.whl
+joblib-1.5.3-py3-none-any.whl
+kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+llvmlite-0.49.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+matplotlib-3.11.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+numba-0.67.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+packaging-26.3-py3-none-any.whl
+pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+pycparser-3.0-py3-none-any.whl
+pydantic-2.11.7-py3-none-any.whl
+pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+pyod-2.0.5-py3-none-any.whl
+pyparsing-3.3.2-py3-none-any.whl
+python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+scikit_learn-1.5.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+scipy-1.18.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+six-1.17.0-py2.py3-none-any.whl
+starlette-0.46.2-py3-none-any.whl
+threadpoolctl-3.6.0-py3-none-any.whl
+typing_extensions-4.16.0-py3-none-any.whl
+typing_inspection-0.4.4-py3-none-any.whl
+xgboost-1.7.6-py3-none-manylinux2014_x86_64.whl
+xgboost check: OK
+pyod check: OK
+torch check: absent_OK
+SIZE=345 <350? PASS
+--- pip install --no-index --find-links dry-run ---
+Requirement already satisfied: cffi>=1.12 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from cryptography==43.0.1->-r requirements.txt (line 4)) (2.1.0)
+Requirement already satisfied: starlette<0.47.0,>=0.40.0 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from fastapi==0.115.12->-r requirements.txt (line 5)) (0.46.2)
+Requirement already satisfied: typing-extensions>=4.8.0 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from fastapi==0.115.12->-r requirements.txt (line 5)) (4.16.0)
+Requirement already satisfied: annotated-types>=0.6.0 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from pydantic==2.11.7->-r requirements.txt (line 6)) (0.8.0)
+Requirement already satisfied: pydantic-core==2.33.2 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from pydantic==2.11.7->-r requirements.txt (line 6)) (2.33.2)
+Requirement already satisfied: typing-inspection>=0.4.0 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from pydantic==2.11.7->-r requirements.txt (line 6)) (0.4.2)
+Requirement already satisfied: pycparser in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from cffi>=1.12->cryptography==43.0.1->-r requirements.txt (line 4)) (3.0)
+Processing ./wheelhouse/llvmlite-0.49.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (from numba>=0.51->pyod==2.0.5->-r requirements.txt (line 2))
+Requirement already satisfied: anyio<5,>=3.6.2 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from starlette<0.47.0,>=0.40.0->fastapi==0.115.12->-r requirements.txt (line 5)) (4.14.2)
+Processing ./wheelhouse/contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2))
+Processing ./wheelhouse/cycler-0.12.1-py3-none-any.whl (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2))
+Requirement already satisfied: fonttools>=4.28.2 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (4.63.0)
+Processing ./wheelhouse/kiwisolver-1.5.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2))
+Requirement already satisfied: packaging>=20.0 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (26.2)
+Requirement already satisfied: pillow>=9 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (12.3.0)
+Requirement already satisfied: pyparsing>=3 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (3.3.2)
+Requirement already satisfied: python-dateutil>=2.7 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (2.9.0.post0)
+Requirement already satisfied: idna>=2.8 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from anyio<5,>=3.6.2->starlette<0.47.0,>=0.40.0->fastapi==0.115.12->-r requirements.txt (line 5)) (3.18)
+Requirement already satisfied: six>=1.5 in /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages (from python-dateutil>=2.7->matplotlib->pyod==2.0.5->-r requirements.txt (line 2)) (1.17.0)
+Would install contourpy-1.3.3 cryptography-43.0.1 cycler-0.12.1 kiwisolver-1.5.0 llvmlite-0.49.0 matplotlib-3.11.1 numba-0.67.0 pydantic-2.11.7 pyod-2.0.5 scikit-learn-1.5.0 xgboost-1.7.6
+dry-run exit:0
+--- pip download --only-binary verification ---
+Saved /tmp/verify_wh/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+Saved /tmp/verify_wh/pyparsing-3.3.2-py3-none-any.whl
+Saved /tmp/verify_wh/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+Saved /tmp/verify_wh/pycparser-3.0-py3-none-any.whl
+Saved /tmp/verify_wh/idna-3.19-py3-none-any.whl
+Saved /tmp/verify_wh/six-1.17.0-py2.py3-none-any.whl
+Successfully downloaded xgboost pyod scikit-learn cryptography fastapi pydantic pydantic-core annotated-types cffi joblib numba numpy scipy starlette threadpoolctl typing-extensions typing-inspection matplotlib anyio contourpy cycler fonttools kiwisolver llvmlite packaging pillow pyparsing python-dateutil pycparser idna six
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip

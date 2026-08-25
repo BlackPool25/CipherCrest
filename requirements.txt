@@ -1,6 +1,9 @@
-pydantic==2.11.*
-fastapi==0.115.*
-uvicorn
-cryptography
-scapy
-dpkt
+xgboost==1.7.6
+pyod==2.0.5
+scikit-learn==1.5.0
+cryptography==43.0.1
+fastapi==0.115.12
+pydantic==2.11.7
+# stretch: torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
+# note: xgboost 2.1.0 pulls nvidia-nccl-cu12 327M -> 627M >350 lean fail; using 1.7.6 last lean manylinux2014 without nvidia dep (345M)
+# note: pyod 1.1.0 sdist only no cp312 wheel for --only-binary=:all: -> using 2.0.5 first binary wheel

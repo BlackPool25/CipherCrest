@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="task-6-wheelhouse" tests="6"><testcase classname="offline" name="test_wheelhouse_exists" time="0.1" /><testcase classname="offline" name="test_wheelhouse_lt_350" time="0.1" /><testcase classname="offline" name="test_xgboost_present" time="0.1" /><testcase classname="offline" name="test_pyod_present" time="0.1" /><testcase classname="offline" name="test_torch_absent" time="0.1" /><testcase classname="offline" name="test_offline_dry_run" time="0.1" /></testsuite>
