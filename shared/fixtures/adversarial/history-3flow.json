@@ -1,0 +1,136 @@
+[
+  {
+    "flow_id": "history-3flow-01",
+    "app_protocol": "smtp",
+    "starttls_mode": "upgrade",
+    "tls": {
+      "version": "TLS1.2",
+      "is_deprecated": false,
+      "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+      "cipher_strength": "strong",
+      "is_aead": true,
+      "kex": "ECDHE",
+      "fs_flag": true,
+      "handshake_success": true,
+      "alert_after_starttls": false
+    },
+    "cert": {
+      "leaf_present": true,
+      "is_tls13_opaque": false,
+      "not_before": "2025-01-01T00:00:00Z",
+      "not_after": "2026-01-01T00:00:00Z",
+      "days_to_expiry": 120,
+      "is_expired": false,
+      "is_self_signed": false,
+      "chain_length": 2,
+      "chain_valid": true,
+      "san_match": true,
+      "pubkey_algo": "RSA",
+      "pubkey_bits": 2048,
+      "sigalg": "sha256WithRSAEncryption",
+      "sigalg_weak": false,
+      "keysize_weak": false,
+      "ocsp_stapled_status": "good",
+      "ocsp_must_staple": false,
+      "crl_unknown_reason": false
+    },
+    "assessment": {
+      "findings": [],
+      "risk_level": "Low",
+      "risk_score": 10
+    },
+    "policy": null
+  },
+  {
+    "flow_id": "history-3flow-02",
+    "app_protocol": "smtp",
+    "starttls_mode": "upgrade",
+    "tls": {
+      "version": "TLS1.2",
+      "is_deprecated": false,
+      "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+      "cipher_strength": "strong",
+      "is_aead": true,
+      "kex": "ECDHE",
+      "fs_flag": true,
+      "handshake_success": true,
+      "alert_after_starttls": false
+    },
+    "cert": {
+      "leaf_present": true,
+      "is_tls13_opaque": false,
+      "not_before": "2025-01-01T00:00:00Z",
+      "not_after": "2026-01-01T00:00:00Z",
+      "days_to_expiry": 120,
+      "is_expired": false,
+      "is_self_signed": false,
+      "chain_length": 2,
+      "chain_valid": true,
+      "san_match": true,
+      "pubkey_algo": "RSA",
+      "pubkey_bits": 2048,
+      "sigalg": "sha256WithRSAEncryption",
+      "sigalg_weak": false,
+      "keysize_weak": false,
+      "ocsp_stapled_status": "good",
+      "ocsp_must_staple": false,
+      "crl_unknown_reason": false
+    },
+    "assessment": {
+      "findings": [],
+      "risk_level": "Low",
+      "risk_score": 10
+    },
+    "policy": null
+  },
+  {
+    "flow_id": "history-3flow-03",
+    "app_protocol": "smtp",
+    "starttls_mode": "stripped",
+    "tls": {
+      "version": "unknown",
+      "is_deprecated": false,
+      "cipher_suite": "none",
+      "cipher_strength": "unknown",
+      "is_aead": false,
+      "kex": "unknown",
+      "fs_flag": false,
+      "handshake_success": false,
+      "alert_after_starttls": false
+    },
+    "cert": {
+      "leaf_present": false,
+      "is_tls13_opaque": false,
+      "not_before": null,
+      "not_after": null,
+      "days_to_expiry": null,
+      "is_expired": null,
+      "is_self_signed": null,
+      "chain_length": null,
+      "chain_valid": null,
+      "san_match": null,
+      "pubkey_algo": null,
+      "pubkey_bits": null,
+      "sigalg": null,
+      "sigalg_weak": null,
+      "keysize_weak": null,
+      "ocsp_stapled_status": "not_stapled",
+      "ocsp_must_staple": null,
+      "crl_unknown_reason": null
+    },
+    "assessment": {
+      "findings": [
+        {
+          "check": "STARTTLS stripping (history-aware)",
+          "severity": "Critical",
+          "spec": "RFC3207",
+          "evidence": "2 prior upgraded flows then 1 stripped on same 5-tuple — history triple stripping",
+          "remediation": "Propose immediate STARTTLS enforcement + alert; stripping confidence Critical with history"
+        }
+      ],
+      "risk_level": "Critical",
+      "risk_score": 95
+    },
+    "policy": null
+  }
+]

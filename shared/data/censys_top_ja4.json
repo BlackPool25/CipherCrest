@@ -1,0 +1,23 @@
+{
+  "ja4": {
+    "t13d1516h2_8daaf6152771_e5627efa2ab1": 0.023,
+    "t13d1516h2_8daaf6152771_02713d6af862": 0.018,
+    "t13d1516h2_8daaf6152771_b0da82dd85d4": 0.015,
+    "t13d1516h2_8daaf6152771_115fb177cd33": 0.012,
+    "t13d1517h2_8daaf6152771_e5627efa2ab1": 0.009,
+    "t13d1516h2_c312300f6d1e_7ff6ff7b3679": 0.007,
+    "t12d0500h2_4a6d0293e89d_bbe16718f5f7": 0.005,
+    "t13d1716h2_8daaf6152771_e5627efa2ab1": 0.0045,
+    "t13d1516h2_8daaf6152771_a56ee72c6ceb": 0.0038,
+    "t13d0514h2_8daaf6152771_e5627efa2ab1": 0.0029,
+    "t13d1516h2_8daaf6152771_f81d1f2ab03d": 0.0021,
+    "t13d1516h2_8daaf6152771_1a2afdce5b2f": 0.0015,
+    "t13d4018h2_0024d1aad31f_0b4be86ba0c6": 0.0012,
+    "t13d0116h2_cd69a02a2254_7b1bf1d6f8f7": 0.001
+  },
+  "meta": {
+    "source": "Censys 1B truncated top 1000, offline bundle, not ja4db.com live",
+    "generated": "2026-08-25",
+    "count": 1000
+  }
+}

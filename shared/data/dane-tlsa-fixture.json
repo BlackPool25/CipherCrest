@@ -1,0 +1,14 @@
+{
+  "_25._tcp.mail.lab.local": {
+    "usage": 3,
+    "selector": 1,
+    "matching_type": 1,
+    "cert_data": "3082010a0282010100deadbeef30820122300d06092a864886f70d01010b0500301e311c301a0603550403135365637572654d61696c53636f7065206c61622e6c6f63616c"
+  },
+  "meta": {
+    "source": "offline mockdns",
+    "zone": "lab.local",
+    "generated": "2026-08-25",
+    "note": "DANE TLSA 3 1 1 SPKI placeholder — offline fallback, no DNS fetch at docker load"
+  }
+}

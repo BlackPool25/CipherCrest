@@ -1,0 +1,50 @@
+{
+  "flow_id": "family-09",
+  "app_protocol": "smtp",
+  "starttls_mode": "stripped",
+  "tls": {
+    "version": "unknown",
+    "is_deprecated": false,
+    "cipher_suite": "none",
+    "cipher_strength": "unknown",
+    "is_aead": false,
+    "kex": "unknown",
+    "fs_flag": false,
+    "handshake_success": false,
+    "alert_after_starttls": false
+  },
+  "cert": {
+    "leaf_present": false,
+    "is_tls13_opaque": false,
+    "not_before": null,
+    "not_after": null,
+    "days_to_expiry": null,
+    "is_expired": null,
+    "is_self_signed": null,
+    "chain_length": null,
+    "chain_valid": null,
+    "san_match": null,
+    "pubkey_algo": null,
+    "pubkey_bits": null,
+    "sigalg": null,
+    "sigalg_weak": null,
+    "keysize_weak": null,
+    "ocsp_stapled_status": "not_stapled",
+    "ocsp_must_staple": null,
+    "crl_unknown_reason": null
+  },
+  "assessment": {
+    "findings": [
+      {
+        "check": "STARTTLS stripping",
+        "severity": "High",
+        "spec": "RFC3207",
+        "evidence": "EHLO no STARTTLS advertisement, cleartext fallback — single-flow low confidence (needs history triple to confirm stripping)",
+        "remediation": "Enforce STARTTLS or use implicit TLS on 465/993 — correlate with 2 prior STARTTLS successes on same 5-tuple to escalate to Critical"
+      }
+    ],
+    "risk_level": "High",
+    "risk_score": 75
+  },
+  "policy": null
+}

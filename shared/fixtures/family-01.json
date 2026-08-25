@@ -1,0 +1,42 @@
+{
+  "flow_id": "family-01",
+  "app_protocol": "smtp",
+  "starttls_mode": "upgrade",
+  "tls": {
+    "version": "TLS1.2",
+    "is_deprecated": false,
+    "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+    "cipher_strength": "strong",
+    "is_aead": true,
+    "kex": "ECDHE",
+    "fs_flag": true,
+    "handshake_success": true,
+    "alert_after_starttls": false
+  },
+  "cert": {
+    "leaf_present": true,
+    "is_tls13_opaque": false,
+    "not_before": "2025-01-01T00:00:00Z",
+    "not_after": "2026-01-01T00:00:00Z",
+    "days_to_expiry": 120,
+    "is_expired": false,
+    "is_self_signed": false,
+    "chain_length": 2,
+    "chain_valid": true,
+    "san_match": true,
+    "pubkey_algo": "RSA",
+    "pubkey_bits": 2048,
+    "sigalg": "sha256WithRSAEncryption",
+    "sigalg_weak": false,
+    "keysize_weak": false,
+    "ocsp_stapled_status": "good",
+    "ocsp_must_staple": false,
+    "crl_unknown_reason": false
+  },
+  "assessment": {
+    "findings": [],
+    "risk_level": "Low",
+    "risk_score": 10
+  },
+  "policy": null
+}
