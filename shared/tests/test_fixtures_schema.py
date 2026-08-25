@@ -18,9 +18,9 @@ from shared.schemas import FlowVerdict
 
 
 def test_fixtures_schema_exists():
-    """Each family-01/06/09 fixture validates via FlowVerdict.model_validate_json — 3/3 Day1."""
+    """Each family-01/06/09 fixture validates via FlowVerdict.model_validate_json — 3/3 Day1, 10 after Day7."""
     fixtures = sorted(glob.glob("shared/fixtures/family-*.json"))
-    assert len(fixtures) == 3, f"expected exactly 3 family fixtures, got {fixtures}"
+    assert len(fixtures) >= 3, f"expected >=3 family fixtures, got {fixtures}"
     stems = {pathlib.Path(p).stem for p in fixtures}
     for req in ("family-01", "family-06", "family-09"):
         assert req in stems, f"missing {req}.json"

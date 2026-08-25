@@ -34,7 +34,7 @@ def test_reassemble_returns_flowverdict():
 def test_reassemble_fallback_returns_all():
     """Unknown pcap path returns all fixtures (>=3) as FlowVerdicts."""
     results = reassemble("unknown.pcap")
-    assert len(results) == 3, f"expected 3 fallback, got {len(results)}: {[r.flow_id for r in results]}"
+    assert len(results) >= 3, f"expected >=3 fallback, got {len(results)}: {[r.flow_id for r in results]}"
     for r in results:
         assert isinstance(r, FlowVerdict)
     ids = {r.flow_id for r in results}
@@ -80,8 +80,16 @@ def test_validator_opaque_invariant():
 
 
 def test_use_stub_flag():
-    """USE_STUB must be True Day1-2."""
-    assert USE_STUB is True
+    """USE_STUB must be True Day1-2, False after Day3 when ledger + jittered present."""
+    # After Day3 expansion, USE_STUB flips to False once ledger 🟢>=3 and jittered pcaps exist.
+    # Accept either value but verify it's a bool and consistent with filesystem state.
+    import pathlib as _pl
+    jittered_exists = any(_pl.Path("lab/pcaps/jittered").glob("*.pcap"))
+    progress_green = _pl.Path("shared/progress.md").read_text(encoding="utf-8").count("🟢") >= 3 if _pl.Path("shared/progress.md").exists() else False
+    ledger_green = _pl.Path("lab/LEDGER.md").read_text(encoding="utf-8").count("coverage_ratio") >= 3 if _pl.Path("lab/LEDGER.md").exists() else False
+    should_be_stub = not (progress_green and ledger_green and jittered_exists)
+    assert isinstance(USE_STUB, bool)
+    assert USE_STUB == should_be_stub, f"USE_STUB={USE_STUB} inconsistent with filesystem should_be_stub={should_be_stub} (progress_green={progress_green}, ledger_green={ledger_green}, jittered={jittered_exists})"
 
 
 def test_no_notimplemented_and_not_raw_dict():
