@@ -11,15 +11,15 @@ Generated via `sha256sum lab/pcaps/*.pcap` (python `hashlib.sha256` cross-checke
 
 | filename | sha256 | size (bytes) |
 |----------|--------|--------------|
-| family-01.pcap | `025b6d173877d48139d4c61d1d83bc846642a62bcbf33446e14eb78636129b72` | 1020 |
+| family-01.pcap | `8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd` | 1020 |
 | family-02.pcap | `1386a65157876d2000d64a4030cebe6919ee06778163e13b5718899dd6e974d3` | 1015 |
 | family-03.pcap | `e902c8ee191a0c12d1677d3ab6bc58d0db6f4dbf68b43b985e74f4a24c31ed0e` | 1019 |
 | family-04.pcap | `3a0bd89421cede9f593c3629e704a30c5432b5b876d8da6a11ca2843af2b774a` | 901 |
 | family-05.pcap | `b69609c25152f39c8980ade0496f4bebd86b2cb5f5d68698f7d00f9d2db1fe4f` | 994 |
-| family-06.pcap | `45c5294ed6ba7463c0739bc192145b21f289ebd6ee495bc3c6d1f2803bb6ce42` | 628 |
+| family-06.pcap | `25912a03b1b4f3c950d10abfbf22a93e3601befa96dc43b4065f8fc01d49ed8d` | 628 |
 | family-07.pcap | `613490c5550d7bcb173ba1533702615764eef4dfd4e175f33991930f1eb3c559` | 991 |
 | family-08.pcap | `fd0e548309c7acf041535afea98cce562ac84db86821dfb2adf93e11768a77c4` | 984 |
-| family-09.pcap | `3a439cd21854a8172a97ed2dd64e18a22584e5d680291908475a535b36682f4e` | 1344 |
+| family-09.pcap | `4ac9d8434b279c7d2f3ba37666df21198d7c8c983b88063cd662f484c9d986b8` | 1344 |
 | family-10.pcap | `ec37b0a7fe67500c71fff44fb5043a922dd1cff14df658452cb1fd1b641f4e06` | 1002 |
 | jittered.pcap | `759883d32f05181b0c1bbec189dc29dc6e3eb7c79a775e7a600ccfd2b3ae9c9e` | 1124 |
 | adversarial/stripping-history-3flow/flow1.pcap | `5b2f0f8f7f7b2b2e1e1c9d8e0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0` *(triple history — STARTTLS upgraded)* | ~1020 |
