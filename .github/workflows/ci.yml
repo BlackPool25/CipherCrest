@@ -29,6 +29,22 @@ jobs:
           else
             pip install -r requirements.txt -r requirements-dev.txt
           fi
+      - name: Build offline artifacts if missing
+        run: |
+          if [ ! -d wheelhouse ] || [ -z "$(ls -A wheelhouse 2>/dev/null)" ]; then
+            echo "wheelhouse missing/empty — rebuilding via pip download"
+            pip download --only-binary=:all: --prefer-binary -r requirements.txt -d wheelhouse/ && du -m wheelhouse | tail -1
+          else
+            echo "wheelhouse present — $(du -m wheelhouse | tail -1)"
+          fi
+          if [ ! -f dashboard/dist/index.html ]; then
+            echo "dashboard/dist missing — rebuilding via npm"
+            npm --prefix dashboard ci 2>/dev/null || npm --prefix dashboard install
+            npm --prefix dashboard run build
+            ls dashboard/dist/index.html
+          else
+            echo "dashboard/dist present — $(ls dashboard/dist/index.html)"
+          fi
       - name: Run schema tests
         run: |
           pytest shared/tests/test_schema.py shared/tests/test_freeze_guard.py shared/tests/test_ja4_grease.py shared/tests/test_ja4_rarity.py -q
