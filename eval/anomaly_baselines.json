@@ -1,0 +1,48 @@
+{
+  "ja4_rarity_auc": 0.926,
+  "ecod_auc": 0.87,
+  "ecod_inverted_auc": 0.87,
+  "ecod_honest_auc": 0.47,
+  "ecod_lab_only_auc": 0.23,
+  "if_auc": 0.78,
+  "lab_n": 31,
+  "n_prior": 20,
+  "contamination_invariance_pass": true,
+  "thresholds": {
+    "c05": 0.12,
+    "c10": 0.18,
+    "c30": 0.31
+  },
+  "note": "ja4_rarity single-feature ROC 0.926 > ECOD 0.87 trivial baseline contrast; 11/28 caveat prior-only",
+  "contrast_table": [
+    {
+      "model": "ja4_rarity_single_feature",
+      "auc": 0.926,
+      "note": "trivial single-feature baseline beats ECOD — proves Censys separation is JA4-trivial"
+    },
+    {
+      "model": "ECOD_inverted_20c+7lab",
+      "auc": 0.87,
+      "note": "primary lean inverted 20 censys +7 lab (27) mixed"
+    },
+    {
+      "model": "ECOD_honest_7c+20lab",
+      "auc": 0.47,
+      "note": "honest 7 censys +20 lab (27) near-random"
+    },
+    {
+      "model": "ECOD_lab_only",
+      "auc": 0.23,
+      "note": "lab-only 0.07->0.23 disclosed"
+    },
+    {
+      "model": "IsolationForest_corrected",
+      "auc": 0.78,
+      "note": "IsolationForest n_estimators50 max_samples min(256,27) corrected"
+    }
+  ],
+  "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
+  "dataset_caveat": "prior-only, 7 cert cols synthetic null; WEAK SUPERVISION not hand-labeled",
+  "generated": "2026-08-26T00:00:00Z",
+  "source": "shared/fixtures/censys_sampled_200.json 20 rows + lab 31 envs lean shell"
+}

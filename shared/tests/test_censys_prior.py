@@ -156,3 +156,74 @@ def test_cert_chain_length_none_and_caveat():
         # port and version caveats
         assert r.get("port") in (25, 587, 993), f"port {r.get('port')} not in 25/587/993"
         assert r.get("version_inferred") in ("TLS1.3", "TLS1.2")
+
+
+def test_11_28_cols_caveat_only_ja4_rarity_populated():
+    """11/28 cols caveat: only ja4_rarity + cipher_strength etc populated, cert fields None."""
+    rows = _load()
+    assert len(rows) == 20, f"lean 20 required for 11/28 caveat, got {len(rows)}"
+    for r in rows:
+        # --- 11 populated-ish cols must exist and be non-None ---
+        tls = r.get("tls", {})
+        assert tls.get("ja4_rarity") is not None, f"ja4_rarity missing {r.get('flow_id')}"
+        assert 0.0 <= tls["ja4_rarity"] <= 1.0
+        assert tls.get("cipher_strength") in ("strong", "medium", "weak", "unknown"), f"cipher_strength missing {r.get('flow_id')}"
+        assert tls.get("kex") in ("ECDHE", "RSA", "DHE", "unknown", "ECDHE"), f"kex missing {r.get('flow_id')}"
+        assert tls.get("fs_flag") is not None
+        assert tls.get("is_aead") is not None
+        assert r.get("port") in (25, 587, 993)
+        assert r.get("app_protocol") in ("smtp", "imap")
+        assert r.get("prior_flag") is True
+        assert r.get("dataset_caveat") == "prior-only, 7 cert cols synthetic null"
+        # --- cert detail cols must be None per disclosure ---
+        cert = r.get("cert", {})
+        for k in ("chain_valid", "days_to_expiry", "san_match", "chain_length", "is_expired", "is_self_signed"):
+            assert cert.get(k) is None, f"cert.{k} must be None per 11/28 caveat in {r.get('flow_id')}"
+        # miss indicators must be 0..1 and prior rows have 1 for cert-missing fields
+        miss = r.get("miss_indicators", {})
+        for mk in ("chain_valid", "days_to_expiry", "san_match"):
+            assert miss.get(mk) in (0, 1), f"miss_indicators.{mk} must be 0..1 in {r.get('flow_id')}"
+            assert miss.get(mk) == 1, f"prior miss {mk} must be 1 in {r.get('flow_id')}"
+        # top-level ja4 must exist but raw ja4 must NOT be in ALLOWED risk features as feature (whitelist guard)
+        assert r.get("ja4") is not None, f"ja4 missing {r.get('flow_id')}"
+        from shared.ja4_rarity import ALLOWED_RISK_FEATURES
+
+        assert "ja4" not in ALLOWED_RISK_FEATURES, "raw ja4 must not be whitelisted"
+        assert "ja4_rarity" in ALLOWED_RISK_FEATURES
+        # count 11/28 disclosure: at least 7 cert cols null + leaf_present False + is_tls13_opaque False
+        assert cert.get("leaf_present") is False
+        # raw ja4 as feature forbidden — build_vector must not contain it
+        from assessment.features import FEATURES_28
+
+        assert "ja4" not in FEATURES_28
+        assert "ja4_rarity" in FEATURES_28
+        assert len(FEATURES_28) == 28
+
+
+def test_ja4_rarity_single_feature_roc_926_regression():
+    """ja4_rarity single-feature ROC 0.926 regression — eval/anomaly_baselines.json fragment."""
+    baselines = pathlib.Path("eval/anomaly_baselines.json")
+    assert baselines.exists(), f"{baselines} missing — create ja4_rarity baseline fragment"
+    data = json.loads(baselines.read_text(encoding="utf-8"))
+    auc = data.get("ja4_rarity_auc")
+    assert auc is not None, "ja4_rarity_auc missing in eval/anomaly_baselines.json"
+    assert isinstance(auc, (int, float)), f"ja4_rarity_auc must be numeric, got {type(auc)}"
+    assert auc > 0.90, f"ja4_rarity_auc {auc} must be >0.90 (expected 0.926)"
+    assert 0.85 <= auc <= 0.99, f"ja4_rarity_auc {auc} out of 0.85..0.99"
+    assert abs(auc - 0.926) < 0.07, f"ja4_rarity_auc {auc} must be ≈0.926 ±0.07"
+    # contrast table must exist and ja4_rarity must beat ECOD
+    ecod = data.get("ecod_inverted_auc") if data.get("ecod_inverted_auc") is not None else data.get("ecod_auc")
+    if ecod is not None:
+        assert auc > ecod, f"ja4_rarity {auc} must beat ECOD {ecod} — trivial baseline contrast"
+        assert auc > 0.87 - 0.15, "ja4_rarity must stay > ECOD 0.87 lean"
+    # contrast_table sanity
+    table = data.get("contrast_table") or data.get("contrast") or []
+    if table:
+        models = {row.get("model"): row.get("auc") for row in table if isinstance(row, dict)}
+        if "ja4_rarity_single_feature" in models:
+            assert abs(float(models["ja4_rarity_single_feature"]) - 0.926) < 0.07
+    # contamination invariance flag disclosed
+    # GREASE filter still 16
+    from shared.ja4_rarity import GREASE_VALUES
+
+    assert len(GREASE_VALUES) == 16
