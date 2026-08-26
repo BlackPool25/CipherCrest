@@ -49,15 +49,26 @@ def test_contamination_invariance_scores_equal_threshold_differs():
 
     clf05 = ECOD(contamination=0.05, n_jobs=1)
     clf05.fit(X)
+    clf10 = ECOD(contamination=0.10, n_jobs=1)
+    clf10.fit(X)
     clf20 = ECOD(contamination=0.20, n_jobs=1)
     clf20.fit(X)
-    # per pyod #482/#552: contamination only affects threshold, scores invariant
+    clf30 = ECOD(contamination=0.30, n_jobs=1)
+    clf30.fit(X)
+    # per pyod #482/#552: contamination only affects threshold, scores invariant 0.05==0.10==0.30
+    assert np.allclose(clf05.decision_scores_, clf10.decision_scores_), "scores must be invariant 0.05==0.10"
+    assert np.allclose(clf10.decision_scores_, clf30.decision_scores_), "scores must be invariant 0.10==0.30"
+    assert np.allclose(clf05.decision_scores_, clf30.decision_scores_), "scores must be invariant 0.05==0.30"
     assert np.allclose(clf05.decision_scores_, clf20.decision_scores_), "scores must be invariant 0.05==0.20"
-    assert clf05.threshold_ != clf20.threshold_, "threshold must differ 0.05 vs 0.20"
+    assert clf05.threshold_ != clf10.threshold_, "threshold must differ 0.05 vs 0.10"
+    assert clf10.threshold_ != clf30.threshold_, "threshold must differ 0.10 vs 0.30"
+    assert clf05.threshold_ != clf30.threshold_, "threshold must differ 0.05 vs 0.30"
     # also check decision_function invariant for same X
     s05 = clf05.decision_function(X)
-    s20 = clf20.decision_function(X)
-    assert np.allclose(s05, s20)
+    s10 = clf10.decision_function(X)
+    s30 = clf30.decision_function(X)
+    assert np.allclose(s05, s10)
+    assert np.allclose(s10, s30)
 
 
 def test_roc_point_above_060():
