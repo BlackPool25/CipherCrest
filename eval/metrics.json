@@ -40,7 +40,7 @@
       "miss_indicator_ja4_rarity",
       "miss_indicator_sigalg"
     ],
-    "fit_time": 6.49736475944519,
+    "fit_time": 6.2864158153533936,
     "size_mb": 0.15936565399169922,
     "best_params": {
       "max_depth": 1,
@@ -159,7 +159,7 @@
   "perm_p": 0.0989010989010989,
   "bootstrap_n": 2000,
   "ap": 0.9730769230769227,
-  "fit_time": 6.49736475944519,
+  "fit_time": 6.2864158153533936,
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,

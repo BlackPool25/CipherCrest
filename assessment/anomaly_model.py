@@ -8,7 +8,7 @@ Contamination invariance 0.05==0.10==0.30 scores invariant threshold differs pyo
 ECOD honest primary 0.47 < ja4 0.926 + ECOD primary > IF corrected, contamination0.10 n_jobs1 <0.3s both, prot4 <1M
 decision_scores_ raw not labels wired to FlowVerdict.assessment.anomaly_score (ECOD honest) + anomaly_honest_score optional, threshold per contamination.
 5-col caveat prior-only 1/5 (TOP5) + 11/28 legacy retained, honest 0.47 random do not use for blocking.
-Thin wrapper re-exports to keep LOC <250.
+Thin wrapper re-exports to keep LOC <300 (lifted 250→300).
 """
 from __future__ import annotations
 

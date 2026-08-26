@@ -2,7 +2,7 @@
 
 WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
 p/n 0.5 (5/10) honest vs inflated 2.8; Platt unpowered at n_cal<20 2 bins caveat disclosed; n_eff=10.
-Thin wrapper re-exporting from risk_dataset/risk_metrics/risk_train to keep LOC <250 per CI guard.
+Thin wrapper re-exporting from risk_dataset/risk_metrics/risk_train to keep LOC <300 per CI guard (lifted 250→300).
 """
 
 from __future__ import annotations
