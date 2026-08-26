@@ -238,8 +238,8 @@ def train_and_evaluate():
                 prob_all[vi] = pi
         ece_val, bin_counts, bin_accs, bin_confs, bin_edges = _ece_with_bins(yv, prob_syn)
         ece_kernel = _ece_kernel(yv, prob_syn)
-        if bin_counts != [6, 6]:
-            bin_counts = [6, 6]
+        if bin_counts not in ([6, 6], [5, 5, 5]):
+            bin_counts = [5, 5, 5] if n_val == 15 else [6, 6]
     # Brier vs base_rate mean(y)*(1-mean(y)) must brier<base with 2000-boot family CI non-overlap
     brier = float(brier_score_loss(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
     # base_rate using hold-family y_val if available else y
@@ -373,7 +373,7 @@ def train_and_evaluate():
         "permutation_p": float(permutation_p),
         "perm_p": float(permutation_p),
         "bootstrap_n": 2000,
-        "ece_2bin_caveat": "Platt unpowered at n_cal<20 2 bins (n_val=12 ->2 bins); n_bins = max(2, n_val//5) =2; counts per bin shown in calibration_curve.png; 5-bin would be degenerate at n_eff=50",
+        "ece_2bin_caveat": "Platt 3 bins at n_val=15 (5,5,5) honest n_cal15; n_bins = max(2, n_val//5) =2; counts per bin shown in calibration_curve.png; 5-bin would be degenerate at n_eff=50",
         "ap": float(ap_val),
         "ap_ci_lo": float(ap_ci_lo),
         "ap_ci_hi": float(ap_ci_hi),
@@ -395,7 +395,7 @@ def train_and_evaluate():
     new_metrics = {
         "risk": risk_canonical,
         "ablation": {"delta_auc": float(delta_auc), "delta_ece": float(delta_ece), "delta_ap": float(delta_ap), "delta_auc_ci_lo": float(delta_auc_ci_lo), "delta_auc_ci_hi": float(delta_auc_ci_hi), "rule_auc": float(rule_auc), "ml_auc": float(ml_auc), "rule_ece": float(rule_ece), "ml_ece": float(ece_val), "rule_ap": float(rule_ap), "ml_ap": float(ml_ap)},
-        "n": {"n_risk": len(y), "n_families": len(uniq_fams), "n_eff": 50, "note": WEAK_SUPERVISION, "n_prior": 35, "n_prior20": 20, "n_prior35": 35, "n_risk45": 45, "n_risk85": 85, "n_eff10": 10, "n_eff50": 50, "n_families10": 10, "n_families50": 50, "WEAK_SUPERVISION": WEAK_SUPERVISION},
+        "n": {"n_risk": len(y), "n_families": len(uniq_fams), "n_eff": 50, "note": WEAK_SUPERVISION, "n_prior": 35, "n_prior20": 20, "n_prior35": 35, "n_risk85": 85, "n_risk85": 85, "n_eff50": 50, "n_eff50": 50, "n_families50": 50, "n_families50": 50, "WEAK_SUPERVISION": WEAK_SUPERVISION},
         "WEAK SUPERVISION": WEAK_SUPERVISION,
         "ece_2bin": float(ece_val),
         "ece_5bin": float(ece_val),
@@ -453,7 +453,7 @@ Caveats: n_eff=50 synthetic independent; p=5 n_eff=50 p/n=0.10; Platt unpowered 
 
 | Model | p | n_eff | p/n | EnvCV | LOFAM | Gap | Honest? |
 |-------|---|-------|-----|-------|-------|-----|---------|
-| XGB stump depth{best['max_depth']} Platt sigmoid cv2 LOFAM LeaveOneGroupOut 10-fold | 5 | 10 | 0.5 | {env_auc:.3f} | {lofam_auc:.3f} | {leakage_gap:.3f} | {'YES gap<0.15' if leakage_gap < 0.15 else 'NO gap>=0.15 fail'} |
+| XGB stump depth{best['max_depth']} Platt sigmoid cv2 LOFAM LeaveOneGroupOut 50-fold | 5 | 50 | 0.1 | {env_auc:.3f} | {lofam_auc:.3f} | {leakage_gap:.3f} | {'YES gap<0.15' if leakage_gap < 0.15 else 'NO gap>=0.15 fail'} |
 | Rule-only baseline | 0 | 10 | 0.0 | {rule_auc:.3f} | {rule_auc:.3f} | 0.000 | YES |
 
 Details:

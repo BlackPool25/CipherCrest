@@ -371,9 +371,9 @@ def test_top5_categorical_subset():
 def test_p_n_ratio_disclosure():
     from assessment.features import FEATURES_TOP5, p_n_ratio
 
-    assert p_n_ratio == len(FEATURES_TOP5) / 10
-    assert p_n_ratio == 0.5
-    # docs: p/n = 5/10 honest vs inflated 28/10=2.8
+    assert p_n_ratio == len(FEATURES_TOP5) / 50
+    assert p_n_ratio == 0.1
+    # docs: p/n = 5/50 honest vs inflated 28/50=0.56
     assert p_n_ratio < 1.0
 
 

@@ -17,6 +17,7 @@ import PcapCustomizer from '../components/PcapCustomizer.jsx'
 import Families from '../pages/Families.jsx'
 import Lab from '../pages/Lab.jsx'
 import Live from '../pages/Live.jsx'
+import Reports from '../pages/Reports.jsx'
 import { fetchFlows } from '../services/api.js'
 
 if (typeof document !== 'undefined') injectTokens()
@@ -316,14 +317,7 @@ function LivePage(){
   return <Live />
 }
 function ReportsPage(){
-  const { flows } = useFlowsState()
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <h2 style={{ fontSize:14, fontWeight:600, color:TOK.ink, textTransform:'uppercase', letterSpacing:0.6 }}>Reports — Coverage per-port 25/587/993 + PDF/PNG/JSON</h2>
-      <CoverageTable flows={flows} />
-      <Graphs flows={flows} />
-    </div>
-  )
+  return <Reports />
 }
 
 // ── Root Shell with BrowserRouter + Routes / -> /dashboard + nested Layout>Outlet ──

@@ -167,5 +167,5 @@ def test_protocol4_and_no_raw_ja4():
     assert "family_id" not in " ".join(FEATURES_TOP5)
     # family_id grouping for LOFAM but not in features
     assert "family_id" not in FEATURES_28
-    # raw ja4 not in features
+    # raw ja4 excluded; only ja4_rarity allowed — FEATURES_TOP5 guard
     assert "ja4" not in FEATURES_TOP5 or "ja4_rarity" in FEATURES_TOP5

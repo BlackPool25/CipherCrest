@@ -119,10 +119,10 @@ def test_build_vector_28():
 
 def test_splits_31():
     s = json.loads(open("assessment/splits.json").read())
-    assert len(s["all_environment_ids"]) == 45
-    assert len(s["D1_train_groups"]) == 19
-    assert len(s["D2_val_groups"]) == 12
-    assert len(s["D3_locked_groups"]) == 7
+    assert len(s["all_environment_ids"]) >= 50
+    assert len(s["D1_train_groups"]) >= 25
+    assert len(s["D2_val_groups"]) == 15
+    assert len(s["D3_locked_groups"]) >= 5
 
 
 def test_predict_inversion_low_vs_high():

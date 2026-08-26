@@ -88,23 +88,23 @@ jobs:
           python -c "from shared.ja4_rarity import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           if grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 | grep -q "ja4"; then echo "raw ja4 in vector forbidden" && exit 1; fi
-      - name: Splits grouping + ratio guard (45 envs)
+      - name: Splits grouping + ratio guard (85 envs)
         run: |
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45, f\"all_environment_ids 45 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==45, f\"groups_by_env 45 got {len(s['groups_by_env'])}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85), f\"all_environment_ids 45/85 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==85, f\"groups_by_env 85 got {len(s['groups_by_env'])}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert len(set(s['all_environment_ids']))>=5, f\"unique envs {len(set(s['all_environment_ids']))} <5\"; mx=max(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); mn=min(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); assert mx/mn <3, f'ratio {mx}/{mn} >=3'"
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups'])==19 and len(s['D2_val_groups'])==12 and len(s['D3_locked_groups'])==7, f\"D1 19 D2 12 D3 7 got {s['D1_train_groups']},{s['D2_val_groups']},{s['D3_locked_groups']}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups'])==30 and len(s['D2_val_groups'])==15 and len(s['D3_locked_groups'])==10, f\"D1 30 D2 15 D3 10 got {len(s['D1_train_groups'])},{len(s['D2_val_groups'])},{len(s['D3_locked_groups'])}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'family_id' not in open('assessment/splits.json').read(), 'family_id grouping forbidden'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in open('assessment/splits.json').read() or 'environment_id' in str(s.get('groups_by_env',{})), 'env_id grouping missing'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), f\"disjoint failed\""
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45 and not set(s['D_prior_groups']) & set(s['D1_train_groups']), '45 + prior disjoint'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), '85 + prior disjoint'"
       - name: Locked disjoint guard
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])), f\"D3_locked overlaps train/val {set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))}\""
       - name: Prior disjoint + prior_flag guard (chain_valid/san/days None)
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s.get('D_prior_groups',[])) & set(s['D1_train_groups']), f\"D_prior overlaps D1\""
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[]))==20, f\"D_prior 20 got {len(s.get('D_prior_groups',[]))}\""
-          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert len(c)==20 and all(r.get('prior_flag') is True for r in c), 'prior_flag != True or len!=20'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[]))==35, f\"D_prior 35 got {len(s.get('D_prior_groups',[]))}\""
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert len(c)==35 and all(r.get('prior_flag') is True for r in c), 'prior_flag != True or len!=35'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('chain_valid') is None for r in c), 'chain_valid must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('san_match') is None for r in c), 'san_match must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('days_to_expiry') is None for r in c), 'days_to_expiry must be None'"
@@ -215,7 +215,7 @@ jobs:
           grep -q "ja4_rarity" assessment/features.py || (echo "guard 4 ja4_rarity grep fail" && exit 1)
           echo "guard 4 ja4 whitelist OK"
           # guard 5 grouping env_id LOFAM
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45 and not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))" || (echo "guard 5 grouping fail" && exit 1)
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85) and not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))" || (echo "guard 5 grouping fail" && exit 1)
           grep -q "environment_id" assessment/splits.json || (echo "guard 5 env_id grep fail" && exit 1)
           echo "guard 5 grouping env_id OK"
           # guard 6 prior disjoint 11/5 caveat

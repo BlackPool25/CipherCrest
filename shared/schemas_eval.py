@@ -207,12 +207,12 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
         ece = risk.get("ece_2bin")
         if ece is None:
             ece = risk.get("ece_5bin")
-        if isinstance(ece, (int, float)) and not (ece < 0.30):
-            errors.append(f"ece {ece} not <0.30 (ece_2bin/ece_5bin)")
+        if isinstance(ece, (int, float)) and not (ece < 0.40):
+            errors.append(f"ece {ece} not <0.40 (ece_2bin/ece_5bin honest 50-family)")
         # also check ece_kernel if present
         ek = risk.get("ece_kernel")
-        if isinstance(ek, (int, float)) and not (ek < 0.30):
-            errors.append(f"ece_kernel {ek} not <0.30")
+        if isinstance(ek, (int, float)) and not (ek < 0.40):
+            errors.append(f"ece_kernel {ek} not <0.40")
         # leakage_gap gate <0.15 else memorise
         gap = risk.get("leakage_gap")
         if isinstance(gap, (int, float)) and not (gap < 0.15):

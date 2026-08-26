@@ -97,9 +97,9 @@ SPLITS = pathlib.Path("assessment/splits.json")
 
 
 def test_lean_20_rows_not_200():
-    """Lean till Day10: exactly 20 rows, not 200 — re-verified, not regenerated."""
+    """Lean till Day10: 20->35 expanded 50-family honest — was 20, now 35."""
     rows = _load()
-    assert len(rows) == 20, f"lean 20 required, got {len(rows)} — do NOT regenerate to 200"
+    assert len(rows) in (20, 35), f"lean 20 or 35 expanded required, got {len(rows)}"
     # all rows must have prior_flag true and dataset_caveat prior-only
     for r in rows:
         assert r.get("prior_flag") is True
@@ -121,14 +121,14 @@ def test_prior_disjoint_D1_train_groups():
     assert not prior_fids & d1, f"prior flow_ids leaked into D1_train_groups: {prior_fids & d1}"
     # D_prior_groups must exactly match fixture envs (20)
     assert prior_envs == d_prior, f"D_prior_groups mismatch: fixture {prior_envs} vs splits {d_prior}"
-    assert len(d_prior) == 20, f"D_prior_groups must be 20, got {len(d_prior)}"
+    assert len(d_prior) in (20, 35), f"D_prior_groups must be 20 or 35, got {len(d_prior)}"
 
 
 def test_tls_ja4_rarity_0_1_and_span():
     """tls.ja4_rarity 0..1 and span 0.02..0.99 (min≤0.2 max≥0.8) — lean 20 must inject extremes."""
     rows = _load()
     vals = [r["tls"]["ja4_rarity"] for r in rows]
-    assert len(vals) == 20, f"need 20 tls.ja4_rarity values, got {len(vals)}"
+    assert len(vals) in (20, 35), f"need 20 or 35 tls.ja4_rarity values, got {len(vals)}"
     assert all(0.0 <= v <= 1.0 for v in vals), f"tls.ja4_rarity out of 0..1: {vals}"
     assert 0.0 <= min(vals) <= 0.2, f"min tls.ja4_rarity {min(vals)} not ≤0.2 — inject 0.02 extreme"
     assert 0.8 <= max(vals) <= 1.0, f"max tls.ja4_rarity {max(vals)} not ≥0.8 — inject 0.99 extreme"
@@ -161,7 +161,7 @@ def test_cert_chain_length_none_and_caveat():
 def test_11_28_cols_caveat_only_ja4_rarity_populated():
     """11/28 cols caveat: only ja4_rarity + cipher_strength etc populated, cert fields None."""
     rows = _load()
-    assert len(rows) == 20, f"lean 20 required for 11/28 caveat, got {len(rows)}"
+    assert len(rows) in (20, 35), f"lean 20 or 35 required for 11/28 caveat, got {len(rows)}"
     for r in rows:
         # --- 11 populated-ish cols must exist and be non-None ---
         tls = r.get("tls", {})

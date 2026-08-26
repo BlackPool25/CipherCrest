@@ -1,4 +1,4 @@
-"""risk_dataset — load 85-env (50 families n_eff 50) dataset + XGB constants LOFAM stump honest."""
+"""risk_dataset — load 45-env dataset + XGB constants LOFAM stump honest."""
 
 from __future__ import annotations
 import hashlib
@@ -14,7 +14,7 @@ SPLITS = pathlib.Path("assessment/splits.json")
 FIXTURE_DIR = pathlib.Path("shared/fixtures")
 MODEL_PATH = pathlib.Path("models/risk_clf.pkl")
 EVAL_DIR = pathlib.Path("eval")
-WEAK_SUPERVISION = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter §1/§4a."
+WEAK_SUPERVISION = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
 # LOFAM stump honest: max_depth 1-2 only, reg_lambda 5-10, min_child_weight 3-5, n_estimators 100, learning_rate 0.05, early_stopping_rounds 20
 XGB_PARAMS = dict(

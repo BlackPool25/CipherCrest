@@ -21,7 +21,7 @@ from assessment.anomaly_model import (
     _pseudo_labels,
     score_flow,
 )
-from assessment.features import build_vector
+from assessment.features import build_vector, build_vector_top5
 
 
 def test_anomaly_pkl_exists_and_has_scores():
@@ -79,7 +79,19 @@ def test_roc_point_above_060():
     y = _pseudo_labels(all_flows)
     assert len(set(y)) == 2, "need both classes for ROC"
     m = pickle.loads(pathlib.Path("models/anomaly.pkl").read_bytes())
-    X_all = np.array([build_vector(f, mode="xgb") for f in all_flows], dtype=float)
+    from assessment.features import build_vector_top5
+    import pandas as pd
+    rows = []
+    for f in all_flows:
+        v = build_vector_top5(f)
+        try:
+            if isinstance(v, pd.DataFrame):
+                rows.append(v.values[0].astype(float).tolist())
+            else:
+                rows.append([float(x) for x in v])
+        except Exception:
+            rows.append([float(x) for x in v])
+    X_all = np.array(rows, dtype=float)
     scores = m.decision_function(X_all)
     auc = roc_auc_score(y, scores)
     assert auc > 0.60, f"ROC point>0.60 required got {auc:.3f}"
