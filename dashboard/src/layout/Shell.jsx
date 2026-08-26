@@ -15,6 +15,7 @@ import CoverageTable from '../components/CoverageTable.jsx'
 import Graphs from '../components/Graphs.jsx'
 import PcapCustomizer from '../components/PcapCustomizer.jsx'
 import Families from '../pages/Families.jsx'
+import Lab from '../pages/Lab.jsx'
 import { fetchFlows } from '../services/api.js'
 
 if (typeof document !== 'undefined') injectTokens()
@@ -308,16 +309,7 @@ function FamiliesPage(){
   return <Families />
 }
 function LabPage(){
-  const [flows, setFlows] = useState([])
-  useEffect(()=>{ fetchFlows().then(setFlows).catch(()=>{})}, [])
-  const handle = useCallback((next)=>{ if(Array.isArray(next)) setFlows(next)}, [])
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <h2 style={{ fontSize:14, fontWeight:600, color:TOK.ink, textTransform:'uppercase', letterSpacing:0.6 }}>Lab — Pcap customizer • matrix + preview lineage</h2>
-      <PcapCustomizer onFlowsUpdated={handle} />
-      <CoverageTable flows={flows} />
-    </div>
-  )
+  return <Lab />
 }
 function LivePage(){
   const { flows } = useFlowsState()
