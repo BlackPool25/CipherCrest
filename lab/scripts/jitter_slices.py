@@ -12,11 +12,11 @@ OUT_DIR=ROOT/"lab"/"pcaps"/"jittered"
 REASM_DIR=ROOT/"lab"/"reassembled"
 MANIFEST=ROOT/"lab"/"manifest.json"
 LEDGER=ROOT/"lab"/"LEDGER.md"
+from shared.ja4_rarity import GREASE_VALUES
 CENSYS=ROOT/"shared"/"data"/"censys_top_ja4.json"
 CAPTURE_EPOCH="2026-08-27T00:00:00Z"
 DOCKER_SHA="sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
 TSHARK_VER="4.2.0"
-from shared.ja4_rarity import GREASE_VALUES
 FAMILY_CFG={"02":{"port":25,"cipher_hex":b"\xc0\x30","ver":b"\x03\x03","cipher":"ECDHE-RSA-AES256-GCM-SHA384","cert":"p256","starttls":"upgrade"},"03":{"port":143,"cipher_hex":b"\x00\x0a","ver":b"\x03\x03","cipher":"DES-CBC3-SHA","cert":"rsa2048","starttls":"upgrade"},"04":{"port":110,"cipher_hex":b"\x00\x05","ver":b"\x03\x01","cipher":"RC4-SHA","cert":"rsa2048","starttls":"upgrade"},"05":{"port":587,"cipher_hex":b"\x00\x2f","ver":b"\x03\x02","cipher":"AES128-SHA","cert":"selfsigned","starttls":"upgrade"},"07":{"port":587,"cipher_hex":b"\x00\x3c","ver":b"\x03\x03","cipher":"AES128-SHA256","cert":"expired","starttls":"upgrade"},"08":{"port":587,"cipher_hex":b"\x00\x09","ver":b"\x03\x03","cipher":"DES-CBC-SHA","cert":"rsa1024","starttls":"upgrade"},"10":{"port":587,"cipher_hex":b"\x00\x35","ver":b"\x03\x03","cipher":"RSA-AES256-SHA","cert":"chain-incomplete","starttls":"upgrade"}}
 
 def _grease_hex(fam:str, idx:int)->str:
@@ -164,7 +164,7 @@ def update_ledger(families:list[str], slices:int=3)->None:
     for fam in families:
         for idx in range(1, slices+1):
             jid=f"{fam}-jitter-{idx:02d}"
-            if jid in text:
+            if f"| {jid} |" in text:
                 continue
             cfg=FAMILY_CFG[fam];sha=sha_map.get((fam,idx),"pending");env=f"family-{fam}__jitter{idx}_loss5";src=str(uuid.uuid4())[:8]
             ghe=_grease_hex(fam,idx)

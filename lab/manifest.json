@@ -33,7 +33,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "0d960dda-35e2-4a40-8b73-c44c677b9f31"
+    "source_id": "657c1e6d-8f98-4dff-b5f0-11a8b8bdb639"
   },
   "family-03": {
     "port": 143,
@@ -51,7 +51,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "c152cdfc-b100-4e64-a65c-61769315f9be"
+    "source_id": "36c7bed4-52c2-416d-bed8-ca2b4cb32bf3"
   },
   "family-04": {
     "port": 110,
@@ -69,7 +69,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "e1602fe8-9e8e-4f3d-8f69-289475cf2640"
+    "source_id": "fd6dc595-b5fa-45d5-8c85-3594c7adc1c3"
   },
   "family-05": {
     "port": 587,
@@ -87,7 +87,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "9bb97d4a-d409-4c1e-834a-9eeb96f13249"
+    "source_id": "dc2027db-d0b3-4305-8be8-2a4adbc1ccef"
   },
   "family-06": {
     "port": 993,
@@ -123,7 +123,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "4522d549-2511-4f20-a062-e283c334b7ea"
+    "source_id": "c2fc2064-f4a5-48df-9569-9c408c1eea3a"
   },
   "family-08": {
     "port": 587,
@@ -141,7 +141,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "0011c8cb-aaf7-4c18-8d0c-b7576f9a8768"
+    "source_id": "083776f4-476b-4df7-9300-60ec3717e6a0"
   },
   "family-09": {
     "port": 587,
@@ -177,7 +177,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "4a18c09b-79d0-4d34-acff-558440a96e92"
+    "source_id": "ed5f2f75-8cfb-4c30-8b6e-7a0b33a16ae6"
   },
   "family-02-jitter-01": {
     "port": 25,
@@ -190,7 +190,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "c93a0d5c-f2c5-4847-a226-465a2a35cd6c",
+    "source_id": "984e3399-50f5-41e9-a9da-3a7a008038a6",
     "flag": "jitter",
     "description": "ECDHE-RSA-AES256-GCM-SHA384 jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -205,7 +205,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "ee343d16-8fcf-40d7-a6f1-6887bc9e74c6",
+    "source_id": "4cfaa6a3-d131-4421-abe1-ffad04daf34d",
     "flag": "jitter",
     "description": "ECDHE-RSA-AES256-GCM-SHA384 jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -220,7 +220,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "191b4fce-8249-4b6e-9fcc-3efac38c9d3d",
+    "source_id": "6d1f58ca-b8a5-45ed-bb63-8c092736fa25",
     "flag": "jitter",
     "description": "ECDHE-RSA-AES256-GCM-SHA384 jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -235,7 +235,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "dc19045d-c7d2-4da9-ae3b-7d3671a763b1",
+    "source_id": "5fa2f1da-036e-4ba1-8f0b-187ee93dc549",
     "flag": "jitter",
     "description": "DES-CBC3-SHA jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -250,7 +250,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "1467c2a8-4492-475c-83da-d7717461e303",
+    "source_id": "2c1274af-6a0e-479b-bbfe-4c0891d5a2dd",
     "flag": "jitter",
     "description": "DES-CBC3-SHA jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -265,7 +265,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "a310931c-8d7b-445c-906d-347e6ba892e9",
+    "source_id": "b1457c56-8bda-4770-bfcc-cea353d4d445",
     "flag": "jitter",
     "description": "DES-CBC3-SHA jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -280,7 +280,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "9db8d2bf-24b0-4d6a-b675-53f1d46d3628",
+    "source_id": "d4495549-5d68-4e84-9c3c-f869a3738e4c",
     "flag": "jitter",
     "description": "RC4-SHA jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -295,7 +295,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "ed1f672a-497d-4e08-8411-cb53e454f026",
+    "source_id": "b4d4abe9-5d6e-4a2f-9e26-1b1ef02f5569",
     "flag": "jitter",
     "description": "RC4-SHA jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -310,7 +310,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "18f44643-e4bb-466e-a192-c99a3acb352f",
+    "source_id": "1b75a954-6fba-4830-91cd-6eda8657fcd8",
     "flag": "jitter",
     "description": "RC4-SHA jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -325,7 +325,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "70ff7514-0491-4216-ac1c-c9be3b06ab5a",
+    "source_id": "968c9c43-b475-442a-a50e-ee86d01f190e",
     "flag": "jitter",
     "description": "AES128-SHA jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -340,7 +340,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "a7affacb-60d2-40cd-a387-48919fe380c1",
+    "source_id": "f66def95-af7b-4094-9eab-f7483ffe93df",
     "flag": "jitter",
     "description": "AES128-SHA jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -355,7 +355,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "45044cc6-d795-459a-a6a4-a294651fb434",
+    "source_id": "8ed5b80f-3e2e-4b66-80c2-0612af093411",
     "flag": "jitter",
     "description": "AES128-SHA jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -370,7 +370,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "7687086e-dfab-4a38-9e72-e70c04efd470",
+    "source_id": "d3ce3817-59fe-448c-b1c4-c5320979e64e",
     "flag": "jitter",
     "description": "AES128-SHA256 jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -385,7 +385,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "eccf1e6a-4757-4da2-b62f-9a1486a08eb0",
+    "source_id": "8d679c34-7da0-409e-9a0d-88bf3e1e038f",
     "flag": "jitter",
     "description": "AES128-SHA256 jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -400,7 +400,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "c82d197e-3474-47b7-b0e7-57bf8db4d544",
+    "source_id": "4d456ec1-2966-4588-97dd-919d211a3d24",
     "flag": "jitter",
     "description": "AES128-SHA256 jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -415,7 +415,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "b7115460-67fa-4cef-825c-71588deeb404",
+    "source_id": "8532984f-41b5-423b-8d3c-739cca9fa446",
     "flag": "jitter",
     "description": "DES-CBC-SHA jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -430,7 +430,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "5f544a3d-7210-452d-b9bf-ecf936db07af",
+    "source_id": "8e92f682-22fd-464b-9fb5-6c436bf4f769",
     "flag": "jitter",
     "description": "DES-CBC-SHA jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -445,7 +445,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "92c379bd-3a93-45f6-96e6-d45cd04cffd7",
+    "source_id": "6a5db808-e53d-4a83-b20e-c5fe5e3503e1",
     "flag": "jitter",
     "description": "DES-CBC-SHA jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -460,7 +460,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "d02dada7-8b24-4425-a9f1-9d2dac4bdb01",
+    "source_id": "50a5c37e-4c97-4bce-9da1-39278c5b0284",
     "flag": "jitter",
     "description": "RSA-AES256-SHA jitter slice 1 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -475,7 +475,7 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "4eb5bf8d-51d2-465d-94fa-2b1d7ea1cd5e",
+    "source_id": "b13eac6b-ffaa-4d52-8b89-9a0bba9e199a",
     "flag": "jitter",
     "description": "RSA-AES256-SHA jitter slice 2 GREASE+sigalg+expiry+ja4_rarity"
   },
@@ -490,8 +490,218 @@
     "client": "sender",
     "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "tshark_version": "4.2.0",
-    "source_id": "d3dcf361-b785-411f-a4e0-5fca43da5036",
+    "source_id": "55ff7136-73b0-4794-9136-49a96667ab10",
     "flag": "jitter",
     "description": "RSA-AES256-SHA jitter slice 3 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-02-jitter-04": {
+    "port": 25,
+    "cipher": "ECDHE-RSA-AES256-GCM-SHA384",
+    "cert": "p256",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-02-jitter-04.pcap",
+    "environment_id": "family-02__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "c9917496-fd66-4a89-9a69-44c5658e4c27",
+    "flag": "jitter",
+    "description": "ECDHE-RSA-AES256-GCM-SHA384 jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-02-jitter-05": {
+    "port": 25,
+    "cipher": "ECDHE-RSA-AES256-GCM-SHA384",
+    "cert": "p256",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-02-jitter-05.pcap",
+    "environment_id": "family-02__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "113704c9-c60c-453c-8711-1781f4d76863",
+    "flag": "jitter",
+    "description": "ECDHE-RSA-AES256-GCM-SHA384 jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-03-jitter-04": {
+    "port": 143,
+    "cipher": "DES-CBC3-SHA",
+    "cert": "rsa2048",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-03-jitter-04.pcap",
+    "environment_id": "family-03__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "45b4f942-e53e-41b2-9064-8c891ea42964",
+    "flag": "jitter",
+    "description": "DES-CBC3-SHA jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-03-jitter-05": {
+    "port": 143,
+    "cipher": "DES-CBC3-SHA",
+    "cert": "rsa2048",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-03-jitter-05.pcap",
+    "environment_id": "family-03__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "7c13e1ca-5e6b-4a0c-a900-5ea0cc448165",
+    "flag": "jitter",
+    "description": "DES-CBC3-SHA jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-04-jitter-04": {
+    "port": 110,
+    "cipher": "RC4-SHA",
+    "cert": "rsa2048",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-04-jitter-04.pcap",
+    "environment_id": "family-04__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "f08d465a-7995-4663-939d-a96e1c97d783",
+    "flag": "jitter",
+    "description": "RC4-SHA jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-04-jitter-05": {
+    "port": 110,
+    "cipher": "RC4-SHA",
+    "cert": "rsa2048",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-04-jitter-05.pcap",
+    "environment_id": "family-04__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "eec5059e-ef08-487c-90bc-7f7fcbf15414",
+    "flag": "jitter",
+    "description": "RC4-SHA jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-05-jitter-04": {
+    "port": 587,
+    "cipher": "AES128-SHA",
+    "cert": "selfsigned",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-05-jitter-04.pcap",
+    "environment_id": "family-05__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "c34850a0-7538-4d23-a05f-c719d0e7939a",
+    "flag": "jitter",
+    "description": "AES128-SHA jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-05-jitter-05": {
+    "port": 587,
+    "cipher": "AES128-SHA",
+    "cert": "selfsigned",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-05-jitter-05.pcap",
+    "environment_id": "family-05__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "5cbafde4-5687-46df-a9d3-3271bf8d3239",
+    "flag": "jitter",
+    "description": "AES128-SHA jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-07-jitter-04": {
+    "port": 587,
+    "cipher": "AES128-SHA256",
+    "cert": "expired",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-07-jitter-04.pcap",
+    "environment_id": "family-07__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "12a16249-1182-48e0-8431-5a8e48b6fbb4",
+    "flag": "jitter",
+    "description": "AES128-SHA256 jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-07-jitter-05": {
+    "port": 587,
+    "cipher": "AES128-SHA256",
+    "cert": "expired",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-07-jitter-05.pcap",
+    "environment_id": "family-07__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "3264400a-bd85-4d61-83dc-febc9d6daa2f",
+    "flag": "jitter",
+    "description": "AES128-SHA256 jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-08-jitter-04": {
+    "port": 587,
+    "cipher": "DES-CBC-SHA",
+    "cert": "rsa1024",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-08-jitter-04.pcap",
+    "environment_id": "family-08__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "5711eba6-d0b7-4930-b529-f42a77994d72",
+    "flag": "jitter",
+    "description": "DES-CBC-SHA jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-08-jitter-05": {
+    "port": 587,
+    "cipher": "DES-CBC-SHA",
+    "cert": "rsa1024",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-08-jitter-05.pcap",
+    "environment_id": "family-08__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "af8734c9-9f83-4bc7-baf6-f5fba48240ce",
+    "flag": "jitter",
+    "description": "DES-CBC-SHA jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-10-jitter-04": {
+    "port": 587,
+    "cipher": "RSA-AES256-SHA",
+    "cert": "chain-incomplete",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-10-jitter-04.pcap",
+    "environment_id": "family-10__jitter4_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "5dea4a5f-afa5-473c-94ea-d6423c5b2290",
+    "flag": "jitter",
+    "description": "RSA-AES256-SHA jitter slice 4 GREASE+sigalg+expiry+ja4_rarity"
+  },
+  "family-10-jitter-05": {
+    "port": 587,
+    "cipher": "RSA-AES256-SHA",
+    "cert": "chain-incomplete",
+    "starttls": "upgrade",
+    "pcap": "lab/pcaps/jittered/family-10-jitter-05.pcap",
+    "environment_id": "family-10__jitter5_loss5",
+    "capture_epoch": "2026-08-27T00:00:00Z",
+    "client": "sender",
+    "docker_image_sha256": "sha256:dummy-postfix3.9-abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "tshark_version": "4.2.0",
+    "source_id": "01b5f623-83e2-42fe-85b0-b770fd267228",
+    "flag": "jitter",
+    "description": "RSA-AES256-SHA jitter slice 5 GREASE+sigalg+expiry+ja4_rarity"
   }
 }
