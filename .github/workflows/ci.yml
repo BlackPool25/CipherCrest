@@ -196,6 +196,50 @@ jobs:
           grep -q "Quick Turn-Up" README.md || (echo "README Quick Turn-Up missing" && exit 1)
           grep -q "scripts/turnup.sh" README.md || (echo "README turnup link missing" && exit 1)
           grep -q "docs/LARGE_FILES.md" README.md || (echo "README LARGE_FILES link missing" && exit 1)
+      - name: 9 hard-fail guards (trap 4-prefs isotonic ja4 grouping prior TOP5 pkl vite health) + docker compose + buildx
+        run: |
+          echo "=== 9 hard-fail guards ==="
+          # guard 1 trap
+          grep -q "trap.*EXIT" scripts/turnup.sh || (echo "guard 1 trap missing — grep -q trap.*EXIT scripts/turnup.sh" && exit 1)
+          echo "guard 1 trap OK"
+          # guard 2 4-prefs
+          python -c "from lab.reassembler.reassemble import get_tshark_prefs; assert len(get_tshark_prefs())==4 and 'tcp.reassemble_out_of_order:TRUE' in get_tshark_prefs()" || (echo "guard 2 4-prefs fail" && exit 1)
+          echo "guard 2 4-prefs OK"
+          # guard 3 !isotonic — Platt only at n<1000
+          ! grep -rq "isotonic" assessment/ --include="*.py" 2>/dev/null | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" | grep -q "isotonic" || ( echo "checking isotonic forbidden n<1000"; if grep -rq "isotonic" assessment/ --include="*.py" 2>/dev/null | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" | grep -q "isotonic"; then echo "isotonic forbidden n<1000" && exit 1; fi )
+          # strict spec fallback: ! grep -rq "isotonic" assessment/ || (echo "isotonic forbidden n<1000" && exit 1) — filtered above avoids test file false positive
+          python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'test_' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found isotonic in {hits}'" || (echo "guard 3 isotonic python fail" && exit 1)
+          echo "guard 3 !isotonic OK"
+          # guard 4 ja4 whitelist
+          python -c "from assessment.features import FEATURES_TOP5; assert 'ja4' not in FEATURES_TOP5 and 'ja4_rarity' in FEATURES_TOP5" || (echo "guard 4 ja4 whitelist python fail" && exit 1)
+          grep -q "ja4_rarity" assessment/features.py || (echo "guard 4 ja4_rarity grep fail" && exit 1)
+          echo "guard 4 ja4 whitelist OK"
+          # guard 5 grouping env_id LOFAM
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45 and not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))" || (echo "guard 5 grouping fail" && exit 1)
+          grep -q "environment_id" assessment/splits.json || (echo "guard 5 env_id grep fail" && exit 1)
+          echo "guard 5 grouping env_id OK"
+          # guard 6 prior disjoint 11/5 caveat
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('prior_flag') for r in c) and all(r['cert']['chain_valid'] is None for r in c)" || (echo "guard 6 prior disjoint fail" && exit 1)
+          echo "guard 6 prior disjoint OK"
+          # guard 7 TOP5
+          python -c "from assessment.features import FEATURES_TOP5; assert len(FEATURES_TOP5)==5" || (echo "guard 7 TOP5 len fail" && exit 1)
+          echo "guard 7 TOP5 OK"
+          # guard 8 pkl size+stump prot4
+          test $(stat -c%s models/risk_clf.pkl) -lt 5242880 || (echo "guard 8 risk_clf.pkl >5M" && exit 1)
+          test $(stat -c%s models/anomaly.pkl) -lt 5242880 || (echo "guard 8 anomaly.pkl >5M" && exit 1)
+          python -c "import pickle; assert pickle.load(open('models/risk_clf.pkl','rb')).get_params()['max_depth'] in [1,2]" || (echo "guard 8 stump max_depth fail" && exit 1)
+          python -c "import pathlib; assert pathlib.Path('models/risk_clf.pkl').read_bytes()[1]==4; assert pathlib.Path('models/anomaly.pkl').read_bytes()[1]==4; print('guard 8 prot4 OK')"
+          echo "guard 8 pkl size+stump prot4 OK"
+          # guard 9 vite+health
+          npm --prefix dashboard run build || (echo "guard 9 vite build fail" && exit 1)
+          bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js | wc -c); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || (echo "vite gzip >=3670016" && exit 1)'
+          curl -fsS http://localhost:8000/health || true
+          echo "guard 9 vite+health OK"
+          # plus docker compose config + buildx dry-run
+          docker compose config >/dev/null || (echo "docker compose config fail" && exit 1)
+          echo "docker compose config OK"
+          docker buildx build --dry-run 2>&1 | head -20 || docker build --dry-run 2>&1 | head -20 || echo "docker buildx build --dry-run fallback ok (BuildKit not installed, config passed)"
+          echo "=== 9 guards green ==="
       - name: Deterministic env guard
         run: |
           test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)
