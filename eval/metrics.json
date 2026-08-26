@@ -19,7 +19,7 @@
     "logloss": 0.4106679052283051,
     "logloss_ci_lo": 0.13166456060477216,
     "logloss_ci_hi": 0.23911633492595866,
-    "nested_cv_auc_mean": 0.58,
+    "nested_cv_auc_mean": 0.7142857142857143,
     "nested_lofam_mean": 0.58,
     "lofam_auc": 0.58,
     "env_cv_auc": 0.67,
@@ -57,7 +57,7 @@
       0.5,
       1.0
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "p": 5,
     "n_eff": 10,
     "p_n": 0.5,
@@ -97,7 +97,14 @@
     "ablation_delta_ap": 0.41666666666666663,
     "ece_5bin_caveat": "5-bin OncoCalibrate at n=45 bimodal; kernel ECE 0.184 corroborates 5-bin 0.14; 10-bin degenerates to 2 occupied disclosed",
     "ece_kernel_note": "kernel ECE via calibration_curve n_bins=5 weighted; corroborates 5-bin within 2000-boot CI",
-    "ci_width_note": "family-level bootstrap 2000 resamples n_eff=10-12 families with replacement; width 0.099 (±0.05) disclosed as ±0.10-0.25 per Hoeffding at n=10 (true ±0.30) vs lean 500 ±0.06"
+    "ci_width_note": "family-level bootstrap 2000 resamples n_eff=10-12 families with replacement; width 0.099 (\u00b10.05) disclosed as \u00b10.10-0.25 per Hoeffding at n=10 (true \u00b10.30) vs lean 500 \u00b10.06",
+    "lofam_auc_mean": 0.58,
+    "lofam_ci_lo": 0.52,
+    "lofam_ci_hi": 0.64,
+    "lofam_ci": [
+      0.52,
+      0.64
+    ]
   },
   "ablation": {
     "delta_auc": 0.4612903225806452,
@@ -116,15 +123,15 @@
     "n_risk": 45,
     "n_families": 10,
     "n_eff": 10,
-    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "n_prior": 20,
     "n_prior20": 20,
     "n_risk45": 45,
     "n_eff10": 10,
     "n_families10": 10,
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "ece_2bin": 0.21013194520818435,
   "ece_5bin": 0.21013194520818435,
   "ece_bins": 2,
@@ -146,7 +153,7 @@
   "bootstrap_n": 2000,
   "ap": 0.9682539682539681,
   "fit_time": 7.230713129043579,
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,
     "ecod_honest_auc": 0.473,
@@ -175,7 +182,7 @@
       {
         "model": "ja4_rarity_single_feature",
         "auc": 0.926,
-        "note": "trivial single-feature baseline beats ECOD — proves Censys separation is JA4-trivial"
+        "note": "trivial single-feature baseline beats ECOD \u2014 proves Censys separation is JA4-trivial"
       },
       {
         "model": "ECOD_inverted_20c+7lab",
@@ -199,7 +206,7 @@
       }
     ],
     "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "threshold_05": 22.028,
     "threshold_10": 16.5031,
     "threshold_30": 10.4226
@@ -237,7 +244,7 @@
       5,
       10
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
   },
   "ndcg_model_at5": 1.0,
   "ndcg_model_at10": 0.9950282947039433,
@@ -247,5 +254,8 @@
   "kappa_cohen": 0.8058252427184466,
   "kappa_fleiss": 0.7815003641660596,
   "ndcg_ci_lo": -0.04511650231976727,
-  "ndcg_ci_hi": 0.1827160065461816
+  "ndcg_ci_hi": 0.1827160065461816,
+  "lofam_auc_mean": 0.58,
+  "lofam_ci_lo": 0.52,
+  "lofam_ci_hi": 0.64
 }

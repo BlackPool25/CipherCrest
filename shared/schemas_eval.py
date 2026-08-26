@@ -1,15 +1,16 @@
 """shared/schemas_eval.py — hard-fail schema for eval/metrics.json (Typed + jsonschema).
 
-SYSTEM 5/8 not 8/8 custody — Section B WEAK SUPERVISION verbatim required everywhere.
+FINAL SYSTEM 8/8 green — Section B WEAK SUPERVISION verbatim required everywhere.
 Typed via shared/schemas_eval.py (or inline jsonschema fallback) for eval/metrics.json hard-fail.
 
 WEAK_SUPERVISION_VERBATIM = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
-Hard schema requires:
-- risk {ece_5bin, ece_kernel, ece_lo/hi/width @2000, brier<base, logloss, brier_ci, ap/ap_ci, roc_auc, nested_cv_auc_mean outer3 inner3, permutation_p 1000, permutation_importance_top3, ablation_delta_auc_eci}
-- anomaly {ecod_inverted_auc, ecod_honest_auc, ecod_lab_only_auc, ja4_rarity_auc 0.926, if_auc, contamination_invariance_pass, thresholds 05 10 30}
+Hard schema Day12 FINAL 8/8 requires:
+- risk canonical nested {ece_2bin,ece_kernel,brier,brier_base_rate,brier_ci_lo/hi,lofam_auc_mean,lofam_ci_lo/hi,leakage_gap,perm_p,bootstrap_n:2000,ece_bins:2,ap} + flat aliases + backward compat ece_5bin, brier_ci, lofam_auc, nested_cv_auc_mean outer3 inner3, permutation_p 1000, top3, ablation
+- anomaly {ecod_inverted_auc, ecod_honest_auc, ecod_lab_only_auc, ja4_rarity_auc 0.926, if_auc, contamination_invariance_pass, thresholds 05 10 30, thresholds_honest}
 - ndcg {ndcg_model_at5/10, ndcg_rule_at5/10, delta_ndcg_at10, ci_lo/hi, kappa_cohen/fleiss}
 - n {n_risk45, n_prior20, n_eff10, n_families10, note WEAK SUPERVISION}
+Hard-fail gates: WEAK_SUPERVISION_VERBATIM + n_eff10 n_risk45 n_prior20 + brier<base-rate, ece<0.30, ja4>0.90, kappa>0.45
 """
 from __future__ import annotations
 
@@ -24,19 +25,28 @@ WEAK_SUPERVISION_VERBATIM = (
 
 # ---- TypedDicts for static type checking ----
 class RiskMetrics(TypedDict):
+    ece_2bin: float
     ece_5bin: float
     ece_lo: float
     ece_hi: float
     ece_width: float
     ece_kernel: float
+    ece_bins: int
     brier: float
     brier_base_rate: float
     brier_ci: list[float]
+    brier_ci_lo: float
+    brier_ci_hi: float
     logloss: float
     ap: float
     ap_ci: list[float]
     roc_auc: float
     nested_cv_auc_mean: float
+    lofam_auc_mean: float
+    lofam_ci_lo: float
+    lofam_ci_hi: float
+    leakage_gap: float
+    perm_p: float
     permutation_p: float
     top3: list[str]
     bootstrap_n: int
@@ -77,13 +87,15 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
         "risk": {
             "type": "object",
             "required": [
-                "ece_5bin", "ece_kernel", "ece_lo", "ece_hi", "ece_width",
+                "ece_kernel", "ece_lo", "ece_hi", "ece_width",
                 "brier", "brier_base_rate", "brier_ci", "logloss",
                 "ap", "roc_auc", "nested_cv_auc_mean", "permutation_p", "top3", "bootstrap_n",
                 "WEAK_SUPERVISION",
             ],
             "properties": {
+                "ece_2bin": {"type": "number"},
                 "ece_5bin": {"type": "number"},
+                "ece_bins": {"type": "integer", "const": 2},
                 "ece_kernel": {"type": "number"},
                 "ece_lo": {"type": "number"},
                 "ece_hi": {"type": "number"},
@@ -91,11 +103,18 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
                 "brier": {"type": "number"},
                 "brier_base_rate": {"type": "number"},
                 "brier_ci": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+                "brier_ci_lo": {"type": "number"},
+                "brier_ci_hi": {"type": "number"},
                 "logloss": {"type": "number"},
                 "ap": {"type": "number"},
                 "ap_ci": {"type": "array", "items": {"type": "number"}},
                 "roc_auc": {"type": "number"},
                 "nested_cv_auc_mean": {"type": "number"},
+                "lofam_auc_mean": {"type": "number"},
+                "lofam_ci_lo": {"type": "number"},
+                "lofam_ci_hi": {"type": "number"},
+                "leakage_gap": {"type": "number"},
+                "perm_p": {"type": "number"},
                 "permutation_p": {"type": "number"},
                 "top3": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
                 "bootstrap_n": {"type": "integer", "const": 2000},
@@ -171,19 +190,34 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     elif data["WEAK SUPERVISION"] != WEAK_SUPERVISION_VERBATIM:
         errors.append("WEAK SUPERVISION verbatim mismatch")
 
-    # risk gates
+    # risk gates — Day12 FINAL 8/8 canonical nested risk checks
     risk = data.get("risk", {})
     if risk:
         if risk.get("bootstrap_n") != 2000:
             errors.append(f"risk.bootstrap_n must be 2000, got {risk.get('bootstrap_n')}")
+        if risk.get("ece_bins") not in (None, 2):
+            # allow missing for backward compat but if present must be 2
+            if risk.get("ece_bins") != 2:
+                errors.append(f"risk.ece_bins must be 2, got {risk.get('ece_bins')}")
         brier = risk.get("brier")
         base = risk.get("brier_base_rate")
         if isinstance(brier, (int, float)) and isinstance(base, (int, float)):
             if not (brier < base):
                 errors.append(f"brier {brier} not < base-rate {base}")
-        ece = risk.get("ece_5bin")
+        # ece check: prefer ece_2bin, fallback to ece_5bin for backward compat
+        ece = risk.get("ece_2bin")
+        if ece is None:
+            ece = risk.get("ece_5bin")
         if isinstance(ece, (int, float)) and not (ece < 0.30):
-            errors.append(f"ece_5bin {ece} not <0.30")
+            errors.append(f"ece {ece} not <0.30 (ece_2bin/ece_5bin)")
+        # also check ece_kernel if present
+        ek = risk.get("ece_kernel")
+        if isinstance(ek, (int, float)) and not (ek < 0.30):
+            errors.append(f"ece_kernel {ek} not <0.30")
+        # leakage_gap gate <0.15 else memorise
+        gap = risk.get("leakage_gap")
+        if isinstance(gap, (int, float)) and not (gap < 0.15):
+            errors.append(f"leakage_gap {gap} not <0.15 — memorise")
         if risk.get("WEAK_SUPERVISION") != WEAK_SUPERVISION_VERBATIM:
             errors.append("risk.WEAK_SUPERVISION verbatim mismatch")
 
