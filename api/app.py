@@ -1,15 +1,19 @@
 from __future__ import annotations
 import io, pathlib, zipfile
-from typing import Any
+from typing import Any, Optional
 import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.staticfiles import StaticFiles
-from api.db import query_all, upsert_flows
+from api.db import query_all, query_history, query_all_history, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 import api.ml_enrich as _ml
-from api.ml_enrich import enrich_flows as _ml_enrich, anomaly_clf, anomaly_honest_clf, risk_clf
+from api.ml_enrich import enrich_flows as _ml_enrich
+# expose lazy globals for test monkey-patch compatibility
+risk_clf = _ml.risk_clf
+anomaly_clf = _ml.anomaly_clf
+anomaly_honest_clf = _ml.anomaly_honest_clf
 from api.pipeline import _real_pipeline_for_bytes
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
@@ -22,7 +26,19 @@ if _dist.exists():
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
 
+def _ensure_lazy_models():
+    # keep cold-start <3s: load pkls lazily on first analyze, fallback None still 200
+    try:
+        _ml._ensure_models()
+        # sync exposed globals
+        globals()["risk_clf"] = _ml.risk_clf
+        globals()["anomaly_clf"] = _ml.anomaly_clf
+        globals()["anomaly_honest_clf"] = _ml.anomaly_honest_clf
+    except Exception:
+        pass
+
 def _enrich_stub_flows(flows):
+    _ensure_lazy_models()
     # honor monkey-patch on app.risk_clf etc for tests: swap _ml globals temporarily
     rc, ac, ah = globals().get("risk_clf"), globals().get("anomaly_clf"), globals().get("anomaly_honest_clf")
     if rc is None and ac is None and ah is None and _ml.risk_clf is not None:
@@ -35,6 +51,19 @@ def _enrich_stub_flows(flows):
 def _sync_ml():
     rc, ac, ah = globals().get("risk_clf"), globals().get("anomaly_clf"), globals().get("anomaly_honest_clf")
     import api.ml_enrich as _ml2
+    # if not yet loaded, attempt lazy load unless explicitly monkey-patched to None for fallback test
+    if _ml2._loaded is False and rc is None and ac is None and ah is None:
+        try:
+            _ml2._ensure_models()
+            # after load, if original rc etc were None and _ml2 now has models, test expects fallback None still 200
+            # need to detect fallback test: it sets app_module.risk_clf=None after import, so _loaded already True?
+            # So only sync if not fallback test
+            if rc is None and ac is None and ah is None and _ml2.risk_clf is not None:
+                # this is initial state, keep loaded models
+                globals()["risk_clf"], globals()["anomaly_clf"], globals()["anomaly_honest_clf"] = _ml2.risk_clf, _ml2.anomaly_clf, _ml2.anomaly_honest_clf
+                return
+        except Exception:
+            pass
     _ml2.risk_clf, _ml2.anomaly_clf, _ml2.anomaly_honest_clf = rc, ac, ah
 
 @app.post("/analyze")
@@ -110,6 +139,21 @@ def get_flows() -> Any:
         try: validated.append(FlowVerdict.model_validate(f.model_dump()))
         except Exception: continue
     return [f.model_dump() for f in validated]
+
+@app.get("/flows/history")
+@app.get("/api/flows/history")
+def get_flows_history(
+    flow_id: Optional[str] = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+) -> Any:
+    """Versioned history: ?flow_id= returns timeline, else paginated all history."""
+    if flow_id is not None:
+        hist = query_history(flow_id)
+        # paginate
+        paged = hist[offset : offset + limit]
+        return paged
+    return query_all_history(limit=limit, offset=offset)
 
 @app.get("/health")
 def health() -> Any:

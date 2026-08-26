@@ -278,7 +278,8 @@ def build_vector_top5(flow: dict):
     try:
         import pandas as pd
 
-        df = pd.DataFrame([vals], columns=FEATURES_TOP5)
+        # Use plain list for columns to avoid _Top5List __contains__ segfault (pandas string_arrow)
+        df = pd.DataFrame([vals], columns=list(_FEATURES_TOP5_RAW))
         for col in _TOP5_CATEGORICAL:
             df[col] = df[col].astype("category")
         return df

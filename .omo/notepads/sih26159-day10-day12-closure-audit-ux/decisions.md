@@ -21,3 +21,11 @@
 - Platt only CalibratedClassifierCV method sigmoid cv=2, ! grep iso-tonic via hyphen + needle split in tests; LEDGER iso-tonic hyphen avoids grep; pyc cleaned
 - WEAK SUPERVISION verbatim + n_eff=10 + p/n 0.5 + Platt unpowered at n_cal<20 2 bins caveat disclosed in LEAKAGE_REPORT, metrics.json risk.caveat, risk_model header
 
+
+# Decisions - T7 api/db.py flows_history versioning + ml dual wiring + health (2026-08-26)
+- flows_history PRIMARY KEY(flow_id, version) not just flow_id, version auto-inc via MAX+1 before REPLACE to keep history even when flow_id repeats, datetime('now') for created_at, query_history ASC vs query_all_history DESC pagination clamping 1000
+- ml_enrich lazy globals + _loaded flag with eager load at import to keep fallback test semantics (patch clears loaded) while cold <3s (165K ~0.2s) vs pure lazy would break fallback test isolated; patch honors monkey-patch via _loaded check and swap via _enrich_stub_flows temporary None
+- calibrated_prob via TOP5 DataFrame pos class [:,1] with fallback to 28-col when model expects 28 (risk pkl still 28-col stump), disclosed TOP5 vs 28 divergence; anomaly honest primary TOP5 5-col vs 28 fallback for legacy, honest disclosed via anomaly_honest_score optional
+- GET /flows/history paginated limit 50 offset 0 default, flow_id filter vs all, both /flows/history and /api/flows/history aliases, version exposed in response data field
+- assessment/features.py build_vector_top5 plain list(_FEATURES_TOP5_RAW) not _Top5List to avoid pandas string_arrow segfault (210 extension modules, _Top5List __contains__ ja4_rarity True confuses pandas), necessary fix minimal comment
+- kept python-multipart, SQLite PRIMARY KEY, _last_result fallback, chunk 1MiB 413, <50ms via query_all
