@@ -14,6 +14,11 @@ jobs:
       OMP_NUM_THREADS: "6"
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true # future-proof: fetches LFS if .gitattributes active; no effect currently (<1M, wheelhouse NOT LFS air-gap USB)
+      - name: LFS pull (if needed)
+        run: |
+          if grep -q "filter=lfs" .gitattributes 2>/dev/null; then git lfs pull || echo "LFS pull — git lfs not installed on runner, skipping (future stretch torch/MicroAE)"; else echo "No LFS blobs yet (<1M) — wheelhouse 345M air-gap not LFS, models/pcaps/png <5M threshold, see README Git LFS & Large Files"; fi
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

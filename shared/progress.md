@@ -42,3 +42,5 @@ Clock|Agent|Milestone|Artifact|CI gate|Blocked on
 | Day9 18:00 | API+Dash | API dual pkl wiring calibrated_prob anomaly_score dual 🟢 | api/app.py dual pkl lazy load models/risk_clf.pkl + models/anomaly.pkl + honest.pkl FlowVerdict.model_validate GET /flows | 🟢 gated | — |
 | Day10 09:00 | All | EVIDENCE Day8-10 + metrics.json hard 45 envs 🟢 | eval/EVIDENCE_Day10.md SYSTEM 5/8 + ML Day8-10 + eval/metrics.json hard 45 envs n_eff 10-12 WEAK SUPERVISION | 🟢 gated | — |
 | Day10 12:00 | All | CI guards strict freeze additive-only blind_id 45 envs 🟢 | .github/workflows/ci.yml 15 guards + shared/tests/test_freeze_guard.py additive-only + blind_id anonymized | 🟢 gated | — |
+
+| 2026-08-26 15:00 | Shared+Infra | Git LFS audit + setup for models/pcaps + CI/README linking — .git 346M loose wheelhouse 345M forced, no LFS yet (<1M), future .gitattributes commented | .gitattributes (future LFS commented wheelhouse NOT LFS), .github/workflows/ci.yml lfs:true conditional, README.md Git LFS & Large Files table + audit commands, assessment/LEDGER.md + lab/LEDGER.md + notepads learnings/issues audit | 🟢 gated | — |

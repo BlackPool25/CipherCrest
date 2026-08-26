@@ -1,0 +1,27 @@
+# Git LFS & Large Files — SecureMailScope audit 2026-08-26
+# Decision: NO LFS needed yet (<1M all non-wheelhouse tracked files). Wheelhouse stays gitignored air-gap USB (NOT LFS).
+# Audit: models/*.pkl 276K total, lab/pcaps 1KB each (45 pcap ~45K), eval/*.png 42K+17K — all <5M GitHub LFS threshold.
+# .git 346M = .git/objects loose 345M (wheelhouse force-added in 1647199 via `git add -f` despite wheelhouse/ in .gitignore), pack 915K + 13K.
+# git count-objects -v: count 247 size 344M loose, size-pack 951K. Loose objects will pack via `git gc` (not yet run).
+# For future stretch (MicroAE 27-8-1 ~50M, torch 180M) uncomment LFS lines below and run `git lfs install && git lfs track` — DO NOT `git lfs migrate` without user approval.
+# To enable LFS: git lfs install && git lfs track "models/**/*.pkl" "lab/pcaps/**/*.pcap" "eval/*.png" "lab/reassembled/**/*.bin"
+# Verify: git lfs ls-files (should be empty now), du -sh .git (should drop after gc if wheelhouse untracked), git verify-pack audit
+
+# Future LFS patterns — COMMENTED until >5M file appears (MicroAE/torch stretch)
+# Uncomment to activate:
+# models/**/*.pkl filter=lfs diff=lfs merge=lfs -text
+# models/*.pkl filter=lfs diff=lfs merge=lfs -text
+# lab/pcaps/**/*.pcap filter=lfs diff=lfs merge=lfs -text
+# lab/pcaps/*.pcap filter=lfs diff=lfs merge=lfs -text
+# eval/*.png filter=lfs diff=lfs merge=lfs -text
+# lab/reassembled/**/*.bin filter=lfs diff=lfs merge=lfs -text
+
+# Keep wheelhouse and dashboard/dist NEVER in LFS — wheelhouse is air-gap USB gitignored, dist is built in CI (tracked via force-add in 1647199 should be ignored going forward)
+# wheelhouse/** filter=lfs -DO NOT ADD- (stay gitignored)
+# dashboard/dist/** filter=lfs -DO NOT ADD- (build artifact, `npm run build` in CI)
+
+# Binary handling — ensure diff behaves
+*.pkl binary
+*.pcap binary
+*.png binary
+*.bin binary

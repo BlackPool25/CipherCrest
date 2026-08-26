@@ -23,6 +23,7 @@ Offline replay is primary — every flow is reproducible from `lab/pcaps` + `lab
 - [Security](#security)
 - [Install](#install)
 - [How to run all parts — Quick Start](#how-to-run-all-parts--quick-start)
+- [Git LFS & Large Files](#git-lfs--large-files)
 - [Usage](#usage)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
@@ -222,6 +223,42 @@ Schemas: `TLS(version, cipher_strength, kex, fs_flag, ja4_rarity 0..1, handshake
 | `models/anomaly.pkl` | `76K` | Lazy load, fallback `anomaly_score None`, `decision_scores_` not labels |
 
 Offline: `requirements.txt` pinned `xgboost==1.7.6 pyod==2.0.5 scikit-learn==1.5.0 cryptography==43.* fastapi==0.115.* pydantic==2.11.*` + `# stretch: torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu` commented (no torch lean <350M).
+
+## Git LFS & Large Files
+
+Storage strategy (audit 2026-08-26, `git verify-pack` + `git rev-list --objects --all`):
+
+| Category | Path | Size | Tracked? | LFS? | Strategy |
+|----------|------|------|----------|------|----------|
+| wheelhouse | `wheelhouse/*.whl` 32 wheels | 345M total (xgboost 191M, llvmlite 57M, scipy 34M) | YES (force-added `1647199` via `git add -f` despite `wheelhouse/` in `.gitignore`) | NO | Air-gap USB only — `pip install --no-index --find-links wheelhouse --only-binary=:all:` . Must stay gitignored; DO NOT add to LFS. Future cleanup via `git filter-repo` / BFG requires user approval — not executed (audit only). `du -m wheelhouse | tail -1` 345 <350. |
+| models | `models/risk_clf.pkl` 124K + `anomaly.pkl` 76K | 276K total | YES | NO (yet) | Small <5M LFS threshold, tracked directly. Future MicroAE ~50M would need LFS — see `.gitattributes` commented lines. |
+| pcaps | `lab/pcaps/*.pcap` 1KB + `jittered/*.pcap` 1KB ×35 | 45K total | YES | NO (yet) | Tiny, tracked directly. Stretch jitter 35 still <5M. |
+| reassembled | `lab/reassembled/*.bin` 120B ×35 | 4K | YES (if committed) | NO (yet) | Tiny. Future `*.bin` LFS prepared in `.gitattributes`. |
+| eval | `eval/*.png` 42K + 17K | 59K total | YES | NO (yet) | Small, tracked directly. |
+| dashboard dist | `dashboard/dist/` 1.1M (recharts 494K, bundle-stats 502K) | YES (force-added `1647199` despite `dashboard/dist/` in `.gitignore`) | NO | Build artifact — `npm run build` in CI, should be ignored going forward. Vite gzip 157k <3670016. |
+| .git loose | `.git/objects` 345M loose, pack 915K +13K | 346M total | — | — | Loose objects mirror wheelhouse (345M) not yet packed. `git count-objects -v` shows `count 247 size 344M loose, size-pack 951K`. Run `git gc` to pack. `du -sh .git` ≈ wheelhouse size. |
+
+**Threshold:** GitHub recommends LFS >5M (hard 100M). All non-wheelhouse tracked files <1M → **NO LFS needed yet**. `.gitattributes` exists with future-proof commented LFS lines for `models/**/*.pkl`, `lab/pcaps/**/*.pcap`, `eval/*.png`, `lab/reassembled/**/*.bin` — uncomment when adding >5M (torch 180M / MicroAE).
+
+**Commands:**
+```bash
+# audit largest blobs in history (top 10)
+git rev-list --objects --all | while read sha path; do [ -n "$path" ] || continue; size=$(git cat-file -s $sha); echo "$size $path"; done | sort -nr | head -10
+# or: git verify-pack -v .git/objects/pack/*.idx | sort -k5 -n | tail -20
+# current tracked large files >100K
+git ls-files | xargs -I{} du -b "{}" 2>/dev/null | awk '$1>100000' | sort -nr | head -20
+# .git size explain
+du -sh .git .git/objects .git/objects/pack && git count-objects -vH
+# LFS status (empty now — future stretch)
+grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS blobs yet (<1M)"
+# wheelhouse air-gap check
+du -m wheelhouse | tail -1  # 345 <350
+! ls wheelhouse/*.whl | grep -qi torch  # lean no torch
+```
+
+**CI:** `.github/workflows/ci.yml` uses `actions/checkout@v4` with `lfs: true` (no effect now) + conditional `git lfs pull` only if `.gitattributes` contains `filter=lfs`. Wheelhouse NOT fetched via LFS — `pip install --no-index --find-links wheelhouse --only-binary=:all:` air-gap.
+
+**History cleanup (not executed):** Wheelhouse 345M force-added in `1647199` clogs `.git/objects` loose 345M. To reduce clone size, run `git filter-repo --path wheelhouse --invert-paths` or BFG `java -jar bfg.jar --delete-folders wheelhouse` then `git gc --prune=now --aggressive` — **requires user approval, history rewrite** (not done). See `assessment/LEDGER.md` + `.omo/notepads/sih26159-day8-day10-ml-hardening-generalisation/learnings.md`.
 
 ## Testing & Evidence
 
