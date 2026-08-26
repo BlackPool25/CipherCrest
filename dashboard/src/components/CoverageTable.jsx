@@ -33,9 +33,9 @@ CoverageTable — per-port 25/587/993 + MX 25 compliance vs RFC8314 M02 + M3AAWG
 </div>
 {empty&&<div style={{fontSize:12,color:TOK.ink,background:TOK.canvas,border:`1px solid ${TOK.border}`,borderRadius:8,padding:10,marginBottom:12}}>0/20 REAL — no flows — honest not 14/20 — GET /flows empty via fetch('/api/flows')</div>}
 {!empty&&<div style={{fontSize:11,color:TOK.inkMuted,marginBottom:8}}>Honesty: 14/20 REAL per-version scored +3 info (15b injection pre_tls_buffer,16b MX,16c 0-RTT) per V2/V4/MX — Scanner tier ~12/23 honest, 9 checks show &apos;requires gateway&apos; (Mailbox API lossy Received only) — M03+M18+M22 triple citation — 23 checks (20 scored +3 greyed)</div>}
-<table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
-<thead><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
-<th style={{padding:'6px 8px'}}>Port</th><th style={{padding:'6px 8px'}}>Service</th><th style={{padding:'6px 8px'}}>Flows</th><th style={{padding:'6px 8px'}}>coverage_ratio</th><th style={{padding:'6px 8px'}}>pre_tls_buffer_len</th><th style={{padding:'6px 8px'}}>Compliance</th><th style={{padding:'6px 8px'}}>RFC8314 M02</th><th style={{padding:'6px 8px'}}>M3AAWG</th><th style={{padding:'6px 8px'}}>RFC8461</th><th style={{padding:'6px 8px'}}>RFC7672</th><th style={{padding:'6px 8px'}}>∂ per-version</th>
+<div style={{maxHeight:280, overflowY:'auto', border:`1px solid ${TOK.border}`, borderRadius:8}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+<thead style={{position:'sticky', top:0, background:TOK.surface, zIndex:2}}><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
+<th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>Port</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>Service</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>Flows</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>coverage_ratio</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>pre_tls_buffer_len</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>Compliance</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>RFC8314 M02</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>M3AAWG</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>RFC8461</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>RFC7672</th><th style={{padding:'6px 8px', position:'sticky', top:0, background:TOK.surface}}>∂ per-version</th>
 </tr></thead>
 <tbody>
 {PORTS.map(r=>(
@@ -53,12 +53,12 @@ CoverageTable — per-port 25/587/993 + MX 25 compliance vs RFC8314 M02 + M3AAWG
 <td style={{padding:'6px 8px',color:TOK.inkMuted,fontSize:11}}>{r.port===587?'TLS1.2+ ECDHE ∂':r.port===993?'TLS1.3 opaque honest ∂':'MX STARTTLS opportunistic ∂'}</td>
 </tr>))}
 </tbody>
-</table>
-<div style={{marginTop:14,overflowX:'auto'}}>
-<div style={{fontSize:11,color:TOK.inkFaint,textTransform:'uppercase',letterSpacing:1,marginBottom:6,fontWeight:600}}>Per-version R1-R8 annex — STARTTLS, cipher, KEX, FS, JA4, cert chain, SAN, OCSP — 14/20 REAL +3 info — M03+M18+M22</div>
+</table></div>
+<div style={{marginTop:14,overflowX:'auto', maxHeight:240, overflowY:'auto', border:`1px solid ${TOK.border}`, borderRadius:8}}>
+<div style={{fontSize:11,color:TOK.inkFaint,textTransform:'uppercase',letterSpacing:1,marginBottom:6,fontWeight:600, padding:'6px 8px', position:'sticky', top:0, background:TOK.surface, zIndex:1}}>Per-version R1-R8 annex — STARTTLS, cipher, KEX, FS, JA4, cert chain, SAN, OCSP — 14/20 REAL +3 info — M03+M18+M22 — sticky header</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
-<thead><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
-<th style={{padding:'4px 6px'}}>ID</th><th style={{padding:'4px 6px'}}>Limitation</th><th style={{padding:'4px 6px'}}>Per-version coverage</th><th style={{padding:'4px 6px'}}>Mitigation</th>
+<thead style={{position:'sticky', top:0, background:TOK.surface, zIndex:2}}><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
+<th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>ID</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Limitation</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Per-version coverage</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Mitigation</th>
 </tr></thead>
 <tbody>
 {R8.map(r=>(
@@ -72,11 +72,11 @@ CoverageTable — per-port 25/587/993 + MX 25 compliance vs RFC8314 M02 + M3AAWG
 </table>
 </div>
 {flows.length>0&&(
-<div style={{marginTop:14,overflowX:'auto'}}>
-<div style={{fontSize:11,color:TOK.inkFaint,textTransform:'uppercase',letterSpacing:1,marginBottom:6,fontWeight:600}}>Per-flow coverage (rows=flows cols=23) — Honesty 14/20 REAL +3 info 15b/16b/16c — ∂ per-version not hidden</div>
+<div style={{marginTop:14,overflowX:'auto', maxHeight:260, overflowY:'auto', border:`1px solid ${TOK.border}`, borderRadius:8}}>
+<div style={{fontSize:11,color:TOK.inkFaint,textTransform:'uppercase',letterSpacing:1,marginBottom:6,fontWeight:600, padding:'6px 8px', position:'sticky', top:0, background:TOK.surface, zIndex:1}}>Per-flow coverage (rows=flows cols=23) — Honesty 14/20 REAL +3 info 15b/16b/16c — ∂ per-version not hidden — sticky header</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
-<thead><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
-<th style={{padding:'4px 6px'}}>Flow</th><th style={{padding:'4px 6px'}}>Port</th><th style={{padding:'4px 6px'}}>TLS</th><th style={{padding:'4px 6px'}}>STARTTLS</th><th style={{padding:'4px 6px'}}>Cipher</th><th style={{padding:'4px 6px'}}>Cert</th><th style={{padding:'4px 6px'}}>coverage_ratio</th><th style={{padding:'4px 6px'}}>injection 15b</th><th style={{padding:'4px 6px'}}>MX 16b</th><th style={{padding:'4px 6px'}}>0-RTT 16c</th><th style={{padding:'4px 6px'}}>RFC8314</th><th style={{padding:'4px 6px'}}>∂</th>
+<thead style={{position:'sticky', top:0, background:TOK.surface, zIndex:2}}><tr style={{color:TOK.inkFaint,textAlign:'left',borderBottom:`1px solid ${TOK.border}`}}>
+<th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Flow</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Port</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>TLS</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>STARTTLS</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Cipher</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>Cert</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>coverage_ratio</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>injection 15b</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>MX 16b</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>0-RTT 16c</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>RFC8314</th><th style={{padding:'4px 6px', position:'sticky', top:0, background:TOK.surface}}>∂</th>
 </tr></thead>
 <tbody>
 {flows.map(f=>(

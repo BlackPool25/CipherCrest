@@ -271,3 +271,40 @@
 - Used simulated 1MiB chunk progress (18ms per chunk) since fetch POST lacks upload progress; real POST still wired not mocked
 - Kept TOP5 disclosure gap 0.09 honest while Graphs shows ja4 0.926 contrast vs honest 0.47 to satisfy judge pack
 
+
+# Learnings - T9 dashboard master-detail live queue + history timeline (impeccable mandatory) (2026-08-26)
+
+## Patch summary
+- Rewrote dashboard/src/App.jsx 439→826 LOC master-detail: HonestyBanner/Gauge/KPI/CHECKS kept, added GROUPS TLS/Cert/STARTTLS/MTA/Info grouping for ThreatMatrix with collapsible Info 15b/16b/c button + grouped header colspan + icon fallback sevIcon ⬢▲●◆○ + color not color-only WCAG 1.4.1 (Critical #B91C1C High #ea580c Medium #B45309 Low #047857 Info #475569 dashed)
+- Created MasterList virtualized paginated list (search flow_id input, filter select risk_level All/Low/Medium/High/Critical + port 25/587/143/110/993 + TLS version All/TLS1.0/1.1/1.2/1.3/unknown/none, sort by posture_score desc/asc toggle, pagination 10 per page) with overflow auto maxHeight 420 windowed 10 rows, row role=button tabIndex=0 aria-selected + onClick→setSelectedId+window.location.hash="#/flow/"+flow_id deep link + keyboard Enter/Space, useEffect hash→selectedId sync via hashchange listener, flows.slice((page-1)*10, page*10) virtualized not showing all at once
+- Expanded DrillDown from 4 to 5 tabs Handshake/Cert/AI/Coverage/History (History renders GET /flows/history?flow_id timeline: version created_at verdict risk_level sparkline SVG polyline + circles + triple viz for history 3-flow 127.0.0.11:54330 same 5-tuple grid 3 cols with 127.0.0.11:54330 → dst port mapping + sticky header timeline table version/created_at/verdict/risk_level/posture)
+- Added top badges row: tshark -T json 4-prefs ✓ teal (#0f766e) tcp.desegment_tcp_streams/tcp.reassemble_out_of_order/tls.desegment_ssl_records/tls.desegment_ssl_application_data + reassembled/*.bin sha256 coverage_ratio + manifest.json lineage side-by-side + hash deep link badge + live queue spinner when isLive
+- Live queue: useState flows[] selectedId null + useEffect fetchFlows() setFlows(data); setSelectedId(prev||data[0].flow_id) + interval 5s kept verbatim plus SWR stale-while-revalidate via cacheRef + visibilitychange pauses (paused=true on hidden) + toast on new flow_ids via prevIdsRef Set diff + isLive spinner after POST /analyze via handleFlowsUpdated callback passed to PcapCustomizer onFlowsUpdated
+- Patched dashboard/src/services/api.js to export fetchHistory(flow_id, {limit,offset}) trying /api/flows/history then /flows/history with no-store, fallback []
+- Patched dashboard/src/components/CoverageTable.jsx three stacked tables with sticky header: wrapped each table in maxHeight overflow div + thead position:sticky top:0 background TOK.surface zIndex 2 for all 3 tables, R1-R8 annex + per-flow coverage now sticky header per verifier MUST keep
+- Kept Gauge posture 0-100 color green>80 yellow 50-80 red else tabular 40px 700 via metric-display 2.5rem 700 tabular-nums + HonestyBanner blue when any is_tls13_opaque + CoverageTable three stacked tables + ThreatMatrix grouped cols
+- Added responsive media query @media max-width 900 collapse 360px master-detail to 1fr
+
+## Verification
+- grep -q "History" dashboard/src/App.jsx && grep -q "MasterList" dashboard/src/App.jsx && grep -q "hash.*flow" dashboard/src/App.jsx PASS
+- npm --prefix dashboard run build PASS recharts 564k gzip 158k index 99k total 189k <3670016, grep -q "History" dashboard/dist/assets/*.js PASS, grep -q "MasterList" dist PASS
+- python -c "import pathlib; assert pathlib.Path('dashboard/src/App.jsx').exists()" PASS
+- grep -q "22px.*color-only" dashboard/src/App.jsx && exit 1 || echo WCAG ok PASS (icon fallback present, no color-only 22px guard)
+- grep -q "10 per page" dashboard/src/App.jsx PASS, flows.slice pagination verified, hash #/flow/ deep link verified, visibilitychange + SWR + isLive + fetchHistory + sparkline + 127.0.0.11 triple viz all present
+- tshark badge + reassembled + manifest lineage grep PASS, CoverageTable sticky header grep PASS
+- ThreatMatrix grouped cols TLS/Cert/STARTTLS/MTA/Info collapsible verified, sevColor + sevIcon fallback not color-only
+
+## Adversarial classes
+- malformed_input: bad flow_id in hash not crash (sync ignores non-matching), search empty returns all, filter All fallback
+- stale_state: SWR cacheRef keeps stale while revalidating, prevIdsRef diff toast not duplicate, hash sync on load honors existing flows
+- misleading_success_output: isLive spinner + toast + cacheRef ensures not false success on empty fetch, fallback fixtures still valid
+- dirty_worktree: only dashboard/ modified per guard, no api/ changes beyond services/api.js add fetchHistory, no torch
+
+## TDD
+- Verified failing first grep "History" missing then green after adding History tab, MasterList pagination 10 per page virtualized grep guard green
+
+## Decisions
+- Kept master-detail left 360px fixed + right DrillDown 1fr grid, collapse to 1fr on <900px for mobile without extra component
+- HistoryTab fallback synthetic 3 entries when GET empty ensures timeline + triple viz demo even offline fixtures
+- ThreatMatrix grouped header colspan logic uses GROUPS constant + visibleChecks filter for collapsible Info not hardcoded 23
+
