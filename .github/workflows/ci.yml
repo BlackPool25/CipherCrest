@@ -153,6 +153,22 @@ jobs:
           bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 350 ] || (echo "wheelhouse lean <350M failed $(du -m wheelhouse | tail -1)" && exit 1)'
           python -c "import pathlib; wh=pathlib.Path('wheelhouse'); has_torch=any('torch' in p.name.lower() for p in wh.glob('*.whl')) if wh.exists() else False; assert not has_torch, 'lean wheelhouse must not contain torch'"
           bash -c '! ls wheelhouse/*.whl | grep -qi torch || (echo "torch wheel found" && exit 1)'
+      - name: TShark parity (optional, not required for offline replay)
+        run: |
+          if command -v tshark >/dev/null 2>&1; then
+            echo "tshark $(tshark -v 2>&1 | head -1) — parity 4 prefs"
+            python -c "from lab.reassembler.reassemble import get_tshark_prefs, build_tshark_cmd; prefs=get_tshark_prefs(); assert len(prefs)==4; assert 'tcp.desegment_tcp_streams:TRUE' in prefs; assert 'tcp.reassemble_out_of_order:TRUE' in prefs; print(prefs); print(build_tshark_cmd('lab/pcaps/family-01.pcap'))"
+            python lab/reassembler/reassemble.py --verify-prefs
+            bash scripts/turnup.sh --check | grep -q "tshark" && echo "turnup.sh tshark check OK"
+          else
+            echo "tshark not found — offline scapy fallback (parity 4 prefs stub)"
+            python -c "from lab.reassembler.reassemble import get_tshark_prefs, build_tshark_cmd; prefs=get_tshark_prefs(); assert len(prefs)==4; print('stub prefs', prefs)"
+            python lab/reassembler/reassemble.py --verify-prefs
+            bash scripts/turnup.sh --check | grep -q "tshark not found" && echo "turnup.sh optional warning OK (not fatal)"
+            echo "parity skipped gracefully — pytest lab/reassembler/tests still passes via mock (see docs/TSHARK.md)"
+          fi
+          pytest lab/reassembler/tests -q
+        continue-on-error: false
       - name: Deterministic env guard
         run: |
           test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)

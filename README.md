@@ -58,7 +58,7 @@ Air-gap offline: no private key access, no body decrypt, no live DNS beyond `moc
 | Python | 3.11 | API + assessment + analyzer |
 | Node | 18 | Dashboard Vite |
 | Docker | 24 | postfix/dovecot/mocksender lab |
-| tshark | 4.2.0 | Oracle parity 4 prefs |
+| tshark | 4.2.0 (optional) | Oracle parity 4 prefs — **optional**; offline scapy fallback primary (see `docs/TSHARK.md`, `scripts/turnup.sh --check`) |
 | USB | 32GB | Offline bundle `wheelhouse/` 345M + `dashboard/dist` |
 
 ### How to run all parts — Quick Start (5 min)
@@ -175,7 +175,11 @@ C4Container
     Rel(analyzer, tshark, "parity", "-T json")
 ```
 
-Lineage: `lab/manifest.json` 45 envs → `lab/pcaps/*.pcap 10 + jittered/*.pcap 35` → `lab/reassembled/*.bin 35x120B` → `assessment/features.py build_vector 28-col` vs tshark 4 prefs → `models/risk_clf.pkl` 124K Platt cv2 + `models/anomaly.pkl` 76K + `models/anomaly_honest.pkl` 76K dual 20c+7lab 0.87 vs 7c+20lab 0.47 + ja4 0.926 contrast + `eval/calibration_curve.png` 750×600 5-bin → `api/app.py` enrich `calibrated_prob` `anomaly_score` + `anomaly_honest_score` → `GET /flows` <50ms. Evidence: [`eval/EVIDENCE_Day8.md`](eval/EVIDENCE_Day8.md) Brier+ECE5 | [`eval/EVIDENCE_Day9.md`](eval/EVIDENCE_Day9.md) dual ROC | [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) FINAL SYSTEM 5/8 + [`eval/metrics.json`](eval/metrics.json) hard-fail.
+Lineage: `lab/manifest.json` 45 envs → `lab/pcaps/*.pcap 10 + jittered/*.pcap 35` → `lab/reassembled/*.bin 35x120B` → `assessment/features.py build_vector 28-col` vs tshark 4 prefs (optional parity, offline scapy primary — see `docs/TSHARK.md`) → `models/risk_clf.pkl` 124K Platt cv2 + `models/anomaly.pkl` 76K + `models/anomaly_honest.pkl` 76K dual 20c+7lab 0.87 vs 7c+20lab 0.47 + ja4 0.926 contrast + `eval/calibration_curve.png` 750×600 5-bin → `api/app.py` enrich `calibrated_prob` `anomaly_score` + `anomaly_honest_score` → `GET /flows` <50ms. Evidence: [`eval/EVIDENCE_Day8.md`](eval/EVIDENCE_Day8.md) Brier+ECE5 | [`eval/EVIDENCE_Day9.md`](eval/EVIDENCE_Day9.md) dual ROC | [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) FINAL SYSTEM 5/8 + [`eval/metrics.json`](eval/metrics.json) hard-fail.
+
+### TShark parity (optional) — why `which tshark` not found is expected
+
+`tshark 4.2.0` is an **optional parity oracle**, not required for offline replay. `lab/reassembler/reassemble.py` uses scapy 5-tuple seq buffering (`coverage_ratio 1.0` clean, `0.897` jittered) as primary; parity harness `get_tshark_prefs()` → 4 prefs and `build_tshark_cmd()` validates against `tshark -T json` only when available (Docker lab). CI/`pytest -q`/`turnup.sh --check` pass without tshark via stub: `tshark not found — offline scapy fallback (parity 4 prefs stub)`. Install only for parity: `sudo apt install tshark` or `bash lab/scripts/install_tshark.sh`; verify `python lab/reassembler/reassemble.py --verify-prefs`. See `docs/TSHARK.md` + `lab/reassembler/README.md`.
 
 ## Project Structure
 

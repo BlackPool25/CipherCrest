@@ -12,8 +12,16 @@ Provides:
   reassemble(pcap_path: str) -> dict
   CLI: python lab/reassembler/reassemble.py lab/pcaps/family-01.pcap --json
        python lab/reassembler/reassemble.py lab/pcaps/family-01.pcap --no-reassemble-out-of-order
+       python lab/reassembler/reassemble.py --verify-prefs
 
 Offline replay is primary; no live capture required.
+TShark is optional parity oracle (not required for offline replay) — see docs/TSHARK.md.
+When `which tshark` not found, reassembler falls back to scapy seq buffering and
+parity tests use mock/stub: pytest still passes via coverage_ratio F1>95% mocks.
+Harness: get_tshark_prefs() -> 4 prefs (tcp.desegment_tcp_streams TRUE,
+tcp.reassemble_out_of_order TRUE, tls.desegment_ssl_records TRUE,
+tls.desegment_ssl_application_data TRUE) and build_tshark_cmd() wraps `tshark -T json`.
+Both tcp prefs OFF by default since Wireshark 3.0 (ask.wireshark #10299/#23327).
 """
 from __future__ import annotations
 
@@ -344,8 +352,8 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="TCP reassembler — 5-tuple seq buffering")
-    parser.add_argument("pcap", help="pcap path")
+    parser = argparse.ArgumentParser(description="TCP reassembler — 5-tuple seq buffering (tshark optional parity, see docs/TSHARK.md)")
+    parser.add_argument("pcap", nargs="?", help="pcap path")
     parser.add_argument("--json", action="store_true", help="output JSON")
     parser.add_argument(
         "--no-reassemble-out-of-order",
@@ -353,7 +361,21 @@ def main() -> None:
         help="disable out-of-order reassembly (simulate tshark pref OFF, triggers gap flag)",
     )
     parser.add_argument("--coverage-only", action="store_true", help="print only coverage_ratio")
+    parser.add_argument("--verify-prefs", action="store_true", help="print 4 tshark prefs and build_tshark_cmd example, no pcap needed")
     args = parser.parse_args()
+
+    if args.verify_prefs:
+        prefs = get_tshark_prefs()
+        print("TSHARK_REQUIRED_PREFS (4):")
+        for p in prefs:
+            print(f"  -o {p}")
+        print(f"example: {' '.join(build_tshark_cmd('lab/pcaps/family-01.pcap'))}")
+        print("tshark optional — offline scapy fallback when not installed (see docs/TSHARK.md)")
+        return
+
+    if not args.pcap:
+        parser.print_help()
+        sys.exit(1)
 
     reassemble_out_of_order = not args.no_reassemble_out_of_order
     try:
