@@ -1,0 +1,21 @@
+flow_id,environment_id,jitter_env,blind_id,rater1,rater2,rater3,consensus_median,notes
+weberblog-01-flow01,weberblog-pinned-2024-06-20,weberblog_full,b5e9aa5f,2,2,2,2,STARTTLS upgrade coverage 1.0 no weak cipher Low
+weberblog-01-flow02,weberblog-pinned-2024-06-20,weberblog_full,bf99b32a,2,3,2,2,STARTTLS upgrade coverage 1.0 borderline Medium rater2 High
+weberblog-01-flow03,weberblog-pinned-2024-06-20,weberblog_full,6128792f,2,2,2,2,STARTTLS upgrade coverage 1.0 no weak cipher Low
+weberblog-01-flow04,weberblog-pinned-2024-06-20,weberblog_full,cdfa9a0b,3,3,3,3,STARTTLS upgrade pre_tls_buffer 140 injection possible Medium
+weberblog-01-flow05,weberblog-pinned-2024-06-20,weberblog_full,de25e04d,3,3,2,3,STARTTLS upgrade pre_tls_buffer 139 injection Medium
+weberblog-01-flow06,weberblog-pinned-2024-06-20,weberblog_full,ffdffd9c,3,3,3,3,STARTTLS overlap_detected true coverage 0.98 Medium
+weberblog-01-flow07,weberblog-pinned-2024-06-20,weberblog_full,47fc532b,1,1,1,1,IMAP * OK no STARTTLS implicit minimal risk Minimal
+weberblog-01-flow08,weberblog-pinned-2024-06-20,weberblog_full,3e3cb4c2,1,2,1,1,IMAP * OK no STARTTLS minimal vs Low borderline
+weberblog-01-flow09,weberblog-pinned-2024-06-20,weberblog_full,1e0c05c0,1,1,1,1,POP3 +OK no STARTTLS implicit minimal
+weberblog-01-flow10,weberblog-pinned-2024-06-20,weberblog_full,c95f9b00,2,2,2,2,STARTTLS upgrade coverage 1.0 Low
+censys_prior_c71e38a4,censys_prior_c71e38a4,censys_slice,aa1749d9,1,1,1,1,Censys TLS1.3 strong cipher ECDHE minimal risk
+censys_prior_53a55632,censys_prior_53a55632,censys_slice,c3e84faa,1,1,1,1,Censys TLS1.3 strong implicit minimal
+censys_prior_702eb105,censys_prior_702eb105,censys_slice,4380c565,2,2,2,2,Censys TLS1.2 acceptable cipher Low
+censys_prior_74425964,censys_prior_74425964,censys_slice,fc5d64da,2,1,2,2,Censys TLS1.2 weak cipher borderline Low vs Minimal
+censys_prior_a78d059c,censys_prior_a78d059c,censys_slice,493c1226,1,1,1,1,Censys strong cipher minimal
+stripping-history-3flow-01,adversarial-history-triple,history_triple,98ade72f,4,4,4,4,Stripping suspected single-flow downgrade possible High
+stripping-history-3flow-02,adversarial-history-triple,history_triple,3ee5396a,4,4,4,4,Stripping single-flow cleartext High
+stripping-history-3flow-03,adversarial-history-triple,history_triple,6f34de2d,5,5,5,5,Stripping triple confirmed 3 flows critical Critical
+adversarial-history-triple-04,adversarial-history-triple,history_triple,e079e389,5,5,4,5,Critical downgrade with injection Critical borderline
+adversarial-history-triple-05,adversarial-history-triple,history_triple,481cd23f,4,4,4,4,RC4 downgrade High
