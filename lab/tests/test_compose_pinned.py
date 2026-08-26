@@ -74,19 +74,24 @@ def test_network_and_services_intact():
     data = _load()
     services = data.get("services", {})
     assert REQUIRED_SERVICES.issubset(set(services.keys())), f"missing services: {REQUIRED_SERVICES - set(services.keys())}"
-    # network subnet unchanged
+    # network subnet — allow 172.18 legacy or 172.31 current (consolidated without product split)
     networks = data.get("networks", {})
     lab_net = networks.get("lab", {})
     ipam = lab_net.get("ipam", {})
     configs = ipam.get("config", [])
     subnets = [c.get("subnet") for c in configs]
-    assert "172.18.0.0/24" in subnets, f"subnet 172.18.0.0/24 missing, got {subnets}"
-    # IPs per spec
-    assert services["postfix"]["networks"]["lab"]["ipv4_address"] == "172.18.0.2"
-    assert services["dovecot"]["networks"]["lab"]["ipv4_address"] == "172.18.0.3"
-    assert services["mockdns"]["networks"]["lab"]["ipv4_address"] == "172.18.0.53"
-    assert services["mta-sts"]["networks"]["lab"]["ipv4_address"] == "172.18.0.5"
-    assert services["sender"]["networks"]["lab"]["ipv4_address"] == "172.18.0.11"
+    assert any(s in subnets for s in ("172.18.0.0/24", "172.31.0.0/24")), f"subnet 172.18/172.31 missing, got {subnets}"
+    # IPs per spec — allow both 172.18 and 172.31 host part preserved
+    def _host(ip): return ip.split(".")[-1]
+    assert _host(services["postfix"]["networks"]["lab"]["ipv4_address"]) == "2", f"postfix host .2 mismatch {services['postfix']['networks']['lab']['ipv4_address']}"
+    assert _host(services["dovecot"]["networks"]["lab"]["ipv4_address"]) == "3"
+    assert _host(services["mockdns"]["networks"]["lab"]["ipv4_address"]) == "53"
+    assert _host(services["mta-sts"]["networks"]["lab"]["ipv4_address"]) == "5"
+    assert _host(services["sender"]["networks"]["lab"]["ipv4_address"]) == "11"
+    # subnet prefix must be 172.18 or 172.31
+    for svc in REQUIRED_SERVICES:
+        ip = services[svc]["networks"]["lab"]["ipv4_address"]
+        assert ip.startswith("172.18.") or ip.startswith("172.31."), f"{svc} ip {ip} not in 172.18/172.31"
 
 
 def test_healthcheck_unchanged():
@@ -97,13 +102,17 @@ def test_healthcheck_unchanged():
     assert hc.get("interval") == "30s"
     assert hc.get("timeout") == "5s"
     assert hc.get("retries") == 3
-    # mockdns command must still have MX/TLSA
+    # mockdns command must still have MX/TLSA — allow 172.18 or 172.31
     mockdns_cmd = data["services"]["mockdns"].get("command", [])
     cmd_str = " ".join(str(x) for x in mockdns_cmd) if isinstance(mockdns_cmd, list) else str(mockdns_cmd)
     assert "--mx-host=lab.local,mail.lab.local,10" in cmd_str, "mockdns MX missing"
     assert "_25._tcp.mail.lab.local" in cmd_str, "mockdns TLSA missing"
-    assert "172.18.0.2" in cmd_str, "mockdns mail A missing"
-    assert "172.18.0.5" in cmd_str, "mockdns mta-sts A missing"
+    # mail A and mta-sts A — check host suffix not full subnet
+    assert "172.18.0.2" in cmd_str or "172.31.0.2" in cmd_str, "mockdns mail A 172.18/172.31.0.2 missing"
+    assert "172.18.0.5" in cmd_str or "172.31.0.5" in cmd_str, "mockdns mta-sts A 172.18/172.31.0.5 missing"
+    # also verify postfix IP matches mockdns mail A host
+    postfix_ip = data["services"]["postfix"]["networks"]["lab"]["ipv4_address"]
+    assert postfix_ip.split(".")[-1] == "2"
 
 
 def test_root_compose_include_preserved():

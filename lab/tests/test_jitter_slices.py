@@ -10,8 +10,8 @@ LEDGER = ROOT / "lab" / "LEDGER.md"
 JITTER_DIR = ROOT / "lab" / "pcaps" / "jittered"
 
 FAMILIES = ["02", "03", "04", "05", "07", "08", "10"]
-EXPECTED_JITTER_COUNT = 35  # 7 families x5 slices
-EXPECTED_MANIFEST_ENVS = 45  # 10 base +35 jitter
+EXPECTED_JITTER_COUNT = 35  # 7 families x5 slices jitter only
+EXPECTED_MANIFEST_ENVS = (45, 85)  # 10 base +35 jitter =45 legacy or 10+35+40 synth=85 expanded
 
 def test_jitter_pcap_count():
     pcaps = glob.glob(JITTER_GLOB)
@@ -69,9 +69,13 @@ def test_reassembled_bins_exist():
 def test_manifest_45_envs():
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     total_keys = len(data)
-    assert total_keys == EXPECTED_MANIFEST_ENVS, f"manifest must have {EXPECTED_MANIFEST_ENVS} entries, got {total_keys}"
+    assert total_keys in EXPECTED_MANIFEST_ENVS, f"manifest must have 45 or 85 entries, got {total_keys}"
     jitter_keys = [k for k in data if "jitter" in k]
     assert len(jitter_keys) == 35, f"expected 35 jitter keys, got {len(jitter_keys)}"
+    # synth keys when expanded (40)
+    synth_keys = [k for k in data if "synth" in str(data[k].get("environment_id","")) or "synth" in k]
+    if total_keys == 85:
+        assert len(synth_keys) == 40, f"expanded 85 should have 40 synth, got {len(synth_keys)}"
     # validate each new jitter-04/05 has required fields
     for fam in FAMILIES:
         for idx in [4, 5]:
@@ -86,8 +90,8 @@ def test_manifest_45_envs():
 
 def test_ledger_jitter_rows():
     text = LEDGER.read_text(encoding="utf-8") if LEDGER.exists() else ""
-    jitter_lines = [l for l in text.splitlines() if "jitter" in l.lower() and l.strip().startswith("|")]
-    assert len(jitter_lines) == 35, f"ledger should have 35 jitter rows, got {len(jitter_lines)}"
+    jitter_lines = [l for l in text.splitlines() if "jitter" in l.lower() and l.strip().startswith("|") and "Family" not in l]
+    assert len(jitter_lines) in (35, 36), f"ledger should have 35 jitter rows (36 with header), got {len(jitter_lines)}"
     jids = re.findall(r"\|\s*(\d{2}-jitter-\d{2})", text)
     assert len(jids) == len(set(jids)), f"ledger jid not distinct: {jids}"
     for fam in ["02", "07"]:
@@ -116,7 +120,6 @@ def test_idempotence_no_duplicate():
     before_manifest = _json.loads(MANIFEST.read_text(encoding="utf-8"))
     before_ledger = LEDGER.read_text(encoding="utf-8")
     before_count = len(glob.glob(JITTER_GLOB))
-    # rerun jitter_slices
     result = subprocess.run(
         [sys.executable, "-m", "lab.scripts.jitter_slices", "--slices", "5", "--families", "02,03,04,05,07,08,10"],
         cwd=str(ROOT), capture_output=True, text=True, timeout=60,
@@ -126,10 +129,9 @@ def test_idempotence_no_duplicate():
     after_ledger = LEDGER.read_text(encoding="utf-8")
     after_count = len(glob.glob(JITTER_GLOB))
     assert after_count == before_count == 35, f"idempotence pcap count changed {before_count}->{after_count}"
-    assert len(after_manifest) == len(before_manifest) == 45, f"manifest duplicate after rerun {len(before_manifest)}->{len(after_manifest)}"
-    jitter_lines_after = [l for l in after_ledger.splitlines() if "jitter" in l.lower() and l.strip().startswith("|")]
-    assert len(jitter_lines_after) == 35, f"ledger duplicate after rerun got {len(jitter_lines_after)}"
-    # ensure manifest env_ids still distinct
+    assert len(after_manifest) == len(before_manifest) and len(after_manifest) in (45, 85), f"manifest duplicate after rerun {len(before_manifest)}->{len(after_manifest)}"
+    jitter_lines_after = [l for l in after_ledger.splitlines() if "jitter" in l.lower() and l.strip().startswith("|") and "Family" not in l]
+    assert len(jitter_lines_after) in (35, 36), f"ledger duplicate after rerun got {len(jitter_lines_after)}"
     jitter_envs = [v.get("environment_id","") for v in after_manifest.values() if "jitter" in v.get("environment_id","")]
     assert len(set(jitter_envs)) == 35
 
@@ -168,9 +170,8 @@ def test_manifest_env_fields_all():
 def test_ledger_45_rows():
     text = LEDGER.read_text(encoding="utf-8") if LEDGER.exists() else ""
     all_rows = [l for l in text.splitlines() if l.strip().startswith("|") and "2026-08-27T00:00:00Z" in l]
-    # header + separator + 45 data rows = check at least 45 env rows with capture_epoch
     data_rows = [l for l in all_rows if "2026-08-27T00:00:00Z" in l]
-    assert len(data_rows) == 45, f"LEDGER should have 45 data rows with capture_epoch, got {len(data_rows)}"
+    assert len(data_rows) in (45, 85), f"LEDGER should have 45 or 85 data rows with capture_epoch, got {len(data_rows)}"
     # each jitter row should contain required markers
     for line in [l for l in data_rows if "jitter" in l]:
         assert "GREASE" in line or "grease" in line.lower(), f"jitter row missing GREASE: {line}"

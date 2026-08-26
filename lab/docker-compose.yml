@@ -1,4 +1,4 @@
-# Lab 10-family matrix — postfix:3.9 + dovecot:2.3 + mockdns on bridge 172.18.0.0/24
+# Lab 10-family matrix — postfix:3.9 + dovecot:2.3 + mockdns on bridge 172.31.0.0/24
 # Offline replay is primary (pcaps in lab/pcaps/*.pcap); live containers are stretch / demo lane.
 # Postfix 3.9 syntax: smtpd_tls_mandatory_protocols=>=TLSv1.2, smtpd_tls_chain_files, ssl is required (not legacy yes)
 # Dovecot 2.3: ssl_min_protocol=TLSv1.2, ssl_cipher_list Mozilla Intermediate, disable_plaintext_auth=yes
@@ -34,7 +34,7 @@ services:
     hostname: mail.lab.local
     networks:
       lab:
-        ipv4_address: 172.18.0.2
+        ipv4_address: 172.31.0.2
     ports:
       - "127.0.0.1:587:587"
       - "127.0.0.1:25:25"
@@ -68,7 +68,7 @@ services:
     hostname: imap.lab.local
     networks:
       lab:
-        ipv4_address: 172.18.0.3
+        ipv4_address: 172.31.0.3
     ports:
       - "127.0.0.1:993:993"
       - "127.0.0.1:143:143"
@@ -94,12 +94,12 @@ services:
     hostname: mockdns.lab.local
     networks:
       lab:
-        ipv4_address: 172.18.0.53
+        ipv4_address: 172.31.0.53
     # Day2 wired — offline zone lab.local (no internet MX lookup):
-    # lab.local MX 10 mail.lab.local, mail.lab.local A 172.18.0.2,
-    # _mta-sts.lab.local TXT "v=STSv1; id=20260825", mta-sts.lab.local A 172.18.0.5
+    # lab.local MX 10 mail.lab.local, mail.lab.local A 172.31.0.2,
+    # _mta-sts.lab.local TXT "v=STSv1; id=20260825", mta-sts.lab.local A 172.31.0.5
     # + TLSA _25._tcp.mail.lab.local 3 1 1 <SPKI> via mta-sts http sidecar /.well-known/mta-sts.txt
-    command: ["dnsmasq", "-d", "--no-daemon", "--log-queries", "--address=/mta-sts.lab.local/172.18.0.5", "--address=/mail.lab.local/172.18.0.2", "--address=/lab.local/172.18.0.2", "--mx-host=lab.local,mail.lab.local,10", "--txt-record=_mta-sts.lab.local,\"v=STSv1; id=20260825\"", "--dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b"]
+    command: ["dnsmasq", "-d", "--no-daemon", "--log-queries", "--address=/mta-sts.lab.local/172.31.0.5", "--address=/mail.lab.local/172.31.0.2", "--address=/lab.local/172.31.0.2", "--mx-host=lab.local,mail.lab.local,10", "--txt-record=_mta-sts.lab.local,\"v=STSv1; id=20260825\"", "--dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b"]
     restart: "no"
 
   mta-sts:
@@ -108,7 +108,7 @@ services:
     hostname: mta-sts.lab.local
     networks:
       lab:
-        ipv4_address: 172.18.0.5
+        ipv4_address: 172.31.0.5
     # Plain HTTP sidecar — MUST NOT require HTTPS/cert (mock). Serves /.well-known/mta-sts.txt
     # version: STSv1, mode: enforce, mx: mail.lab.local, max_age: 86400 per shared/data/mta-sts-fixture.json
     command: ["sh", "-c", "mkdir -p /var/www/.well-known && printf 'version: STSv1\nmode: enforce\nmx: mail.lab.local\nmax_age: 86400\n' > /var/www/.well-known/mta-sts.txt && cat /var/www/.well-known/mta-sts.txt && cd /var/www && python -m http.server 80"]
@@ -120,7 +120,7 @@ services:
     hostname: sender.lab.local
     networks:
       lab:
-        ipv4_address: 172.18.0.11
+        ipv4_address: 172.31.0.11
     # Offline sender — apk add swaks openssl tcpdump bind-tools curl then sleep infinity on lab bridge
     command: ["sh", "-c", "apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo 'sender ready swaks+openssl+tcpdump'; sleep infinity"]
     restart: "no"
@@ -131,5 +131,5 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.18.0.0/24
-          gateway: 172.18.0.1
+        - subnet: 172.31.0.0/24
+          gateway: 172.31.0.1
