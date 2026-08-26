@@ -1,4 +1,11 @@
-"""anomaly_data — lab/censys loaders + variance handle + 27x28 matrix."""
+"""anomaly_data — lab/censys loaders + variance handle + 27x5 TOP5 matrix (honest primary).
+
+Honest primary: 7c+20lab=27 models/anomaly_honest.pkl ROC~0.47 near-random canonical as models/anomaly.pkl.
+Inverted ablation: 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 (demoted, proves inversion).
+TOP5 27x5 via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.5 honest).
+5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed.
+Honest 0.47 random — do not use for blocking (tooltip).
+"""
 from __future__ import annotations
 import copy
 import hashlib
@@ -6,7 +13,7 @@ import json
 import pathlib
 import random
 import numpy as np
-from assessment.features import build_vector
+from assessment.features import FEATURES_TOP5, build_vector, build_vector_top5
 from assessment.rules import evaluate
 from assessment.score import score
 
@@ -14,6 +21,7 @@ FIXTURE_DIR = pathlib.Path("shared/fixtures")
 CENSYS_PATH = FIXTURE_DIR / "censys_sampled_200.json"
 MODEL_PATH = pathlib.Path("models/anomaly.pkl")
 HONEST_MODEL_PATH = pathlib.Path("models/anomaly_honest.pkl")
+INVERTED_MODEL_PATH = pathlib.Path("models/anomaly_inverted.pkl")
 BASELINE_PATH = pathlib.Path("eval/anomaly_baselines.json")
 SPLITS_PATH = pathlib.Path("assessment/splits.json")
 CONTAMINATION = 0.10
@@ -91,10 +99,24 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
         raise ValueError(f"unknown variant {variant}")
     train_flows = lab_slice + censys_slice if variant != "lab_only" else lab_slice
     assert len(train_flows) == 27, f"train 27 got {len(train_flows)} variant {variant}"
-    X = np.array([build_vector(f, mode="xgb") for f in train_flows], dtype=float)
-    assert X.shape == (27, 28), f"shape (27,28) got {X.shape}"
+    # TOP5 27x5 deterministic via build_vector_top5 (DataFrame or list fallback)
+    rows = []
+    for f in train_flows:
+        v = build_vector_top5(f)
+        try:
+            import pandas as pd  # type: ignore
+
+            if isinstance(v, pd.DataFrame):
+                rows.append(v.values[0].astype(float).tolist())
+            else:
+                rows.append([float(x) for x in v])  # type: ignore
+        except Exception:
+            rows.append([float(x) for x in v])  # type: ignore
+    X = np.array(rows, dtype=float)
+    assert X.shape == (27, 5), f"shape (27,5) TOP5 got {X.shape} variant {variant}"
+    assert X.shape[1] == len(FEATURES_TOP5) == 5
     X = _handle_zero_variance(X, eps=1e-6)
-    assert X.shape == (27, 28)
+    assert X.shape == (27, 5)
     return X, train_flows, lab_flows
 
 def _pseudo_labels(flows: list[dict]) -> list[int]:

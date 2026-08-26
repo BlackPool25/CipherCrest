@@ -45,10 +45,32 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
             enriched.append(fv)
             continue
         try:
-            from assessment.features import FEATURES_28 as _F28e, _CATEGORICAL_6 as _CAT6e, build_vector as _bve
+            from assessment.features import FEATURES_28 as _F28e, _CATEGORICAL_6 as _CAT6e, build_vector as _bve, build_vector_top5 as _bvt
 
             d = fv.model_dump()
             vec = _bve(d, mode="xgb")
+            # TOP5 27x5 honest primary for anomaly_score = ECOD honest decision_scores_
+            try:
+                v5 = _bvt(d)
+                import pandas as _pd  # type: ignore
+
+                if isinstance(v5, _pd.DataFrame):  # type: ignore
+                    vec5 = v5.values[0].astype(float)  # type: ignore
+                else:
+                    import numpy as _np5t
+
+                    vec5 = _np5t.array([float(x) for x in v5], dtype=float)  # type: ignore
+            except Exception:
+                import numpy as _np5f
+
+                try:
+                    v5b = _bvt(d)
+                    if hasattr(v5b, "values"):
+                        vec5 = v5b.values[0].astype(float)  # type: ignore
+                    else:
+                        vec5 = _np5f.array([float(x) for x in v5b], dtype=float)  # type: ignore
+                except Exception:
+                    vec5 = None  # type: ignore
             cp = fv.assessment.calibrated_prob
             an = fv.assessment.anomaly_score
             an_h = fv.assessment.anomaly_honest_score
@@ -76,14 +98,24 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
                 try:
                     import numpy as _np3
 
-                    an = float(anomaly_clf.decision_function(_np3.array([vec]))[0])
+                    # honest primary TOP5 5-col; fallback to 28 if shape mismatch legacy
+                    try:
+                        if vec5 is not None:
+                            an = float(anomaly_clf.decision_function(_np3.array([vec5]))[0])
+                        else:
+                            an = float(anomaly_clf.decision_function(_np3.array([vec]))[0])
+                    except Exception:
+                        an = float(anomaly_clf.decision_function(_np3.array([vec5 if vec5 is not None else vec]))[0])  # type: ignore
                 except Exception:
                     an = None
             if an_h is None and anomaly_honest_clf is not None:
                 try:
                     import numpy as _np4
 
-                    an_h = float(anomaly_honest_clf.decision_function(_np4.array([vec]))[0])
+                    if vec5 is not None:
+                        an_h = float(anomaly_honest_clf.decision_function(_np4.array([vec5]))[0])
+                    else:
+                        an_h = float(anomaly_honest_clf.decision_function(_np4.array([vec]))[0])
                 except Exception:
                     an_h = None
             enriched.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": cp, "anomaly_score": an, "anomaly_honest_score": an_h})}))

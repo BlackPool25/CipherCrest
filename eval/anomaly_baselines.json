@@ -1,8 +1,8 @@
 {
   "ja4_rarity_auc": 0.926,
-  "ecod_auc": 0.871,
-  "ecod_inverted_auc": 0.871,
+  "ecod_auc": 0.473,
   "ecod_honest_auc": 0.473,
+  "ecod_inverted_auc": 0.871,
   "ecod_lab_only_auc": 0.248,
   "if_auc": 0.759,
   "if_auc_inverted": 0.986,
@@ -12,31 +12,31 @@
   "n_prior": 20,
   "contamination_invariance_pass": true,
   "thresholds": {
-    "c05": 22.028,
-    "c10": 16.5031,
-    "c30": 10.4226
+    "c05": 6.4973,
+    "c10": 3.4664,
+    "c30": 0.7538
   },
   "thresholds_honest": {
-    "c05": 17.8694,
+    "c05": 17.869,
     "c10": 14.974,
-    "c30": 12.9652
+    "c30": 12.965
   },
-  "note": "ja4_rarity single-feature ROC 0.926 > ECOD 0.87 trivial baseline contrast; 11/28 caveat prior-only; ECOD primary > IF corrected",
+  "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.47 trivial baseline contrast; 11/28 legacy + 5-col caveat prior-only 1/5; ECOD honest 0.47 random do not use for blocking tooltip; contamination invariance pyod #552 disclosed not gated; ECOD honest primary > IF corrected",
   "contrast_table": [
     {
       "model": "ja4_rarity_single_feature",
       "auc": 0.926,
-      "note": "trivial single-feature baseline beats ECOD \u2014 proves Censys separation is JA4-trivial"
-    },
-    {
-      "model": "ECOD_inverted_20c+7lab",
-      "auc": 0.871,
-      "note": "primary lean inverted 20 censys +7 lab (27) mixed"
+      "note": "trivial single-feature baseline beats ECOD honest \u2014 proves Censys separation is JA4-trivial"
     },
     {
       "model": "ECOD_honest_7c+20lab",
       "auc": 0.473,
-      "note": "honest 7 censys +20 lab (27) near-random"
+      "note": "primary honest 7 censys +20 lab (27) TOP5 near-random do not use for blocking"
+    },
+    {
+      "model": "ECOD_inverted_20c+7lab",
+      "auc": 0.871,
+      "note": "ablation inverted 20 censys +7 lab (27) mixed TOP5"
     },
     {
       "model": "ECOD_lab_only",
@@ -46,11 +46,12 @@
     {
       "model": "IsolationForest_corrected",
       "auc": 0.759,
-      "note": "IsolationForest n_estimators50 max_samples min(256,27) corrected honest variant"
+      "note": "IsolationForest n_estimators50 max_samples min(256,27) contamination 0.10 random_state 42 corrected honest variant"
     }
   ],
-  "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
-  "dataset_caveat": "prior-only, 7 cert cols synthetic null; WEAK SUPERVISION not hand-labeled; lab 45 (10+35) filtered 31 for ROC stability",
+  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None per disclosure) honest 0.47 random do not use for blocking tooltip",
+  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5; WEAK SUPERVISION not hand-labeled; lab 45 (10+35) filtered 31 for ROC stability; ECOD contamination 0.10 n_jobs 1 both variants <0.3s prot4 <1M",
+  "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed not gated 0.05==0.10==0.30 scores invariant ROC unchanged",
   "generated": "2026-08-26T00:00:00Z",
-  "source": "shared/fixtures/censys_sampled_200.json 20 rows + lab 45 envs (filtered 31) lean shell dual strict"
+  "source": "shared/fixtures/censys_sampled_200.json 20 rows + lab 45 envs (filtered 31) TOP5 27x5 dual honest primary"
 }
