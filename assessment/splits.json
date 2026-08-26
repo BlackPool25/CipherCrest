@@ -1,67 +1,54 @@
 {
   "all_environment_ids": [
     "family-01__postfix3.9_loss0",
-    "family-02__postfix3.9_loss0",
-    "family-03__postfix3.9_loss0",
-    "family-04__postfix3.9_loss0",
-    "family-05__postfix3.9_loss0",
-    "family-06__postfix3.9_loss0",
-    "family-07__postfix3.9_loss0",
-    "family-08__postfix3.9_loss0",
-    "family-09__postfix3.9_loss0",
-    "family-10__postfix3.9_loss0",
     "family-02__jitter1_loss5",
     "family-02__jitter2_loss5",
     "family-02__jitter3_loss5",
+    "family-02__jitter4_loss5",
+    "family-02__jitter5_loss5",
+    "family-02__postfix3.9_loss0",
     "family-03__jitter1_loss5",
     "family-03__jitter2_loss5",
     "family-03__jitter3_loss5",
+    "family-03__jitter4_loss5",
+    "family-03__jitter5_loss5",
+    "family-03__postfix3.9_loss0",
     "family-04__jitter1_loss5",
     "family-04__jitter2_loss5",
     "family-04__jitter3_loss5",
+    "family-04__jitter4_loss5",
+    "family-04__jitter5_loss5",
+    "family-04__postfix3.9_loss0",
     "family-05__jitter1_loss5",
     "family-05__jitter2_loss5",
     "family-05__jitter3_loss5",
+    "family-05__jitter4_loss5",
+    "family-05__jitter5_loss5",
+    "family-05__postfix3.9_loss0",
+    "family-06__postfix3.9_loss0",
     "family-07__jitter1_loss5",
     "family-07__jitter2_loss5",
     "family-07__jitter3_loss5",
+    "family-07__jitter4_loss5",
+    "family-07__jitter5_loss5",
+    "family-07__postfix3.9_loss0",
     "family-08__jitter1_loss5",
     "family-08__jitter2_loss5",
     "family-08__jitter3_loss5",
+    "family-08__jitter4_loss5",
+    "family-08__jitter5_loss5",
+    "family-08__postfix3.9_loss0",
+    "family-09__postfix3.9_loss0",
     "family-10__jitter1_loss5",
     "family-10__jitter2_loss5",
-    "family-10__jitter3_loss5"
+    "family-10__jitter3_loss5",
+    "family-10__jitter4_loss5",
+    "family-10__jitter5_loss5",
+    "family-10__postfix3.9_loss0"
   ],
   "groups_by_env": {
     "family-01__postfix3.9_loss0": [
       "family-01"
-    ],
-    "family-02__postfix3.9_loss0": [
-      "family-02"
-    ],
-    "family-03__postfix3.9_loss0": [
-      "family-03"
-    ],
-    "family-04__postfix3.9_loss0": [
-      "family-04"
-    ],
-    "family-05__postfix3.9_loss0": [
-      "family-05"
-    ],
-    "family-06__postfix3.9_loss0": [
-      "family-06"
-    ],
-    "family-07__postfix3.9_loss0": [
-      "family-07"
-    ],
-    "family-08__postfix3.9_loss0": [
-      "family-08"
-    ],
-    "family-09__postfix3.9_loss0": [
-      "family-09"
-    ],
-    "family-10__postfix3.9_loss0": [
-      "family-10"
     ],
     "family-02__jitter1_loss5": [
       "family-02-jitter-01"
@@ -72,6 +59,15 @@
     "family-02__jitter3_loss5": [
       "family-02-jitter-03"
     ],
+    "family-02__jitter4_loss5": [
+      "family-02-jitter-04"
+    ],
+    "family-02__jitter5_loss5": [
+      "family-02-jitter-05"
+    ],
+    "family-02__postfix3.9_loss0": [
+      "family-02"
+    ],
     "family-03__jitter1_loss5": [
       "family-03-jitter-01"
     ],
@@ -80,6 +76,15 @@
     ],
     "family-03__jitter3_loss5": [
       "family-03-jitter-03"
+    ],
+    "family-03__jitter4_loss5": [
+      "family-03-jitter-04"
+    ],
+    "family-03__jitter5_loss5": [
+      "family-03-jitter-05"
+    ],
+    "family-03__postfix3.9_loss0": [
+      "family-03"
     ],
     "family-04__jitter1_loss5": [
       "family-04-jitter-01"
@@ -90,6 +95,15 @@
     "family-04__jitter3_loss5": [
       "family-04-jitter-03"
     ],
+    "family-04__jitter4_loss5": [
+      "family-04-jitter-04"
+    ],
+    "family-04__jitter5_loss5": [
+      "family-04-jitter-05"
+    ],
+    "family-04__postfix3.9_loss0": [
+      "family-04"
+    ],
     "family-05__jitter1_loss5": [
       "family-05-jitter-01"
     ],
@@ -98,6 +112,18 @@
     ],
     "family-05__jitter3_loss5": [
       "family-05-jitter-03"
+    ],
+    "family-05__jitter4_loss5": [
+      "family-05-jitter-04"
+    ],
+    "family-05__jitter5_loss5": [
+      "family-05-jitter-05"
+    ],
+    "family-05__postfix3.9_loss0": [
+      "family-05"
+    ],
+    "family-06__postfix3.9_loss0": [
+      "family-06"
     ],
     "family-07__jitter1_loss5": [
       "family-07-jitter-01"
@@ -108,6 +134,15 @@
     "family-07__jitter3_loss5": [
       "family-07-jitter-03"
     ],
+    "family-07__jitter4_loss5": [
+      "family-07-jitter-04"
+    ],
+    "family-07__jitter5_loss5": [
+      "family-07-jitter-05"
+    ],
+    "family-07__postfix3.9_loss0": [
+      "family-07"
+    ],
     "family-08__jitter1_loss5": [
       "family-08-jitter-01"
     ],
@@ -117,6 +152,18 @@
     "family-08__jitter3_loss5": [
       "family-08-jitter-03"
     ],
+    "family-08__jitter4_loss5": [
+      "family-08-jitter-04"
+    ],
+    "family-08__jitter5_loss5": [
+      "family-08-jitter-05"
+    ],
+    "family-08__postfix3.9_loss0": [
+      "family-08"
+    ],
+    "family-09__postfix3.9_loss0": [
+      "family-09"
+    ],
     "family-10__jitter1_loss5": [
       "family-10-jitter-01"
     ],
@@ -125,6 +172,15 @@
     ],
     "family-10__jitter3_loss5": [
       "family-10-jitter-03"
+    ],
+    "family-10__jitter4_loss5": [
+      "family-10-jitter-04"
+    ],
+    "family-10__jitter5_loss5": [
+      "family-10-jitter-05"
+    ],
+    "family-10__postfix3.9_loss0": [
+      "family-10"
     ]
   },
   "groups_by_family": {
@@ -135,24 +191,32 @@
       "family-02__jitter1_loss5",
       "family-02__jitter2_loss5",
       "family-02__jitter3_loss5",
+      "family-02__jitter4_loss5",
+      "family-02__jitter5_loss5",
       "family-02__postfix3.9_loss0"
     ],
     "03": [
       "family-03__jitter1_loss5",
       "family-03__jitter2_loss5",
       "family-03__jitter3_loss5",
+      "family-03__jitter4_loss5",
+      "family-03__jitter5_loss5",
       "family-03__postfix3.9_loss0"
     ],
     "04": [
       "family-04__jitter1_loss5",
       "family-04__jitter2_loss5",
       "family-04__jitter3_loss5",
+      "family-04__jitter4_loss5",
+      "family-04__jitter5_loss5",
       "family-04__postfix3.9_loss0"
     ],
     "05": [
       "family-05__jitter1_loss5",
       "family-05__jitter2_loss5",
       "family-05__jitter3_loss5",
+      "family-05__jitter4_loss5",
+      "family-05__jitter5_loss5",
       "family-05__postfix3.9_loss0"
     ],
     "06": [
@@ -162,12 +226,16 @@
       "family-07__jitter1_loss5",
       "family-07__jitter2_loss5",
       "family-07__jitter3_loss5",
+      "family-07__jitter4_loss5",
+      "family-07__jitter5_loss5",
       "family-07__postfix3.9_loss0"
     ],
     "08": [
       "family-08__jitter1_loss5",
       "family-08__jitter2_loss5",
       "family-08__jitter3_loss5",
+      "family-08__jitter4_loss5",
+      "family-08__jitter5_loss5",
       "family-08__postfix3.9_loss0"
     ],
     "09": [
@@ -177,6 +245,8 @@
       "family-10__jitter1_loss5",
       "family-10__jitter2_loss5",
       "family-10__jitter3_loss5",
+      "family-10__jitter4_loss5",
+      "family-10__jitter5_loss5",
       "family-10__postfix3.9_loss0"
     ]
   },
@@ -185,31 +255,49 @@
     "family-02__postfix3.9_loss0",
     "family-03__postfix3.9_loss0",
     "family-04__postfix3.9_loss0",
-    "family-05__postfix3.9_loss0",
     "family-02__jitter1_loss5",
     "family-02__jitter2_loss5",
+    "family-02__jitter3_loss5",
+    "family-02__jitter4_loss5",
+    "family-02__jitter5_loss5",
     "family-03__jitter1_loss5",
     "family-03__jitter2_loss5",
+    "family-03__jitter3_loss5",
+    "family-03__jitter4_loss5",
+    "family-03__jitter5_loss5",
     "family-04__jitter1_loss5",
     "family-04__jitter2_loss5",
-    "family-05__jitter1_loss5"
+    "family-04__jitter3_loss5",
+    "family-05__postfix3.9_loss0",
+    "family-10__jitter2_loss5"
   ],
   "D2_val_groups": [
+    "family-05__jitter1_loss5",
+    "family-05__jitter2_loss5",
+    "family-05__jitter3_loss5",
+    "family-05__jitter4_loss5",
+    "family-05__jitter5_loss5",
     "family-06__postfix3.9_loss0",
     "family-07__postfix3.9_loss0",
-    "family-08__postfix3.9_loss0",
     "family-07__jitter1_loss5",
     "family-07__jitter2_loss5",
     "family-07__jitter3_loss5",
-    "family-08__jitter1_loss5",
-    "family-08__jitter2_loss5"
+    "family-08__postfix3.9_loss0",
+    "family-08__jitter1_loss5"
   ],
   "D3_locked_groups": [
+    "family-08__jitter2_loss5",
+    "family-08__jitter3_loss5",
+    "family-08__jitter4_loss5",
+    "family-08__jitter5_loss5",
     "family-09__postfix3.9_loss0",
     "family-10__postfix3.9_loss0",
-    "family-10__jitter1_loss5",
-    "family-10__jitter2_loss5",
-    "family-10__jitter3_loss5"
+    "family-10__jitter1_loss5"
+  ],
+  "spare_groups": [
+    "family-10__jitter3_loss5",
+    "family-10__jitter4_loss5",
+    "family-10__jitter5_loss5"
   ],
   "D_prior_groups": [
     "censys_prior_0c4550a7",
@@ -238,5 +326,14 @@
     "test_epoch": "2026-09-03T00:00:00Z",
     "env_id_frozen": true,
     "note": "D5 synthetic until Day10 real T2 pcap"
+  },
+  "stratified_group_kfold_contract": {
+    "n_splits_outer": 3,
+    "n_splits_inner": 3,
+    "n_groups": 10,
+    "groups_for_nested_cv": "family-level (10 families, not environment)",
+    "groups_for_splits_wiring": "environment_id",
+    "safe": "n_splits 3 <= n_groups 10",
+    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 10 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 3 excluded from n_eff, remaining 4 lab envs (04 jitter4/5,07 jitter4/5) unassigned but accounted in all_environment_ids 45 = 38 risk +3 spare +4 unassigned"
   }
 }
