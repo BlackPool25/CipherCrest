@@ -1,11 +1,10 @@
-# Git LFS & Large Files — SecureMailScope audit 2026-08-26
+# Git LFS & Large Files — SecureMailScope audit 2026-08-26, doc 2026-08-26 docs/LARGE_FILES.md
 # Decision: NO LFS needed yet (<1M all non-wheelhouse tracked files). Wheelhouse stays gitignored air-gap USB (NOT LFS).
-# Audit: models/*.pkl 276K total, lab/pcaps 1KB each (45 pcap ~45K), eval/*.png 42K+17K — all <5M GitHub LFS threshold.
-# .git 346M = .git/objects loose 345M (wheelhouse force-added in 1647199 via `git add -f` despite wheelhouse/ in .gitignore), pack 915K + 13K.
-# git count-objects -v: count 247 size 344M loose, size-pack 951K. Loose objects will pack via `git gc` (not yet run).
-# For future stretch (MicroAE 27-8-1 ~50M, torch 180M) uncomment LFS lines below and run `git lfs install && git lfs track` — DO NOT `git lfs migrate` without user approval.
+# Audit: models/*.pkl 276K total (124K+76K+76K <5M), lab/pcaps 1KB each (45 pcap ~45K), eval/*.png 42K+17K — all <5M GitHub LFS threshold.
+# .git 345M pack (history 1647199 retains blob until filter-repo; HEAD 0 via b9d18b4 git rm --cached, gc loose 0). See docs/LARGE_FILES.md table + turnup scripts/turnup.sh --check.
+# For future stretch (MicroAE 27-8-1 ~50M, torch 180M) — RECOMMENDED GitHub Releases 2GB/asset free (scripts/download_models.sh) OR uncomment LFS below + git lfs install && git lfs track — DO NOT `git lfs migrate` without user approval.
 # To enable LFS: git lfs install && git lfs track "models/**/*.pkl" "lab/pcaps/**/*.pcap" "eval/*.png" "lab/reassembled/**/*.bin"
-# Verify: git lfs ls-files (should be empty now), du -sh .git (should drop after gc if wheelhouse untracked), git verify-pack audit
+# Verify: bash scripts/turnup.sh --check && bash scripts/download_models.sh --check && git lfs ls-files (empty now) && git ls-files | grep -E "^wheelhouse/|^dashboard/dist" || echo "HEAD clean" 
 
 # Future LFS patterns — COMMENTED until >5M file appears (MicroAE/torch stretch)
 # Uncomment to activate:

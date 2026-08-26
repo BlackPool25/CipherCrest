@@ -78,11 +78,38 @@ pytest -q  # smoke — SYSTEM 5/8 green
 python -m lab.scripts.jitter_slices --slices 3 --families 02,03,04,05,07,08,10
 ls lab/pcaps/jittered/*.pcap | wc -l  # 21
 
-# API + dashboard
+# API + dashboard — one script (recommended)
+bash scripts/turnup.sh --check  # dry-run: models 276K <5M, wheelhouse 345M <350, frontend gzip <3670016, tshark optional
+bash scripts/turnup.sh           # full up: API :8000 + dashboard :5173, verifies POST /analyze + GET /flows
+# manual
 uvicorn api.app:app --host 0.0.0.0 --port 8000 &
 npm --prefix dashboard run dev  # or serve dashboard/dist
 curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
 ```
+
+Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`.
+
+### Quick Turn-Up (One Script)
+
+One script turns up **API + validator + assessment + dashboard** and checks model files, wheelhouse, frontend.
+
+```bash
+bash scripts/turnup.sh --check            # dry-run checks (CI-safe, no servers)
+bash scripts/turnup.sh                    # full up: checks + starts API :8000 + dashboard :5173
+bash scripts/turnup.sh --down             # stop API + dashboard
+bash scripts/turnup.sh --port 8000 --frontend-port 5173  # custom ports
+```
+
+What it does: checks `python 3.11` + `node >=18` + `tshark` optional (scapy fallback honest), `wheelhouse 345M <350` `! torch`, `models/risk_clf.pkl 124K + anomaly 76K + honest 76K <5M` (via `scripts/download_models.sh` Releases fallback then `python -m assessment.risk_model` train), `dashboard/dist gzip <3670016`, starts `uvicorn` + `vite`, curls `POST /analyze` zip + `GET /flows` + `GET /report?format=json`, logs to `logs/`. See [`scripts/turnup.sh`](scripts/turnup.sh), [`scripts/download_models.sh`](scripts/download_models.sh), [`docs/LARGE_FILES.md`](docs/LARGE_FILES.md) §5.
+
+Fresh clone without USB: `wheelhouse/` missing falls back to `pip install -r requirements.txt`; models 276K already in git so no fetch needed; future `MicroAE ~50M` fetched via Releases per `docs/LARGE_FILES.md`.
+
+### Large Files Strategy
+
+See [`docs/LARGE_FILES.md`](docs/LARGE_FILES.md) — research table (LFS vs Releases vs DVC vs HuggingFace + wheelhouse air-gap), decision **KEEP 276K pkls in git (<5M threshold)**, future `MicroAE/torch 50–180M` via **GitHub Releases (2GB/asset free, versioned by tag)** or LFS if budget, `wheelhouse NEVER in git nor LFS` (USB air-gap), retrieval via `scripts/download_models.sh`, turn-up via `scripts/turnup.sh`.
+
+GitHub limits: hard `100MB` blocked, warn `50MB`, LFS recommended `>5MB`, LFS free quota `1GB storage +1GB/mo` ([About large files](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github), [About LFS](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage), [About releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases), [git-lfs.github.com](https://git-lfs.github.com/)).
+
 
 Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`.
 

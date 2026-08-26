@@ -1,4 +1,4 @@
-"""anomaly_metrics — ja4 single-feature + IF corrected."""
+"""anomaly_metrics — ja4_rarity single-feature + IF corrected."""
 from __future__ import annotations
 import numpy as np
 from assessment.features import build_vector

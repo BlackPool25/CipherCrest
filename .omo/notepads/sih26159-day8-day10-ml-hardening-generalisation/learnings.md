@@ -386,3 +386,47 @@ git gc --prune=now --aggressive  # coalesce packs: 1 pack 1.1M
 - CI guard PASS: risk 33 policy 105 anomaly 34 features 237 schemas 148 app 121 db 137 all <250
 - wc -l table post-fix: risk_model 33, risk_dataset 79, risk_metrics 31, risk_train 201, anomaly_model 34, anomaly_data 106, anomaly_metrics 40, anomaly_train 126, app 121, pipeline 99
 - T13 ticked - [x], dirty 47 committed via chore(code): split risk/anomaly to <250 + trim api + mark T13, git status now only untracked .omo/drafts + docs
+
+## Large Files Research + Turn-Up One Script (2026-08-26)
+
+### Research table — GitHub limits (citations)
+
+- Hard 100MB blocked, Warn 50MB per https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github
+- LFS >5MB recommended, 1GB free storage +1GB/mo bandwidth per https://git-lfs.github.com/ and https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage + billing
+- Releases 2GB per asset free versioned by tag per https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases
+- LFS pointer in git + blob on lfs server + `git lfs pull`, offline clone fails without internet.
+
+| # | Option | Limits/cost | Pros | Cons | Use for SecureMailScope |
+|---|--------|-------------|------|------|-------------------------|
+|1|Git LFS|Bypass 100MB (2GB per blob), quota 1GB free $5/50GB|Versioned pointer, `actions/checkout lfs:true` auto|Quota/bandwidth, needs lfs install, offline fails|Future MicroAE 50M if budget (uncomment .gitattributes)|
+|2|GitHub Releases|2GB/asset free unlimited, versioned by tag|Free no quota, no clone overhead, historic tags|Not in clone, needs download script|RECOMMENDED future 50-180M torch/MicroAE via `scripts/download_models.sh`|
+|3|DVC+S3/MinIO|Unlimited infra cost|Dataset pipelines, MinIO air-gap, `dvc pull`|Infra heavy|GB PCAP corpora (overkill for 276K)|
+|4|HuggingFace Hub|LFS under hood generous|Public ML sharing|External, needs token|Community sharing not air-gap|
+|-|Wheelhouse LOCAL|USB 32GB air-gap|Offline no internet no 100MB breach `! torch` lean `345M <350`|Fresh clone missing (CI fallback `pip install -r requirements`)|Always for wheelhouse 32 wheels|
+
+### Decision
+
+- Current 276K pkls (124K+76K+76K) <5M -> **KEEP IN GIT** (no LFS overhead, fast clone). .gitattributes keeps future LFS commented.
+- Future MicroAE 27-8-1 ~50M / torch 180M >50M warn would breach 100M -> **Releases** (free) OR LFS (if budget). Prepare `.gitattributes` uncomment + `scripts/download_models.sh` placeholder ready (`curl -L https://github.com/<org>/<repo>/releases/download/<tag>/<file>` + sha256 if present).
+- Wheelhouse 345M (32 wheels xgboost 191M+llvmlite 57M) -> **NEVER in git nor LFS** — `.gitignore:4 wheelhouse/` USB air-gap `pip install --no-index --find-links wheelhouse --only-binary=:all:` 345M <350 `! torch`, CI falls back if missing.
+- Dashboard dist 1.1M -> build artifact `npm run build` in CI, gitignored (b9d18b4 fixed).
+- .git history still 345M pack retains `1647199` blob until `git filter-repo --path wheelhouse --invert-paths --path dashboard/dist --invert-paths` + `gc --prune=now --aggressive` with user approval — forward fix HEAD 0 already stops bloat.
+
+### Turn-up script
+
+- Created `scripts/turnup.sh` 308 LOC — checks python 3.11/node >=18/tshark optional (offline scapy fallback 4 prefs), wheelhouse `du -m <350` `! torch` HEAD clean, models 276K prot4 <5M (tries `scripts/download_models.sh` then `python -m assessment.risk_model` / `anomaly_model --dual` fallback), dashboard `npm install` + `vite build` gzip `<3670016`, starts `uvicorn api.app:app --port 8000` + `npm --prefix dashboard run dev --port 5173`, waits, curls `POST /analyze` family-01 + zip 3 + `GET /flows` + `GET /report?format=json`, logs to `logs/`, `--check` dry-run no servers, `--down` cleanup, `--port` custom. Tshark missing graceful (offline reassembler fallback honesty).
+- Created `scripts/download_models.sh` placeholder — no-op now (3 small pkls in git), future `gh release upload v0.8.0-microae models/microae_27-8-1.pt` + `curl -L` retrieval, sha256 if `.sha256` present.
+- Created `docs/LARGE_FILES.md` audit 2026-08-26 with research table + decision matrix + retrieval steps + audit commands + verification checklist + citations URLs.
+- Updated `.gitattributes` header 2026-08-26 docs/LARGE_FILES.md + future Releases recommended + verify cmd `bash scripts/turnup.sh --check && bash scripts/download_models.sh --check && git ls-files | grep wheelhouse`.
+- Updated `README.md` added `## Quick Turn-Up (One Script)` linking `scripts/turnup.sh` usage + `Large Files Strategy` linking `docs/LARGE_FILES.md` with citations ([About large files], [About LFS], [About releases], [git-lfs]).
+- Updated `.github/workflows/ci.yml` added `Turnup dry-run` step (chmod + download_models --check + turnup --check + docs/LARGE_FILES.md + README links) per plan.
+
+### Verification
+
+- `bash scripts/turnup.sh --check` -> python 3.13 warn but ok, node v24 >=18, tshark not found offline reassembler ok, wheelhouse 345 <350 32 wheels no torch HEAD clean, models 276K prot4 <5M, Vite 157k <3670016 HEAD clean, lab pcaps 10/10 reassembler coverage 1.0 — PASS (tshark optional not fatal).
+- `bash scripts/download_models.sh --check` -> 3 pkls present <5M no download — have=3 miss=0 tag v0.7.0-bridge PASS.
+- `cat docs/LARGE_FILES.md` -> table 4 options + wheelhouse + citations + decision + turnup section5 — PASS.
+- `grep -q "Quick Turn-Up" README.md && grep -q "scripts/turnup.sh" README.md && grep -q "docs/LARGE_FILES.md" README.md` -> PASS.
+- `grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS"` -> No LFS (commented future) PASS.
+- `git ls-files | grep -E "^wheelhouse/|^dashboard/dist"` -> 0 (HEAD clean) PASS.
+

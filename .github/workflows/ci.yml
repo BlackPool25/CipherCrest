@@ -169,6 +169,17 @@ jobs:
           fi
           pytest lab/reassembler/tests -q
         continue-on-error: false
+      - name: Turnup dry-run (models/wheelhouse/frontend checks)
+        run: |
+          chmod +x scripts/turnup.sh scripts/download_models.sh
+          bash scripts/download_models.sh --check
+          bash scripts/turnup.sh --check
+          test -f docs/LARGE_FILES.md || (echo "docs/LARGE_FILES.md missing" && exit 1)
+          grep -q "GitHub Releases" docs/LARGE_FILES.md || (echo "LARGE_FILES missing Releases" && exit 1)
+          grep -q "about-large-files-on-github" docs/LARGE_FILES.md || (echo "citations missing" && exit 1)
+          grep -q "Quick Turn-Up" README.md || (echo "README Quick Turn-Up missing" && exit 1)
+          grep -q "scripts/turnup.sh" README.md || (echo "README turnup link missing" && exit 1)
+          grep -q "docs/LARGE_FILES.md" README.md || (echo "README LARGE_FILES link missing" && exit 1)
       - name: Deterministic env guard
         run: |
           test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)
