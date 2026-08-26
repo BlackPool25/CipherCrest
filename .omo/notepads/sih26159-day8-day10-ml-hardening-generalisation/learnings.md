@@ -255,3 +255,11 @@ pytest shared/tests/test_offline_bundle.py -q  # 10 passed
 
 - Verification: `! grep -rq "isotonic" assessment/ --include="*.py" | grep -v test_ | grep -q` clean; `python -c whitelist` PASS; `splits 45 ratio<3 prior disjoint` PASS; `test -f metrics.json && brier<base` PASS; `pytest eval/tests/test_metrics_json eval/tests/test_ndcg -q` 14 passed; `du -m wheelhouse 345 <350 && ! torch` PASS; `python -c feature 28 max_cat 8` PASS; `pkl prot4` PASS; `Vite gzip 157k <3670016 hard` PASS; `pytest --collect-only` 342 ≥8 suites; CI yaml valid `yaml.safe_load` ok.
 
+
+## Fix: CI unicode ≥ -> >= for py_compile (2026-08-26)
+
+- **Cause:** `.github/workflows/ci.yml` line 130 `name: Collect-only wiring (≥8 suites)` contained `≥` U+2265 non-ASCII causing `python -m py_compile .github/workflows/ci.yml` SyntaxError `invalid character '≥' (U+2265)` as shown in user image; `yaml.safe_load` passed (`yaml ok`) but `py_compile` failed because ≥ not valid Python character outside string. T13 commit f6e463f left unicode.
+- **Fix:** Replaced `≥` with `>=` ASCII: `name: Collect-only wiring (>=8 suites)`; verified `grep -n "≥" .github/workflows/ci.yml` 0, `grep -P "[^\x00-\x7F]"` shows only `—` em dashes inside echo strings (allowed inside Python string literals, not invalid character), no ≥/≤; `python -c "import yaml, pathlib; yaml.safe_load(...); print('yaml ok')"` passes; `python -m py_compile` no longer shows `invalid character '≥'` — next error is `invalid decimal literal <350M` at line 150 which is YAML-vs-Python mismatch (file is YAML not Python, expected; not unicode) and `on:` etc are YAML block style not Python; `pytest --collect-only -q` still 342 collected, subset 8-file 82 collected >=8 suites.
+- **Preserved:** All T13 hard-fail guards intact (metrics.json brier/ece/perm/ndcg, pkl prot4, Vite <3670016, wheelhouse <350, isotonic/ja4/grouping/prior guards etc) — only step name string changed, no guard removed.
+- **Verification:** `grep -c "≥" 0`, `yaml ok`, `pytest --collect-only 342/82 >=8`, `git diff` shows single line change.
+

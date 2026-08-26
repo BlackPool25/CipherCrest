@@ -127,7 +127,7 @@ jobs:
       - name: API ML wiring pytest green
         run: |
           pytest api/tests/test_api_ml_wiring.py -q
-      - name: Collect-only wiring (≥8 suites)
+      - name: Collect-only wiring (>=8 suites)
         run: |
           pytest --collect-only -q shared/tests/test_offline_bundle.py shared/tests/test_censys_prior.py shared/tests/test_freeze_guard.py eval/tests/test_metrics_json.py eval/tests/test_ndcg.py assessment/tests/test_risk_strict.py assessment/tests/test_anomaly_dual.py api/tests/test_api_ml_wiring.py 2>&1 | tee /tmp/collect-only.log
           grep -q "test session starts\|<Module\|<Function\|tests collected" /tmp/collect-only.log || (echo "collect-only failed" && cat /tmp/collect-only.log && exit 1)
