@@ -67,6 +67,7 @@ def _sync_ml():
     _ml2.risk_clf, _ml2.anomaly_clf, _ml2.anomaly_honest_clf = rc, ac, ah
 
 @app.post("/analyze")
+@app.post("/api/analyze")
 async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
     _sync_ml()
     global _last_result, _last_summary
