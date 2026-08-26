@@ -1,0 +1,92 @@
+=== F3 Evidence Script ===
+Date: 2026-08-26T13:41:53Z
+Docker version: Docker version 29.7.2, build a7dcaa6
+Node: v24.19.0 npm: 11.17.0
+Python: Python 3.12.9
+
+--- 1. turnup --check parity 4 prefs ---
+[ok] tshark prefs parity 4 prefs (tcp.desegment_tcp_streams tcp.reassemble_out_of_order tls.desegment_ssl_records tls.desegment_ssl_application_data)
+--- wheelhouse ---
+wheelhouse 361	wheelhouse
+wheelhouse 36 wheels
+[ok] wheelhouse 361 <370M lean
+[ok] HEAD clean: wheelhouse gitignored (not tracked)
+[ok] wheelhouse no torch (python guard)
+--- models ---
+[ok] models/risk_clf.pkl 161K present
+[ok] models/risk_clf.pkl protocol 4
+[ok] models/risk_clf.pkl <5M (no LFS needed)
+[ok] models/anomaly.pkl 14K present
+[ok] models/anomaly_honest.pkl 14K present
+[ok] all 3 models present 276K <5M
+[ok] Vite gzip 185932 <3670016
+=== turnup --check done (tshark optional — not fatal; wheelhouse missing is fresh-clone fallback) ===
+
+--- 2. vite gzip ---
+dist/assets/family-01-hi5SsHB9.js                                   1.04 kB │ gzip:   0.64 kB
+dist/assets/family-09-CYzw8Mnd.js                                   1.34 kB │ gzip:   0.76 kB
+dist/assets/index-L9WOHfUA.js                                      99.73 kB │ gzip:  25.88 kB
+dist/assets/recharts-BOOxt_f0.js                                  564.83 kB │ gzip: 158.40 kB
+✓ built in 1.34s
+gzip -c dashboard/dist/assets/*.js | wc -c => 185932 (<3670016 PASS if 185932 < 3670016)
+PASS vite gz
+
+--- 3. trap guard ---
+PASS trap EXIT INT TERM
+FAIL parity
+
+--- 4. docker build ---
+#30 exporting to image
+#30 exporting layers
+#30 exporting layers 0.2s done
+#30 exporting manifest sha256:b985962ced2caddcd2a9b02ff5efbaa8cd794edd90cf419f02671287e4e27268 done
+#30 exporting config sha256:d04f2fa5e72bc3126b6215c0302553e40784de952627fe64381aceedbd0922ce done
+#30 exporting attestation manifest sha256:2ad412031704ff1c12d754b1981bee06f9c3bb3ab7b8b13c5baade34f4223957 done
+#30 exporting manifest list sha256:357afb96e2496700693da05c591581061720058962a90996dfa3000f366294ec done
+#30 naming to docker.io/library/ciphercrest:demo done
+#30 unpacking to docker.io/library/ciphercrest:demo 0.1s done
+#30 DONE 0.4s
+build exit 0
+
+--- 5. docker run health (expected FAIL due to missing uvicorn) ---
+be42697b7bf27ff79b783806e8ab76bf22893ad46d142b22b6965ad36e8c15e2
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0
+curl: (7) Failed to connect to localhost port 8000 after 0 ms: Could not connect to server
+curl failed (docker health not up)
+curl: (7) Failed to connect to localhost port 8000 after 0 ms: Could not connect to server
+health FAIL (docker)
+curl: (7) Failed to connect to localhost port 8000 after 0 ms: Could not connect to server
+flows FAIL
+Error response from daemon: No such container: ciphercrest_f3_test
+no logs
+
+--- 6. ss trap cleans ---
+PASS port 8000 cleaned (no orphan)
+
+--- 7. customizer/graphs/live queue ---
+PASS PcapCustomizer
+PASS POST /api/analyze alias
+PASS drag-drop
+PASS Recharts
+PASS BarChart
+PASS Pie
+PASS calibration_curve.png
+PASS ja4 0.926
+PASS 16.5 threshold
+PASS live queue
+PASS History tab
+PASS visibilitychange SWR
+
+--- 8. TestClient fallback full evidence ---
+tshark prefs 4: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE tshark_used=True fallback=scapy
+tshark prefs 4: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE tshark_used=True fallback=scapy
+tshark prefs 4: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE tshark_used=True fallback=scapy
+TestClient health: {'status': 'ok'}
+TestClient flows len: 48
+POST family-01 status 200 risk_level High calibrated_prob 0.06350068376522683 anomaly 6.867349864347099
+POST zip len 2 status 200
+  family-01 High 0.06350068376522683
+  family-09 High 0.900003099582908
+GET history family-09: 53 versions

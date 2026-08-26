@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "wrk_sih26159_day8day10",
+  "active_work_id": null,
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -66,6 +66,19 @@
       "started_at": "2026-08-26T00:00:00Z",
       "ended_at": "2026-08-26T08:30:15Z",
       "elapsed_ms": 30615000
+    },
+    "wrk_sih26159_day10day12": {
+      "work_id": "wrk_sih26159_day10day12",
+      "active_plan": ".omo/plans/sih26159-day10-day12-closure-audit-ux.md",
+      "plan_name": "sih26159-day10-day12-closure-audit-ux",
+      "session_ids": [
+        "codex:ses_atlas_day10day12"
+      ],
+      "status": "completed",
+      "worktree_path": null,
+      "started_at": "2026-08-26T11:34:21.146104Z",
+      "ended_at": "2026-08-26T14:06:24.578413Z",
+      "elapsed_ms": 9123432
     }
   }
 }

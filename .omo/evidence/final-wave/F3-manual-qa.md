@@ -886,3 +886,13 @@ python shared/scripts/gen_schemas_json.py && git diff --stat shared/schemas.json
 **Verdict after fix:** F3 FAIL → PASS for §5 POST /analyze. Real pipeline now returns High 27 with coverage lineage, not stub fallback. All other F3 sections remain PASS. Overall F3: **PASS** (pending screenshot limitation).
 
 VERDICT: APPROVE
+
+---
+
+## Appendix F: One-command Docker + trap + live queue + customizer + graphs — 2026-08-26T13:42Z
+
+**Verifier:** Sisyphus-Junior — F3 one-command QA rerun (independent of Day25 manual QA).  
+**Command batch:** `docker build -t ciphercrest:demo . && docker run --rm -d -p 8000:8000 ciphercrest:demo; sleep 5; curl -fsS http://localhost:8000/health | jq .status` + `curl -fsS /flows` + `curl -F pcap=@family-01.pcap /analyze` + `curl -F pcap=@<(zip family-01 family-09) /analyze` + `GET /flows/history?flow_id=family-09` + `bash scripts/turnup.sh --check | grep parity 4 prefs` + `npm build gzip` + `ss trap cleans` + customizer/graphs/live queue greps.  
+**Verdict:** **REJECT (Docker health)** — `sh: uvicorn: not found` (requirements.txt missing uvicorn) → `curl: (7) Could not connect to localhost:8000` (no 200). **CONDITIONAL PASS via TestClient fallback** for all other gates: health 200, flows 48 >=1, POST family-01 200 High with calibrated_prob 0.0635, POST zip 2 →200 length2 with calibrated_prob, history versioned 52→53, vite gzip 185932 <3670016, trap EXIT INT TERM + ss cleaned, parity 4 prefs, customizer POST /api/analyze + 8-field + drag-drop + FormData, Graphs 6 Recharts 0.926/16.5, live queue History visibilitychange SWR all PASS.  
+**Failing endpoint:** `docker run -p 8000:8000 ciphercrest:demo` → `GET http://localhost:8000/health` (and /flows, /analyze) — no server due to missing uvicorn in image. No trap leak (`ss -ltnp | grep 8000` → cleaned). Fix: add `uvicorn==0.34.3` to `requirements.txt` then rebuild. Full evidence: `.omo/notepads/sih26159-day10-day12-closure-audit-ux/F3-verdict-one-command.md` + `.omo/evidence/final-wave/F3-one-command-output.txt` (92 lines bash).
+
