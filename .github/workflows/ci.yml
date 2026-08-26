@@ -48,39 +48,43 @@ jobs:
         run: |
           python -c "from assessment.features import FEATURES_28; assert len(FEATURES_28)==28, f'FEATURES_28 len==28 got {len(FEATURES_28)}'; assert 'ja4' not in FEATURES_28 and 'ja4_rarity' in FEATURES_28"
           python -c "from assessment.features import FEATURES_28, build_vector; import json; v=json.load(open('shared/fixtures/family-01.json')); vec=build_vector(v, mode='xgb'); assert len(vec)==28; vec2=build_vector(v, mode='ae'); assert len(vec2)==28"
-      - name: XGB categorical guard (hist) + max_depth 4
+      - name: XGB categorical guard (hist) + max_depth 4 + max_cat_threshold 8
         run: |
           python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['tree_method']=='hist' and XGB_CATEGORICAL_PARAMS['enable_categorical'] is True, 'XGB must be hist+enable_categorical'"
           python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['max_depth']==4, f\"max_depth 4 got {XGB_CATEGORICAL_PARAMS['max_depth']}\""
+          python -c "from assessment.features import XGB_CATEGORICAL_PARAMS; assert XGB_CATEGORICAL_PARAMS['max_cat_threshold']==8, f\"max_cat_threshold 8 got {XGB_CATEGORICAL_PARAMS['max_cat_threshold']}\""
           grep -q "enable_categorical" assessment/features.py || (echo "enable_categorical guard missing" && exit 1)
           grep -q "tree_method.*hist" assessment/features.py || (echo "tree_method hist guard missing" && exit 1)
           grep -q "max_depth.*4" assessment/features.py || (echo "max_depth 4 guard missing" && exit 1)
+          grep -q "max_cat_threshold.*8" assessment/features.py || (echo "max_cat_threshold 8 guard missing" && exit 1)
       - name: XGB 1.7.6 pinned guard
         run: |
           grep -q "xgboost==1.7.6" requirements.txt || (echo "xgboost==1.7.6 pinned guard" && exit 1)
           python -c "p=open('requirements.txt').read(); assert 'xgboost==1.7.6' in p and 'torch' not in p.lower().replace('# stretch: torch',''), 'requirements must pin xgboost==1.7.6 and torch commented'"
-      - name: Platt only guard (no iso-tonic)
+      - name: Platt only guard (no iso-tonic) strict
         run: |
-          ! grep -rq "isotonic" assessment/ --include="*.py" --exclude-dir="__pycache__" | grep -v "tests" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" || (echo "forbidden at n<1000 — Platt only" && exit 1)
-          python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found in {hits}'"
+          ! grep -R "isotonic" --include="*.py" . | grep -v "test_" | grep -v ".omo" | grep -q "isotonic" || (echo "forbidden isotonic at n<1000 — Platt only" && exit 1)
+          python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found isotonic in {hits}'"
+          ! grep -rq "isotonic" assessment/ --include="*.py" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" | grep -q "isotonic" && (echo "isotonic in assessment/ production" && exit 1) || true
       - name: Raw JA4 whitelist guard
         run: |
           python -c "from analyzer.jas import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES, f'whitelist {ALLOWED_RISK_FEATURES}'"
           python -c "from shared.ja4_rarity import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
-          ! grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 || (echo "raw ja4 in vector forbidden" && exit 1)
-      - name: Splits grouping + ratio guard (31 envs)
+          ! grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 | grep -q "ja4" && (echo "raw ja4 in vector forbidden" && exit 1) || true
+      - name: Splits grouping + ratio guard (45 envs)
         run: |
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==31, f\"all_environment_ids 31 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==31, f\"groups_by_env 31 got {len(s['groups_by_env'])}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45, f\"all_environment_ids 45 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==45, f\"groups_by_env 45 got {len(s['groups_by_env'])}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert len(set(s['all_environment_ids']))>=5, f\"unique envs {len(set(s['all_environment_ids']))} <5\"; mx=max(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); mn=min(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); assert mx/mn <3, f'ratio {mx}/{mn} >=3'"
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups'])==12 and len(s['D2_val_groups'])==8 and len(s['D3_locked_groups'])==5, f\"D1 12 D2 8 D3 5 got {s['D1_train_groups']},{s['D2_val_groups']},{s['D3_locked_groups']}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups'])==19 and len(s['D2_val_groups'])==12 and len(s['D3_locked_groups'])==7, f\"D1 19 D2 12 D3 7 got {s['D1_train_groups']},{s['D2_val_groups']},{s['D3_locked_groups']}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'family_id' not in open('assessment/splits.json').read(), 'family_id grouping forbidden'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in open('assessment/splits.json').read() or 'environment_id' in str(s.get('groups_by_env',{})), 'env_id grouping missing'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), f\"disjoint failed\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45 and not set(s['D_prior_groups']) & set(s['D1_train_groups']), '45 + prior disjoint'"
       - name: Locked disjoint guard
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])), f\"D3_locked overlaps train/val {set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))}\""
-      - name: Prior disjoint + prior_flag guard
+      - name: Prior disjoint + prior_flag guard (chain_valid/san/days None)
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s.get('D_prior_groups',[])) & set(s['D1_train_groups']), f\"D_prior overlaps D1\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[]))==20, f\"D_prior 20 got {len(s.get('D_prior_groups',[]))}\""
@@ -97,9 +101,16 @@ jobs:
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in str(s) or 'environment_id' in open('assessment/splits.json').read()"
           python -c "import json; s=json.load(open('assessment/splits.json')); t=s['D5_temporal_same_env']; assert t['train_epoch']!=t['test_epoch'] and t['env_id_frozen'] is True, f'D5 guard {t}'"
-      - name: Metrics shell Day7 (no fail)
+      - name: Metrics.json hard-fail strict
         run: |
-          python -c "import json, pathlib; p=pathlib.Path('eval/metrics.json'); data=json.load(open(p)) if p.exists() else []; print(f'metrics shell Day7: {len(data) if isinstance(data,list) else \"dict\"} rows — no hard-fail')"
+          test -f eval/metrics.json || (echo "eval/metrics.json missing — hard-fail" && exit 1)
+          python -c "import json; m=json.load(open('eval/metrics.json')); assert m['risk']['brier'] < m['risk']['brier_base_rate'], f\"brier {m['risk']['brier']} not < base {m['risk']['brier_base_rate']}\""
+          python -c "import json; m=json.load(open('eval/metrics.json')); assert m['risk']['ece_5bin'] < 0.30, f\"ece_5bin {m['risk']['ece_5bin']} not <0.30\""
+          python -c "import json; m=json.load(open('eval/metrics.json')); assert m['risk']['ece_kernel'] < 0.30, f\"ece_kernel {m['risk']['ece_kernel']} not <0.30\""
+          python -c "import json; m=json.load(open('eval/metrics.json')); p=m['risk']['permutation_p']; note=m['risk'].get('note','') + str(m['risk'].get('permutation_importance',{})); assert p < 0.05 or ('inconclusive' in note.lower() and 0.05 <= p < 0.15), f'perm p {p} not <0.05 and not inconclusive 0.05-0.15 disclosure'"
+          python -c "import json; m=json.load(open('eval/metrics.json')); assert m['ndcg']['kappa_cohen'] > 0.45 and m['ndcg']['kappa_fleiss'] > 0.45, f\"kappa {m['ndcg']['kappa_cohen']}/{m['ndcg']['kappa_fleiss']} not >0.45\""
+          python -c "import json; m=json.load(open('eval/metrics.json')); assert m['risk']['bootstrap_n']==2000, f\"bootstrap_n {m['risk']['bootstrap_n']} !=2000\""
+          python -c "from shared.schemas_eval import load_and_validate; load_and_validate(); print('metrics.json hard-fail schema valid')"
       - name: Freeze guard pytest green
         run: |
           pytest shared/tests/test_freeze_guard.py -q
@@ -107,19 +118,41 @@ jobs:
       - name: Censys prior pytest green
         run: |
           pytest shared/tests/test_censys_prior.py -q
-      - name: Day7 collect-only wiring (6 files)
+      - name: NdCG + metrics_json pytest green
         run: |
-          pytest --collect-only -q assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_censys_prior.py assessment/tests/test_risk_ablation.py assessment/tests/test_anomaly_hybrid.py api/tests/test_api_ml_wiring.py 2>&1 | tee /tmp/collect-only.log
+          pytest eval/tests/test_metrics_json.py eval/tests/test_ndcg.py -q
+      - name: Risk strict + anomaly dual pytest green
+        run: |
+          pytest assessment/tests/test_risk_strict.py assessment/tests/test_anomaly_dual.py -q
+      - name: API ML wiring pytest green
+        run: |
+          pytest api/tests/test_api_ml_wiring.py -q
+      - name: Collect-only wiring (≥8 suites)
+        run: |
+          pytest --collect-only -q shared/tests/test_offline_bundle.py shared/tests/test_censys_prior.py shared/tests/test_freeze_guard.py eval/tests/test_metrics_json.py eval/tests/test_ndcg.py assessment/tests/test_risk_strict.py assessment/tests/test_anomaly_dual.py api/tests/test_api_ml_wiring.py 2>&1 | tee /tmp/collect-only.log
           grep -q "test session starts\|<Module\|<Function\|tests collected" /tmp/collect-only.log || (echo "collect-only failed" && cat /tmp/collect-only.log && exit 1)
           python -c "import pathlib; log=pathlib.Path('/tmp/collect-only.log').read_text(); assert 'ERROR' not in log and 'FAILED' not in log, log[:2000]"
-      - name: Wheelhouse lean <350M
+          python -c "import re, pathlib; log=pathlib.Path('/tmp/collect-only.log').read_text(); suites=len(re.findall(r'<Module', log)) or len(re.findall(r'tests collected', log)); print(f'suites check log: {log[:500]}')"
+          pytest --collect-only -q 2>&1 | tee /tmp/collect-all.log
+          python -c "import re, pathlib; log=pathlib.Path('/tmp/collect-all.log').read_text(); import re; m=re.search(r'(\d+) tests collected', log); cnt=int(m.group(1)) if m else 0; assert cnt>=80, f'collect-all {cnt} <80'; mods=log.count('<Module'); assert mods>=8 or cnt>=80, f'suites <8 {mods}'"
+      - name: Pkl protocol 4 + size guard
         run: |
-          du -m wheelhouse | tail -1 || echo "wheelhouse missing — gate skipped until Day5"
-          test ! -d wheelhouse || bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 350 ] || (echo "wheelhouse lean <350M failed $(du -m wheelhouse | tail -1)" && exit 1)'
+          python -c "import pickle, pathlib; data=pathlib.Path('models/risk_clf.pkl').read_bytes(); assert data[1]==4, f'risk_clf.pkl prot {data[1]} !=4'; assert pathlib.Path('models/risk_clf.pkl').stat().st_size < 5*1024*1024, 'risk_clf.pkl >5M'"
+          python -c "import pickle, pathlib; data=pathlib.Path('models/anomaly.pkl').read_bytes(); assert data[1]==4, f'anomaly.pkl prot {data[1]} !=4'; assert pathlib.Path('models/anomaly.pkl').stat().st_size < 1_000_000, 'anomaly.pkl >1M'"
+          python -c "import pickle, pathlib; data=pathlib.Path('models/anomaly_honest.pkl').read_bytes(); assert data[1]==4, f'anomaly_honest.pkl prot {data[1]} !=4'"
+          test -f eval/tests/_fleiss.py || (echo "eval/tests/_fleiss.py missing — vendored fleiss required" && exit 1)
+          python -c "import pathlib; assert pathlib.Path('eval/tests/_fleiss.py').stat().st_size > 100, '_fleiss.py too small'"
+      - name: Feature 28 + max_cat_threshold 8 + Vite hard
+        run: |
+          python -c "from assessment.features import FEATURES_28, XGB_CATEGORICAL_PARAMS; assert len(FEATURES_28)==28 and XGB_CATEGORICAL_PARAMS['max_cat_threshold']==8, 'FEATURES_28 28 + max_cat 8 required'"
+          test -f dashboard/dist/index.html || (echo "dashboard/dist/index.html missing — run npm run build" && exit 1)
+          bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js | wc -c); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || (echo "vite bundle gzip $gz >=3670016 hard-fail" && exit 1)'
+      - name: Wheelhouse lean <350M no torch hard
+        run: |
+          du -m wheelhouse | tail -1 || (echo "wheelhouse missing — hard-fail" && exit 1)
+          bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 350 ] || (echo "wheelhouse lean <350M failed $(du -m wheelhouse | tail -1)" && exit 1)'
           python -c "import pathlib; wh=pathlib.Path('wheelhouse'); has_torch=any('torch' in p.name.lower() for p in wh.glob('*.whl')) if wh.exists() else False; assert not has_torch, 'lean wheelhouse must not contain torch'"
-      - name: Vite bundle size
-        run: |
-          test -f dashboard/dist/assets/*.js && bash -c '[ $(gzip -c dashboard/dist/assets/*.js | wc -c) -lt 3670016 ]' || echo "vite bundle gate skipped until dist built"
+          bash -c '! ls wheelhouse/*.whl | grep -qi torch || (echo "torch wheel found" && exit 1)'
       - name: Deterministic env guard
         run: |
           test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)

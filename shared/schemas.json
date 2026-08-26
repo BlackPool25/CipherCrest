@@ -38,6 +38,18 @@
           "default": null,
           "title": "Anomaly Score"
         },
+        "anomaly_honest_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anomaly Honest Score"
+        },
         "posture_score": {
           "anyOf": [
             {
