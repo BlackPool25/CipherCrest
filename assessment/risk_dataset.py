@@ -42,6 +42,9 @@ PARAM_GRID = [
     dict(max_depth=4, reg_lambda=5.0),
 ]
 
+from functools import lru_cache as _lru
+
+@_lru(maxsize=1)
 def _load_dataset():
     splits = json.loads(SPLITS.read_text())
     all_envs = splits["all_environment_ids"]
