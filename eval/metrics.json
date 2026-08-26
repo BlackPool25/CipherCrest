@@ -24,7 +24,7 @@
       "cipher_strength",
       "miss_indicator_ja4_rarity"
     ],
-    "fit_time": 11.467666864395142,
+    "fit_time": 9.884111881256104,
     "size_mb": 0.12092876434326172,
     "brier_ci": [
       0.010042469378005748,
@@ -117,7 +117,7 @@
   "permutation_p": 0.002997002997002997,
   "bootstrap_n": 2000,
   "ap": 1.0,
-  "fit_time": 11.467666864395142,
+  "fit_time": 9.884111881256104,
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,
