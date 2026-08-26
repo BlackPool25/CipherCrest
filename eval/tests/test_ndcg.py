@@ -143,3 +143,79 @@ def test_blind_likert_md_pinned_and_protocol():
     assert "human" in low, "must clarify human grades independent from weak supervision"
     # P1/P4/P6 disclosure
     assert "P1" in text or "P4" in text or "rater" in low, "must mention 3 raters P1 TLS/P4 ML/P6 Docs"
+
+
+# ── T8 NDCG@5/@10 model vs rule-only + ablation diagnostic ──
+
+def test_ndcg_treatment():
+    """T8: NDCG@10 model vs rule Δ CI tie — gains 2^rel-1, sklearn ndcg_score, family bootstrap 2000, kappa>0.45."""
+    import json
+
+    p = pathlib.Path("eval/metrics.json")
+    assert p.exists(), "eval/metrics.json missing — run eval/ndcg_eval.py"
+    m = json.loads(p.read_text())
+    # ndcg segment must exist (namespace ndcg)
+    assert "ndcg" in m, "metrics.json missing ndcg segment — merge failed"
+    ndcg = m["ndcg"]
+    # also flat aliases for back-compat
+    for k in ["ndcg_model_at10", "ndcg_rule_at10"]:
+        assert k in m or k in ndcg, f"flat alias {k} missing"
+    # 0..1 gates
+    for k in ["ndcg_model_at5", "ndcg_model_at10", "ndcg_rule_at5", "ndcg_rule_at10"]:
+        assert k in ndcg, f"ndcg.{k} missing"
+        v = ndcg[k]
+        assert 0 <= v <= 1, f"{k} {v} not in 0..1"
+    # delta disclosed
+    assert "delta_ndcg_at10" in ndcg, "delta_ndcg_at10 missing"
+    delta = ndcg["delta_ndcg_at10"]
+    assert isinstance(delta, (int, float)), "delta not numeric"
+    # CI lo/hi disclosed 2000-boot
+    assert "ndcg_ci_lo" in ndcg and "ndcg_ci_hi" in ndcg, "CI missing"
+    assert ndcg["ndcg_ci_lo"] <= ndcg["ndcg_ci_hi"], "CI lo > hi"
+    # kappa thresholds >0.45 hard (0.6 stretch already in test_kappa)
+    assert "kappa_cohen" in ndcg, "kappa_cohen missing in ndcg"
+    assert "kappa_fleiss" in ndcg, "kappa_fleiss missing"
+    assert ndcg["kappa_cohen"] > 0.45, f"kappa_cohen {ndcg['kappa_cohen']:.3f} must be >0.45"
+    assert ndcg["kappa_fleiss"] > 0.45, f"kappa_fleiss {ndcg['kappa_fleiss']:.3f} >0.45"
+    # stretch >0.6
+    assert ndcg["kappa_cohen"] > 0.6, f"kappa_cohen {ndcg['kappa_cohen']:.3f} <0.6 substantial"
+    assert ndcg["kappa_fleiss"] > 0.6, f"kappa_fleiss {ndcg['kappa_fleiss']:.3f} <0.6 substantial"
+    # decision tie vs model_better — must handle CI overlap else declare tie per Zenodo (no false 5% claim)
+    assert "decision" in ndcg, "decision missing (tie vs model_better)"
+    assert ndcg["decision"] in ("tie", "model_better", "rule_better"), f"invalid decision {ndcg['decision']}"
+    # if tie, don't claim 5% improvement
+    if ndcg["decision"] == "tie":
+        # CI must overlap 0
+        assert ndcg["ndcg_ci_lo"] <= 0 <= ndcg["ndcg_ci_hi"], "tie declared but CI does not overlap 0"
+    # ndcg_eval.py must use sklearn ndcg_score with gains 2^rel-1 and family bootstrap 2000
+    ndpath = pathlib.Path("eval/ndcg_eval.py")
+    assert ndpath.exists(), "eval/ndcg_eval.py missing"
+    txt = ndpath.read_text()
+    assert "ndcg_score" in txt, "ndcg_eval.py must use sklearn ndcg_score"
+    assert "2**" in txt or "2 **" in txt or "2^rel" in txt, "must implement gains 2^rel-1"
+    assert "2000" in txt, "must have 2000 bootstrap"
+    assert "family" in txt.lower() or "jitter_env" in txt, "must do family-level bootstrap"
+    # k=5 and k=10 both reported
+    assert "k=5" in txt and "k=10" in txt, "must report both k=5 and k=10"
+
+
+def test_ndcg_ablation_diagnostic():
+    """UDCG ablation via MechaRule CHA grouped: rule-only → +XGB → -categorical → -calibration."""
+    import json
+
+    m = json.loads(pathlib.Path("eval/metrics.json").read_text())
+    ndcg = m.get("ndcg", {})
+    assert "ablation" in ndcg, "ndcg ablation missing — must include MechaRule CHA grouped ablations"
+    abl = ndcg["ablation"]
+    # must disclose at least rule_only and plus_xgb
+    assert "rule_only_ndcg_at10" in abl or "ndcg_rule_at10" in abl, "ablation rule-only missing"
+    assert "plus_xgb_ndcg_at10" in abl or "ndcg_model_at10" in abl, "ablation +XGB missing"
+    # -categorical and -calibration ablation diagnostic (name variants allowed)
+    has_cat = any("categorical" in k for k in abl.keys()) or "minus_categorical_ndcg_at10" in abl
+    has_cal = any("calibration" in k for k in abl.keys()) or "minus_calibration_ndcg_at10" in abl
+    assert has_cat, f"ablation -categorical missing {list(abl.keys())}"
+    assert has_cal, f"ablation -calibration missing {list(abl.keys())}"
+    # ndcg_eval must mention ablation logic
+    txt = pathlib.Path("eval/ndcg_eval.py").read_text()
+    assert "ablation" in txt.lower(), "ndcg_eval.py must implement ablation diagnostic"
+    assert "categorical" in txt.lower() and "calibration" in txt.lower(), "must cover -categorical and -calibration"

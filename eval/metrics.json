@@ -24,8 +24,8 @@
       "cipher_strength",
       "kex"
     ],
-    "fit_time": 5.870273113250732,
-    "size_mb": 0.12093257904052734,
+    "fit_time": 8.803159236907959,
+    "size_mb": 0.12093544006347656,
     "brier_ci": [
       0.010042469378005748,
       0.04742452530474927
@@ -37,7 +37,7 @@
       "max_depth": 3,
       "reg_lambda": 1.0
     },
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
   },
   "ablation": {
     "delta_auc": 0.5184331797235023,
@@ -56,10 +56,9 @@
     "n_risk": 45,
     "n_families": 10,
     "n_eff": 10,
-    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a. n_eff\u224810-12 synthetic independent despite 45 groups (7 families\u00d7~5 envs +3 singletons) jitter 35 NDCG 20\u00d73 \u03ba>0.6",
-    "n_prior": 20
+    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "ece_5bin": 0.14134917624587098,
   "ece_lo": 0.08466894353359357,
   "ece_hi": 0.18363391906007726,
@@ -74,32 +73,43 @@
   "permutation_p": 0.002997002997002997,
   "bootstrap_n": 2000,
   "ap": 1.0,
-  "fit_time": 5.870273113250732,
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
-  "anomaly": {
-    "ecod_inverted_auc": 0.87,
-    "ecod_auc": 0.87,
-    "ecod_honest_auc": 0.47,
-    "ecod_lab_only_auc": 0.23,
-    "ja4_rarity_auc": 0.926,
-    "if_auc": 0.78,
-    "contamination_invariance_pass": true,
-    "threshold_05": 22.02,
-    "threshold_10": 16.5,
-    "threshold_30": 10.96,
-    "n_train": 27
-  },
+  "fit_time": 8.803159236907959,
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "ndcg": {
-    "ndcg_model_at10": 0.82,
-    "ndcg_rule_at10": 0.61,
-    "delta_ndcg_at10": 0.21,
-    "kappa_cohen": 0.68,
-    "kappa_fleiss": 0.65,
-    "NDCG": 0.82
+    "ndcg_model_at5": 1.0,
+    "ndcg_model_at10": 0.9950282947039433,
+    "ndcg_rule_at5": 1.0,
+    "ndcg_rule_at10": 1.0,
+    "delta_ndcg_at10": -0.004971705296056728,
+    "ndcg_ci_lo": -0.04511650231976727,
+    "ndcg_ci_hi": 0.1827160065461816,
+    "kappa_cohen": 0.8058252427184466,
+    "kappa_fleiss": 0.7815003641660596,
+    "decision": "tie",
+    "tie_declared": true,
+    "ablation": {
+      "rule_only_ndcg_at10": 1.0,
+      "plus_xgb_ndcg_at10": 0.9950282947039433,
+      "minus_categorical_ndcg_at10": 0.8578898834339904,
+      "delta_categorical": 0.13713841126995285,
+      "minus_calibration_ndcg_at10": 0.8578898834339904,
+      "delta_calibration": 0.13713841126995285
+    },
+    "gains": "2^rel-1",
+    "bootstrap_n": 2000,
+    "k": [
+      5,
+      10
+    ],
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
   },
-  "jitter": 35,
-  "NDCG": 0.82,
-  "n_risk45": 45,
-  "n_prior20": 20,
-  "n_eff": 10
+  "ndcg_model_at5": 1.0,
+  "ndcg_model_at10": 0.9950282947039433,
+  "ndcg_rule_at5": 1.0,
+  "ndcg_rule_at10": 1.0,
+  "delta_ndcg_at10": -0.004971705296056728,
+  "kappa_cohen": 0.8058252427184466,
+  "kappa_fleiss": 0.7815003641660596,
+  "ndcg_ci_lo": -0.04511650231976727,
+  "ndcg_ci_hi": 0.1827160065461816
 }
