@@ -1,6 +1,8 @@
 xgboost==1.7.6
 pyod==2.0.5
 scikit-learn==1.5.0
+pandas==2.2.3
+scapy==2.7.0
 cryptography==43.*
 fastapi==0.115.*
 python-multipart

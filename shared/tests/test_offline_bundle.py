@@ -1,13 +1,13 @@
 """Offline bundle Day3-4 hardened + T10 lean re-verification — schemas + wheelhouse + vite.
 
 Gates:
-- requirements.txt exact pins xgboost==1.7.6 pyod==2.0.5 scikit-learn==1.5.0 cryptography==43.* fastapi==0.115.* pydantic==2.11.* python-multipart + # stretch torch commented
+- requirements.txt exact pins xgboost==1.7.6 pyod==2.0.5 scikit-learn==1.5.0 pandas==2.2.3 scapy==2.7.0 cryptography==43.* fastapi==0.115.* pydantic==2.11.* python-multipart + # stretch torch commented
 - shared/schemas.json exists + jq empty valid + drift ready
-- wheelhouse <350M lean no torch via pip download --only-binary=:all: --prefer-binary (345M 32 wheels inc python-multipart)
+- wheelhouse <370M lean no torch via pip download --only-binary=:all: --prefer-binary (361M 36 wheels inc python-multipart + pandas/scapy)
 - docker save | gzip <4GB
 - vite build presence dashboard/dist/index.html + gzip bundle <3670016 (3.5MB) re-built 157k
 - no weberblog early Day1 guard preserved
-- CI .github/workflows/ci.yml du hard-fail <350 + --only-binary=:all:
+- CI .github/workflows/ci.yml du hard-fail <370 + --only-binary=:all:
 """
 from __future__ import annotations
 
@@ -60,11 +60,13 @@ def test_requirements_exact_pins_lean():
     assert p.exists(), "requirements.txt missing"
     text = p.read_text(encoding="utf-8")
     lines = [l.strip() for l in text.strip().splitlines() if l.strip()]
-    # must be exactly 8 lines
-    assert len(lines) == 8, f"requirements.txt expected 8 lines got {len(lines)}: {lines}"
+    # must be exactly 10 lines (added pandas + scapy for CI 32955522477)
+    assert len(lines) == 10, f"requirements.txt expected 10 lines got {len(lines)}: {lines}"
     assert "xgboost==1.7.6" in text, "missing xgboost==1.7.6"
     assert "pyod==2.0.5" in text, "missing pyod==2.0.5"
     assert "scikit-learn==1.5.0" in text, "missing scikit-learn==1.5.0"
+    assert "pandas==2.2.3" in text, "missing pandas==2.2.3"
+    assert "scapy==2.7.0" in text, "missing scapy==2.7.0"
     assert "cryptography==43.*" in text, "missing cryptography==43.*"
     assert "fastapi==0.115.*" in text, "missing fastapi==0.115.*"
     assert "pydantic==2.11.*" in text, "missing pydantic==2.11.*"
@@ -77,11 +79,13 @@ def test_requirements_exact_pins_lean():
     assert lines[0] == "xgboost==1.7.6"
     assert lines[1] == "pyod==2.0.5"
     assert lines[2] == "scikit-learn==1.5.0"
-    assert lines[3] == "cryptography==43.*"
-    assert lines[4] == "fastapi==0.115.*"
-    assert lines[5] == "python-multipart"
-    assert lines[6] == "pydantic==2.11.*"
-    assert lines[7].startswith("# stretch: torch")
+    assert lines[3] == "pandas==2.2.3"
+    assert lines[4] == "scapy==2.7.0"
+    assert lines[5] == "cryptography==43.*"
+    assert lines[6] == "fastapi==0.115.*"
+    assert lines[7] == "python-multipart"
+    assert lines[8] == "pydantic==2.11.*"
+    assert lines[9].startswith("# stretch: torch")
 
 
 def test_vite_build_presence_and_bundle_size():
@@ -129,7 +133,7 @@ def test_dashboard_dist_exists_and_vite_gz_hardfail():
 
 
 def test_wheelhouse_size():
-    """pip download --only-binary=:all: -d wheelhouse/ <800MB lean <350MB without torch."""
+    """pip download --only-binary=:all: -d wheelhouse/ <800MB lean <370MB without torch."""
     wh = pathlib.Path("wheelhouse")
     assert wh.exists(), "wheelhouse missing — run pip download --only-binary=:all: --prefer-binary -r requirements.txt -d wheelhouse/"
     # du -m wheelhouse <800
@@ -139,10 +143,10 @@ def test_wheelhouse_size():
             # du output: "size\tpath"
             size_m = int(r.stdout.strip().split()[0])
             assert size_m < 800, f"wheelhouse {size_m}MB >=800MB — exceeds offline bundle limit"
-            # lean without torch <350MB — Day5-6 hard-fail (T6 345M)
+            # lean without torch <370MB — Day5-6 hard-fail (T6 345M -> 361M with pandas+scapy)
             has_torch = any("torch" in p.name.lower() for p in wh.glob("*.whl"))
             assert not has_torch, "lean wheelhouse must not contain torch — # stretch: torch==2.4.0 stays commented"
-            assert size_m < 350, f"lean wheelhouse {size_m}MB >=350MB without torch — bloat (expected 345M)"
+            assert size_m < 370, f"lean wheelhouse {size_m}MB >=370MB without torch — bloat (expected 361M)"
             # lean must contain ECOD+XGB only, no torch
             assert any("xgboost" in p.name.lower() for p in wh.glob("*.whl")), "xgboost wheel missing lean"
             assert any("pyod" in p.name.lower() for p in wh.glob("*.whl")), "pyod ECOD wheel missing lean"
@@ -154,8 +158,8 @@ def test_wheelhouse_size():
     # also ensure wheelhouse contains only binary wheels (no tar.gz unless unavoidable)
     wheels = list(wh.glob("*.whl"))
     assert len(wheels) >= 1
-    # wheels should be 31-32 (32 with python-multipart)
-    assert 31 <= len(wheels) <= 33, f"wheel count {len(wheels)} expected 31-33 lean"
+    # wheels should be 35-37 (36 with pandas+scapy+pytz+tzdata)
+    assert 35 <= len(wheels) <= 37, f"wheel count {len(wheels)} expected 35-37 lean"
     # no sdist tar.gz for xgboost (would be >1GB)
     tgz = list(wh.glob("*.tar.gz"))
     assert not any("xgboost" in p.name.lower() for p in tgz), "xgboost sdist forbidden — must use --only-binary=:all:"
@@ -165,18 +169,18 @@ def test_wheelhouse_size():
     assert "--find-links" in ci and "wheelhouse" in ci, "ci.yml missing --find-links wheelhouse"
     assert "--only-binary" in ci, "ci.yml missing --only-binary=:all:"
     # du hard-fail must be present in CI (not skipped)
-    assert "du -m wheelhouse" in ci and "-lt 350" in ci, "ci.yml missing du hard-fail <350"
+    assert "du -m wheelhouse" in ci and "-lt 370" in ci, "ci.yml missing du hard-fail <370"
     assert "torch" in ci.lower(), "ci.yml missing torch guard"
 
 
 def test_wheelhouse_lean_lt350_no_torch_hardfail():
-    """T10 hard-fail: du -m wheelhouse <350 + ! torch whl (mirrors CI)."""
+    """T10 hard-fail: du -m wheelhouse <370 + ! torch whl (mirrors CI)."""
     wh = pathlib.Path("wheelhouse")
     assert wh.exists(), "wheelhouse missing — T10 lean re-verification requires wheelhouse"
     r = subprocess.run(["du", "-m", str(wh)], capture_output=True, text=True, timeout=10)
     assert r.returncode == 0, f"du failed {r.stderr}"
     size_m = int(r.stdout.strip().split()[0])
-    assert size_m < 350, f"wheelhouse {size_m}MB >=350 — lean bloat (expected 345M)"
+    assert size_m < 370, f"wheelhouse {size_m}MB >=370 — lean bloat (expected 361M)"
     has_torch = any("torch" in p.name.lower() for p in wh.glob("*.whl"))
     assert not has_torch, f"lean wheelhouse must not contain torch wheel — found {[p.name for p in wh.glob('*.whl') if 'torch' in p.name.lower()]}"
     # also verify ! ls wheelhouse/*.whl | grep -qi torch
@@ -185,7 +189,7 @@ def test_wheelhouse_lean_lt350_no_torch_hardfail():
 
 
 def test_pip_dry_run_would_install_31():
-    """T10: pip install --no-index --find-links wheelhouse --only-binary=:all: --dry-run shows Would install ~31 wheels."""
+    """T10: pip install --no-index --find-links wheelhouse --only-binary=:all: --dry-run shows Would install ~36 wheels."""
     # Use --ignore-installed to force Would install line even when deps already satisfied
     result = subprocess.run(
         ["bash", "-c", "pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt --dry-run --ignore-installed 2>&1 | grep -i 'Would install'"],
@@ -197,7 +201,7 @@ def test_pip_dry_run_would_install_31():
     # count tokens after Would install
     would_part = line.split("Would install", 1)[1]
     wheels = [w for w in would_part.strip().split() if w]
-    assert 30 <= len(wheels) <= 33, f"Would install count {len(wheels)} expected ~31-32, got {wheels}"
+    assert 34 <= len(wheels) <= 38, f"Would install count {len(wheels)} expected ~36, got {wheels}"
     # must include key deps
     low = line.lower()
     assert "xgboost" in low, "Would install missing xgboost"

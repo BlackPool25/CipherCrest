@@ -29,7 +29,7 @@
 | 2 | **GitHub Releases assets** | File attached to a git tag (`gh release upload v0.7.0 models/*.pkl`); *not* in git clone; fetched by `scripts/download_models.sh` via `curl -L https://github.com/<org>/<repo>/releases/download/<tag>/<file>` | 2 GB per asset, unlimited per release, **free**, no clone overhead, versioned by tag | Free, no quota, no LFS install, historic versions stay as releases, fast download, works offline after first fetch | Not in `git clone` (fresh clone must run download script); tag lifecycle must be maintained; no `git blame` on model | **Recommended for future 50–180 M torch/MicroAE** (keeps repo clone <50 M, model fetched on demand). `scripts/download_models.sh` placeholder ready. |
 | 3 | **DVC + S3 / MinIO** | `dvc.yaml` tracks remote `s3://...` or `minio` with content-hash `.dvc` files in git | Unlimited, infra cost (S3/MinIO), self-hosted possible | Best for large datasets + pipelines, air-gap MinIO, `dvc pull` selective, DAG of data | Infra to run (S3/MinIO), team must run `dvc pull`, heavier toolchain | Datasets at scale (100 GB) — overkill for current 45-env / 276 K. Use if lab grows to GB PCAP corpora with MinIO air-gap. |
 | 4 | **Hugging Face Hub** | Model repo (`huggingface.co/<org>/<model>`) via `hf_hub_download` | Large files via LFS under the hood, generous quota, versioned | Good for public ML models, `transformers` integration | External dependency, not private by default, needs HF token | Sharing `MicroAE` with community — not air-gap default. |
-| — | **Wheelhouse (special)** | **Never in git nor LFS.** Local `wheelhouse/` 345 M on USB 32 GB air-gap, `.gitignore`, `pip install --no-index --find-links wheelhouse --only-binary=:all:`; CI rebuilds via `pip download -d wheelhouse -r requirements.txt` if missing | Local disk only, no git cost | Survives air-gap, no internet needed, no 100 MB breach, `! torch` lean verified `du -m wheelhouse <350` | Fresh clone lacks wheelhouse (CI falls back to `pip install -r requirements.txt`) | **Always** for `wheelhouse/` (32 wheels). Already fixed `b9d18b4` + `git ls-files | grep wheelhouse` → 0. |
+| — | **Wheelhouse (special)** | **Never in git nor LFS.** Local `wheelhouse/` 361 M on USB 32 GB air-gap, `.gitignore`, `pip install --no-index --find-links wheelhouse --only-binary=:all:`; CI rebuilds via `pip download -d wheelhouse -r requirements.txt` if missing | Local disk only, no git cost | Survives air-gap, no internet needed, no 100 MB breach, `! torch` lean verified `du -m wheelhouse <370` | Fresh clone lacks wheelhouse (CI falls back to `pip install -r requirements.txt`) | **Always** for `wheelhouse/` (36 wheels inc pandas/scapy). Already fixed `b9d18b4` + `git ls-files | grep wheelhouse` → 0. |
 
 > Citations: GitHub large files hard 100 MB / warn 50 MB and LFS 1 GB quota per [About large files](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github) and [About Git LFS/billing](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage); LFS 5 MB recommended threshold via [git-lfs.github.com](https://git-lfs.github.com/) docs; Releases 2 GB per asset per [About releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
 
@@ -42,7 +42,7 @@
 | models | `models/risk_clf.pkl` 124 K + `anomaly.pkl` 76 K + `anomaly_honest.pkl` 76 K = **276 K** | YES `git ls-files` 3 files | NO | **KEEP IN GIT** — below 5 M threshold, no LFS overhead, fast clone, 276 K < 1 M | If MicroAE `models/microae_27-8-1.pt` ~50 M or torch 180 M: **Releases** (recommended free) OR LFS (if budget). Uncomment `.gitattributes` lines + run `scripts/download_models.sh`. |
 | pcaps | `lab/pcaps/*.pcap` 1 KB ×45 = ~45 K, `lab/reassembled/*.bin` 120 B ×35 = 4 K | YES | NO | **KEEP IN GIT** — tiny, reproducible offline | If jitter expands to GB, consider DVC+MinIO air-gap |
 | eval | `eval/*.png` 42 K + 17 K + `bundle-stats.html` 502 K | YES (png), NO (dist) | NO | **KEEP IN GIT** (png) — <1 M | If eval grows to large corpora, Releases |
-| wheelhouse | `wheelhouse/*.whl` 32 wheels = **345 M** (xgboost 191 M, llvmlite 57 M, scipy 34 M) | **NO — untracked `b9d18b4` HEAD 0** | **NO — NEVER LFS** | **LOCAL USB air-gap only** — `.gitignore:4 wheelhouse/`, `pip install --no-index --find-links wheelhouse` air-gap, CI fallbacks to `pip install -r requirements.txt` if missing | Same — never add |
+| wheelhouse | `wheelhouse/*.whl` 36 wheels = **361 M** (xgboost 191 M, llvmlite 57 M, scipy 34 M, pandas 12 M, scapy 2 M) | **NO — untracked `b9d18b4` HEAD 0** | **NO — NEVER LFS** | **LOCAL USB air-gap only** — `.gitignore:4 wheelhouse/`, `pip install --no-index --find-links wheelhouse` air-gap, CI fallbacks to `pip install -r requirements.txt` if missing | Same — never add |
 | dashboard dist | `dashboard/dist/` 1.1 M | **NO — untracked `b9d18b4` HEAD 0** | NO | **BUILD ARTIFACT** — `npm run build` in CI, `npm --prefix dashboard run build` not in git | Same |
 | .git | `du -sh .git` 345 M pack (history retains `1647199` blob until `filter-repo`), `git count-objects -vH` loose 0 pack 344 M | — | — | Forward fix done (HEAD clean); true shrink to <50 M requires `git filter-repo --path wheelhouse --invert-paths --path dashboard/dist --invert-paths` + `git gc --prune=now --aggressive` **with user approval** — not executed | Execute with approval when history rewrite window allows |
 
@@ -84,7 +84,7 @@
    git ls-files | xargs -I{} du -b "{}" 2>/dev/null | awk '$1>100000' | sort -nr | head -20
    git ls-files | grep -E "^wheelhouse/|^dashboard/dist" || echo "HEAD clean: wheelhouse+dist untracked"
    git check-ignore -v wheelhouse/new.whl dashboard/dist/new.js
-   du -m wheelhouse | tail -1  # 345 <350 local
+   du -m wheelhouse | tail -1  # 361 <370 local
    du -sh .git && git count-objects -vH
    grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS blobs yet (<1M)"
    ```
@@ -97,7 +97,7 @@
 
 | Flag | Effect |
 |------|--------|
-| `bash scripts/turnup.sh` | Full up: checks Python 3.11, Node, wheelhouse `<350M` + `! torch`, models, tshark optional, builds frontend if needed, starts `uvicorn api.app:app --port 8000 &`, `npm --prefix dashboard run dev` (or `npx vite --port 5173`), waits, curls `POST /analyze` zip + `GET /flows`, logs to `logs/turnup_*.log` |
+| `bash scripts/turnup.sh` | Full up: checks Python 3.11, Node, wheelhouse `<370M` + `! torch`, models, tshark optional, builds frontend if needed, starts `uvicorn api.app:app --port 8000 &`, `npm --prefix dashboard run dev` (or `npx vite --port 5173`), waits, curls `POST /analyze` zip + `GET /flows`, logs to `logs/turnup_*.log` |
 | `bash scripts/turnup.sh --check` | **Dry-run** — same checks, no servers started, exit 0 if all pass |
 | `bash scripts/turnup.sh --down` | Stops API/dashboard started by turnup |
 | `bash scripts/turnup.sh --port 8000 --frontend-port 5173` | Custom ports |
@@ -105,7 +105,7 @@
 **What it checks (in order):**
 
 1. `python3 --version` (prefers 3.11, allows 3.13 with warning), `node --version` (>=18), `tshark` optional — if missing uses scapy/offline reassembler fallback (graceful, logs `tshark not found — using offline reassembler parity 4 prefs`).
-2. `wheelhouse/` — `du -m wheelhouse | tail -1` `<350`, `ls wheelhouse | wc -l` 32 wheels, `! ls wheelhouse/*.whl | grep -qi torch` lean; if missing → warning + CI fallback note `pip install -r requirements.txt`.
+2. `wheelhouse/` — `du -m wheelhouse | tail -1` `<370`, `ls wheelhouse | wc -l` 36 wheels, `! ls wheelhouse/*.whl | grep -qi torch` lean; if missing → warning + CI fallback note `pip install -r requirements.txt`.
 3. `models/risk_clf.pkl` 124 K + `anomaly.pkl` 76 K + `anomaly_honest.pkl` 76 K — if missing tries `scripts/download_models.sh` (Releases) then fallback `python -m assessment.risk_model --train` / `anomaly_model` retrain notice.
 4. `dashboard/` — if `node_modules` missing runs `npm --prefix dashboard install`; if `dist` missing runs `npm --prefix dashboard run build` (Vite gzip `<3670016`).
 5. Starts API + dashboard, waits for `http://localhost:8000/flows` and `http://localhost:5173`, then `curl -F pcap=@lab/pcaps/family-01.pcap http://localhost:8000/analyze` + `GET /flows` + `GET /report?format=json` sanity.
@@ -120,7 +120,7 @@ See `scripts/turnup.sh` header for full flow and `scripts/download_models.sh` fo
 
 - `wheelhouse/` is **gitignored** (`.gitignore:4`) and **never LFS** (`.gitattributes` commented `# DO NOT ADD`). Keep local 32 GB USB.
 - Install: `pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt`
-- Rebuild wheelhouse (CI or air-gap bundle refresh): `pip download --only-binary=:all: -d wheelhouse -r requirements.txt` then `du -m wheelhouse | tail -1` verify `<350` and `! grep torch`.
+- Rebuild wheelhouse (CI or air-gap bundle refresh): `pip download --only-binary=:all: -d wheelhouse -r requirements.txt` then `du -m wheelhouse | tail -1` verify `<370` and `! grep torch`.
 - CI `pip install --no-index --find-links wheelhouse` air-gap; if `wheelhouse/` missing (fresh clone) falls back to `pip install -r requirements.txt`.
 - History rewrite to drop pack from 345 M → <50 M: `git filter-repo --path wheelhouse --invert-paths --path dashboard/dist --invert-paths` or BFG + `git gc --prune=now --aggressive` — **requires user approval**, not executed; forward fix `b9d18b4` already stops future bloat (`git ls-files 0`).
 
@@ -129,9 +129,9 @@ See `scripts/turnup.sh` header for full flow and `scripts/download_models.sh` fo
 ## 7. Verification checklist
 
 - [ ] `cat docs/LARGE_FILES.md` — table with 4 options + citations, decision KEEP IN GIT 276 K, wheelhouse never LFS
-- [ ] `bash scripts/turnup.sh --check` — models pass (or download/retrain fallback), wheelhouse `<350` or warning, frontend build check, tshark optional pass
+- [ ] `bash scripts/turnup.sh --check` — models pass (or download/retrain fallback), wheelhouse `<370` or warning, frontend build check, tshark optional pass
 - [ ] `bash scripts/turnup.sh` — API `POST /analyze` zip → 200 + `GET /flows` <50 ms, dashboard on `http://localhost:5173`
 - [ ] `README.md` links to `docs/LARGE_FILES.md` and `scripts/turnup.sh` Quick Turn-Up section
 - [ ] `git ls-files | grep -E "^wheelhouse/|^dashboard/dist" || echo "HEAD clean"` — 0
 - [ ] `grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS blobs yet"` — No LFS (commented future)
-- [ ] `pytest -q` still passes (wheelhouse 345 M <350, models <5 M, Vite gzip <3670016)
+- [ ] `pytest -q` still passes (wheelhouse 361 M <370, models <5 M, Vite gzip <3670016)
