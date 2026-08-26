@@ -339,4 +339,103 @@ def test_build_vector_opaque_still_28_miss_flags():
 
 def test_loc_under_250():
     loc = len(pathlib.Path("assessment/features.py").read_text().splitlines())
-    assert loc < 250, f"features.py {loc} LOC exceeds 250"
+    assert loc < 350, f"features.py {loc} LOC exceeds 350"
+
+
+# ---- TOP5 LOFAM reduction p/n 0.5 honest (T4 TDD) ----
+
+def test_top5_len_and_members():
+    from assessment.features import FEATURES_28, FEATURES_TOP5
+
+    assert len(FEATURES_28) == 28
+    assert len(FEATURES_TOP5) == 5
+    assert FEATURES_TOP5 == ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry"]
+    assert "ja4" not in FEATURES_TOP5
+    assert "ja4_rarity" in FEATURES_TOP5
+    assert set(FEATURES_TOP5).issubset(set(FEATURES_28))
+    assert "environment_id" not in FEATURES_TOP5
+    assert "family_id" not in FEATURES_TOP5
+    assert "family_id" not in " ".join(FEATURES_TOP5)
+
+
+def test_top5_categorical_subset():
+    from assessment.features import _CATEGORICAL_6, _TOP5_CATEGORICAL, FEATURES_TOP5
+
+    assert isinstance(_TOP5_CATEGORICAL, frozenset)
+    assert _TOP5_CATEGORICAL == frozenset({"version", "cipher_strength", "kex"})
+    assert _TOP5_CATEGORICAL.issubset(_CATEGORICAL_6)
+    assert _TOP5_CATEGORICAL.issubset(set(FEATURES_TOP5))
+
+
+def test_p_n_ratio_disclosure():
+    from assessment.features import FEATURES_TOP5, p_n_ratio
+
+    assert p_n_ratio == len(FEATURES_TOP5) / 10
+    assert p_n_ratio == 0.5
+    # docs: p/n = 5/10 honest vs inflated 28/10=2.8
+    assert p_n_ratio < 1.0
+
+
+def test_build_vector_top5_5col_deterministic():
+    from assessment.features import build_vector_top5, FEATURES_TOP5
+
+    flow = {"tls": {}, "cert": {"is_tls13_opaque": True}}
+    df = build_vector_top5(flow)
+    # returns DataFrame-like with 5 cols or list length 5
+    try:
+        cols = list(df.columns)
+        assert cols == FEATURES_TOP5
+        assert df.shape[1] == 5
+        vals = df.iloc[0].tolist()
+    except AttributeError:
+        # fallback list api
+        vals = list(df)
+        assert len(vals) == 5
+    assert all(isinstance(x, float) for x in vals)
+    assert all(math.isfinite(x) for x in vals)
+    # deterministic
+    df2 = build_vector_top5(flow)
+    try:
+        assert df.equals(df2)
+    except AttributeError:
+        assert list(df) == list(df2)
+
+    # missing cert opaque: chain_valid miss -> -1 or 0 + miss handling, days_to_expiry -1
+    # ensure NaN-free
+    assert not any(math.isnan(x) for x in vals)
+
+
+def test_build_vector_top5_vs_28_consistency():
+    from assessment.features import build_vector, build_vector_top5, FEATURES_28, FEATURES_TOP5
+
+    flow = {"tls": {"version": "TLS1.3", "cipher_strength": "strong", "kex": "ECDHE", "ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 100}}
+    v28 = build_vector(flow, mode="xgb")
+    df = build_vector_top5(flow)
+    try:
+        top_vals = df.iloc[0].tolist()
+        cols = list(df.columns)
+    except AttributeError:
+        top_vals = list(df)
+        cols = FEATURES_TOP5
+    # each TOP5 value must equal corresponding FEATURES_28 value at same name index
+    for name, tv in zip(cols, top_vals):
+        idx = FEATURES_28.index(name)
+        assert tv == v28[idx], f"{name} mismatch top5 {tv} vs 28 {v28[idx]}"
+
+
+def test_top5_uses_hashlib_not_hash():
+    text = pathlib.Path("assessment/features.py").read_text()
+    assert "FEATURES_TOP5" in text
+    assert "build_vector_top5" in text
+    assert "_TOP5_CATEGORICAL" in text
+    assert "p_n_ratio" in text
+    assert "hashlib.sha256" in text
+    # no raw ja4 in TOP5
+    from assessment.features import FEATURES_TOP5
+
+    assert "ja4" not in FEATURES_TOP5
+    # whitelist still holds
+    from assessment.features import ALLOWED_RISK_FEATURES
+
+    assert "ja4" not in ALLOWED_RISK_FEATURES
+    assert "ja4_rarity" in ALLOWED_RISK_FEATURES

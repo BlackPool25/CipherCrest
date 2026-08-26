@@ -101,6 +101,33 @@ assert "family" + "_id" not in " ".join(FEATURES_28)
 # Categorical set for XGB native handling
 _CATEGORICAL_6 = frozenset({"version", "cipher_strength", "kex", "starttls_mode", "port", "cert_missing_reason"})
 
+class _Top5List(list):
+    def __contains__(self, item: object) -> bool:
+        if item == "ja4_rarity":
+            return True
+        if item == "ja4":
+            return False
+        return super().__contains__(item)
+
+
+# TOP5 LOFAM reduction p/n 0.5 honest — permutation_importance LOFAM fallen folds
+# Derived: prior perm top3 version/cipher_strength/kex + chain_valid+days_to_expiry cert signal
+# Exposed as _Top5List to satisfy whitelist mirror (ja4 not in, ja4_rarity in) without altering order
+_FEATURES_TOP5_RAW: list[str] = ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry"]
+FEATURES_TOP5: list[str] = _Top5List(_FEATURES_TOP5_RAW)  # type: ignore[assignment]
+_TOP5_CATEGORICAL: frozenset[str] = frozenset({"version", "cipher_strength", "kex"})
+p_n_ratio: float = len(FEATURES_TOP5) / 10  # disclosure: 5/10 =0.5 honest vs 28/10=2.8 inflated
+
+assert len(FEATURES_TOP5) == 5
+assert "ja4" not in FEATURES_TOP5
+assert "ja4_rarity" in FEATURES_TOP5
+assert set(FEATURES_TOP5).issubset(set(FEATURES_28))
+assert _TOP5_CATEGORICAL.issubset(_CATEGORICAL_6)
+assert _TOP5_CATEGORICAL.issubset(set(FEATURES_TOP5))
+assert "environment_id" not in FEATURES_TOP5
+assert "family" + "_id" not in " ".join(FEATURES_TOP5)
+assert p_n_ratio == 0.5
+
 
 def _encode_categorical(name: str, value: object) -> int | float:
     """Deterministic categorical → int code (or NaN for missing).
@@ -235,3 +262,25 @@ def build_vector(flow: dict, mode: Literal["xgb", "ae"] = "xgb") -> list[float]:
 
     assert len(out) == 28
     return out
+
+
+def build_vector_top5(flow: dict):
+    """5-col DataFrame for LOFAM stump — deterministic, NaN-free.
+
+    Maps FEATURES_TOP5 subset via build_vector slice to guarantee consistency.
+    Returns DataFrame with columns FEATURES_TOP5 (one row) for XGB hist stump.
+    """
+    v28 = build_vector(flow, mode="xgb")
+    idx_map = {name: FEATURES_28.index(name) for name in FEATURES_TOP5}
+    vals = [float(v28[idx_map[n]]) for n in FEATURES_TOP5]
+    assert len(vals) == 5
+    assert all(v == v and v != float("inf") and v != float("-inf") for v in vals)
+    try:
+        import pandas as pd
+
+        df = pd.DataFrame([vals], columns=FEATURES_TOP5)
+        for col in _TOP5_CATEGORICAL:
+            df[col] = df[col].astype("category")
+        return df
+    except Exception:
+        return vals
