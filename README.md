@@ -61,7 +61,28 @@ Air-gap offline: no private key access, no body decrypt, no live DNS beyond `moc
 | tshark | 4.2.0 (optional) | Oracle parity 4 prefs — **optional**; offline scapy fallback primary (see `docs/TSHARK.md`, `scripts/turnup.sh --check`) |
 | USB | 32GB | Offline bundle `wheelhouse/` 345M + `dashboard/dist` |
 
-### How to run all parts — Quick Start (5 min)
+### How to run all parts — Quick Start (5 min) — hybrid Docker single port 8000
+
+**Hybrid Docker (recommended for judges, no pip/node needed):**
+
+```bash
+# pull demo image (hybrid core+lab, single port 8000, dashboard at /dashboard via StaticFiles)
+docker pull ghcr.io/ntro/securemailscope:demo
+docker run --rm -p 8000:8000 ghcr.io/ntro/securemailscope:demo
+# → open http://localhost:8000/dashboard  (API + dashboard same port, api/app.py mounts /dashboard StaticFiles)
+# → http://localhost:8000/docs  (FastAPI Swagger) + http://localhost:8000/health + /flows + /analyze
+
+# mail lane (optional live postfix/dovecot/mocksender lab, offline scapy fallback primary)
+docker compose --profile lab up -d  # includes lab/docker-compose.yml 5 services via include profiles ["lab"]
+# lab/offline fallback: lab/pcaps already in repo, reassembler scapy 5-tuple parity 4 prefs works without docker
+
+# verify
+curl -s http://localhost:8000/health | jq
+curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
+curl -F pcap=@lab/pcaps/family-01.pcap http://localhost:8000/analyze | jq '.[0].assessment | {risk_level, calibrated_prob}'
+```
+
+**Local dev (without Docker, air-gap offline):**
 
 ```bash
 git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope
@@ -70,25 +91,25 @@ git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope
 pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt
 npm --prefix dashboard install
 
-# lab (optional live, offline fallback via scapy pcaps already in repo)
-docker compose -f lab/docker-compose.yml up -d
-pytest -q  # smoke — SYSTEM 5/8 green
-
 # jitter expansion (Day8-10 45 envs =10 base +35 jittered, idempotent)
 python -m lab.scripts.jitter_slices --slices 5 --families 02,03,04,05,07,08,10
 ls lab/pcaps/jittered/*.pcap | wc -l  # 35  (total 45 with base 10)
 # Day7 legacy: --slices 3 → 21 jittered (31 total) — see lab/LEDGER.md
 
-# API + dashboard — one script (recommended)
-bash scripts/turnup.sh --check  # dry-run: models 276K <5M, wheelhouse 345M <350, frontend gzip <3670016, tshark optional
-bash scripts/turnup.sh           # full up: API :8000 + dashboard :5173, verifies POST /analyze + GET /flows
-# manual
+# one-script turn-up — dry-run + full hybrid
+bash scripts/turnup.sh --check            # dry-run: models 276K <5M, wheelhouse 345M <350, frontend gzip <3670016, tshark optional parity 4 prefs
+bash scripts/turnup.sh                    # full up: checks + starts API :8000 + dashboard :5173 offline fallback, verifies POST /analyze + GET /flows
+WITH_DOCKER=1 bash scripts/turnup.sh      # full hybrid: checks + docker compose --profile lab up -d --wait for mail lane + API + dashboard
+bash scripts/turnup.sh --down             # stop API + dashboard (and docker lab if WITH_DOCKER=1 via trap)
+# custom ports
+bash scripts/turnup.sh --port 8000 --frontend-port 5173
+# manual fallback
 uvicorn api.app:app --host 0.0.0.0 --port 8000 &
-npm --prefix dashboard run dev  # or serve dashboard/dist
+npm --prefix dashboard run dev  # or python3 -m http.server --directory dashboard/dist (frontend fallback)
 curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
 ```
 
-Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`.
+Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk45 n_prior20 n_eff10 disclosure everywhere. WEAK SUPERVISION verbatim preserved.
 
 ### Quick Turn-Up (One Script)
 

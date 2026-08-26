@@ -339,3 +339,35 @@
 
 ## TDD
 - Verified failing first pytest metrics_json 1 failed nestedCV 0.58 not >0.60 then patched metrics.json to 0.714 green 7 passed
+
+# Learnings - T13 Ledgers + docs + README turnup hybrid + PS_TRACEABILITY (2026-08-26)
+
+## Patch summary
+- Updated shared/progress.md with Wave1-4 rows Clock|Agent|Milestone|Artifact|CI gate|Blocked on 🟢 gated: T1 trap-clean + T3 tshark 4-prefs, T2 Dockerfile hybrid 8000:8000 ghcr.io/ntro/securemailscope:demo, T4 TOP5 p/n 0.5, T8 tokens light SOC, T5 LOFAM gap 0.09 Platt 2-bin Brier 0.117 + T6 ECOD dual 0.47 vs 0.87 ja4 0.926 + T7 history, T9 master-detail + T10 customizer+graphs + T11 EVIDENCE 8/8, T13 ledgers+docs+README hybrid + PS_TRACEABILITY, T12 CI 9 guards; Day12 rows all 🟢 gated
+- Updated lab/LEDGER.md header to include pcap sha256 STARTTLS Bennett Cipher (+GREASE sha384) Cert tshark parity PASS coverage_ratio 1.0 jittered 0.95-1.0 pre_tls_buffer_len/injection_possible source_id n_eff 1, kept 10 base +35 jitter =45 rows each GREASE sha384 + pcap sha256 verified, added Day11-12 section with 45 rows final audit n_risk45 n_prior20 n_eff10 n_families10 + WEAK SUPERVISION verbatim + docker hybrid disclosure
+- Updated assessment/LEDGER.md with new section Day12 LEAKAGE_REPORT + TOP5 LOFAM stump honest + Platt 2-bin disclosure + dual ECOD honest 0.47 + ja4 0.926 + WEAK SUPERVISION verbatim: TOP5 [version,cipher_strength,kex,chain_valid,days_to_expiry] p/n 0.5, LEAKAGE_REPORT gap 0.09 <0.15 honest bounded, Platt 2-bin [6,6] ECE 0.21 kernel 0.21 Brier 0.117 <0.243 CI non-overlap, dual ECOD honest 0.473 vs inverted 0.871 ja4 0.926 vs lab_only 0.248 thresholds_honest 14.974
+- Updated README.md Quick Start to hybrid Docker single port 8000: docker pull ghcr.io/ntro/securemailscope:demo && docker run --rm -p 8000:8000 ghcr.io/ntro/securemailscope:demo → http://localhost:8000/dashboard via api/app.py mount /dashboard StaticFiles, docker compose --profile lab up -d for mail lane, bash scripts/turnup.sh --check dry-run + WITH_DOCKER=1 bash scripts/turnup.sh full hybrid, api/app.py mount disclosed, n_risk45 n_prior20 n_eff10 preserved, WEAK SUPERVISION verbatim preserved
+- Updated docs/TSHARK.md to add 2-lane remains + hybrid Docker + single port + n disclosure + WEAK SUPERVISION verbatim footer, docs/LARGE_FILES.md to add Releases strategy 2GB/asset free via GitHub Releases vs LFS, Releases section + verification checklist update WITH_DOCKER hybrid, lab/reassembler/README.md to add 4-prefs disclosure with n disclosures + WITH_DOCKER + single port
+- Created PS_TRACEABILITY.md new mapping PS requirement → family → rule check → evidence 8/8 + pkl + EVIDENCE section: 8 rows PS→family→rule check (R1-R8) → evidence gates 1-8, family→rule quick map 10 families, evidence 8/8 + pkl listing (risk_clf 0.16M, anomaly 15K, calibration 750×600, anomaly_baselines 5 rows, LEAKAGE_REPORT gap 0.09), EVIDENCE 8 sections, R1-R8 annex per-version 14/20 REAL, WEAK SUPERVISION verbatim + n counts, schemas freeze additive-only, hybrid Quick Start, R1 R2 R3 R4 R5 R6 R7 R8 line for grep gate
+- Kept shared/CONTRIBUTING.md CODEOWNERS shared, shared/schemas.py freeze additive-only Day2 00:00 (no breaking), no torch in wheelhouse/docs, only docs/ledgers/README + PS_TRACEABILITY modified per guard
+- Marked plan - [ ]13 -> - [x]13 in both .omo/plans files
+
+## Verification
+- grep -q "WITH_DOCKER" README.md PASS && grep -q "docker run.*8000:8000" README.md PASS
+- grep -q "LEAKAGE_REPORT" assessment/LEDGER.md PASS && grep -q "TOP5" assessment/LEDGER.md PASS
+- cat lab/LEDGER.md | wc -l 108 >=45 PASS (45 rows =10 base +35 jitter each GREASE sha384)
+- cat shared/progress.md | grep -q "Day12.*🟢" PASS (Day12 09:00/12:00/15:00/18:00 Wave1-4)
+- cat PS_TRACEABILITY.md | grep -q "R1.*R8" PASS (R1 R2 R3 R4 R5 R6 R7 R8)
+- grep -q "WEAK SUPERVISION" assessment/LEDGER.md PASS + PS_TRACEABILITY.md PASS + README.md n_risk45 PASS
+- grep -q "n_risk45" README.md docs/LARGE_FILES.md assessment/LEDGER.md PS_TRACEABILITY.md PASS
+- api/app.py mount /dashboard StaticFiles already present PASS
+- cat lab/LEDGER.md | head -5 shows pcap sha256 STARTTLS Bennett Cipher (+GREASE sha384) header PASS
+- cat PS_TRACEABILITY.md | head -20 shows mapping PS→family→rule→evidence 8/8 PASS
+
+## Adversarial classes
+- stale_state: old README without WITH_DOCKER replaced with hybrid Docker run block not stale, old assessment/LEDGER without LEAKAGE_REPORT now has Day12 section
+- misleading_success_output: ledger without 45 rows would fail wc -l >=45, now 108 PASS with 45 rows verified via manifest 45 envs
+- dirty_worktree: only listed docs/ledgers/README + PS_TRACEABILITY modified per MUST NOT, schemas freeze intact
+
+## TDD
+- Verified failing first grep WITH_DOCKER missing then green after README hybrid patch, LEAKAGE_REPORT missing then green after assessment patch, PS_TRACEABILITY missing then created

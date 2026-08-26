@@ -59,7 +59,11 @@ tshark -r lab/pcaps/family-01.pcap -T json \
   -o tls.desegment_ssl_application_data:TRUE | head
 ```
 
-Parity tests compare `coverage_ratio` via oracle vs offline (`F1>95%` clean). See `docs/TSHARK.md` and `lab/LEDGER.md` coverage_ratio column.
+Parity tests compare `coverage_ratio` via oracle vs offline (`F1>95%` clean). See `docs/TSHARK.md` 2-lane and `lab/LEDGER.md` coverage_ratio column.
+
+## 4-prefs disclosure
+
+Required 4 prefs `tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE` per `lab/reassembler/reassemble.py` `TSHARK_REQUIRED_PREFS` and `docs/TSHARK.md` §2. Both tcp prefs OFF by default since Wireshark 3.0 per ask.wireshark #10299/#23327. Offline scapy 5-tuple seq buffering is primary, tshark oracle parity only when `which tshark` found. Single port 8000 `api/app.py` mounts `/dashboard` StaticFiles. Hybrid `WITH_DOCKER=1 bash scripts/turnup.sh` for mail lane. n_risk45 n_prior20 n_eff10 disclosure, WEAK SUPERVISION verbatim preserved.
 
 ## Tests
 

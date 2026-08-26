@@ -114,4 +114,10 @@ bash scripts/turnup.sh --check  # shows tshark not found — offline scapy fallb
 
 ---
 
-*References: ask.wireshark #10299/#23327 (3.0 prefs OFF), `lab/reassembler/reassemble.py` `TSHARK_REQUIRED_PREFS`, `lab/LEDGER.md`, `lab/README.md` tshark oracle block, `scripts/turnup.sh`.*
+## 9. Hybrid Docker + single port + n disclosure
+
+Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))` — no 5173 in prod. Hybrid `docker pull ghcr.io/ntro/securemailscope:demo && docker run --rm -p 8000:8000 ghcr.io/ntro/securemailscope:demo` → `http://localhost:8000/dashboard` plus `docker compose --profile lab up -d` for mail lane, `bash scripts/turnup.sh --check` dry-run and `WITH_DOCKER=1 bash scripts/turnup.sh` full hybrid. 2-lane table §1 remains offline primary vs oracle parity. n_risk45 n_prior20 n_eff10 n_families10 disclosed. WEAK SUPERVISION preserved: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+
+*References: ask.wireshark #10299/#23327 (3.0 prefs OFF), `lab/reassembler/reassemble.py` `TSHARK_REQUIRED_PREFS`, `lab/LEDGER.md`, `lab/README.md` tshark oracle block, `scripts/turnup.sh`, `docs/LARGE_FILES.md` Releases, `PS_TRACEABILITY.md` new.*
+
+WEAK SUPERVISION verbatim: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.

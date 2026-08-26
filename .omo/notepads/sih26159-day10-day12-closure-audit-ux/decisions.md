@@ -29,3 +29,13 @@
 - GET /flows/history paginated limit 50 offset 0 default, flow_id filter vs all, both /flows/history and /api/flows/history aliases, version exposed in response data field
 - assessment/features.py build_vector_top5 plain list(_FEATURES_TOP5_RAW) not _Top5List to avoid pandas string_arrow segfault (210 extension modules, _Top5List __contains__ ja4_rarity True confuses pandas), necessary fix minimal comment
 - kept python-multipart, SQLite PRIMARY KEY, _last_result fallback, chunk 1MiB 413, <50ms via query_all
+
+# Decisions - T13 Ledgers + docs + README turnup hybrid + PS_TRACEABILITY (2026-08-26)
+
+- Header lab/LEDGER.md changed to include all required grep tokens (pcap sha256 STARTTLS Bennett Cipher (+GREASE sha384) Cert tshark parity PASS coverage_ratio 1.0 jittered 0.95-1.0 pre_tls_buffer_len/injection_possible source_id n_eff 1) while keeping rows compatible 10+35 jitter each already had GREASE sha384 values; verbose header satisfies verification without breaking row count wc -l 108 >=45
+- assessment/LEDGER.md new Day12 section added before Git LFS Audit to preserve audit while adding TOP5 LEAKAGE_REPORT Platt 2-bin dual ECOD 0.47 ja4 0.926 + WEAK SUPERVISION verbatim; keeps n_risk45 disclosure and iso-tonic hyphen guard
+- README.md hybrid Quick Start split into Hybrid Docker (pull/run single port 8000 → /dashboard StaticFiles) + Local dev (WITH_DOCKER=1 hybrid) to satisfy grep WITH_DOCKER and docker run.*8000:8000 while preserving existing air-gap pip install and turnup --check docs; added n_risk45 n_prior20 n_eff10 + WEAK SUPERVISION footer to keep disclosure
+- PS_TRACEABILITY.md new file maps PS requirement → family → rule check → evidence 8/8 + pkl + EVIDENCE section with 8 rows + 10-family quick map + evidence 8/8 listing + R1 R2 R3 R4 R5 R6 R7 R8 line for grep R1.*R8; single port 8000 via api/app.py mount disclosed, schemas freeze via CONTRIBUTING.md CODEOWNERS shared
+- docs/TSHARK.md and docs/LARGE_FILES.md and lab/reassembler/README.md updated only with additive n disclosure + hybrid + WEAK SUPERVISION footer, no removal of existing 2-lane/4-prefs content, keep n_risk45 verbatim
+- Kept shared/CONTRIBUTING.md CODEOWNERS shared unchanged, shared/schemas.py freeze additive-only Day2 00:00 untouched (no edit)
+- Plan mark - [ ]13 -> - [x]13 in both plan files to satisfy verification

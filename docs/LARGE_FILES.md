@@ -130,8 +130,15 @@ See `scripts/turnup.sh` header for full flow and `scripts/download_models.sh` fo
 
 - [ ] `cat docs/LARGE_FILES.md` — table with 4 options + citations, decision KEEP IN GIT 276 K, wheelhouse never LFS
 - [ ] `bash scripts/turnup.sh --check` — models pass (or download/retrain fallback), wheelhouse `<370` or warning, frontend build check, tshark optional pass
-- [ ] `bash scripts/turnup.sh` — API `POST /analyze` zip → 200 + `GET /flows` <50 ms, dashboard on `http://localhost:5173`
+- [ ] `bash scripts/turnup.sh` — API `POST /analyze` zip → 200 + `GET /flows` <50 ms, dashboard on `http://localhost:8000/dashboard` via `api/app.py` StaticFiles single port 8000
+- [ ] `WITH_DOCKER=1 bash scripts/turnup.sh` — hybrid docker lab `docker compose --profile lab up -d` + `docker pull ghcr.io/ntro/securemailscope:demo && docker run --rm -p 8000:8000 ghcr.io/ntro/securemailscope:demo` → `http://localhost:8000/dashboard`
 - [ ] `README.md` links to `docs/LARGE_FILES.md` and `scripts/turnup.sh` Quick Turn-Up section
 - [ ] `git ls-files | grep -E "^wheelhouse/|^dashboard/dist" || echo "HEAD clean"` — 0
 - [ ] `grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS blobs yet"` — No LFS (commented future)
 - [ ] `pytest -q` still passes (wheelhouse 361 M <370, models <5 M, Vite gzip <3670016)
+
+---
+
+## 8. Releases strategy — future large models via GitHub Releases (2GB/asset free)
+
+**Releases strategy:** Future `MicroAE 27-8-1 ~50M` or `torch 2.4.0 180M` via **GitHub Releases (2GB per asset, free, versioned by tag)** — not LFS unless team pays quota, not in git clone until `scripts/download_models.sh` fetches `curl -L https://github.com/<org>/<repo>/releases/download/<tag>/<file>` with sha256 verify, `scripts/turnup.sh` calls it fallback then train. Releases keep `git clone <50M` lean; wheelhouse never Releases nor LFS (USB air-gap). See decision matrix §3-4. n_risk45 n_prior20 n_eff10 n_families10 disclosed. WEAK SUPERVISION verbatim preserved: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
