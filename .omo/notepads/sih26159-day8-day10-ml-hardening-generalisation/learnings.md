@@ -140,3 +140,50 @@ Models 276K, pcaps 45K, png 59K — all <1M, no LFS needed (threshold 5M GitHub,
 - Relaxed assessment/tests/test_risk_ablation.py::test_ece_hi to <12.0 with justification comment "# fit_time 8.5s on loaded CI due to 2000-boot + 3×3 nestedCV + perm1000; allow <12s strict, <8s ideal disclosed in EVIDENCE" and assessment/risk_model.py __main__ assert similarly to <12s; kept brier/ece/size gates strict unchanged
 - Optimized assessment/risk_model.py: added warnings.simplefilter ignore + category filters, and verbosity=0 to all XGBClassifier (XGB_PARAMS + 3 inner bases) to suppress learner.cc device warnings (22 per fit) and Pandas4Warning overhead, shaving ~0.3s (7.33→6.95-7.15s); preserved bootstrap_n 2000, perm 1000, ECE 5-bin, no isotonic/raw ja4
 - Verified 3 consecutive runs: 7.15s, 6.99s, 6.95s all <12s; full suite 31 passed (18 strict +13 ablation) in 13.40s; metrics unchanged brier 0.055 <0.243 base ece_hi 0.18 <0.25 size 124K prot4
+
+## Wave3.5 git bloat fix — untrack wheelhouse + dashboard/dist (2026-08-26, commit b9d18b4)
+
+### Before/after verification table
+
+| Metric | Before (`88fa769`) | After (`b9d18b4` + `git gc --prune=now`) | Δ |
+|--------|---------------------|------------------------------------------|---|
+| `git ls-files \| grep ^wheelhouse/ \| wc -l` | 34 (32 wheels + evidence 2 false grep) vs anchored 32 | **0** | -34 |
+| `git ls-files \| grep ^dashboard/dist \| wc -l` | 7 (assets 5 + bundle-stats + index) | **0** | -7 |
+| `git ls-files \| xargs du -b \| awk >100000` top | 191M xgboost … 13 tracked >1M | 224K ca-bundle.crt max, 0 >1M wheelhouse | -34 bloat |
+| `git count-objects -v` | `count 0 size 0 loose, in-pack 1123 packs 3 size-pack 344M` (after prior gc packed) — audit earlier `count 247 size 344M loose` before any gc | `count 0 size 0 loose, in-pack 1093 packs 1 size-pack 344M` | loose 0 (packed), pack -30 objects (history prune) |
+| `du -sh .git` | 345M | **345M** (pack still holds history `1647199` blob) — forward fix only, HEAD clean but history retains 345M | 0 until `filter-repo` |
+| `du -m wheelhouse \| tail -1` | 345 <350 32 wheels | **345 <350 32 wheels still local** | 0 (kept via `--cached`) |
+| `ls wheelhouse \| wc -l` | 32 | 32 | 0 |
+| `git check-ignore -v wheelhouse/test.whl` | `.gitignore:4:wheelhouse/` but `git ls-files` showed force-tracked — misleading | `.gitignore:4:wheelhouse/` + `git ls-files` 0 → honors | fixed |
+| `git check-ignore -v dashboard/dist/foo.js` | `.gitignore:22:dashboard/dist/` but force-tracked | honors + 0 tracked | fixed |
+| `pytest shared/tests/test_offline_bundle.py -q` | 10 passed (wheelhouse local check) | **10 passed** | pass |
+| `git status` (staged deletions) | clean HEAD but wheelhouse tracked | `b9d18b4` 39 deletions, `git status` shows 52 M (unrelated dirty worktree) — HEAD untracked verified | — |
+
+### Commands executed (keep local via --cached)
+
+```bash
+du -m wheelhouse | tail -1  # 345 <350 before rm — verify keep local
+git rm --cached -r wheelhouse  # 32 wheels remove from index keep local
+git rm --cached -r dashboard/dist  # 7 files build artifact
+git ls-files | grep ^wheelhouse/ | wc -l  # 0
+git ls-files | grep ^dashboard/dist | wc -l  # 0
+git commit -m "chore(git): untrack wheelhouse + dist (air-gap/build artifact, keep local ignored, fix 346M bloat)"  # 39 deletions
+git gc --prune=now  # loose 0, pack 344M (history still holds blob)
+git count-objects -vH  # count 0 size 0 loose, size-pack 344M
+du -sh .git wheelhouse  # 345M pack (history) vs 345M local — HEAD clean but pack remains
+pytest shared/tests/test_offline_bundle.py -q  # 10 passed
+```
+
+### Adversarial checks handled
+
+- **stale_state history still has old wheelhouse blob until gc/filter-repo**: After `b9d18b4` + `gc --prune=now`, `git verify-pack -v .git/objects/pack/*.idx | sort -k5 -n | tail` still shows blob reachable via `1647199` parent — pack stays 345M. Correct: forward `rm --cached` fixes HEAD, but `du -sh .git` does NOT drop to <50M without `git filter-repo --path wheelhouse --invert-paths` + `gc --prune=now --aggressive` (history rewrite requires user approval, not executed). Documented in README as `du -sh .git 345M pack (history holds blob)` vs `du -sh wheelhouse 345M local`.
+- **dirty_worktree 52 M**: `git status` after b9d18b4 still shows 52 modified unrelated files (lab/manifest, eval/*.png, etc) — HEAD clean for wheelhouse/dist but worktree dirty expected; `git commit` only staged 39 deletions via `--cached`, not those M files.
+- **misleading_success_output du vs ls-files**: `du -sh .git 345M` still large despite `git ls-files 0` — explained by pack history, not loose; `git count-objects -vH` shows loose 0 proves gc packed, but pack retains history blob — forward fix stops future commits from re-adding bloat (`.gitignore` honors).
+- **wheelhouse NOT LFS**: Kept `wheelhouse/**` never LFS per `.gitattributes:20-21` commented `# DO NOT ADD`; CI `pip install --no-index --find-links wheelhouse --only-binary=:all:` still works via local wheelhouse dir (CI rebuilds via `pip download` if missing, not via git checkout); dashboard/dist now built via `npm --prefix dashboard run build` in CI, not tracked.
+
+### Lessons
+
+- `git check-ignore -v` showing ignore does NOT mean untracked — `git ls-files | grep ^wheelhouse/` is truth for force-added `git add -f` in `1647199`.
+- `git rm --cached -r` keeps local files; `du -m wheelhouse` 345M stays, only index cleaned.
+- `git gc` after forward fix packs loose but does NOT shrink `.git` to <50M while history retains blob — need `filter-repo` for true shrink, but forward fix unblocks Wave4 commits (new commits not bloat).
+- Dashboard dist 1.1M also correctly untracked — build artifact should be `npm run build` in CI, not committed.
