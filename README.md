@@ -61,19 +61,19 @@ Air-gap offline: no private key access, no body decrypt, no live DNS beyond `moc
 | tshark | 4.2.0 (optional) | Oracle parity 4 prefs — **optional**; offline scapy fallback primary (see `docs/TSHARK.md`, `scripts/turnup.sh --check`) |
 | USB | 32GB | Offline bundle `wheelhouse/` 345M + `dashboard/dist` |
 
-### How to run all parts — Quick Start (5 min) — hybrid Docker single port 8000
+### How to run all parts — Quick Start (5 min) — pure Docker single port 8000
 
-**Hybrid Docker (recommended for judges, no pip/node needed):**
+**Pure Docker (recommended — git clone + compose, no pip/node needed):**
 
 ```bash
-# pull demo image (hybrid core+lab, single port 8000, dashboard at /dashboard via StaticFiles)
-docker pull ghcr.io/ntro/securemailscope:demo
-docker run --rm -p 8000:8000 ghcr.io/ntro/securemailscope:demo
+git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope
+docker compose up -d --build              # demo on single port 8000
 # → open http://localhost:8000/dashboard  (API + dashboard same port, api/app.py mounts /dashboard StaticFiles)
-# → http://localhost:8000/docs  (FastAPI Swagger) + http://localhost:8000/health + /flows + /analyze
+# → http://localhost:8000/health  +  http://localhost:8000/docs  (FastAPI Swagger) + /flows + /analyze
 
-# mail lane (optional live postfix/dovecot/mocksender lab, offline scapy fallback primary)
-docker compose --profile lab up -d  # includes lab/docker-compose.yml 5 services via include profiles ["lab"]
+# with lab (optional live postfix/dovecot/mocksender, offline scapy fallback primary)
+docker compose --profile lab up -d --build  # includes lab/docker-compose.yml 5 services via include profiles ["lab"]
+# or: WITH_LAB=1 bash scripts/turnup.sh
 # lab/offline fallback: lab/pcaps already in repo, reassembler scapy 5-tuple parity 4 prefs works without docker
 
 # verify
@@ -82,47 +82,37 @@ curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
 curl -F pcap=@lab/pcaps/family-01.pcap http://localhost:8000/analyze | jq '.[0].assessment | {risk_level, calibrated_prob}'
 ```
 
-**Local dev (without Docker, air-gap offline):**
+**Two-file lifecycle (turnup + turndown):**
 
 ```bash
-git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope
-
-# offline deps (air-gap, no internet)
-pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt
-npm --prefix dashboard install
+bash scripts/turnup.sh --check            # dry-run: python 3.11, node >=18, tshark 4 prefs, wheelhouse <370M, models prot4 <5M, gzip <3670016, port 8000 ss/fuser preflight, docker compose config
+bash scripts/turnup.sh                    # pure Docker: docker compose up -d --build demo, wait_for health 30 0.5, curl /analyze
+bash scripts/turnup.sh --with-lab         # also lab: docker compose --profile lab up -d --build
+WITH_LAB=1 bash scripts/turnup.sh         # env variant for lab
+bash scripts/turndown.sh                  # clean: docker compose down + ss check + rm .tmp/*.pid + log rotation
+bash scripts/turndown.sh --check          # dry-run idempotent checks
 
 # jitter expansion (Day8-10 45 envs =10 base +35 jittered, idempotent)
 python -m lab.scripts.jitter_slices --slices 5 --families 02,03,04,05,07,08,10
 ls lab/pcaps/jittered/*.pcap | wc -l  # 35  (total 45 with base 10)
 # Day7 legacy: --slices 3 → 21 jittered (31 total) — see lab/LEDGER.md
-
-# one-script turn-up — dry-run + full hybrid
-bash scripts/turnup.sh --check            # dry-run: models 276K <5M, wheelhouse 345M <350, frontend gzip <3670016, tshark optional parity 4 prefs
-bash scripts/turnup.sh                    # full up: checks + starts API :8000 + dashboard :5173 offline fallback, verifies POST /analyze + GET /flows
-WITH_DOCKER=1 bash scripts/turnup.sh      # full hybrid: checks + docker compose --profile lab up -d --wait for mail lane + API + dashboard
-bash scripts/turnup.sh --down             # stop API + dashboard (and docker lab if WITH_DOCKER=1 via trap)
-# custom ports
-bash scripts/turnup.sh --port 8000 --frontend-port 5173
-# manual fallback
-uvicorn api.app:app --host 0.0.0.0 --port 8000 &
-npm --prefix dashboard run dev  # or python3 -m http.server --directory dashboard/dist (frontend fallback)
-curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
 ```
 
 Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk45 n_prior20 n_eff10 disclosure everywhere. WEAK SUPERVISION verbatim preserved.
 
 ### Quick Turn-Up (One Script)
 
-One script turns up **API + validator + assessment + dashboard** and checks model files, wheelhouse, frontend.
+Two scripts for pure Docker lifecycle — `turnup.sh` (up) and `turndown.sh` (down).
 
 ```bash
 bash scripts/turnup.sh --check            # dry-run checks (CI-safe, no servers)
-bash scripts/turnup.sh                    # full up: checks + starts API :8000 + dashboard :5173
-bash scripts/turnup.sh --down             # stop API + dashboard
-bash scripts/turnup.sh --port 8000 --frontend-port 5173  # custom ports
+bash scripts/turnup.sh                    # pure Docker up: docker compose up -d --build demo on :8000
+bash scripts/turnup.sh --with-lab         # also lab profile
+bash scripts/turndown.sh                  # clean down
+bash scripts/turndown.sh --check          # dry-run idempotent
 ```
 
-What it does: checks `python 3.11` + `node >=18` + `tshark` optional (scapy fallback honest), `wheelhouse 345M <350` `! torch`, `models/risk_clf.pkl 124K + anomaly 76K + honest 76K <5M` (via `scripts/download_models.sh` Releases fallback then `python -m assessment.risk_model` train), `dashboard/dist gzip <3670016`, starts `uvicorn` + `vite`, curls `POST /analyze` zip + `GET /flows` + `GET /report?format=json`, logs to `logs/`. See [`scripts/turnup.sh`](scripts/turnup.sh), [`scripts/download_models.sh`](scripts/download_models.sh), [`docs/LARGE_FILES.md`](docs/LARGE_FILES.md) §5.
+What it does: checks `python 3.11` + `node >=18` + `tshark` optional (scapy fallback honest), `wheelhouse 345M <350` `! torch`, `models/risk_clf.pkl 124K + anomaly 76K + honest 76K <5M` (via `scripts/download_models.sh` Releases fallback then `python -m assessment.risk_model` train), `dashboard/dist gzip <3670016`, `docker compose up -d --build demo` (+ `--profile lab` if `--with-lab`), `wait_for health 30 0.5`, `curl /analyze`, `trap INT TERM only` (no auto-down on EXIT), logs to `logs/` with rotation. See [`scripts/turnup.sh`](scripts/turnup.sh), [`scripts/turndown.sh`](scripts/turndown.sh), [`scripts/download_models.sh`](scripts/download_models.sh), [`docs/LARGE_FILES.md`](docs/LARGE_FILES.md) §5.
 
 Fresh clone without USB: `wheelhouse/` missing falls back to `pip install -r requirements.txt`; models 276K already in git so no fetch needed; future `MicroAE ~50M` fetched via Releases per `docs/LARGE_FILES.md`.
 

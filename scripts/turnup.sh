@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# scripts/turnup.sh — One script to turn up modules + frontend, check model files, wheelhouse, builds
+# scripts/turnup.sh — Pure Docker turnup for SecureMailScope
+# Single port 8000 via docker compose up -d --build demo (+ --profile lab optional)
 # Offline-first: tshark optional (scapy parity fallback). Docs: docs/LARGE_FILES.md
-# Usage: bash scripts/turnup.sh [--check|--down|--help] [--port 8000] [--frontend-port 5173]
-#   --check  dry-run, no servers (CI-safe)
-#   --down   stop API/dashboard started by turnup
-#   --help   usage
-# Env: API_PORT, FRONT_PORT, PYTHONHASHSEED=0, OMP_NUM_THREADS=6, WITH_DOCKER=0|1
+# Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab]
+#   --check    dry-run, no servers (CI-safe) — checks python 3.11, node >=18, tshark 4 prefs, du wheelhouse <370, models prot4 <5M, gzip <3670016, check_port_free 8000 via ss/fuser
+#   --with-lab also bring lab profile (WITH_LAB=1)
+#   --help     usage
+# Env: API_PORT=8000, PYTHONHASHSEED=0, OMP_NUM_THREADS=6, WITH_LAB=0|1
+# Pure Docker path: no native uvicorn/vite when Docker available; INT TERM only (no auto-down on exit)
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,20 +15,17 @@ cd "$ROOT"
 
 export PYTHONHASHSEED=0
 export OMP_NUM_THREADS=6
-WITH_DOCKER="${WITH_DOCKER:-0}"
+WITH_LAB="${WITH_LAB:-0}"
 
 API_PORT="${API_PORT:-8000}"
-FRONT_PORT="${FRONT_PORT:-5173}"
 MODE="full"
+WITH_LAB_FLAG=0
 # PID files under $ROOT/.tmp with 700 perms (not world-writable /tmp)
 TMP_DIR="$ROOT/.tmp"
 mkdir -p "$ROOT/.tmp" 2>/dev/null || true
 mkdir -p "$TMP_DIR" 2>/dev/null || true
 chmod 700 "$ROOT/.tmp" 2>/dev/null || true
 chmod 700 "$TMP_DIR" 2>/dev/null || true
-# PID files: $ROOT/.tmp/ciphercrest_api.pid and $ROOT/.tmp/ciphercrest_front.pid (700)
-API_PID_FILE="$ROOT/.tmp/ciphercrest_api.pid"
-FRONT_PID_FILE="$ROOT/.tmp/ciphercrest_front.pid"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 # log rotation logs/turnup_<ts>.log - keep last 10, prune older than 7d
@@ -49,14 +48,16 @@ log(){ echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG_FILE" >/dev/null 2>&1 || tru
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --check) MODE="check"; shift ;;
-    --down) MODE="down"; shift ;;
-    --parity) MODE="parity"; shift ;;
     --help|-h) MODE="help"; shift ;;
     --port) API_PORT="$2"; shift 2 ;;
-    --frontend-port) FRONT_PORT="$2"; shift 2 ;;
+    --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
+    --frontend-port) warn "frontend-port ignored in pure Docker single-port 8000 mode"; shift 2 ;;
+    --down) warn "--down is now scripts/turndown.sh (two-file lifecycle)"; MODE="help"; shift ;;
     *) warn "unknown arg $1"; shift ;;
   esac
 done
+# honor WITH_LAB env vs flag
+if [[ "$WITH_LAB_FLAG" -eq 1 ]]; then WITH_LAB=1; fi
 
 # port collision preflight via ss -ltn (fallback fuser)
 check_port_free(){
@@ -71,67 +72,29 @@ check_port_free(){
   return 0
 }
 
-kill_port(){
-  port="$1"
-  if command -v ss >/dev/null 2>&1; then
-    # ss -ltnp shows pids; fallback to fuser
-    if command -v fuser >/dev/null 2>&1; then fuser -k "${port}/tcp" 2>/dev/null || true; fi
-    # also try ss-derived pids if fuser unavailable
-    ss -ltnp 2>/dev/null | grep -q ":${port} " && true || true
-  elif command -v fuser >/dev/null 2>&1; then
-    fuser -k "${port}/tcp" 2>/dev/null || true
-  elif command -v lsof >/dev/null 2>&1; then
-    lsof -ti :"$port" 2>/dev/null | xargs -r kill 2>/dev/null || true
-  fi
-}
-
-do_down(){
-  echo "=== turnup --down ==="
-  for pf in "$API_PID_FILE" "$FRONT_PID_FILE"; do
-    if [[ -f "$pf" ]]; then pid=$(cat "$pf" 2>/dev/null || echo ""); if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then kill "$pid" 2>/dev/null || true; echo "stopped pid $pid ($pf)"; fi; rm -f "$pf" 2>/dev/null || true
-    fi
-  done
-  # pgrep scoped to PID file + kill (not system-wide kill)
-  if command -v pgrep >/dev/null 2>&1; then
-    for pat in "uvicorn api.app:app" "vite.*$FRONT_PORT" "http.server.*$FRONT_PORT"; do
-      pids=$(pgrep -f "$pat" 2>/dev/null || true)
-      for pid in $pids; do
-        # only kill if pid matches one of our stored pids or if no pid file (safe narrow)
-        # but we already killed pid files; now narrow to user-owned processes
-        if kill -0 "$pid" 2>/dev/null; then
-          # verify cmdline contains pattern before kill
-          if ps -o args= -p "$pid" 2>/dev/null | grep -q "$pat"; then kill "$pid" 2>/dev/null || true; echo "stopped pgrep $pat pid $pid"; fi
-        fi
-      done
-    done
-  fi
-  # port kill via ss fallback fuser
-  kill_port "$API_PORT"
-  kill_port "$FRONT_PORT"
-  # docker lab down if WITH_DOCKER
-  if [[ "$WITH_DOCKER" == "1" ]] && command -v docker >/dev/null 2>&1 && [[ -f "$ROOT/lab/docker-compose.yml" ]]; then
-    docker compose --profile lab down 2>/dev/null || true
-  fi
-  echo "down done"
-}
-
 do_help(){
-  echo "Usage: bash scripts/turnup.sh [--check|--down|--help] [--port 8000] [--frontend-port 5173]"
+  echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab]"
   echo "  --check         dry-run checks only (no servers) — CI-safe"
-  echo "  --down          stop API + dashboard started by turnup"
-  echo "  --parity        live tshark parity (requires tshark, else skip)"
+  echo "  --with-lab      also bring lab profile (WITH_LAB=1)"
   echo "  --port N        API port (default 8000, env API_PORT)"
-  echo "  --frontend-port N  dashboard port (default 5173)"
+  echo "  --help          show this help"
   echo ""
-  echo "Env: WITH_DOCKER=1  docker compose --profile lab up -d --wait (hybrid lab, single port 8000)"
-  echo "     WITH_DOCKER=0  skip docker (default, air-gap offline)"
+  echo "Env: WITH_LAB=0  docker compose up -d --build demo (default, single service demo on 8000)"
+  echo "     WITH_LAB=1  docker compose --profile lab up -d --build (also lab 5 services)"
   echo "     PYTHONHASHSEED=0 OMP_NUM_THREADS=6  deterministic"
+  echo "     API_PORT=8000"
   echo ""
-  echo "Quick: bash scripts/turnup.sh           # full up: checks + starts API + dashboard"
-  echo "       bash scripts/turnup.sh --check   # dry-run checks models/wheelhouse/frontend/tshark(optional)"
-  echo "       bash scripts/turnup.sh --down    # cleanup"
-  echo "       WITH_DOCKER=1 bash scripts/turnup.sh  # hybrid with docker lab profile"
-  echo "See docs/LARGE_FILES.md §5 and README Quick Turn-Up (One Script)."
+  echo "Pure Docker path — no native uvicorn/vite when Docker available"
+  echo "Lifecycle: bash scripts/turnup.sh [--with-lab]  # up"
+  echo "           bash scripts/turndown.sh              # down (ss check + rm pid + log rotation)"
+  echo "Trap: INT TERM only (no auto-down on exit) — use turndown.sh to stop"
+  echo ""
+  echo "Quick: git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope"
+  echo "       docker compose up -d --build              # demo on http://localhost:8000/dashboard"
+  echo "       bash scripts/turnup.sh --check            # dry-run checks models/wheelhouse/frontend/tshark(optional)"
+  echo "       bash scripts/turnup.sh --with-lab         # also lab profile"
+  echo "       bash scripts/turndown.sh                  # clean down"
+  echo "See docs/LARGE_FILES.md §5 and README Quick Start (git clone + compose)."
 }
 
 check_python(){
@@ -164,17 +127,6 @@ check_tshark(){
     echo "  install optional: sudo apt install tshark  # 4.2.0"
     ok "offline reassembler fallback (scapy) will be used — honest by design"
   fi
-}
-
-check_docker(){
-  echo "--- docker (lab profile) ---"
-  if [[ "$WITH_DOCKER" != "1" ]]; then info "WITH_DOCKER=0 — skip docker (air-gap offline)"; return 0; fi
-  if ! command -v docker >/dev/null 2>&1; then warn "docker not found — WITH_DOCKER=1 but docker missing, skip"; return 0; fi
-  if [[ ! -f "$ROOT/lab/docker-compose.yml" ]]; then warn "lab/docker-compose.yml not found — skip docker"; return 0; fi
-  echo "WITH_DOCKER=1 — docker compose --profile lab up -d --wait"
-  if docker compose --profile lab up -d --wait 2>&1 | tail -5; then ok "docker compose --profile lab up -d --wait"; else warn "docker compose up failed (lab optional)"; fi
-  # trap docker compose --profile lab down EXIT combined with do_down
-  trap 'do_down; docker compose --profile lab down 2>/dev/null || true; exit' EXIT INT TERM
 }
 
 check_wheelhouse(){
@@ -247,14 +199,13 @@ check_frontend(){
   echo "--- dashboard frontend ---"
   if [[ ! -d dashboard ]]; then warn "dashboard/ not found"; return 0; fi
   if [[ -f dashboard/package.json ]]; then ok "dashboard/package.json present"; fi
-  if [[ -d dashboard/node_modules ]]; then ok "dashboard/node_modules present"; else warn "dashboard/node_modules missing — will run npm --prefix dashboard install"; if [[ "$MODE" != "check" ]] && command -v npm >/dev/null 2>&1; then echo "  installing..."; npm --prefix dashboard install 2>&1 | tail -5 || warn "npm install failed"; fi; fi
+  if [[ -d dashboard/node_modules ]]; then ok "dashboard/node_modules present"; else warn "dashboard/node_modules missing — will be built in Docker (pure Docker path)"; fi
   if [[ -f dashboard/dist/index.html ]]; then
     gz=$(gzip -c dashboard/dist/assets/*.js 2>/dev/null | wc -c | tr -d ' '); echo "dashboard/dist gzip $gz <3670016"
     if [[ "$gz" -lt 3670016 ]]; then ok "Vite gzip $gz <3670016"; else fail "Vite gzip $gz >=3670016"; fi
     if git ls-files 2>/dev/null | grep -q "^dashboard/dist"; then fail "dashboard/dist tracked — should be gitignored (b9d18b4)"; else ok "HEAD clean: dashboard/dist gitignored"; fi
   else
-    warn "dashboard/dist missing — need build"
-    if [[ "$MODE" != "check" ]] && command -v npm >/dev/null 2>&1; then echo "  building..."; npm --prefix dashboard run build 2>&1 | tail -10 || warn "npm build failed"; fi
+    warn "dashboard/dist missing — Docker build will create it (pure Docker path, no native vite needed)"
   fi
 }
 
@@ -276,142 +227,101 @@ wait_for(){
   return 1
 }
 
-start_api(){
-  echo "--- starting API (uvicorn api.app:app --port $API_PORT) ---"
-  check_port_free "$API_PORT" || warn "port $API_PORT collision preflight (ss -ltn) — attempting kill"
-  kill_port "$API_PORT"
-  PYTHONHASHSEED=0 OMP_NUM_THREADS=6 nohup python3 -m uvicorn api.app:app --host 0.0.0.0 --port "$API_PORT" > "$LOG_DIR/api.log" 2>&1 &
-  echo $! > "$API_PID_FILE"
-  chmod 600 "$API_PID_FILE" 2>/dev/null || true
-  echo "API pid $(cat "$API_PID_FILE") log $LOG_DIR/api.log"
-  if wait_for "http://localhost:$API_PORT/flows" 30 0.5; then ok "API up http://localhost:$API_PORT/flows"; else warn "API not up after 15s — see $LOG_DIR/api.log"; tail -20 "$LOG_DIR/api.log" 2>/dev/null || true; fi
-}
-
-start_frontend(){
-  echo "--- starting dashboard (vite --port $FRONT_PORT) ---"
-  check_port_free "$FRONT_PORT" || warn "port $FRONT_PORT collision preflight (ss -ltn) — attempting kill"
-  kill_port "$FRONT_PORT"
-  # frontend fallback: when npm/vite missing, serve dist via python http.server
-  has_vite=0
-  if command -v npm >/dev/null 2>&1 && npm --prefix dashboard ls vite >/dev/null 2>&1; then has_vite=1; fi
-  if [[ $has_vite -eq 1 ]]; then
-    nohup npm --prefix dashboard run dev -- --port "$FRONT_PORT" --host 0.0.0.0 > "$LOG_DIR/dashboard.log" 2>&1 &
-    echo $! > "$FRONT_PID_FILE"
-    chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
-    echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log (vite)"
-    if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
-  elif [[ -f dashboard/dist/index.html ]]; then
-    info "vite not found but dist exists — serving dist via python -m http.server $FRONT_PORT"
-    nohup python3 -m http.server "$FRONT_PORT" --directory dashboard/dist > "$LOG_DIR/dashboard.log" 2>&1 &
-    echo $! > "$FRONT_PID_FILE"
-    chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
-    echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log (http.server fallback)"
-    if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT (fallback)"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
-  else
-    # still try npm dev even without vite detection, but warn dead code path fixed
-    if command -v npm >/dev/null 2>&1; then
-      warn "vite missing and dist missing — attempting npm run dev anyway"
-      nohup npm --prefix dashboard run dev -- --port "$FRONT_PORT" --host 0.0.0.0 > "$LOG_DIR/dashboard.log" 2>&1 &
-      echo $! > "$FRONT_PID_FILE"
-      chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
-      echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log"
-      if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
-    else
-      warn "npm not found — dashboard not started (install node 18)"
-      # fallback: python http.server if dist exists handled above, else nothing
-      if [[ -f dashboard/dist/index.html ]]; then
-        info "fallback python -m http.server $FRONT_PORT --directory dashboard/dist (npm missing but dist present)"
-        nohup python3 -m http.server "$FRONT_PORT" --directory dashboard/dist > "$LOG_DIR/dashboard.log" 2>&1 &
-        echo $! > "$FRONT_PID_FILE"
-        chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
-        if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT (http.server)"; else warn "dashboard not up"; fi
-      fi
-    fi
-  fi
-}
-
-verify_api(){
-  echo "--- verify API ---"
-  if ! curl -sf "http://localhost:$API_PORT/flows" >/dev/null 2>&1; then warn "GET /flows not reachable"; return 0; fi
-  echo "GET /flows $(curl -s "http://localhost:$API_PORT/flows" | head -c 200 | tr -d '\n' | cut -c1-200)..."
-  if [[ -f lab/pcaps/family-01.pcap ]]; then
-    code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:$API_PORT/analyze" 2>/dev/null || echo "000")
-    echo "POST /analyze family-01.pcap -> HTTP $code"
-    if [[ "$code" == "200" ]]; then
-      echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
-      ok "POST /analyze ok"
-      if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
-    else
-      warn "POST /analyze failed — see /tmp/turnup_analyze.json"
-      cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
-    fi
-  fi
-  if ls lab/pcaps/family-0*.pcap >/dev/null 2>&1; then
-    tmpzip=/tmp/turnup_3pcaps.zip
-    (cd lab/pcaps && zip -j -q "$tmpzip" family-01.pcap family-03.pcap family-06.pcap 2>/dev/null) || true
-    if [[ -f "$tmpzip" ]]; then
-      code2=$(curl -s -o /tmp/turnup_analyze_zip.json -w "%{http_code}" -F pcap=@"$tmpzip" "http://localhost:$API_PORT/analyze" 2>/dev/null || echo "000")
-      echo "POST /analyze zip 3pcaps -> HTTP $code2"
-      if [[ "$code2" == "200" ]]; then ok "POST /analyze zip ok"; cat /tmp/turnup_analyze_zip.json 2>/dev/null | head -c 200 || true; echo ""; else warn "zip analyze $code2"; fi
-    fi
-  fi
-  echo "GET /flows after analyze: $(curl -s "http://localhost:$API_PORT/flows" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))" 2>/dev/null || echo "?") flows"
-  echo "GET /report?format=json: $(curl -s "http://localhost:$API_PORT/report?format=json" 2>/dev/null | head -c 200 | tr -d '\n' | cut -c1-200)..."
-  ok "verify done — logs $LOG_DIR/api.log"
-}
-
 do_check(){
   echo "=== turnup --check (offline primary, tshark optional — docs/LARGE_FILES.md) ==="
   check_python; echo ""
   check_node; echo ""
   check_tshark; echo ""
-  check_docker; echo ""
   check_wheelhouse; echo ""
   check_models; echo ""
   check_frontend; echo ""
   check_pcap; echo ""
+  # port preflight
+  echo "--- port preflight ---"
+  if check_port_free "$API_PORT"; then ok "port $API_PORT free (ss/fuser preflight)"; else warn "port $API_PORT in use — turnup will wait or fail (ss check)"; fi
+  echo ""
+  # docker compose config check (dry-run, no up)
+  echo "--- docker compose config ---"
+  if command -v docker >/dev/null 2>&1; then
+    if docker compose config >/dev/null 2>&1; then ok "docker compose config ok (demo)"; else warn "docker compose config failed — check docker-compose.yml"; fi
+    if docker compose --profile lab config >/dev/null 2>&1; then ok "docker compose --profile lab config ok"; else info "docker compose --profile lab config skipped (lab optional)"; fi
+  else
+    warn "docker not found — pure Docker path requires docker (install docker 24)"
+  fi
+  echo ""
   echo "=== turnup --check done (tshark optional — not fatal; wheelhouse missing is fresh-clone fallback) ==="
-  echo "next: bash scripts/turnup.sh           # full up (starts API :$API_PORT + dashboard :$FRONT_PORT)"
-  echo "      bash scripts/turnup.sh --down     # stop"
-  echo "      WITH_DOCKER=1 bash scripts/turnup.sh  # docker lab profile"
+  echo "next: bash scripts/turnup.sh           # pure Docker: docker compose up -d --build demo on :$API_PORT"
+  echo "      bash scripts/turnup.sh --with-lab # also lab: docker compose --profile lab up -d --build"
+  echo "      bash scripts/turndown.sh          # clean down (ss check + rm pid + log rotation)"
+  echo "      WITH_LAB=1 bash scripts/turnup.sh  # env variant for lab"
 }
 
 do_full(){
-  # trap-clean lifecycle: ensure do_down on EXIT INT TERM before starting servers
-  trap 'do_down; exit' EXIT INT TERM
-  # when WITH_DOCKER=1 also trap docker compose down
-  if [[ "$WITH_DOCKER" == "1" ]]; then
-    trap 'do_down; docker compose --profile lab down 2>/dev/null || true; exit' EXIT INT TERM
-  fi
-  echo "=== turnup full (API :$API_PORT + dashboard :$FRONT_PORT — docs/LARGE_FILES.md §5) ==="
+  # INT TERM only (no auto-down on exit) — use turndown.sh to stop
+  trap 'echo "Interrupted — run bash scripts/turndown.sh to clean"; exit 130' INT TERM
+  echo "=== turnup pure Docker (demo :$API_PORT — docs/LARGE_FILES.md §5) ==="
   check_python; echo ""
   check_node; echo ""
   check_tshark; echo ""
-  check_docker; echo ""
   check_wheelhouse; echo ""
   check_models; echo ""
   check_frontend; echo ""
   check_pcap; echo ""
-  start_api; echo ""
-  start_frontend; echo ""
-  verify_api; echo ""
+  echo "--- port preflight ---"
+  if ! check_port_free "$API_PORT"; then
+    warn "port $API_PORT already in use (ss/fuser) — waiting or run bash scripts/turndown.sh"
+    # try ss check for owner
+    if command -v ss >/dev/null 2>&1; then ss -ltnp 2>/dev/null | grep ":${API_PORT} " || true; fi
+  else
+    ok "port $API_PORT free (ss/fuser preflight)"
+  fi
+  echo ""
+  echo "--- docker compose up -d --build ---"
+  if ! command -v docker >/dev/null 2>&1; then fail "docker not found — pure Docker path requires docker"; exit 1; fi
+  if ! docker compose config >/dev/null 2>&1; then fail "docker compose config invalid"; exit 1; fi
+  echo "bringing up demo: docker compose up -d --build demo"
+  if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then ok "docker compose up -d --build demo"; else fail "docker compose up -d --build demo failed"; exit 1; fi
+  if [[ "$WITH_LAB" == "1" ]]; then
+    echo "WITH_LAB=1 — also bringing lab: docker compose --profile lab up -d --build"
+    if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then ok "docker compose --profile lab up -d --build"; else warn "docker compose --profile lab up -d --build failed (lab optional)"; fi
+  else
+    info "WITH_LAB=0 — skip lab (use --with-lab or WITH_LAB=1 to bring lab profile)"
+  fi
+  echo ""
+  echo "--- wait_for health 30 0.5 ---"
+  if wait_for "http://localhost:${API_PORT}/health" 30 0.5; then ok "health up http://localhost:${API_PORT}/health (wait_for 30 0.5)"; else
+    if wait_for "http://localhost:${API_PORT}/flows" 30 0.5; then ok "flows up http://localhost:${API_PORT}/flows (health fallback)"; else warn "API not up after 15s — docker logs: docker compose logs demo"; docker compose logs --tail 20 demo 2>&1 | tail -20 || true; fi
+  fi
+  echo ""
+  echo "--- verify API curl /analyze ---"
+  if curl -sf "http://localhost:${API_PORT}/health" >/dev/null 2>&1; then ok "GET /health ok"; else warn "GET /health not reachable"; fi
+  if curl -sf "http://localhost:${API_PORT}/flows" >/dev/null 2>&1; then ok "GET /flows ok"; else warn "GET /flows not reachable"; fi
+  if [[ -f lab/pcaps/family-01.pcap ]]; then
+    code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:${API_PORT}/analyze" 2>/dev/null || echo "000")
+    echo "POST /analyze family-01.pcap -> HTTP $code"
+    if [[ "$code" == "200" ]]; then
+      echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
+      ok "POST /analyze ok (curl /analyze)"
+      if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
+    else
+      warn "POST /analyze failed — see /tmp/turnup_analyze.json"
+      cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
+    fi
+  else
+    warn "lab/pcaps/family-01.pcap missing — skip curl /analyze"
+  fi
+  echo ""
   echo "=== turnup done ==="
-  echo "API       http://localhost:$API_PORT/flows  (POST /analyze)"
-  echo "Dashboard http://localhost:$FRONT_PORT"
-  echo "Logs      $LOG_DIR/api.log  $LOG_DIR/dashboard.log  $LOG_FILE"
-  echo "Stop      bash scripts/turnup.sh --down"
-  # keep trap for INT/TERM during running; clear EXIT after success to avoid double down on normal exit?
-  # but spec says trap 'do_down; exit' EXIT INT TERM at top — keep it
+  echo "Demo      http://localhost:${API_PORT}/dashboard (single port 8000 via StaticFiles)"
+  echo "Health    http://localhost:${API_PORT}/health"
+  echo "Docs      http://localhost:${API_PORT}/docs"
+  echo "Logs      $LOG_FILE  +  docker compose logs demo"
+  echo "Lab       $(if [[ "$WITH_LAB" == "1" ]]; then echo "up (--profile lab)"; else echo "not up (use --with-lab)"; fi)"
+  echo "Stop      bash scripts/turndown.sh  (no auto-down on exit — INT TERM only)"
 }
 
 case "$MODE" in
   check) do_check ;;
-  down) do_down ;;
-  parity)
-    echo "=== parity check (requires tshark, else skip) ==="
-    if ! command -v tshark >/dev/null 2>&1; then echo "tshark not found — offline scapy reassembler (parity 4 prefs stub) — pytest still passes"; exit 0; fi
-    echo "tshark $(tshark -v 2>&1 | head -1)"; python3 -m pytest lab/reassembler/tests -q || true
-    ;;
   help) do_help ;;
   full) do_full ;;
 esac
