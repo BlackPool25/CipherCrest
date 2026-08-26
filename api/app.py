@@ -111,6 +111,10 @@ def get_flows() -> Any:
         except Exception: continue
     return [f.model_dump() for f in validated]
 
+@app.get("/health")
+def health() -> Any:
+    return {"status": "ok"}
+
 @app.get("/report")
 @app.get("/api/report")
 def get_report(format: str = Query(default="json")) -> Any:
