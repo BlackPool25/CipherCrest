@@ -78,6 +78,7 @@
       "groups": "family-level 10 families",
       "note": "outer3 inner3 StratifiedGroupKFold n_groups 10 safe 3<=10; single holdout gap disclosed vs nestedCV 0.714 vs holdout 1.0"
     },
+    "note": "permutation p 0.098 inconclusive 0.05-0.15 disclosure; not significant at p<0.05, inconclusive in 0.05-0.15 range (n_eff=50)",
     "permutation_n": 1000,
     "permutation_importance_top3": [
       "version",
