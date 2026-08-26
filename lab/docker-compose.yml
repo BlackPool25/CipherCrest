@@ -27,8 +27,8 @@
 
 services:
   postfix:
-    image: postfix:3.9-alpine
-    # Fallback image if postfix:3.9-alpine not on Docker Hub: use catatnight/postfix or boky/postfix
+    image: boky/postfix:latest
+    # Spec intended boky/postfix:3.9 but 3.9 tag not on Hub (max 5.x), using latest pullable; fallback catatnight/postfix
     # For CI without Docker, pcaps/certs are pre-generated; this service is optional.
     container_name: lab-postfix
     hostname: mail.lab.local
@@ -62,7 +62,8 @@ services:
       retries: 3
 
   dovecot:
-    image: dovecot:2.3
+    image: dovecot/dovecot:2.3
+    # Alt: instrumentisto/dovecot:2.3 — fallback if dovecot/dovecot:2.3 unavailable
     container_name: lab-dovecot
     hostname: imap.lab.local
     networks:
@@ -87,8 +88,8 @@ services:
     restart: "no"
 
   mockdns:
-    image: andyshinn/dnsmasq:2.86
-    # Fallback: dnsmasq:2.90 or coredns/coredns:1.11 — any dnsmasq compatible
+    image: andyshinn/dnsmasq:2.83
+    # Fallback: coredns/coredns:1.11 — use if andyshinn/dnsmasq:2.83 unavailable (dnsmasq:2.90 also compatible)
     container_name: lab-mockdns
     hostname: mockdns.lab.local
     networks:
