@@ -1,10 +1,10 @@
 from __future__ import annotations
-import io, pathlib, zipfile
+import asyncio, io, pathlib, zipfile
 from typing import Any, Optional
 import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from api.db import query_all, query_history, query_all_history, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
@@ -25,6 +25,106 @@ if _dist.exists():
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
+_connected_ws: set[WebSocket] = set()
+_broadcast_queue: asyncio.Queue = asyncio.Queue()
+_broadcaster_task: asyncio.Task | None = None
+
+
+async def _broadcaster():
+    while True:
+        try:
+            payload = await _broadcast_queue.get()
+            dead: list[WebSocket] = []
+            for ws in list(_connected_ws):
+                try:
+                    await ws.send_json(payload)
+                except Exception:
+                    dead.append(ws)
+            for ws in dead:
+                _connected_ws.discard(ws)
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            await asyncio.sleep(0.1)
+
+
+@app.on_event("startup")
+async def _start_broadcaster():
+    global _broadcaster_task
+    if _broadcaster_task is None or _broadcaster_task.done():
+        _broadcaster_task = asyncio.create_task(_broadcaster())
+
+
+@app.on_event("shutdown")
+async def _stop_broadcaster():
+    global _broadcaster_task
+    if _broadcaster_task and not _broadcaster_task.done():
+        _broadcaster_task.cancel()
+        try:
+            await _broadcaster_task
+        except asyncio.CancelledError:
+            pass
+
+
+async def _broadcast_flows(flows: list[FlowVerdict]):
+    try:
+        payload = [f.model_dump() for f in flows]
+        await _broadcast_queue.put(payload)
+        for ws in list(_connected_ws):
+            try:
+                await ws.send_json(payload)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+@app.websocket("/ws/flows")
+@app.websocket("/api/ws/flows")
+async def ws_flows(ws: WebSocket):
+    global _broadcaster_task
+    await ws.accept()
+    _connected_ws.add(ws)
+    if _broadcaster_task is None or _broadcaster_task.done():
+        _broadcaster_task = asyncio.create_task(_broadcaster())
+    try:
+        # initial dump — query_all or _last_result fallback
+        try:
+            init_flows: list[FlowVerdict] = []
+            if _last_result is not None:
+                init_flows = _last_result
+            else:
+                try:
+                    init_flows = query_all()
+                except Exception:
+                    init_flows = []
+                if not init_flows:
+                    try:
+                        init_flows = stub_reassemble("fallback")
+                    except Exception:
+                        init_flows = []
+            await ws.send_json([f.model_dump() if hasattr(f, "model_dump") else f for f in init_flows])
+        except Exception:
+            try:
+                await ws.send_json([])
+            except Exception:
+                pass
+        # heartbeat + keepalive — echo pings, detect disconnect
+        while True:
+            try:
+                # wait for client ping/pong or close with timeout for heartbeat
+                await asyncio.wait_for(ws.receive_text(), timeout=30.0)
+            except asyncio.TimeoutError:
+                try:
+                    await ws.send_json({"type": "heartbeat", "ts": __import__("time").time()})
+                except Exception:
+                    break
+            except WebSocketDisconnect:
+                break
+            except Exception:
+                break
+    finally:
+        _connected_ws.discard(ws)
 
 def _ensure_lazy_models():
     # keep cold-start <3s: load pkls lazily on first analyze, fallback None still 200
@@ -110,6 +210,10 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                         except Exception: continue
             flows = _enrich_stub_flows(flows); flows = _attach_policy(flows)
             _last_result = flows; _last_summary = _compute_summary(flows); upsert_flows(flows)
+            try:
+                await _broadcast_flows(flows)
+            except Exception:
+                pass
             return [f.model_dump() for f in flows]
         except zipfile.BadZipFile: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":"malformed pcap"}]
         except Exception as exc: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":f"malformed pcap: {exc}"}]
@@ -124,6 +228,10 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
             except Exception as exc: return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
         validated_single = _enrich_stub_flows(validated_single); validated_single = _attach_policy(validated_single)
         _last_result = validated_single; _last_summary = _compute_summary(validated_single); upsert_flows(validated_single)
+        try:
+            await _broadcast_flows(validated_single)
+        except Exception:
+            pass
         return [f.model_dump() for f in validated_single]
     except Exception as exc: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":f"malformed pcap: {exc}"}]
 

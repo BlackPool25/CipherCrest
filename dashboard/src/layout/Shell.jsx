@@ -16,6 +16,7 @@ import Graphs from '../components/Graphs.jsx'
 import PcapCustomizer from '../components/PcapCustomizer.jsx'
 import Families from '../pages/Families.jsx'
 import Lab from '../pages/Lab.jsx'
+import Live from '../pages/Live.jsx'
 import { fetchFlows } from '../services/api.js'
 
 if (typeof document !== 'undefined') injectTokens()
@@ -312,14 +313,7 @@ function LabPage(){
   return <Lab />
 }
 function LivePage(){
-  const { flows } = useFlowsState()
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <h2 style={{ fontSize:14, fontWeight:600, color:TOK.ink, textTransform:'uppercase', letterSpacing:0.6 }}>Live — WS packet tri-pane + continuum 60fps • prefers-reduced-motion discrete</h2>
-      <Graphs flows={flows} />
-      <div style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, borderRadius:TOK.radius, padding:16, color:TOK.inkMuted, fontSize:12 }}>Live queue spinner • visibilitychange pause • rAF translateX 350ms linear • 600 points content-visibility auto</div>
-    </div>
-  )
+  return <Live />
 }
 function ReportsPage(){
   const { flows } = useFlowsState()
