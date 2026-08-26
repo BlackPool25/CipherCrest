@@ -5,6 +5,7 @@ pandas==2.2.3
 scapy==2.7.0
 cryptography==43.*
 fastapi==0.115.*
+uvicorn==0.34.3
 python-multipart
 pydantic==2.11.*
 # stretch: torch==2.4.0

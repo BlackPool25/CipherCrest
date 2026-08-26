@@ -45,6 +45,7 @@ COPY shared/ ./shared/
 COPY lab/ ./lab/
 COPY models/ ./models/
 COPY --from=frontend /app/dashboard/dist ./dashboard/dist
+RUN chown -R 10001:10001 /app && chmod -R g+w /app/api 2>/dev/null || true; touch /app/api/flows.db 2>/dev/null && chown 10001:10001 /app/api/flows.db && chmod 666 /app/api/flows.db || true
 USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD curl -fsS http://localhost:8000/health || curl -fsS http://localhost:8000/flows || exit 1
