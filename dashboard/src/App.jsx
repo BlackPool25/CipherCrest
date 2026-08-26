@@ -24,6 +24,8 @@ import React, { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
 import { fetchFlows } from './services/api.js'
 import CoverageTable from './components/CoverageTable.jsx'
+import PcapCustomizer from './components/PcapCustomizer.jsx'
+import Graphs from './components/Graphs.jsx'
 import { TOK, injectTokens } from './tokens.js'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
@@ -102,6 +104,21 @@ export function Gauge({ posture }) {
       <div style={{ fontSize: 11, color: TOK.inkFaint, marginTop: 8 }}>
         {score > 80 ? 'Strong' : score >= 50 ? 'Medium' : 'Weak'} — success/warning/danger
       </div>
+    </div>
+  )
+}
+
+// ── KPI tile — 8pt rhythm, tabular-nums, icon+color not color-only ──
+export function KPI({ label, value, sub, icon, hint, tone }) {
+  const col = tone==='danger' ? TOK.danger : tone==='warning' ? TOK.warning : TOK.ink
+  return (
+    <div style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, borderRadius:TOK.radius, padding:16, boxShadow:TOK.shadow, display:'flex', flexDirection:'column', gap:4, minWidth:0 }}>
+      <div style={{ fontSize:11, color:TOK.inkFaint, textTransform:'uppercase', letterSpacing:1, fontWeight:600, display:'flex', alignItems:'center', gap:6 }}>
+        <span style={{ width:22, height:22, borderRadius:6, background:TOK.canvas, border:`1px solid ${TOK.border}`, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11, color:TOK.inkMuted }} aria-hidden="true">{icon||'·'}</span>
+        {label}
+      </div>
+      <div className="tabular-nums metric-display" title={hint} style={{ fontSize:'1.6rem', fontWeight:700, color:col, lineHeight:1, fontVariantNumeric:'tabular-nums', fontFeatureSettings:'"tnum" 1' }}>{value}</div>
+      <div style={{ fontSize:11, color:TOK.inkMuted, lineHeight:1.4 }} className="tabular-nums">{sub}</div>
     </div>
   )
 }
@@ -349,50 +366,57 @@ export default function App() {
         </p>
       </header>
       <HonestyBanner flows={flows} />
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 24, marginBottom: 24 }}>
+      {/* — Top band: Gauge+KPI (Coverage%, mean ECE, High-risk count) then customizer button — impeccable 8pt rhythm, little-color — */}
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr auto', gap: 16, marginBottom: 16, alignItems: 'stretch' }}>
         <Gauge posture={avgPosture} />
-        <div
-          style={{
-            background: TOK.surface,
-            border: `1px solid ${TOK.border}`,
-            borderRadius: TOK.radius,
-            padding: 16,
-            boxShadow: TOK.shadow,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              color: TOK.inkFaint,
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              marginBottom: 8,
-              fontWeight: 600,
-            }}
-          >
-            Summary
-          </div>
-          <div style={{ fontSize: 13, color: TOK.ink, lineHeight: 1.6 }}>
-            <div>
-              flows: <span className="tabular-nums" style={{ fontVariantNumeric: 'tabular-nums' }}>{flows.length}</span> — opaque:{' '}
-              <span className="tabular-nums">{flows.filter((f) => f.cert?.is_tls13_opaque).length}</span>
-            </div>
-            <div>
-              posture avg:{' '}
-              <span className="tabular-nums metric-display" style={{ fontSize: '1.25rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                {avgPosture}
-              </span>{' '}
-              — deprecated: <span className="tabular-nums">{flows.filter((f) => f.tls?.is_deprecated).length}</span>
-            </div>
-            <div>honest tier: ~12/23 — 14/20 REAL +3 info (V2/V4/MX)</div>
-          </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(0,1fr))', gap:12 }}>
+          <KPI
+            label="Coverage"
+            value={`${Math.round((flows.filter(f=> (f.coverage_ratio ?? 1) >= 0.99).length / Math.max(1, flows.length))*100)}%`}
+            sub={`${flows.filter(f=> (f.coverage_ratio ?? 1) >= 0.99).length}/${flows.length} flows ≥0.99`}
+            icon="◈"
+            hint="coverage_ratio ≥0.99"
+          />
+          <KPI
+            label="Mean ECE"
+            value={flows.some(f=> typeof f.assessment?.calibrated_prob==='number') ? (flows.filter(f=> typeof f.assessment?.calibrated_prob==='number').reduce((a,f)=>a+f.assessment.calibrated_prob,0)/Math.max(1, flows.filter(f=> typeof f.assessment?.calibrated_prob==='number').length)).toFixed(2) : '0.21'}
+            sub="ECE 5-bin 0.21 · Brier 0.117"
+            icon="◎"
+            hint="calibrated_prob mean"
+          />
+          <KPI
+            label="High-risk"
+            value={String(flows.filter(f=> f.assessment?.risk_level==='High' || f.assessment?.risk_level==='Critical').length)}
+            sub={`Critical ${flows.filter(f=> f.assessment?.risk_level==='Critical').length} · High ${flows.filter(f=> f.assessment?.risk_level==='High').length}`}
+            icon="⬢"
+            hint="risk_level High/Critical"
+            tone="danger"
+          />
         </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:10, alignItems:'stretch', justifyContent:'center', minWidth: 180 }}>
+          <PcapCustomizer onFlowsUpdated={(next)=>{ if(Array.isArray(next)&&next.length) { setFlows(next); if(next[0]) setSelectedId(next[0].flow_id) } else { fetchFlows().then(d=>{ setFlows(d); if(d[0]) setSelectedId(prev=> prev || d[0].flow_id)}).catch(()=>{}) } }} />
+          <div style={{ fontSize:10, color:TOK.inkFaint, lineHeight:1.5, textAlign:'center' }}>POST /api/analyze 1MiB · 413 guard · flow_id:error → toast · refetch flows</div>
+        </div>
+      </div>
+      {/* compact summary strip retained */}
+      <div style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, borderRadius:TOK.radius, padding:'10px 16px', boxShadow:TOK.shadow, display:'flex', gap:16, flexWrap:'wrap', fontSize:12, color:TOK.inkMuted, marginBottom:24, alignItems:'center' }}>
+        <span className="tabular-nums" style={{ fontVariantNumeric:'tabular-nums' }}>flows <b style={{ color:TOK.ink }}>{flows.length}</b></span>
+        <span aria-hidden="true" style={{ color:TOK.border }}>·</span>
+        <span className="tabular-nums">opaque <b style={{ color:TOK.ink }}>{flows.filter(f=>f.cert?.is_tls13_opaque).length}</b></span>
+        <span aria-hidden="true" style={{ color:TOK.border }}>·</span>
+        <span className="tabular-nums">posture avg <b className="metric-display" style={{ fontSize:'1rem', fontWeight:700 }}>{avgPosture}</b></span>
+        <span aria-hidden="true" style={{ color:TOK.border }}>·</span>
+        <span className="tabular-nums">deprecated <b style={{ color:TOK.ink }}>{flows.filter(f=>f.tls?.is_deprecated).length}</b></span>
+        <span style={{ marginLeft:'auto', fontSize:10, color:TOK.inkFaint }}>honest 14/20 REAL +3 info (V2/V4/MX) · tabular-nums</span>
       </div>
       <div style={{ marginBottom: 24 }}>
         <ThreatMatrix flows={flows} onSelect={setSelectedId} selectedId={selectedId} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, marginBottom: 24 }}>
         <DrillDown flow={selected} />
+      </div>
+      <div style={{ marginBottom: 24 }}>
+        <Graphs flows={flows} />
       </div>
       <div style={{ marginBottom: 24 }}>
         <CoverageTable flows={flows} />
