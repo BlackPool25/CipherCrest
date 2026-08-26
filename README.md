@@ -74,9 +74,10 @@ npm --prefix dashboard install
 docker compose -f lab/docker-compose.yml up -d
 pytest -q  # smoke — SYSTEM 5/8 green
 
-# jitter expansion (Day7 21 pcaps, idempotent)
-python -m lab.scripts.jitter_slices --slices 3 --families 02,03,04,05,07,08,10
-ls lab/pcaps/jittered/*.pcap | wc -l  # 21
+# jitter expansion (Day8-10 45 envs =10 base +35 jittered, idempotent)
+python -m lab.scripts.jitter_slices --slices 5 --families 02,03,04,05,07,08,10
+ls lab/pcaps/jittered/*.pcap | wc -l  # 35  (total 45 with base 10)
+# Day7 legacy: --slices 3 → 21 jittered (31 total) — see lab/LEDGER.md
 
 # API + dashboard — one script (recommended)
 bash scripts/turnup.sh --check  # dry-run: models 276K <5M, wheelhouse 345M <350, frontend gzip <3670016, tshark optional
@@ -145,7 +146,7 @@ graph LR
     API --> Analyzer["analyzer/parse.py<br/>cipher vs manifest GREASE 16"]
     API --> Validator["validator/chain.py<br/>Store PolicyBuilder prec1.000"]
     API --> Assessment["assessment/<br/>rules 23 score policy<br/>risk_model XGB Platt<br/>anomaly ECOD"]
-    Lab["lab/pcaps 31 envs<br/>reassembler 4 prefs"] --> API
+    Lab["lab/pcaps 45 envs (10 base +35 jittered)<br/>reassembler 4 prefs"] --> API
 ```
 
 ```mermaid
@@ -185,7 +186,7 @@ C4Container
     title SecureMailScope C4 — lab analyzer validator assessment api dashboard
     Person(user, "Analyst", "Reviews posture via dashboard")
     Container_Boundary(c1, "SecureMailScope") {
-        Container(lab, "lab", "Scapy + Docker", "31 envs pcap jitter GREASE manifest")
+        Container(lab, "lab", "Scapy + Docker", "45 envs pcap jitter GREASE manifest")
         Container(analyzer, "analyzer", "Python regex", "Handshake cipher JA4 rarity")
         Container(validator, "validator", "cryptography", "X.509 chain CABF private")
         Container(assessment, "assessment", "XGB+ECOD", "23 rules score policy ML")
@@ -212,7 +213,7 @@ Lineage: `lab/manifest.json` 45 envs → `lab/pcaps/*.pcap 10 + jittered/*.pcap 
 
 ```
 repo/
-  lab/            offline replay primary — pcaps 31 envs, reassembler 4 prefs, manifest+LEDGER, jitter_slices GREASE
+  lab/            offline replay primary — pcaps 45 envs (10 base +35 jittered), reassembler 4 prefs, manifest+LEDGER, jitter_slices GREASE
   analyzer/       handshake parse — cipher IANA exact 9/9, JA4 GREASE filter, ja4_rarity 0..1
   validator/      X.509 chain — Store/PolicyBuilder limbo CABF/private/badssl prec1.000 stratified
   assessment/     23 rules + score + policy + splits 31 + features 28 + risk_model XGB Platt + anomaly ECOD
