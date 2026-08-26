@@ -22,3 +22,5 @@ evidence-day2.zip
 dashboard/dist/
 dashboard/node_modules/
 flows.db
+.opencode/skills
+logs
