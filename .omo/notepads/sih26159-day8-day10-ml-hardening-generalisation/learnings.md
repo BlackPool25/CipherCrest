@@ -430,3 +430,8 @@ git gc --prune=now --aggressive  # coalesce packs: 1 pack 1.1M
 - `grep -q "filter=lfs" .gitattributes && git lfs ls-files || echo "No LFS"` -> No LFS (commented future) PASS.
 - `git ls-files | grep -E "^wheelhouse/|^dashboard/dist"` -> 0 (HEAD clean) PASS.
 
+
+## Perf fix ablation 100% CPU + fit_time 21.3s->10.6s (2026-08-26)
+- Root: permutation_importance n_jobs=6 + XGB OMP6 => 36 threads oversubscription + np.NaN removed in numpy2 caused loky workers AttributeError fallback hang CPU 100%; plus XGB default threads slowed small-n (45) fits.
+- Fix: patched site-package xgboost/data.py np.NaN->np.nan; set env OMP/OPENBLAS/MKL_NUM_THREADS=1; set all XGB n_jobs=1 nthread=1 (select_best, final, nested_cv) speeds 3.3s->2.6s; permutation_importance n_jobs 6->2 with XGB single-thread => perm 15.2s->5.5s (6 workers 2.9s but keep 2 for safety 6 threads vs 36), total fit 21.3->10.9s passes <12s test_ece_hi 12.09s wall; cached predict categories _CACHED_CATS avoids duplicate _load_dataset per predict; lru_cache _load_dataset; family/delta bootstrap set lookup vs ndarray in.
+- Verification: timeout 30 pytest test_ece_hi PASSED 12.09s fit 10.9 hi 0.18 <0.25; pytest strict+ablation 33 passed 23.56s 37k warnings (Pandas4 sparse); LOC 245<250

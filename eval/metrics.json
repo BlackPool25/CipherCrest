@@ -11,8 +11,8 @@
     "brier_ci_hi": 0.04742452530474927,
     "brier_ci_width": 0.03738205592674352,
     "logloss": 0.2529519242485025,
-    "logloss_ci_lo": 0.12538198675507944,
-    "logloss_ci_hi": 0.19353269710177348,
+    "logloss_ci_lo": 0.12389002133807824,
+    "logloss_ci_hi": 0.19051456554610768,
     "nested_cv_auc_mean": 0.7142857142857143,
     "permutation_p": 0.002997002997002997,
     "bootstrap_n": 2000,
@@ -20,12 +20,12 @@
     "ap_ci_lo": 0.9999999999999999,
     "ap_ci_hi": 1.0,
     "top3": [
-      "version",
+      "kex",
       "cipher_strength",
-      "kex"
+      "miss_indicator_ja4_rarity"
     ],
-    "fit_time": 8.909353494644165,
-    "size_mb": 0.12093544006347656,
+    "fit_time": 11.467666864395142,
+    "size_mb": 0.12092876434326172,
     "brier_ci": [
       0.010042469378005748,
       0.04742452530474927
@@ -117,7 +117,7 @@
   "permutation_p": 0.002997002997002997,
   "bootstrap_n": 2000,
   "ap": 1.0,
-  "fit_time": 8.909353494644165,
+  "fit_time": 11.467666864395142,
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,
