@@ -2,7 +2,6 @@
   "flow_id": "family-48",
   "app_protocol": "smtp",
   "starttls_mode": "upgrade",
-  "port": 25,
   "tls": {
     "version": "TLS1.2",
     "is_deprecated": false,

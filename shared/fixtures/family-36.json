@@ -1,10 +1,9 @@
 {
   "flow_id": "family-36",
   "app_protocol": "imap",
-  "starttls_mode": "cleartext",
-  "port": 993,
+  "starttls_mode": "stripped",
   "tls": {
-    "version": "none",
+    "version": "unknown",
     "is_deprecated": false,
     "cipher_suite": "UNKNOWN-0x009e",
     "cipher_strength": "weak",

@@ -2,9 +2,8 @@
   "flow_id": "family-47",
   "app_protocol": "imap",
   "starttls_mode": "none",
-  "port": 143,
   "tls": {
-    "version": "none",
+    "version": "unknown",
     "is_deprecated": false,
     "cipher_suite": "AES128-SHA",
     "cipher_strength": "medium",

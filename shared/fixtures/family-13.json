@@ -2,7 +2,6 @@
   "flow_id": "family-13",
   "app_protocol": "smtp",
   "starttls_mode": "upgrade",
-  "port": 25,
   "tls": {
     "version": "TLS1.1",
     "is_deprecated": true,
@@ -16,8 +15,8 @@
     "ja4_rarity": 0.11
   },
   "cert": {
-    "leaf_present": false,
-    "is_tls13_opaque": true,
+    "leaf_present": true,
+    "is_tls13_opaque": false,
     "not_before": "2025-01-01T00:00:00Z",
     "not_after": "2026-01-01T00:00:00Z",
     "days_to_expiry": null,

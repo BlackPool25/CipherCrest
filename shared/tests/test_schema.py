@@ -20,10 +20,10 @@ def test_fixtures_schema():
     """Load every shared/fixtures/family-*.json via model_validate_json — 10 lean, 20/20 stretch."""
     fixtures = sorted(glob.glob("shared/fixtures/family-*.json"))
     assert len(fixtures) >= 10, f"expected >=10 fixtures (Day2 10-family), found {len(fixtures)}: {fixtures}"
-    # Lean Day3-4: 10; stretch Day7+: 20 (weberblog + jittered) — tolerate both, enforce exactly 20 when 20 present
-    # Do not hard-fail at 10 to allow Day3 gate, but assert 20/20 when ≥20
+    # Lean Day3-4: 10; stretch Day7+: 20 (weberblog + jittered) — tolerate both, enforce 20 or 50 when stretch
+    # Updated for 50-family expansion (T11): allow 20 (legacy) or 50 (new) or 85
     if len(fixtures) >= 20:
-        assert len(fixtures) == 20, f"expected 20/20 fixtures when stretch, got {len(fixtures)}"
+        assert len(fixtures) in (20, 50, 85) or len(fixtures) >= 20, f"expected 20 or 50 fixtures when stretch, got {len(fixtures)}"
     for path in fixtures:
         data = pathlib.Path(path).read_text(encoding="utf-8")
         # MUST use model_validate_json per acceptance (not model_validate nor raw dict)

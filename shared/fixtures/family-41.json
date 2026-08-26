@@ -2,9 +2,8 @@
   "flow_id": "family-41",
   "app_protocol": "smtp",
   "starttls_mode": "none",
-  "port": 25,
   "tls": {
-    "version": "none",
+    "version": "unknown",
     "is_deprecated": false,
     "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
     "cipher_strength": "weak",

@@ -1,10 +1,9 @@
 {
   "flow_id": "family-49",
   "app_protocol": "smtp",
-  "starttls_mode": "cleartext",
-  "port": 587,
+  "starttls_mode": "stripped",
   "tls": {
-    "version": "none",
+    "version": "unknown",
     "is_deprecated": false,
     "cipher_suite": "ECDHE-ECDSA-AES256-GCM-SHA384",
     "cipher_strength": "strong",
