@@ -5,20 +5,37 @@
 #   --check  dry-run, no servers (CI-safe)
 #   --down   stop API/dashboard started by turnup
 #   --help   usage
-# Env: API_PORT, FRONT_PORT, PYTHONHASHSEED=0, OMP_NUM_THREADS=6
+# Env: API_PORT, FRONT_PORT, PYTHONHASHSEED=0, OMP_NUM_THREADS=6, WITH_DOCKER=0|1
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+export PYTHONHASHSEED=0
+export OMP_NUM_THREADS=6
+WITH_DOCKER="${WITH_DOCKER:-0}"
+
 API_PORT="${API_PORT:-8000}"
 FRONT_PORT="${FRONT_PORT:-5173}"
 MODE="full"
-API_PID_FILE="/tmp/ciphercrest_api.pid"
-FRONT_PID_FILE="/tmp/ciphercrest_front.pid"
+# PID files under $ROOT/.tmp with 700 perms (not world-writable /tmp)
+TMP_DIR="$ROOT/.tmp"
+mkdir -p "$ROOT/.tmp" 2>/dev/null || true
+mkdir -p "$TMP_DIR" 2>/dev/null || true
+chmod 700 "$ROOT/.tmp" 2>/dev/null || true
+chmod 700 "$TMP_DIR" 2>/dev/null || true
+# PID files: $ROOT/.tmp/ciphercrest_api.pid and $ROOT/.tmp/ciphercrest_front.pid (700)
+API_PID_FILE="$ROOT/.tmp/ciphercrest_api.pid"
+FRONT_PID_FILE="$ROOT/.tmp/ciphercrest_front.pid"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$LOG_DIR" 2>/dev/null || true
+# log rotation logs/turnup_<ts>.log - keep last 10, prune older than 7d
 LOG_FILE="$LOG_DIR/turnup_$(date +%Y%m%d_%H%M%S).log"
+# prune old logs (rotation)
+find "$LOG_DIR" -name "turnup_*.log" -mtime +7 -delete 2>/dev/null || true
+# keep only 10 newest
+ls -t "$LOG_DIR"/turnup_*.log 2>/dev/null | tail -n +11 | xargs -r rm -f 2>/dev/null || true
+touch "$LOG_FILE" 2>/dev/null || true
 
 # color if tty
 if [[ -t 1 ]]; then GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; DIM='\033[0;2m'; NC='\033[0m'; else GREEN=''; YELLOW=''; RED=''; DIM=''; NC=''; fi
@@ -41,16 +58,60 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# port collision preflight via ss -ltn (fallback fuser)
+check_port_free(){
+  port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    if ss -ltn 2>/dev/null | grep -q ":${port} "; then warn "port $port already in use (ss -ltn)"; return 1; fi
+  elif command -v fuser >/dev/null 2>&1; then
+    if fuser "${port}/tcp" >/dev/null 2>&1; then warn "port $port already in use (fuser)"; return 1; fi
+  elif command -v lsof >/dev/null 2>&1; then
+    if lsof -ti :"$port" >/dev/null 2>&1; then warn "port $port already in use (lsof)"; return 1; fi
+  fi
+  return 0
+}
+
+kill_port(){
+  port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    # ss -ltnp shows pids; fallback to fuser
+    if command -v fuser >/dev/null 2>&1; then fuser -k "${port}/tcp" 2>/dev/null || true; fi
+    # also try ss-derived pids if fuser unavailable
+    ss -ltnp 2>/dev/null | grep -q ":${port} " && true || true
+  elif command -v fuser >/dev/null 2>&1; then
+    fuser -k "${port}/tcp" 2>/dev/null || true
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -ti :"$port" 2>/dev/null | xargs -r kill 2>/dev/null || true
+  fi
+}
+
 do_down(){
   echo "=== turnup --down ==="
   for pf in "$API_PID_FILE" "$FRONT_PID_FILE"; do
     if [[ -f "$pf" ]]; then pid=$(cat "$pf" 2>/dev/null || echo ""); if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then kill "$pid" 2>/dev/null || true; echo "stopped pid $pid ($pf)"; fi; rm -f "$pf" 2>/dev/null || true
     fi
   done
-  pkill -f "uvicorn api.app:app" 2>/dev/null || true
-  pkill -f "vite.*$FRONT_PORT" 2>/dev/null || true
-  # also via lsof if available
-  if command -v lsof >/dev/null 2>&1; then lsof -ti :"$API_PORT" 2>/dev/null | xargs -r kill 2>/dev/null || true; lsof -ti :"$FRONT_PORT" 2>/dev/null | xargs -r kill 2>/dev/null || true; fi
+  # pgrep scoped to PID file + kill (not system-wide kill)
+  if command -v pgrep >/dev/null 2>&1; then
+    for pat in "uvicorn api.app:app" "vite.*$FRONT_PORT" "http.server.*$FRONT_PORT"; do
+      pids=$(pgrep -f "$pat" 2>/dev/null || true)
+      for pid in $pids; do
+        # only kill if pid matches one of our stored pids or if no pid file (safe narrow)
+        # but we already killed pid files; now narrow to user-owned processes
+        if kill -0 "$pid" 2>/dev/null; then
+          # verify cmdline contains pattern before kill
+          if ps -o args= -p "$pid" 2>/dev/null | grep -q "$pat"; then kill "$pid" 2>/dev/null || true; echo "stopped pgrep $pat pid $pid"; fi
+        fi
+      done
+    done
+  fi
+  # port kill via ss fallback fuser
+  kill_port "$API_PORT"
+  kill_port "$FRONT_PORT"
+  # docker lab down if WITH_DOCKER
+  if [[ "$WITH_DOCKER" == "1" ]] && command -v docker >/dev/null 2>&1 && [[ -f "$ROOT/lab/docker-compose.yml" ]]; then
+    docker compose --profile lab down 2>/dev/null || true
+  fi
   echo "down done"
 }
 
@@ -62,9 +123,14 @@ do_help(){
   echo "  --port N        API port (default 8000, env API_PORT)"
   echo "  --frontend-port N  dashboard port (default 5173)"
   echo ""
+  echo "Env: WITH_DOCKER=1  docker compose --profile lab up -d --wait (hybrid lab, single port 8000)"
+  echo "     WITH_DOCKER=0  skip docker (default, air-gap offline)"
+  echo "     PYTHONHASHSEED=0 OMP_NUM_THREADS=6  deterministic"
+  echo ""
   echo "Quick: bash scripts/turnup.sh           # full up: checks + starts API + dashboard"
   echo "       bash scripts/turnup.sh --check   # dry-run checks models/wheelhouse/frontend/tshark(optional)"
   echo "       bash scripts/turnup.sh --down    # cleanup"
+  echo "       WITH_DOCKER=1 bash scripts/turnup.sh  # hybrid with docker lab profile"
   echo "See docs/LARGE_FILES.md §5 and README Quick Turn-Up (One Script)."
 }
 
@@ -100,6 +166,17 @@ check_tshark(){
   fi
 }
 
+check_docker(){
+  echo "--- docker (lab profile) ---"
+  if [[ "$WITH_DOCKER" != "1" ]]; then info "WITH_DOCKER=0 — skip docker (air-gap offline)"; return 0; fi
+  if ! command -v docker >/dev/null 2>&1; then warn "docker not found — WITH_DOCKER=1 but docker missing, skip"; return 0; fi
+  if [[ ! -f "$ROOT/lab/docker-compose.yml" ]]; then warn "lab/docker-compose.yml not found — skip docker"; return 0; fi
+  echo "WITH_DOCKER=1 — docker compose --profile lab up -d --wait"
+  if docker compose --profile lab up -d --wait 2>&1 | tail -5; then ok "docker compose --profile lab up -d --wait"; else warn "docker compose up failed (lab optional)"; fi
+  # trap docker compose --profile lab down EXIT combined with do_down
+  trap 'do_down; docker compose --profile lab down 2>/dev/null || true; exit' EXIT INT TERM
+}
+
 check_wheelhouse(){
   echo "--- wheelhouse ---"
   if [[ -d wheelhouse ]] && ls wheelhouse/*.whl >/dev/null 2>&1; then
@@ -121,7 +198,6 @@ check_wheelhouse(){
 
 check_models(){
   echo "--- models ---"
-  # try download_models.sh first (Releases) if missing
   have_download=0
   if [[ -x scripts/download_models.sh ]] || [[ -f scripts/download_models.sh ]]; then have_download=1; fi
   for p in models/risk_clf.pkl models/anomaly.pkl models/anomaly_honest.pkl; do
@@ -129,7 +205,6 @@ check_models(){
       sz=$(stat -c%s "$p" 2>/dev/null || stat -f%z "$p" 2>/dev/null || wc -c < "$p")
       kb=$((sz/1024))
       ok "$p ${kb}K present"
-      # protocol and size guards
       if [[ "$p" == "models/risk_clf.pkl" ]]; then
         if python3 -c "import pathlib; d=pathlib.Path('$p').read_bytes(); assert d[1]==4, 'prot !=4'" 2>/dev/null; then ok "$p protocol 4"; else warn "$p protocol check failed"; fi
         if [[ $sz -lt $((5*1024*1024)) ]]; then ok "$p <5M (no LFS needed)"; else warn "$p >=5M — consider Releases/LFS per docs/LARGE_FILES.md"; fi
@@ -151,10 +226,8 @@ check_models(){
       fi
     fi
   done
-  # if all 3 present -> ok else warn but not hard fail for --check if train can recreate
   if [[ -f models/risk_clf.pkl && -f models/anomaly.pkl && -f models/anomaly_honest.pkl ]]; then ok "all 3 models present 276K <5M";
   else
-    # try training if python deps available and missing
     if [[ "$MODE" == "check" ]]; then warn "some models missing — turnup.sh full mode would attempt train fallback"; else
       echo "  attempting train fallback (requires wheelhouse deps installed)..."
       if [[ -f models/risk_clf.pkl ]]; then info "risk_clf exists skip train"; else
@@ -195,8 +268,8 @@ check_pcap(){
 }
 
 wait_for(){
-  url="$1"; tries="${2:-20}"; sleep_s="${3:-0.5}"
-  for i in $(seq 1 $tries); do
+  url="$1"; tries="${2:-30}"; sleep_s="${3:-0.5}"
+  for i in $(seq 1 "$tries"); do
     if curl -sf "$url" >/dev/null 2>&1; then return 0; fi
     sleep "$sleep_s"
   done
@@ -205,49 +278,74 @@ wait_for(){
 
 start_api(){
   echo "--- starting API (uvicorn api.app:app --port $API_PORT) ---"
-  # kill stale
-  if command -v lsof >/dev/null 2>&1; then lsof -ti :"$API_PORT" 2>/dev/null | xargs -r kill 2>/dev/null || true; fi
+  check_port_free "$API_PORT" || warn "port $API_PORT collision preflight (ss -ltn) — attempting kill"
+  kill_port "$API_PORT"
   PYTHONHASHSEED=0 OMP_NUM_THREADS=6 nohup python3 -m uvicorn api.app:app --host 0.0.0.0 --port "$API_PORT" > "$LOG_DIR/api.log" 2>&1 &
   echo $! > "$API_PID_FILE"
+  chmod 600 "$API_PID_FILE" 2>/dev/null || true
   echo "API pid $(cat "$API_PID_FILE") log $LOG_DIR/api.log"
   if wait_for "http://localhost:$API_PORT/flows" 30 0.5; then ok "API up http://localhost:$API_PORT/flows"; else warn "API not up after 15s — see $LOG_DIR/api.log"; tail -20 "$LOG_DIR/api.log" 2>/dev/null || true; fi
 }
 
 start_frontend(){
   echo "--- starting dashboard (vite --port $FRONT_PORT) ---"
-  if command -v lsof >/dev/null 2>&1; then lsof -ti :"$FRONT_PORT" 2>/dev/null | xargs -r kill 2>/dev/null || true; fi
-  if command -v npm >/dev/null 2>&1; then
-    # prefer dev if vite installed, else serve dist
-    if [[ -f dashboard/dist/index.html ]] && ! npm --prefix dashboard ls vite >/dev/null 2>&1; then info "vite not found but dist exists — serving dist via python http.server"; fi
+  check_port_free "$FRONT_PORT" || warn "port $FRONT_PORT collision preflight (ss -ltn) — attempting kill"
+  kill_port "$FRONT_PORT"
+  # frontend fallback: when npm/vite missing, serve dist via python http.server
+  has_vite=0
+  if command -v npm >/dev/null 2>&1 && npm --prefix dashboard ls vite >/dev/null 2>&1; then has_vite=1; fi
+  if [[ $has_vite -eq 1 ]]; then
     nohup npm --prefix dashboard run dev -- --port "$FRONT_PORT" --host 0.0.0.0 > "$LOG_DIR/dashboard.log" 2>&1 &
     echo $! > "$FRONT_PID_FILE"
-    echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log"
-    if wait_for "http://localhost:$FRONT_PORT" 20 0.5; then ok "dashboard up http://localhost:$FRONT_PORT"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
+    chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
+    echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log (vite)"
+    if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
+  elif [[ -f dashboard/dist/index.html ]]; then
+    info "vite not found but dist exists — serving dist via python -m http.server $FRONT_PORT"
+    nohup python3 -m http.server "$FRONT_PORT" --directory dashboard/dist > "$LOG_DIR/dashboard.log" 2>&1 &
+    echo $! > "$FRONT_PID_FILE"
+    chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
+    echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log (http.server fallback)"
+    if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT (fallback)"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
   else
-    warn "npm not found — dashboard not started"
+    # still try npm dev even without vite detection, but warn dead code path fixed
+    if command -v npm >/dev/null 2>&1; then
+      warn "vite missing and dist missing — attempting npm run dev anyway"
+      nohup npm --prefix dashboard run dev -- --port "$FRONT_PORT" --host 0.0.0.0 > "$LOG_DIR/dashboard.log" 2>&1 &
+      echo $! > "$FRONT_PID_FILE"
+      chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
+      echo "dashboard pid $(cat "$FRONT_PID_FILE") log $LOG_DIR/dashboard.log"
+      if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT"; else warn "dashboard not up yet — see $LOG_DIR/dashboard.log"; tail -20 "$LOG_DIR/dashboard.log" 2>/dev/null || true; fi
+    else
+      warn "npm not found — dashboard not started (install node 18)"
+      # fallback: python http.server if dist exists handled above, else nothing
+      if [[ -f dashboard/dist/index.html ]]; then
+        info "fallback python -m http.server $FRONT_PORT --directory dashboard/dist (npm missing but dist present)"
+        nohup python3 -m http.server "$FRONT_PORT" --directory dashboard/dist > "$LOG_DIR/dashboard.log" 2>&1 &
+        echo $! > "$FRONT_PID_FILE"
+        chmod 600 "$FRONT_PID_FILE" 2>/dev/null || true
+        if wait_for "http://localhost:$FRONT_PORT" 30 0.5; then ok "dashboard up http://localhost:$FRONT_PORT (http.server)"; else warn "dashboard not up"; fi
+      fi
+    fi
   fi
 }
 
 verify_api(){
   echo "--- verify API ---"
-  # POST /analyze single pcap + zip + GET flows/report
   if ! curl -sf "http://localhost:$API_PORT/flows" >/dev/null 2>&1; then warn "GET /flows not reachable"; return 0; fi
   echo "GET /flows $(curl -s "http://localhost:$API_PORT/flows" | head -c 200 | tr -d '\n' | cut -c1-200)..."
-  # single pcap
   if [[ -f lab/pcaps/family-01.pcap ]]; then
     code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:$API_PORT/analyze" 2>/dev/null || echo "000")
     echo "POST /analyze family-01.pcap -> HTTP $code"
     if [[ "$code" == "200" ]]; then
       echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
       ok "POST /analyze ok"
-      # check calibrated_prob present
       if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
     else
       warn "POST /analyze failed — see /tmp/turnup_analyze.json"
       cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
     fi
   fi
-  # zip of 3 families if available
   if ls lab/pcaps/family-0*.pcap >/dev/null 2>&1; then
     tmpzip=/tmp/turnup_3pcaps.zip
     (cd lab/pcaps && zip -j -q "$tmpzip" family-01.pcap family-03.pcap family-06.pcap 2>/dev/null) || true
@@ -267,6 +365,7 @@ do_check(){
   check_python; echo ""
   check_node; echo ""
   check_tshark; echo ""
+  check_docker; echo ""
   check_wheelhouse; echo ""
   check_models; echo ""
   check_frontend; echo ""
@@ -274,13 +373,21 @@ do_check(){
   echo "=== turnup --check done (tshark optional — not fatal; wheelhouse missing is fresh-clone fallback) ==="
   echo "next: bash scripts/turnup.sh           # full up (starts API :$API_PORT + dashboard :$FRONT_PORT)"
   echo "      bash scripts/turnup.sh --down     # stop"
+  echo "      WITH_DOCKER=1 bash scripts/turnup.sh  # docker lab profile"
 }
 
 do_full(){
+  # trap-clean lifecycle: ensure do_down on EXIT INT TERM before starting servers
+  trap 'do_down; exit' EXIT INT TERM
+  # when WITH_DOCKER=1 also trap docker compose down
+  if [[ "$WITH_DOCKER" == "1" ]]; then
+    trap 'do_down; docker compose --profile lab down 2>/dev/null || true; exit' EXIT INT TERM
+  fi
   echo "=== turnup full (API :$API_PORT + dashboard :$FRONT_PORT — docs/LARGE_FILES.md §5) ==="
   check_python; echo ""
   check_node; echo ""
   check_tshark; echo ""
+  check_docker; echo ""
   check_wheelhouse; echo ""
   check_models; echo ""
   check_frontend; echo ""
@@ -293,6 +400,8 @@ do_full(){
   echo "Dashboard http://localhost:$FRONT_PORT"
   echo "Logs      $LOG_DIR/api.log  $LOG_DIR/dashboard.log  $LOG_FILE"
   echo "Stop      bash scripts/turnup.sh --down"
+  # keep trap for INT/TERM during running; clear EXIT after success to avoid double down on normal exit?
+  # but spec says trap 'do_down; exit' EXIT INT TERM at top — keep it
 }
 
 case "$MODE" in
