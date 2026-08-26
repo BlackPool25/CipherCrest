@@ -4,6 +4,6 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   plugins: [react(), visualizer({ filename: 'dist/bundle-stats.html' })],
-  build: { chunkSizeWarningLimit: 600, rollupOptions: { output: { manualChunks: { recharts: ['recharts'] } } } },
+  build: { chunkSizeWarningLimit: 600, rollupOptions: { output: { manualChunks: { recharts: ['recharts'], Families: ['./src/pages/Families.jsx'] } } } },
   server: { proxy: { '/api': 'http://localhost:8000' } }
 })

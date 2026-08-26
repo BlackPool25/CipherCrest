@@ -14,6 +14,7 @@ import App, { HonestyBanner, Gauge, KPI, ThreatMatrix, MasterList, DrillDown } f
 import CoverageTable from '../components/CoverageTable.jsx'
 import Graphs from '../components/Graphs.jsx'
 import PcapCustomizer from '../components/PcapCustomizer.jsx'
+import Families from '../pages/Families.jsx'
 import { fetchFlows } from '../services/api.js'
 
 if (typeof document !== 'undefined') injectTokens()
@@ -303,20 +304,8 @@ function DashboardPage(){
   )
 }
 function FamiliesPage(){
-  const { flows, selectedId, setSelectedId } = useFlowsState()
-  const [q] = useQueryState('q', parseAsString.withDefault(''))
-  const [risk] = useQueryState('risk', parseAsString.withDefault('All'))
-  const selected = flows.find(f=> f.flow_id===selectedId) || flows.find(f=> String(f.flow_id).toLowerCase().includes(q.toLowerCase())) || flows[0] || null
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <h2 style={{ fontSize:14, fontWeight:600, color:TOK.ink, textTransform:'uppercase', letterSpacing:0.6 }}>Families — master-detail • nuqs q:{q||'—'} risk:{risk}</h2>
-      <div style={{ display:'grid', gridTemplateColumns:'360px 1fr', gap:16 }}>
-        <MasterList flows={flows} selectedId={selectedId} onSelect={setSelectedId} />
-        <DrillDown flow={selected} />
-      </div>
-      <ThreatMatrix flows={flows} onSelect={setSelectedId} selectedId={selectedId} />
-    </div>
-  )
+  // Delegates to 50-card Families grid — preserves MasterList virtualized slice 10/page contract
+  return <Families />
 }
 function LabPage(){
   const [flows, setFlows] = useState([])
