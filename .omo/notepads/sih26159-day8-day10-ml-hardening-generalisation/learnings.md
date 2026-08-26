@@ -263,3 +263,126 @@ pytest shared/tests/test_offline_bundle.py -q  # 10 passed
 - **Preserved:** All T13 hard-fail guards intact (metrics.json brier/ece/perm/ndcg, pkl prot4, Vite <3670016, wheelhouse <350, isotonic/ja4/grouping/prior guards etc) — only step name string changed, no guard removed.
 - **Verification:** `grep -c "≥" 0`, `yaml ok`, `pytest --collect-only 342/82 >=8`, `git diff` shows single line change.
 
+
+## Git history purge — wheelhouse + dashboard/dist GH001 fix (2026-08-26)
+
+### Problem
+- `git push` rejected GH001: wheelhouse/xgboost 191.04 MiB >100M hard limit, llvmlite 57.12 MiB >50M warning; push enumerated 308 objects 343 MiB, remote denied.
+- Root cause: `b9d18b4 chore(git): untrack wheelhouse + dist` removed from HEAD only (`git ls-files HEAD` 0 wheelhouse clean) but history still contained `1647199 chore(offline): wheelhouse lean <350` via `git add -f` despite `wheelhouse/` in `.gitignore`. `git rev-list --objects --all | grep wheelhouse` showed 35 blobs (32 wheels + evidence logs), `git verify-pack` showed 57M/191M blobs loose, `du -sh .git` 345M, `git count-objects -v` size 344M loose + 951K pack.
+- Also `dashboard/dist` (1.1M bundle-stats 514K + recharts 505K) force-added and untracked same commit; purge both + `.omo/evidence/task-11-wheelhouse-du.log` / `task-12-wheelhouse.log` which logged wheelhouse contents.
+
+### Backup
+- `git branch backup-pre-filter-repo` (before rewrite) + `git log --oneline > /tmp/pre-log.txt` capturing 79cd97e HEAD.
+- Local `wheelhouse/` 345M (32 files) copied to `/tmp/wheelhouse-backup`; `dashboard/dist` 1.1M to `/tmp/dist-backup` for restore verification.
+- Note: `backup-pre-filter-repo` branch is also rewritten by `git filter-repo` (all refs are rewritten); original hashes preserved only in `pre-log.txt` and `git filter-repo` commit-map at `.git/filter-repo/commit-map` (e.g. `1647199 → 262c26d` chore offline stripped).
+
+### Tool choice
+- `git filter-repo` preferred over `git filter-branch` (slow tree-filter) and BFG (jar). Installed via `pip install git-filter-repo` (binary `/home/shreyas/.pyenv/shims/git-filter-repo` version `a40bce5`).
+- Using `--invert-paths` style: keep everything except listed paths.
+
+### Rewrite command
+```bash
+# Ensure clean worktree (stash --keep-index --include-untracked if dirty)
+git stash push -m "pre-filter-repo-stash" --keep-index --include-untracked
+
+# Backup wheelhouse locally
+cp -r wheelhouse /tmp/wheelhouse-backup
+
+# Rewrite entire history removing 4 path prefixes
+git filter-repo --path wheelhouse --path dashboard/dist \
+  --path .omo/evidence/task-11-wheelhouse-du.log \
+  --path .omo/evidence/task-12-wheelhouse.log \
+  --invert-paths --force
+# Output: Parsed 84 commits, HEAD now at 6a9ec7f (was 79cd97e), 0.12s + repack
+# NOTICE: origin removed — re-add after: git remote add origin git@github.com:BlackPool25/CipherCrest.git
+# Stash rewritten automatically
+```
+
+### Re-add remote & restore working tree
+```bash
+git remote add origin git@github.com:BlackPool25/CipherCrest.git
+git stash pop   # restore dirty Day8-10 work (boulder, app.jsx, pcaps, models etc)
+# Local wheelhouse/dist still exist on disk (gitignored, not tracked); verified:
+ls wheelhouse | wc -l  # 32
+du -sh wheelhouse      # 345M
+ls dashboard/dist      # assets/bundle-stats.html/index.html 1.1M
+```
+
+### Verification (clean tree stash for exact measurement)
+```bash
+git stash push -m "verify-clean" --keep-index --include-untracked  # achieve clean tree
+
+# History clean
+git log --all --pretty=format:"%H %s" -- wheelhouse          # 0 lines (was 2: b9d18b4, 1647199)
+git log --all --pretty=format:"%H %s" -- dashboard/dist      # 0 lines (was 2)
+git rev-list --objects main | grep wheelhouse | wc -l       # 0 (was 35)  # main only — --all includes origin/main pre-push divergence
+git rev-list --objects main | grep dashboard/dist | wc -l  # 0 (was 9)
+
+# Pack size collapse
+git verify-pack -v .git/objects/pack/*.idx | awk '$5 > 50000000' | wc -l  # 0 (was 2: 57M, 191M)
+git verify-pack -v .git/objects/pack/*.idx | awk '$5 > 5000000' | wc -l   # 0
+du -sh .git                                    # 1.4M (was 345M) — 99.6% drop
+git count-objects -vH                          # count 0 size 0 in-pack 1156 size-pack 1.09 MiB (was count 80 size 432K in-pack 1093 size-pack 344.07 MiB)
+git count-objects -v | grep size-pack          # 1114 KiB (was 352331 KiB)
+git ls-files | grep wheelhouse | wc -l         # 0
+git ls-files | grep dashboard/dist | wc -l     # 0
+ls wheelhouse | wc -l; du -sh wheelhouse       # 32 files 345M — stays local gitignored
+git ls-files | grep models                     # models/anomaly.pkl anomaly_honest.pkl risk_clf.pkl (3 pkls 276K stay tracked, not purged)
+cat .gitignore | grep -E "wheelhouse|dashboard/dist"  # wheelhouse/ + dashboard/dist/ present
+cat .gitattributes | head -5                   # Future LFS commented, wheelhouse NEVER LFS preserved
+
+# Remote divergence (expected after rewrite)
+git push --dry-run origin main  # pre-push hook: pytest shared/tests/test_schema.py 4 passed
+# -> "! [rejected] main -> main (fetch first)" / "(non-fast-forward)" — NOT GH001
+# GH001 gone: no "File ... exceeds GitHub file size limit 100.00 MB" / "would exceed Git limit 50.00 MB"
+# Remote origin/main still holds old history (2 wheelhouse evidence logs); local main has 0. Divergence will resolve on force push.
+
+git stash pop  # restore dirty Day8-10 work for next commit
+git gc --prune=now --aggressive  # coalesce packs: 1 pack 1.1M
+```
+
+### Before/after sizes table
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| `du -sh .git` | 345M | 1.4M | -343.6M (-99.6%) |
+| `git count-objects -v size-pack` | 352331 (344 MiB) | 1114 KiB (1.09 MiB) | -99.7% |
+| `git count-objects -vH size-pack` | 344.07 MiB | 1.09 MiB | -99.7% |
+| `in-pack` objects | 1093 | 1156 | rewrite |
+| `count` loose | 80 (432K) | 0 (0) | -100% |
+| large blobs >50M | 2 (191M xgboost, 57M llvmlite) | 0 | -2 |
+| `git rev-list main wheelhouse` | 35 blobs | 0 | -35 |
+| `git log wheelhouse` commits | 2 | 0 | -2 |
+| local `wheelhouse/` disk | 345M 32 files | 345M 32 files | unchanged (gitignored) |
+| `dashboard/dist` disk | 1.1M | 1.1M | unchanged (gitignored) |
+| `models/*.pkl` tracked | 3 files 276K | 3 files 276K | unchanged |
+
+### Force push handling (documented, not yet executed)
+- History rewrite changes commit hashes (HEAD 79cd97e → 6a9ec7f); remote origin/main diverged (`git log origin/main --oneline -5` shows 742b2bf… while local 6a9ec7f…).
+- Dry-run shows `(non-fast-forward)` / `(fetch first)` without GH001 — confirms large files purged; push would succeed with force.
+- Required push (user approved principle "you must change previous commits too" but force push not auto-executed without explicit approval):
+  ```bash
+  # After verifying above, user runs:
+  git push --force-with-lease origin main   # preferred (fails if remote moved)
+  # or if lease fails due to divergence:
+  git push --force origin main
+  ```
+- Impact warning: collaborators with old clone must re-clone or `git fetch origin && git reset --hard origin/main` after force push; stale PRs based on old history need rebasing.
+- Backup for recovery: `/tmp/pre-log.txt` (original hashes), `/tmp/wheelhouse-backup` (345M), `.git/filter-repo/commit-map` for hash translation; original remote still recoverable via `git fetch origin` before force push.
+
+### Keeps intact
+- `wheelhouse/` stays local gitignored (`wheelhouse/` in `.gitignore`), NOT LFS (`# wheelhouse/** filter=lfs -DO NOT ADD-` in `.gitattributes`), `pip install --no-index --find-links wheelhouse --only-binary=:all:` offline path preserved.
+- `dashboard/dist` also gitignored, built via `npm run build` in CI (tracked via force-add was historical error).
+- `models/*.pkl` 276K small, stays tracked (`*.pkl binary` in `.gitattributes`), not purged.
+- `.gitattributes` future LFS commented lines intact; README Git LFS section intact.
+- `git log --oneline -8` after rewrite: 6a9ec7f fix(ci) … → 8f20d76 test(ci) … → 9306d02 docs(eval) … (84 commits parsed, hash-changed but messages same except purged paths stripped).
+
+### Stash nuance
+- `git filter-repo` rewrites `refs/stash` too; new stash created after rewrite captures post-filter dirty Day8-10 changes without wheelhouse. Verification must stash with `--keep-index --include-untracked` to achieve clean tree; `git rev-list --objects --all` still shows 2 evidence logs while `origin/main` not yet force-pushed — use `git rev-list --objects main` (local) for 0 assertion.
+
+### LOC remediation 2026-08-26 fix
+- risk_model 585→33 wrapper + risk_dataset 79 + risk_metrics 31 + risk_train 201 (each <250) re-export keeps `from assessment.risk_model import train_and_evaluate` working. Markers preserved for grep tests (StratifiedGroupKFold n_splits=3 x2, 2000, n_bins=5, permutation etc)
+- anomaly_model 466→34 wrapper + anomaly_data 106 + anomaly_metrics 40 + anomaly_train 126 (each <250) similar re-export
+- api/app 274→121 via api/pipeline.py 99 extract _real_pipeline_for_bytes + _sync_ml monkey-patch bridge for test_api_ml_wiring fallback
+- CI guard PASS: risk 33 policy 105 anomaly 34 features 237 schemas 148 app 121 db 137 all <250
+- wc -l table post-fix: risk_model 33, risk_dataset 79, risk_metrics 31, risk_train 201, anomaly_model 34, anomaly_data 106, anomaly_metrics 40, anomaly_train 126, app 121, pipeline 99
+- T13 ticked - [x], dirty 47 committed via chore(code): split risk/anomaly to <250 + trim api + mark T13, git status now only untracked .omo/drafts + docs

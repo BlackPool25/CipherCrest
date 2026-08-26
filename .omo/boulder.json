@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "wrk_sih26159_till_day7",
+  "active_work_id": "wrk_sih26159_day8day10",
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -53,6 +53,17 @@
       "started_at": "2026-08-25T14:00:00Z",
       "ended_at": "2026-08-25T14:55:12Z",
       "elapsed_ms": 3312000
+    },
+    "wrk_sih26159_day8day10": {
+      "work_id": "wrk_sih26159_day8day10",
+      "active_plan": ".omo/plans/sih26159-day8-day10-ml-hardening-generalisation.md",
+      "plan_name": "sih26159-day8-day10-ml-hardening-generalisation",
+      "session_ids": [
+        "codex:ses_atlas_day8day10"
+      ],
+      "status": "active",
+      "worktree_path": null,
+      "started_at": "2026-08-26T00:00:00Z"
     }
   }
 }
