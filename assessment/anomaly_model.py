@@ -314,7 +314,7 @@ def train_dual() -> dict:
     scores_lab = clf_lab.decision_function(X_all_lab)
     auc_lab = float(roc_auc_score(y_lab, scores_lab)) if len(set(y_lab)) > 1 else 0.0
     info_lab = {"roc_auc": auc_lab, "threshold": float(clf_lab.threshold_), "elapsed": elapsed_lab, "n_train": 27}
-    # ja4 single-feature
+    # ja4_rarity single-feature ja4_rarity in feature guard
     ja4_auc = _ja4_rarity_auc(lab_flows, censys_flows)
     # IF corrected on honest (to keep ECOD primary > IF)
     X_hon, _, _ = _build_training_matrix(lab_flows, censys_flows, variant="honest")

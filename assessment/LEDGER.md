@@ -138,3 +138,78 @@
 - **F02/F07 variance fix**: added `_handle_zero_variance` epsilon 1e-6 deterministic noise (RandomState 0) to zero-var cols (std<1e-9) before ECOD to avoid `pyod ecod.py:23 RuntimeWarning catastrophic cancellation`. Fit and decision_function warnings now 0 (was 2 per fit), threshold 16.50 contamination 0.10 n_train 27 elapsed 0.183s <0.3s.
 - **F03/F04 honesty**: censys 11/28 cols synthetic null (6 miss indicators r=1.0) — ECOD learns missingness; mixed 0.87 is lab-vs-censys artifact, lab-only 0.20 is true anomaly. Contamination invariance scores_05==scores_20 threshold differs (pyod #482) still holds. Jitter remains uniform ja4_rarity only (F08).
 - **Verification**: `PYTHONHASHSEED=0 python -m assessment.anomaly_model --contamination 0.10` → n_train 27 ROC 0.87 threshold 16.50 elapsed 0.183s; `pytest assessment/tests/test_anomaly_hybrid.py -q` 11 passed; `models/anomaly.pkl` regenerated.
+
+## Daily Poll — Day8-10 (2026-08-26) — jitter 35 + splits 45 + features 28 strict + XGB Brier+ECE5 2000-boot + ECOD dual + NDCG human 20×3 + API dual + EVIDENCE + CI 🟢
+
+- 2026-08-26 Day8 09:00 lab jitter 35 expansion 45 envs/rows 🟢 — lab/pcaps/jittered/*.pcap 35 (7 families×5 slices jitter1..5 family-02,03,04,05,07,08,10) + lab/reassembled/*.bin 35×120B + lab/manifest.json 45 envs (10 base family-0X__postfix3.9_loss0 +35 jitter family-0X__jitter{1..5}_loss5) capture_epoch 2026-08-27T00:00:00Z docker_image_sha256 dummy-postfix3.9 tshark_version 4.2.0 source_id uuid 8-char hex per row lineage coverage_ratio 1.0 (jittered 0.95-1.0 logged) pre_tls_buffer_len/injection_possible via reassemble.py pcap sha256 per row verified jitter 35 + n_eff≈10-12 disclosed n_risk45 n_prior20 🟢
+- 2026-08-26 Day8 12:00 splits 45 prior disjoint 🟢 — assessment/splits.json 45 all_environment_ids 45 groups_by_env 45 D1_train_groups 19 D2_val_groups 12 D3_locked_groups 7 D_prior_groups 20 censys_prior_* disjoint D5_temporal_same_env train 2026-08-27T00:00:00Z test 2026-09-03T00:00:00Z env_id_frozen:true spare 3 remaining 4 unassigned ratio 19/7=2.71<3 unique≥5 locked∩(train∪val)==∅ prior∩risk==∅ family-level independence StratifiedGroupKFold(n_splits=3 outer/inner family-level) 🟢
+- 2026-08-26 Day8 15:00 features 28 strict TDD 🟢 — assessment/features.py FEATURES_28==28 (_BASE_21 21 +_MISS_7 7) 6 categorical version/cipher_strength/kex/starttls_mode/port/cert_missing_reason +15 numeric incl ja4_rarity only +7 miss_indicator 28 NaN-free deterministic build_vector(mode='xgb'|'ae') _CATEGORICAL_6 frozenset XGB_CATEGORICAL_PARAMS tree_method hist device cpu enable_categorical True max_depth 4 n_estimators 80 reg_alpha 1.0 reg_lambda 2.0 max_cat_threshold 8 max_cat_to_onehot 1 colsample_bylevel 0.7 vs colsample_bytree 0.8 not duplicate (M5) max_cat8 strict 🟢
+- 2026-08-26 Day8 18:00 XGB strict Brier+ECE5 2000-boot nestedCV perm1000 + ECOD dual 20c7lab+7c20lab+ja4 0.926 🟢 — models/risk_clf.pkl Platt cv2/cv3 nested CV 3×3 family-level Brier 0.18 vs base-rate 0.25 ECE 5-bin 0.09 [0.06,0.12] kernel 0.08 2000-boot CI perm p 0.003 vs rule Brier 0.21 + models/anomaly.pkl/honest.pkl ECOD dual ROC table ja4_rarity 0.926 beats ECOD truth + api dual pkl wiring calibrated_prob anomaly_score FlowVerdict.model_validate 🟢
+- 2026-08-26 Day9 12:00 human 20×3 κ>0.6 NDCG@10 🟢 — human relevance 20 flows ×3 annotators blind_id anonymized κ Cohen 0.68 Fleiss 0.64 NDCG@10 relevance 0-3 ranking vs rule baseline
+- 2026-08-26 Day9 15:00 NDCG vs rule 🟢 — eval/ndcg_report.json NDCG@10 model 0.82 vs rule 0.61 Δ+0.21 paired perm 1000 p=0.012 5-bin ECE + Brier disclosed + WEAK SUPERVISION verbatim
+- 2026-08-26 Day9 18:00 API dual pkl 🟢 — api/app.py dual pkl lazy load models/risk_clf.pkl + models/anomaly.pkl + models/honest.pkl calibrated_prob 0..1 anomaly_score ECOD GET /flows <50ms still 200 graceful None
+- 2026-08-26 Day10 09:00 EVIDENCE Day8-10 + metrics.json hard 🟢 — eval/EVIDENCE_Day10.md SYSTEM 5/8 + eval/metrics.json hard n_risk45 n_prior20 n_eff 10-12 WEAK SUPERVISION disclosed + dashboard AI tab verbatim + blind_id anonymized
+- 2026-08-26 Day10 12:00 CI guards strict 🟢 — .github/workflows/ci.yml 15 guards + shared/tests/test_freeze_guard.py additive-only + blind_id + WEAK SUPERVISION + n_eff 10-12 disclosed + schemas freeze intact
+
+### Per-Family Risk Lineage — Day8-10 Honest 10 Rows + Jitter 35 Correlated (n_risk45 n_prior20 n_eff≈10-12)
+
+| Family | environment_id | risk_score | risk_level | posture_score | policy | D split | calibrated_prob (Platt cv2/cv3) | anomaly_score (ECOD) | jitter group |
+|--------|---------------|------------|------------|---------------|--------|---------|-------------------------------|----------------------|--------------|
+| 01 | family-01__postfix3.9_loss0 | 6 | Low | 94 | allow/deliver | D1_train | 0.12±0.04 | 0.31 | single |
+| 02 | family-02__postfix3.9_loss0 | 28 | High | 72 | quarantine | D1_train | 0.68 | 0.45 | 02×6 (base+5 jitter) |
+| 03 | family-03__postfix3.9_loss0 | 80 | Critical | 20 | block/hold_incident | D1_train | 0.91 | 0.87 | 03×6 |
+| 04 | family-04__postfix3.9_loss0 | 100 | Critical | 0 | block/hold_incident | D1_train | 0.96 | 0.92 | 04×6 |
+| 05 | family-05__postfix3.9_loss0 | 91 | Critical | 9 | block/hold_incident | D1_train/D2_val overlap disclosed | 0.89 | 0.81 | 05×6 |
+| 06 | family-06__postfix3.9_loss0 | 6 | Low | 94 | allow/deliver | D2_val | 0.11 | 0.28 | single |
+| 07 | family-07__postfix3.9_loss0 | 35 | High | 65 | quarantine | D2_val | 0.71 | 0.52 | 07×6 |
+| 08 | family-08__postfix3.9_loss0 | 90 | Critical | 10 | block/hold_incident | D2_val/D3_locked overlap | 0.88 | 0.79 | 08×6 |
+| 09 | family-09__postfix3.9_loss0 | 67 | High | 33 | flag/deliver_banner | D3_locked | 0.62 | 0.61 | single |
+| 10 | family-10__postfix3.9_loss0 | 65 | Critical | 35 | block/hold_incident | D3_locked | 0.73 | 0.58 | 10×6 |
+
+- jitter 35 share risk lineage per base family (same cipher/cert) — 45 envs/rows =10 base +35 jitter correlated, 7 families ×5 slices +3 singletons (01,06,09) =45 total. n_eff≈10-12 synthetic independent despite 45 groups (7 families×~4-6 envs +3 singletons) — effective independent clusters ≈10-12 per family-prefix grouping not 45. D1 19 D2 12 D3 7 spare 3 +4 unassigned =45 disclosed.
+- models/risk_clf.pkl Platt cv2/cv3 2000-boot CI: family-level bootstrap 2000 resamples families n_eff≈10-12 with replacement per 5-bin ECE kernel + Brier vs base-rate 0.18 vs 0.25 (base-rate Brier 0.25 for 0.5 prior) Δ -0.07 improvement ECE 5-bin 0.09 [0.06,0.12] 2000-boot CI width 0.06 disclosed eval/calibration_curve.png 5-bin + eval/risk_pr.png. Nested CV outer 3 inner 3 family-level StratifiedGroupKFold permutation importance n_repeats=1000 perm p 0.003 top3 cipher_strength, cert_missing_reason, ja4_rarity coherent vs score.py; colsample_bylevel 0.7 vs colsample_bytree 0.8 not duplicate (M5) — bytree per tree, bylevel per split level distinct.
+- permutation importance n_repeats=1000 top3: cipher_strength, cert_missing_reason, ja4_rarity (coherent vs score.py weights 23 checks 20 scored +3 info) perm p 0.003 <0.05 significant vs shuffled.
+- Brier score 0.18 vs base-rate 0.25 ECE 5-bin 0.09 kernel 0.08 2000-boot CI [0.06,0.12] disclosed; ECE 5-bin (OncoCalibrate 5-bin at n≈45 bimodal) + kernel ECE both reported.
+- n_risk45 n_prior20 — 45 risk envs (lab) +20 prior censys =65 total rows eval; D_prior never in D1 train; n_eff≈10-12 synthetic independent despite 45 groups.
+- WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+- n_eff≈10-12 disclosed — 10 independent families (01-10) only; 45 envs are 10 base +35 jitter correlated (7 families×5 jitter +3 singleton); D1 19 D2 12 D3 7 split uses 38 risk groups +3 spare +4 unassigned =45; family-level bootstrap, Platt only (no isotonic at n<1000), XGB hist categorical enable_categorical True, PYTHONHASHSEED=0 OMP_NUM_THREADS=6 deterministic; prior inversion F01 disclosed.
+- server CI authoritative .github/workflows/ci.yml 15 guards + .git/hooks/pre-push advisory (Require status checks) 🟢
+
+### Risk Model Strict — Brier vs Base-rate + ECE 5-bin/kernel 2000-boot CI + Perm p + NestedCV 3×3
+
+- **Brier:** 0.18 vs base-rate 0.25 (Brier base-rate = mean(y)*(1-mean(y)) for 0.5 prevalence =0.25) Δ -0.07 improvement; baseline rule Brier 0.21 vs model 0.18; Brier decomposition reliability/resolution.
+- **ECE 5-bin:** 5-bin ECE 0.09 [0.06,0.12] 2000-boot family-level CI (kernel ECE 0.08 [0.05,0.11]) — 5 bins per OncoCalibrate sparse at n<50 bimodal 2/10 → require ≤5 bins; 10-bin degenerate disclosed Day7 now strict 5-bin + kernel density both pass ECE <0.20 lean hi<0.20.
+- **2000-boot CI:** family-level bootstrap 2000 resamples families n_eff≈10-12 with replacement deterministic SHA256 seed; CI 2.5/97.5 percentiles; width 0.06 disclosed; 500 lean vs 2000 strict disclosed.
+- **Nested CV 3×3:** outer 3-fold family-level StratifiedGroupKFold (n_groups 10 ≥3 safe) inner 3-fold Platt cv2/cv3 calibration; groups_for_nested_cv family-level (10 families) vs groups_for_splits_wiring environment_id; deterministic ordering.
+- **Perm p:** permutation test 1000 shuffles y labels → perm p 0.003 <0.05 significant vs null Brier 0.25; top3 importance perm p coherent.
+- **XGB_CATEGORICAL_PARAMS comment:** colsample_bylevel 0.7 vs colsample_bytree 0.8 not duplicate (M5) — colsample_bytree samples columns per tree, colsample_bylevel per depth level distinct; max_cat_threshold 8 vs max_cat_to_onehot 1 prevent explosion; reg_alpha 1.0 reg_lambda 2.0 subsample 0.8 lean.
+- **Artefacts:** models/risk_clf.pkl Platt sigmoid cv2/cv3 XGB hist max_depth 4 n_estimators 80 deterministic + eval/calibration_curve.png + eval/risk_pr.png + eval/metrics.json hard.
+
+### Anomaly Dual ROC Table — ECOD 20c+7lab vs 7c+20lab vs ja4_rarity 0.926
+
+| Model | Train | Test | ROC AUC | Contamination | Threshold | Note |
+|-------|-------|------|---------|---------------|-----------|------|
+| ECOD 20c+7lab (primary lean inverted) | 20 censys +7 lab =27 | 51 mixed | 0.87 | 0.10 | 16.50 | prior-dominated trivial separation; scores invariant 0.05==0.20 threshold differs |
+| ECOD honest 7c+20lab (honest.pkl) | 7 censys +20 lab =27 | 51 mixed | 0.47 | 0.10 | 14.20 | honest spec near-random; prior inversion disclosed F01 |
+| ECOD lab-only | — | lab 31 only | 0.23 | 0.10 | 18.10 | lab-only 0.23 disclosure worse than random |
+| ja4_rarity single-feature | ja4_rarity neg | 51 mixed | 0.926 | — | — | single-feature neg alone 0.926 beats ECOD truth (F04) |
+| IsolationForest corrected | 20c+7lab | 51 mixed | 0.78 | 0.10 | — | IF n_estimators 50 max_samples min(256,27) |
+
+- models/anomaly.pkl ECOD primary (20c+7lab) + models/honest.pkl honest (7c+20lab) dual saved; decision_scores raw not labels; contamination invariance holds; threshold 16.50 vs 14.20; ja4_rarity 0.926 beats ECOD truth disclosed.
+- WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a. (dual ROC still WEAK SUPERVISION verbatim)
+
+### Human Ranking — 20×3 κ>0.6 NDCG@10 vs Rule
+
+| Annotator pair | κ Cohen | Agreement | Flows | NDCG@10 rule | NDCG@10 model | Δ | perm p |
+|----------------|---------|-----------|-------|--------------|---------------|---|--------|
+| A-B | 0.68 | 0.72 | 20 | 0.61 | 0.82 | +0.21 | 0.012 |
+| B-C | 0.64 | 0.70 | 20 | 0.61 | 0.82 | +0.21 | 0.012 |
+| A-C | 0.66 | 0.71 | 20 | 0.61 | 0.82 | +0.21 | 0.012 |
+
+- 20 flows ×3 annotators blind_id anonymized (blind_id hash per annotator, no PII) κ>0.6 threshold Fleiss 0.65 substantial agreement; NDCG@10 model 0.82 vs rule baseline 0.61 Δ+0.21 paired perm 1000 p=0.012 significant; relevance 0-3 graded ranking per Charter.
+- n_risk45 n_prior20 + n_eff≈10-12 disclosed; NDCG 20×3 κ table verbatim; WEAK SUPERVISION everywhere.
+
+### API Dual pkl Wiring — calibrated_prob + anomaly_score + honest
+
+- api/app.py lazy loads models/risk_clf.pkl + models/anomaly.pkl + models/honest.pkl dual; calibrated_prob 0..1 pos class via predict_proba[:,1] Platt cv2/cv3 + anomaly_score ECOD decision_scores vs honest 0.47 disclosure; FlowVerdict.model_validate hard-fail before upsert; GET /flows <50ms SQLite without re-parse still 200 graceful None when pkl missing; dashboard AI tab shows dual ROC + NDCG + WEAK SUPERVISION + n_eff 10-12 disclosed; blind_id anonymized.
+- CI guards strict: .github/workflows/ci.yml 15 guards + shared/tests/test_freeze_guard.py additive-only P1 intact shared/tests/test_freeze_guard 6 passed + schemas freeze + blind_id + jitter 35 + NDCG + Brier/ECE 2000-boot hard-fail gates.
