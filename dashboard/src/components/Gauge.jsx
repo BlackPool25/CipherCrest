@@ -1,1 +1,1 @@
-export { Gauge as default } from '../../app.jsx'
+export { Gauge as default } from '../App.jsx'

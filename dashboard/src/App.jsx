@@ -1,5 +1,5 @@
 /**
- * CipherCrest Dashboard — Light SOC (impeccable)
+ * CipherCrest Dashboard — Light SOC (canonical)
  * ------------------------------------------------------------------
  * Mode: Operate — analyst completes posture triage; scanability > expression.
  * Tokens: canvas #F8FAFC / surface #FFFFFF / border #E2E8F0 / border-strong #94A3B8
@@ -740,7 +740,7 @@ export default function App() {
         <span style={{ background:TOK.actionSoft, color:TOK.action, padding:'4px 10px', borderRadius:999, fontSize:10, fontWeight:600, border:`1px solid ${TOK.action}20` }}>hash #/flow/{selected?.flow_id||'—'} deep link</span>
       </div>
 
-      {/* — Top band: Gauge+KPI (Coverage%, mean ECE, High-risk count) then customizer button — impeccable 8pt rhythm, little-color — */}
+      {/* — Top band: Gauge+KPI (Coverage%, mean ECE, High-risk count) then customizer button — 8pt rhythm, little-color — */}
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr auto', gap: 16, marginBottom: 16, alignItems: 'stretch' }}>
         <Gauge posture={avgPosture} />
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(0,1fr))', gap:12 }}>
