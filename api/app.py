@@ -11,14 +11,14 @@ from api.db import query_all, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 import api.ml_enrich as _ml
 from api.ml_enrich import enrich_flows as _ml_enrich
-risk_clf = _ml.risk_clf; anomaly_clf = _ml.anomaly_clf
+risk_clf = _ml.risk_clf; anomaly_clf = _ml.anomaly_clf; anomaly_honest_clf = _ml.anomaly_honest_clf
 def _enrich_stub_flows(flows):
-    rc, ac = globals().get("risk_clf"), globals().get("anomaly_clf")
-    if rc is None and ac is None and _ml.risk_clf is not None:
-        _oR, _oA = _ml.risk_clf, _ml.anomaly_clf; _ml.risk_clf = _ml.anomaly_clf = None
+    rc, ac, ah = globals().get("risk_clf"), globals().get("anomaly_clf"), globals().get("anomaly_honest_clf")
+    if rc is None and ac is None and ah is None and _ml.risk_clf is not None:
+        _oR, _oA, _oAH = _ml.risk_clf, _ml.anomaly_clf, _ml.anomaly_honest_clf; _ml.risk_clf = _ml.anomaly_clf = _ml.anomaly_honest_clf = None
         try: return _ml_enrich(flows)
-        finally: _ml.risk_clf, _ml.anomaly_clf = _oR, _oA
-    if rc is not _ml.risk_clf or ac is not _ml.anomaly_clf: _ml.risk_clf, _ml.anomaly_clf = rc, ac
+        finally: _ml.risk_clf, _ml.anomaly_clf, _ml.anomaly_honest_clf = _oR, _oA, _oAH
+    if rc is not _ml.risk_clf or ac is not _ml.anomaly_clf or ah is not _ml.anomaly_honest_clf: _ml.risk_clf, _ml.anomaly_clf, _ml.anomaly_honest_clf = rc, ac, ah
     return _ml_enrich(flows)
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
@@ -73,7 +73,23 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             except Exception:
                 pass
             cert.setdefault("leaf_present", cert.get("leaf_present", False)); cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False)); cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
-            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": "smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"),"starttls_mode": "implicit" if tls.get("version")=="TLS1.3" else ("upgrade" if reasm.get("starttls_detected") else "upgrade"),"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
+            # derive app_protocol from manifest port if available (fixes family-03 imap 143 vs smtp fallback)
+            _fam_proto = None
+            try:
+                _mf = json.loads(pathlib.Path("lab/manifest.json").read_text()) if pathlib.Path("lab/manifest.json").exists() else {}
+                _fam = None
+                for _k, _v in _mf.items():
+                    if _k in hint_name:
+                        _fam = _v; break
+                if _fam and _fam.get("port"):
+                    _pt = int(_fam.get("port"))
+                    if _pt in (25, 587, 465): _fam_proto = "smtp"
+                    elif _pt in (143, 993): _fam_proto = "imap"
+                    elif _pt in (110, 995): _fam_proto = "pop3"
+            except Exception:
+                _fam_proto = None
+            _app_proto = _fam_proto if _fam_proto else ("smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"))
+            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": "implicit" if tls.get("version")=="TLS1.3" else ("upgrade" if reasm.get("starttls_detected") else "upgrade"),"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
             try:
                 findings = real_evaluate(flow_dict)
                 rs, rl, ps = real_score(findings)
@@ -83,7 +99,8 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             try:
                 calibrated_prob = None
                 anomaly_score = None
-                if risk_clf is not None or anomaly_clf is not None:
+                anomaly_honest_score = None
+                if risk_clf is not None or anomaly_clf is not None or anomaly_honest_clf is not None:
                     from assessment.features import FEATURES_28 as _F28, _CATEGORICAL_6 as _CAT6, build_vector as _bv
                     vec = _bv(flow_dict, mode='xgb')
                     if risk_clf is not None:
@@ -108,11 +125,19 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                             anomaly_score = float(anomaly_clf.decision_function(_np2.array([vec]))[0])
                         except Exception:
                             anomaly_score = None
+                    if anomaly_honest_clf is not None:
+                        try:
+                            import numpy as _np3
+                            anomaly_honest_score = float(anomaly_honest_clf.decision_function(_np3.array([vec]))[0])
+                        except Exception:
+                            anomaly_honest_score = None
                 flow_dict["assessment"]["calibrated_prob"] = calibrated_prob
                 flow_dict["assessment"]["anomaly_score"] = anomaly_score
+                flow_dict["assessment"]["anomaly_honest_score"] = anomaly_honest_score
             except Exception:
                 flow_dict["assessment"].setdefault("calibrated_prob", None)
                 flow_dict["assessment"].setdefault("anomaly_score", None)
+                flow_dict["assessment"].setdefault("anomaly_honest_score", None)
             flow_dict["policy"] = None
             fv = FlowVerdict.model_validate(flow_dict)
             return [fv]

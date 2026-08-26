@@ -113,6 +113,7 @@ class Assessment(BaseModel):
     risk_level: Literal["Critical", "High", "Medium", "Low"]
     risk_score: int = Field(ge=0, le=100)
     anomaly_score: float | None = Field(default=None)
+    anomaly_honest_score: float | None = Field(default=None)
     posture_score: int | None = Field(default=None, ge=0, le=100)
     calibrated_prob: float | None = Field(default=None, ge=0, le=1)
 

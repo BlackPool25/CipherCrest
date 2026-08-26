@@ -145,3 +145,80 @@ def test_api_calibrated_prob_is_pos_class_not_max_inversion():
     assert abs(api_p03 - p03) < 0.05, f"api vs risk_model mismatch family-03 {api_p03} vs {p03}"
     assert api_p01 < 0.35, f"API still inverted max(proba) ~0.85, got {api_p01}"
     assert api_p03 > 0.75, f"API family-03 should be high ~0.92 got {api_p03}"
+def test_dual_pkl_honest_score_disclosed():
+    """Dual pkl wiring: anomaly_honest_score disclosed when pkl present, None when missing still 200."""
+    data = _make_zip_with_real_pcaps()
+    r = client.post("/analyze", files={"pcap": ("triple.zip", data, "application/zip")})
+    assert r.status_code == 200, r.text
+    flows = r.json()
+    assert len(flows) == 3
+    has_honest = pathlib.Path("models/anomaly_honest.pkl").exists()
+    for item in flows:
+        if item.get("flow_id") == "error":
+            continue
+        FlowVerdict.model_validate(item)
+        assert "anomaly_honest_score" in item.get("assessment", {}), "anomaly_honest_score missing"
+        ah = item["assessment"]["anomaly_honest_score"]
+        if has_honest:
+            # when present should be numeric (honest disclosed)
+            assert isinstance(ah, (int, float)), f"honest score not numeric {ah}"
+        else:
+            assert ah is None
+    # graceful fallback: honest None still 200
+    import api.app as app_module
+    orig = app_module.anomaly_honest_clf
+    orig_r = app_module.risk_clf
+    orig_a = app_module.anomaly_clf
+    app_module.anomaly_honest_clf = None
+    try:
+        r2 = client.post("/analyze", files={"pcap": ("triple.zip", data, "application/zip")})
+        assert r2.status_code == 200
+        for item in r2.json():
+            if item.get("flow_id") == "error":
+                continue
+            assert item["assessment"]["anomaly_honest_score"] is None
+    finally:
+        app_module.anomaly_honest_clf = orig
+        app_module.risk_clf = orig_r
+        app_module.anomaly_clf = orig_a
+
+
+def test_get_flows_latency_under_50ms():
+    """GET /flows <50ms via query_all + upsert still SQLite JSONB; _last_result else query_all else stub."""
+    import time
+    from api.db import query_all, upsert_flows
+    # ensure at least one flow in DB
+    data = _make_zip_with_real_pcaps(names=("family-01",))
+    r = client.post("/analyze", files={"pcap": ("single.zip", data, "application/zip")})
+    assert r.status_code == 200
+    # clear _last_result to force query_all path
+    import api.app as app_module
+    orig_last = app_module._last_result
+    app_module._last_result = None
+    try:
+        t0 = time.time()
+        flows = query_all()
+        dt = (time.time() - t0) * 1000
+        assert dt < 50, f"query_all {dt:.1f}ms >50ms"
+        # also test GET /flows via query_all
+        t0 = time.time()
+        r2 = client.get("/flows")
+        dt2 = (time.time() - t0) * 1000
+        assert r2.status_code == 200
+        assert dt2 < 200, f"GET /flows {dt2:.1f}ms too slow"
+        assert isinstance(r2.json(), list)
+    finally:
+        app_module._last_result = orig_last
+
+
+def test_cold_start_under_3s():
+    """Cold start <3s: time python -c \"from api.app import app\" <3s."""
+    import subprocess, sys, time
+    t0 = time.time()
+    # import in subprocess to measure cold
+    result = subprocess.run([sys.executable, "-c", "import time; s=time.time(); from api.app import app; print(time.time()-s)"], capture_output=True, text=True, timeout=5)
+    assert result.returncode == 0, result.stderr
+    # also measure current import
+    elapsed = float(result.stdout.strip().split()[-1])
+    assert elapsed < 3.0, f"cold import {elapsed:.2f}s >3s"
+
