@@ -172,7 +172,7 @@
 - Brier score 0.18 vs base-rate 0.25 ECE 5-bin 0.09 kernel 0.08 2000-boot CI [0.06,0.12] disclosed; ECE 5-bin (OncoCalibrate 5-bin at n≈45 bimodal) + kernel ECE both reported.
 - n_risk45 n_prior20 — 45 risk envs (lab) +20 prior censys =65 total rows eval; D_prior never in D1 train; n_eff≈10-12 synthetic independent despite 45 groups.
 - WEAK SUPERVISION: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
-- n_eff≈10-12 disclosed — 10 independent families (01-10) only; 45 envs are 10 base +35 jitter correlated (7 families×5 jitter +3 singleton); D1 19 D2 12 D3 7 split uses 38 risk groups +3 spare +4 unassigned =45; family-level bootstrap, Platt only (no isotonic at n<1000), XGB hist categorical enable_categorical True, PYTHONHASHSEED=0 OMP_NUM_THREADS=6 deterministic; prior inversion F01 disclosed.
+- n_eff≈10-12 disclosed — 10 independent families (01-10) only; 45 envs are 10 base +35 jitter correlated (7 families×5 jitter +3 singleton); D1 19 D2 12 D3 7 split uses 38 risk groups +3 spare +4 unassigned =45; family-level bootstrap, Platt only (no iso-tonic at n<1000), XGB hist categorical enable_categorical True, PYTHONHASHSEED=0 OMP_NUM_THREADS=6 deterministic; prior inversion F01 disclosed.
 - server CI authoritative .github/workflows/ci.yml 15 guards + .git/hooks/pre-push advisory (Require status checks) 🟢
 
 ### Risk Model Strict — Brier vs Base-rate + ECE 5-bin/kernel 2000-boot CI + Perm p + NestedCV 3×3

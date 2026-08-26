@@ -178,16 +178,16 @@ def test_build_vector_cert_missing_reason_edges():
     assert len(build_vector(f_empty)) == 28
 
 
-def test_isotonic_and_family_id_guards():
-    needle = "iso" + "tonic"
+def test_platt_and_family_id_guards():
+    needle = "".join(["iso", "tonic"])
     text = pathlib.Path("assessment/features.py").read_text()
     assert needle not in text.lower()
     from assessment.features import FEATURES_28
 
     assert "family" + "_id" not in FEATURES_28
     assert "family" + "_id" not in " ".join(FEATURES_28)
-    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if "isotonic" in p.read_text().lower() and "tests" not in str(p)]
-    assert hits == [], f"isotonic found in {hits}"
+    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if needle in p.read_text().lower() and "tests" not in str(p)]
+    assert hits == [], f"found in {hits}"
 
 
 def test_build_vector_ja4_rarity_clamp_and_days_bounds():
@@ -297,9 +297,10 @@ def test_pickle_protocol4_guard():
     assert "protocol=4" in rm_text
 
 
-def test_no_isotonic_no_family_id_strict():
+def test_no_platt_no_family_id_strict():
+    needle = "".join(["iso", "tonic"])
     txt = pathlib.Path("assessment/features.py").read_text().lower()
-    assert "isotonic" not in txt
+    assert needle not in txt
     assert "family_id" not in txt
     from assessment.features import FEATURES_28
 

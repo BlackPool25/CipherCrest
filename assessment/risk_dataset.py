@@ -1,4 +1,5 @@
-"""risk_dataset — load 45-env dataset + XGB constants."""
+"""risk_dataset — load 45-env dataset + XGB constants LOFAM stump honest."""
+
 from __future__ import annotations
 import hashlib
 import json
@@ -15,31 +16,36 @@ MODEL_PATH = pathlib.Path("models/risk_clf.pkl")
 EVAL_DIR = pathlib.Path("eval")
 WEAK_SUPERVISION = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
+# LOFAM stump honest: max_depth 1-2 only, reg_lambda 5-10, min_child_weight 3-5, n_estimators 100, learning_rate 0.05, early_stopping_rounds 20
 XGB_PARAMS = dict(
     tree_method="hist",
     device="cpu",
     enable_categorical=True,
-    max_depth=4,
-    n_estimators=80,
+    max_depth=1,
+    n_estimators=100,
+    learning_rate=0.05,
     reg_alpha=1.0,
-    reg_lambda=2.0,
+    reg_lambda=5.0,
     max_cat_threshold=8,
     max_cat_to_onehot=1,
     colsample_bylevel=0.7,
     colsample_bytree=0.8,
     subsample=0.8,
-    min_child_weight=1,
+    min_child_weight=3,
     gamma=0.1,
     random_state=42,
     verbosity=0,
+    early_stopping_rounds=20,
 )
 PARAM_GRID = [
-    dict(max_depth=3, reg_lambda=1.0),
-    dict(max_depth=3, reg_lambda=2.0),
-    dict(max_depth=3, reg_lambda=5.0),
-    dict(max_depth=4, reg_lambda=1.0),
-    dict(max_depth=4, reg_lambda=2.0),
-    dict(max_depth=4, reg_lambda=5.0),
+    dict(max_depth=1, reg_lambda=5.0, min_child_weight=3),
+    dict(max_depth=1, reg_lambda=5.0, min_child_weight=5),
+    dict(max_depth=1, reg_lambda=10.0, min_child_weight=3),
+    dict(max_depth=1, reg_lambda=10.0, min_child_weight=5),
+    dict(max_depth=2, reg_lambda=5.0, min_child_weight=3),
+    dict(max_depth=2, reg_lambda=5.0, min_child_weight=5),
+    dict(max_depth=2, reg_lambda=10.0, min_child_weight=3),
+    dict(max_depth=2, reg_lambda=10.0, min_child_weight=5),
 ]
 
 from functools import lru_cache as _lru

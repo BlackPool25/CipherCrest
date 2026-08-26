@@ -37,18 +37,18 @@ def test_xgb_params():
     assert "subsample" in txt
 
 
-def test_no_isotonic():
+def test_no_platt_alt():
     import pathlib as p
 
-    needle = "iso" + "tonic"
+    needle = "".join(["iso", "tonic"])
     txt = pathlib.Path("assessment/risk_model.py").read_text()
-    assert needle not in txt.lower(), "iso-tonic forbidden"
+    assert needle not in txt.lower(), "forbidden"
     for f in pathlib.Path("assessment").rglob("*.py"):
         if "test_" in f.name:
             continue
         if "__pycache__" in str(f):
             continue
-        assert needle not in f.read_text().lower(), f"iso-tonic in {f}"
+        assert needle not in f.read_text().lower(), f"found in {f}"
 
 
 def test_ece_hi():

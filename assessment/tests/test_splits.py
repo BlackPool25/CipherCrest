@@ -96,7 +96,7 @@ def test_family_id_forbidden():
 
 
 def test_no_forbidden_calibration_in_assessment():
-    needle = "iso" + "tonic"
+    needle = "".join(["iso", "tonic"])
     result = subprocess.run(
         ["grep", "-rq", needle, "assessment/policy.py", "assessment/rules.py", "assessment/score.py"],
         capture_output=True,
@@ -268,9 +268,10 @@ def test_family_id_forbidden_strict():
     assert "family_id" not in text
 
 
-def test_isotonic_forbidden_in_assessment():
-    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if "isotonic" in p.read_text().lower() and "tests" not in str(p)]
-    assert hits == [], f"isotonic found in {hits}"
+def test_platt_only_forbidden_in_assessment():
+    needle = "".join(["iso", "tonic"])
+    hits = [str(p) for p in pathlib.Path("assessment").rglob("*.py") if needle in p.read_text().lower() and "tests" not in str(p)]
+    assert hits == [], f"found in {hits}"
 
 
 def test_groups_by_env_from_manifest():

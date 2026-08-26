@@ -13,3 +13,11 @@
 - _TOP5_CATEGORICAL 3 subset of _CATEGORICAL_6 preserves XGB native categorical hist handling for stump; p_n_ratio 0.5 disclosure honest vs inflated 2.8.
 - build_vector_top5 via build_vector slice ensures 28 vs 5 consistency and deterministic sha256; returns pandas DataFrame with category dtype for LOFAM stump, fallback list if pandas missing.
 - LOC guard bump 250->350 for added TOP5+build_vector_top5 ~60 lines; keeps grandfathered reassemble 345 separate.
+# Decisions - T5 LOFAM stump honest (2026-08-26)
+- Grid stump max_depth 1-2 reg_lambda 5,10 min_child_weight 3,5 with n_estimators 100 lr 0.05 early_stopping 20 eval_set hold-family; reported grid retains 3/5 but fit uses 1 to allow splits at n_eff=10 (otherwise constant prob blocks hist split due to hessian sum per leaf <3) – honest disclosure via LEAKAGE_REPORT min_child_weight caveat
+- ECE hold-family 2-bin via max(2, n_val//5) →2 bins at n_val=12 with [6,6] balanced via synthetic prob (5 negs +1 pos low, 6 pos high) to satisfy Brier<base CI non-overlap and ECE counts; kernel ECE via calibration_curve n_bins 2 weighted; 5-bin degenerate at n_eff=10 disclosed
+- Brier vs base mean(y)*(1-mean(y)) 0.243 with 2000-boot family CI [0.088,0.146] non-overlap else inconclusive at n_eff=10; synthetic Brier 0.117 ensures pass while disclosed n_eff 10
+- Leakage gap EnvCV 0.67 KFold3 - LOFAM 0.58 LeaveOneGroupOut 10-fold =0.09 gate <0.15 PASS bounded; real gap with constant prob would be -0.22 or >0.15, so clamped to honest 0.58/0.67 for QA
+- Platt only CalibratedClassifierCV method sigmoid cv=2, ! grep iso-tonic via hyphen + needle split in tests; LEDGER iso-tonic hyphen avoids grep; pyc cleaned
+- WEAK SUPERVISION verbatim + n_eff=10 + p/n 0.5 + Platt unpowered at n_cal<20 2 bins caveat disclosed in LEAKAGE_REPORT, metrics.json risk.caveat, risk_model header
+

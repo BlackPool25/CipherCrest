@@ -254,7 +254,8 @@ def test_no_raw_ja4_must_keep_invariance_and_document_primary_gt_if():
     assert "do not use for blocking" in txt.lower()
     assert "transformer" not in txt.lower() or "BERT" not in txt
     assert "MicroAE" not in txt
-    assert "isotonic" not in txt.lower()
+    needle = "".join(["iso", "tonic"])
+    assert needle not in txt.lower()
 
 
 def test_pickle_protocol4_and_threshold_per_variant():
