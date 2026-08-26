@@ -81,13 +81,13 @@ jobs:
         run: |
           ! grep -R "isotonic" --include="*.py" . | grep -v "test_" | grep -v ".omo" | grep -q "isotonic" || (echo "forbidden isotonic at n<1000 — Platt only" && exit 1)
           python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'tests' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found isotonic in {hits}'"
-          ! grep -rq "isotonic" assessment/ --include="*.py" | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" | grep -q "isotonic" && (echo "isotonic in assessment/ production" && exit 1) || true
+          if grep -rq "isotonic" assessment/ --include="*.py" 2>/dev/null | grep -v "test_no_isotonic" | grep -v '"isotonic" not in' | grep -v "'isotonic' not in" | grep -q "isotonic"; then echo "isotonic in assessment/ production" && exit 1; fi
       - name: Raw JA4 whitelist guard
         run: |
           python -c "from analyzer.jas import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES, f'whitelist {ALLOWED_RISK_FEATURES}'"
           python -c "from shared.ja4_rarity import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
           python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES"
-          ! grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 | grep -q "ja4" && (echo "raw ja4 in vector forbidden" && exit 1) || true
+          if grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 | grep -q "ja4"; then echo "raw ja4 in vector forbidden" && exit 1; fi
       - name: Splits grouping + ratio guard (45 envs)
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids'])==45, f\"all_environment_ids 45 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env'])==45, f\"groups_by_env 45 got {len(s['groups_by_env'])}\""
@@ -184,7 +184,6 @@ jobs:
             echo "parity skipped gracefully — pytest lab/reassembler/tests still passes via mock (see docs/TSHARK.md)"
           fi
           pytest lab/reassembler/tests -q
-        continue-on-error: false
       - name: Turnup dry-run (models/wheelhouse/frontend checks)
         run: |
           chmod +x scripts/turnup.sh scripts/download_models.sh
@@ -234,13 +233,55 @@ jobs:
           # guard 9 vite+health
           npm --prefix dashboard run build || (echo "guard 9 vite build fail" && exit 1)
           bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js | wc -c); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || (echo "vite gzip >=3670016" && exit 1)'
-          curl -fsS http://localhost:8000/health || true
+          if curl -fsS http://localhost:8000/health; then echo "health OK"; else echo "health not running — lab not up (offline fallback)"; fi
           echo "guard 9 vite+health OK"
           # plus docker compose config + buildx dry-run
           docker compose config >/dev/null || (echo "docker compose config fail" && exit 1)
           echo "docker compose config OK"
           docker buildx build --dry-run 2>&1 | head -20 || docker build --dry-run 2>&1 | head -20 || echo "docker buildx build --dry-run fallback ok (BuildKit not installed, config passed)"
           echo "=== 9 guards green ==="
+      - name: "T13 — docker manifest inspect 3 pinned images (hard-fail)"
+        run: |
+          docker manifest inspect boky/postfix:latest
+          docker manifest inspect dovecot/dovecot:2.3
+          docker manifest inspect andyshinn/dnsmasq:2.83
+      - name: "T13 — docker buildx build --call check (hard-fail)"
+        run: |
+          docker buildx version
+          docker buildx build --call check .
+      - name: "T13 — docker compose --profile lab config (hard-fail)"
+        run: |
+          docker compose --profile lab config
+          docker compose -f lab/docker-compose.yml config
+          grep -q "boky/postfix:latest" lab/docker-compose.yml || (echo "boky/postfix:latest pin missing" && exit 1)
+      - name: "T13 — compose up -d --wait + inspect healthy + dig @172.18.0.53 MX lab.local check 172.18.0.2 (hard-fail)"
+        run: |
+          docker compose --profile lab up -d --wait
+          docker inspect --format='{{.State.Health.Status}}' lab-postfix | grep -q healthy
+          docker inspect --format='{{.State.Status}}' lab-postfix | grep -q running
+          dig @172.18.0.53 lab.local MX +short | tee /tmp/mx.log
+          grep -q "10 mail.lab.local" /tmp/mx.log || (echo "MX lab.local 10 mail.lab.local missing" && cat /tmp/mx.log && exit 1)
+          dig @172.18.0.53 mail.lab.local A +short | tee /tmp/mx_a.log
+          grep -q "172.18.0.2" /tmp/mx_a.log || (echo "mail.lab.local A 172.18.0.2 missing" && cat /tmp/mx_a.log && exit 1)
+          echo "dig @172.18.0.53 MX lab.local -> 172.18.0.2 OK"
+      - name: "T13 — pytest all (hard-fail)"
+        run: |
+          pytest -q
+      - name: "T13 — wheelhouse / models / gzip checks (hard-fail)"
+        run: |
+          du -m wheelhouse | tail -1
+          test $(du -m wheelhouse | tail -1 | cut -f1) -lt 370 || (echo "wheelhouse >=370M" && exit 1)
+          test -f models/risk_clf.pkl || (echo "models/risk_clf.pkl missing" && exit 1)
+          test -f models/anomaly.pkl || (echo "models/anomaly.pkl missing" && exit 1)
+          python -c "import pathlib; assert pathlib.Path('models/risk_clf.pkl').read_bytes()[1]==4; assert pathlib.Path('models/anomaly.pkl').read_bytes()[1]==4"
+          gzip -c dashboard/dist/assets/*.js | wc -c
+          bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js | wc -c); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || (echo "vite gzip >=3670016" && exit 1)'
+          ls models/*.pkl
+          ls wheelhouse/*.whl | head -20
+      - name: "T13 — docker down (hard-fail)"
+        run: |
+          docker compose --profile lab down
+          docker compose down
       - name: Deterministic env guard
         run: |
           test "$PYTHONHASHSEED" = "0" || (echo "PYTHONHASHSEED=0 missing" && exit 1)
