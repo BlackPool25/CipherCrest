@@ -116,7 +116,7 @@ class _Top5List(list):
 _FEATURES_TOP5_RAW: list[str] = ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry"]
 FEATURES_TOP5: list[str] = _Top5List(_FEATURES_TOP5_RAW)  # type: ignore[assignment]
 _TOP5_CATEGORICAL: frozenset[str] = frozenset({"version", "cipher_strength", "kex"})
-p_n_ratio: float = len(FEATURES_TOP5) / 10  # disclosure: 5/10 =0.5 honest vs 28/10=2.8 inflated
+p_n_ratio: float = len(FEATURES_TOP5) / 50  # disclosure: 5/50 =0.10 honest (legacy 5/10=0.5) vs 28/50=0.56 inflated
 
 assert len(FEATURES_TOP5) == 5
 assert "ja4" not in FEATURES_TOP5
@@ -126,7 +126,7 @@ assert _TOP5_CATEGORICAL.issubset(_CATEGORICAL_6)
 assert _TOP5_CATEGORICAL.issubset(set(FEATURES_TOP5))
 assert "environment_id" not in FEATURES_TOP5
 assert "family" + "_id" not in " ".join(FEATURES_TOP5)
-assert p_n_ratio == 0.5
+assert p_n_ratio == 0.1  # honest n_eff 50 p/n 0.10 (legacy 0.5 for 10)
 
 
 def _encode_categorical(name: str, value: object) -> int | float:

@@ -1,0 +1,47 @@
+{
+  "flow_id": "family-36",
+  "app_protocol": "imap",
+  "starttls_mode": "cleartext",
+  "port": 993,
+  "tls": {
+    "version": "none",
+    "is_deprecated": false,
+    "cipher_suite": "UNKNOWN-0x009e",
+    "cipher_strength": "weak",
+    "is_aead": true,
+    "kex": "DHE",
+    "fs_flag": false,
+    "handshake_success": false,
+    "alert_after_starttls": false,
+    "ja4_rarity": 0.91
+  },
+  "cert": {
+    "leaf_present": false,
+    "is_tls13_opaque": false,
+    "not_before": "2025-01-01T00:00:00Z",
+    "not_after": "2026-01-01T00:00:00Z",
+    "days_to_expiry": null,
+    "is_expired": false,
+    "is_self_signed": false,
+    "chain_length": null,
+    "chain_valid": null,
+    "san_match": null,
+    "pubkey_algo": "RSA",
+    "pubkey_bits": null,
+    "sigalg": "sha256WithRSAEncryption",
+    "sigalg_weak": false,
+    "keysize_weak": false,
+    "ocsp_stapled_status": "good",
+    "ocsp_must_staple": false,
+    "crl_unknown_reason": false
+  },
+  "assessment": {
+    "findings": [],
+    "risk_level": "Low",
+    "risk_score": 10
+  },
+  "policy": null,
+  "environment_id": "family-36__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "a8855095-3333-4926-bab8-3bebc447cd71"
+}

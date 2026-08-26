@@ -7,14 +7,14 @@
   "if_auc": 0.759,
   "if_auc_inverted": 0.986,
   "if_auc_honest": 0.759,
-  "lab_n": 45,
-  "lab_filtered_n": 31,
-  "n_prior": 20,
+  "lab_n": 85,
+  "lab_filtered_n": 71,
+  "n_prior": 35,
   "contamination_invariance_pass": true,
   "thresholds": {
-    "c05": 6.4973,
-    "c10": 3.4664,
-    "c30": 0.7538
+    "c05": 6.6308,
+    "c10": 3.5999,
+    "c30": 0.5295
   },
   "thresholds_honest": {
     "c05": 17.869,

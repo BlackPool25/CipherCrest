@@ -2,8 +2,8 @@
 
 Honest primary: 7c+20lab=27 models/anomaly_honest.pkl ROC~0.47 near-random canonical as models/anomaly.pkl.
 Inverted ablation: 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 (demoted, proves inversion).
-TOP5 27x5 via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.5 honest).
-5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed.
+TOP5 27x5 via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.10 honest n_eff 50).
+5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed. n_eff 50 p/n 0.10 honest.
 Honest 0.47 random — do not use for blocking (tooltip).
 """
 from __future__ import annotations
@@ -24,7 +24,7 @@ HONEST_MODEL_PATH = pathlib.Path("models/anomaly_honest.pkl")
 INVERTED_MODEL_PATH = pathlib.Path("models/anomaly_inverted.pkl")
 BASELINE_PATH = pathlib.Path("eval/anomaly_baselines.json")
 SPLITS_PATH = pathlib.Path("assessment/splits.json")
-CONTAMINATION = 0.10
+CONTAMINATION = 0.10  # honest p/n 0.10 n_eff 50
 N_JOBS = 1
 
 def _hash_seed(s: str) -> int:
@@ -33,7 +33,9 @@ def _hash_seed(s: str) -> int:
 
 def _load_lab_flows() -> list[dict]:
     lab: list[dict] = []
-    for i in range(1, 11):
+    # Expanded 50-family honest: load 1..50 base if exists, else 1..10 legacy
+    max_fam = 50 if (FIXTURE_DIR / "family-50.json").exists() else 10
+    for i in range(1, max_fam + 1):
         p = FIXTURE_DIR / f"family-{i:02d}.json"
         if p.exists():
             lab.append(json.loads(p.read_text()))
@@ -55,19 +57,21 @@ def _load_lab_flows() -> list[dict]:
             flow["tls"]["ja4_rarity"] = rnd.random()
             flow["cert"] = dict(flow.get("cert") or {})
             lab.append(flow)
-    assert len(lab) == 45, f"lab 45 got {len(lab)} (10 base +35 jitter)"
+    # 10+35=45 legacy or 50+35=85 expanded honest (n_eff 50)
+    assert len(lab) in (45, 85), f"lab {len(lab)} not in (45,85) (10/50 base +35 jitter)"
     lab.sort(key=lambda x: x.get("flow_id", ""))
     return lab
 
 def _filtered_lab_for_training(lab_flows: list[dict]) -> list[dict]:
     filtered = [f for f in lab_flows if "jitter-04" not in f.get("flow_id", "") and "jitter-05" not in f.get("flow_id", "")]
-    assert len(filtered) == 31, f"filtered 31 got {len(filtered)}"
+    # 45-14=31 legacy or 85-14=71 expanded
+    assert len(filtered) in (31, 71), f"filtered {len(filtered)} not in (31,71)"
     return filtered
 
 def _load_censys_flows() -> list[dict]:
     data = json.loads(CENSYS_PATH.read_text())
     data.sort(key=lambda x: x.get("flow_id", ""))
-    assert len(data) == 20, f"censys 20 got {len(data)}"
+    assert len(data) in (20, 35), f"censys {len(data)} not in (20,35)"
     return data
 
 def _handle_zero_variance(X: np.ndarray, eps: float = 1e-6) -> np.ndarray:

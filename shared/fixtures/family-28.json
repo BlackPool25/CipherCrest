@@ -1,0 +1,47 @@
+{
+  "flow_id": "family-28",
+  "app_protocol": "pop3",
+  "starttls_mode": "upgrade",
+  "port": 110,
+  "tls": {
+    "version": "TLS1.0",
+    "is_deprecated": true,
+    "cipher_suite": "AES256-SHA",
+    "cipher_strength": "strong",
+    "is_aead": true,
+    "kex": "ECDHE",
+    "fs_flag": true,
+    "handshake_success": true,
+    "alert_after_starttls": false,
+    "ja4_rarity": 0.64
+  },
+  "cert": {
+    "leaf_present": true,
+    "is_tls13_opaque": false,
+    "not_before": "2025-01-01T00:00:00Z",
+    "not_after": "2026-01-01T00:00:00Z",
+    "days_to_expiry": 113,
+    "is_expired": false,
+    "is_self_signed": false,
+    "chain_length": 3,
+    "chain_valid": false,
+    "san_match": false,
+    "pubkey_algo": "RSA",
+    "pubkey_bits": 2048,
+    "sigalg": "sha256WithRSAEncryption",
+    "sigalg_weak": false,
+    "keysize_weak": false,
+    "ocsp_stapled_status": "good",
+    "ocsp_must_staple": false,
+    "crl_unknown_reason": false
+  },
+  "assessment": {
+    "findings": [],
+    "risk_level": "Low",
+    "risk_score": 2
+  },
+  "policy": null,
+  "environment_id": "family-28__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "a2274a2b-4a8e-4c48-8cff-d3e30fe7dfb7"
+}

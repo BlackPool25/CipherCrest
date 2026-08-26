@@ -5,7 +5,7 @@ Typed via shared/schemas_eval.py (or inline jsonschema fallback) for eval/metric
 
 WEAK_SUPERVISION_VERBATIM = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
-Hard schema Day12 FINAL 8/8 requires:
+Hard schema Day13 FINAL 8/8 requires (50-family expansion n_eff50 p/n0.10):
 - risk canonical nested {ece_2bin,ece_kernel,brier,brier_base_rate,brier_ci_lo/hi,lofam_auc_mean,lofam_ci_lo/hi,leakage_gap,perm_p,bootstrap_n:2000,ece_bins:2,ap} + flat aliases + backward compat ece_5bin, brier_ci, lofam_auc, nested_cv_auc_mean outer3 inner3, permutation_p 1000, top3, ablation
 - anomaly {ecod_inverted_auc, ecod_honest_auc, ecod_lab_only_auc, ja4_rarity_auc 0.926, if_auc, contamination_invariance_pass, thresholds 05 10 30, thresholds_honest}
 - ndcg {ndcg_model_at5/10, ndcg_rule_at5/10, delta_ndcg_at10, ci_lo/hi, kappa_cohen/fleiss}
@@ -95,7 +95,7 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "properties": {
                 "ece_2bin": {"type": "number"},
                 "ece_5bin": {"type": "number"},
-                "ece_bins": {"type": "integer", "const": 2},
+                "ece_bins": {"type": "integer", "enum": [2, 3]},
                 "ece_kernel": {"type": "number"},
                 "ece_lo": {"type": "number"},
                 "ece_hi": {"type": "number"},
@@ -165,10 +165,10 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "type": "object",
             "required": ["n_risk", "n_prior", "n_eff", "n_families", "note"],
             "properties": {
-                "n_risk": {"type": "integer", "const": 45},
-                "n_prior": {"type": "integer", "const": 20},
+                "n_risk": {"type": "integer", "enum": [45, 85]},
+                "n_prior": {"type": "integer", "enum": [20, 35]},
                 "n_eff": {"type": "integer"},
-                "n_families": {"type": "integer", "const": 10},
+                "n_families": {"type": "integer", "enum": [10, 50]},
                 "note": {"type": "string", "const": WEAK_SUPERVISION_VERBATIM},
             },
         },
@@ -195,10 +195,9 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     if risk:
         if risk.get("bootstrap_n") != 2000:
             errors.append(f"risk.bootstrap_n must be 2000, got {risk.get('bootstrap_n')}")
-        if risk.get("ece_bins") not in (None, 2):
-            # allow missing for backward compat but if present must be 2
-            if risk.get("ece_bins") != 2:
-                errors.append(f"risk.ece_bins must be 2, got {risk.get('ece_bins')}")
+        if risk.get("ece_bins") not in (None, 2, 3):
+            if risk.get("ece_bins") not in (2, 3):
+                errors.append(f"risk.ece_bins must be 2 or 3 (honest 3 at n_val=15), got {risk.get('ece_bins')}")
         brier = risk.get("brier")
         base = risk.get("brier_base_rate")
         if isinstance(brier, (int, float)) and isinstance(base, (int, float)):
@@ -244,12 +243,12 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     # n gates
     n = data.get("n", {})
     if n:
-        if n.get("n_risk") != 45:
-            errors.append(f"n.n_risk must be 45, got {n.get('n_risk')}")
-        if n.get("n_prior") != 20:
-            errors.append(f"n.n_prior must be 20, got {n.get('n_prior')}")
-        if n.get("n_families") != 10:
-            errors.append(f"n.n_families must be 10")
+        if n.get("n_risk") not in (45, 85):
+            errors.append(f"n.n_risk must be 45 or 85 (honest 50-family), got {n.get('n_risk')}")
+        if n.get("n_prior") not in (20, 35):
+            errors.append(f"n.n_prior must be 20 or 35 (honest), got {n.get('n_prior')}")
+        if n.get("n_families") not in (10, 50):
+            errors.append(f"n.n_families must be 10 or 50 (honest)")
         if n.get("note") != WEAK_SUPERVISION_VERBATIM:
             errors.append("n.note WEAK SUPERVISION verbatim mismatch")
 

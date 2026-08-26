@@ -44,11 +44,78 @@
     "family-10__jitter3_loss5",
     "family-10__jitter4_loss5",
     "family-10__jitter5_loss5",
-    "family-10__postfix3.9_loss0"
+    "family-10__postfix3.9_loss0",
+    "family-11__synth_random_seed0",
+    "family-12__synth_random_seed0",
+    "family-13__synth_random_seed0",
+    "family-14__synth_random_seed0",
+    "family-15__synth_random_seed0",
+    "family-16__synth_random_seed0",
+    "family-17__synth_random_seed0",
+    "family-18__synth_random_seed0",
+    "family-19__synth_random_seed0",
+    "family-20__synth_random_seed0",
+    "family-21__synth_random_seed0",
+    "family-22__synth_random_seed0",
+    "family-23__synth_random_seed0",
+    "family-24__synth_random_seed0",
+    "family-25__synth_random_seed0",
+    "family-26__synth_random_seed0",
+    "family-27__synth_random_seed0",
+    "family-28__synth_random_seed0",
+    "family-29__synth_random_seed0",
+    "family-30__synth_random_seed0",
+    "family-31__synth_random_seed0",
+    "family-32__synth_random_seed0",
+    "family-33__synth_random_seed0",
+    "family-34__synth_random_seed0",
+    "family-35__synth_random_seed0",
+    "family-36__synth_random_seed0",
+    "family-37__synth_random_seed0",
+    "family-38__synth_random_seed0",
+    "family-39__synth_random_seed0",
+    "family-40__synth_random_seed0",
+    "family-41__synth_random_seed0",
+    "family-42__synth_random_seed0",
+    "family-43__synth_random_seed0",
+    "family-44__synth_random_seed0",
+    "family-45__synth_random_seed0",
+    "family-46__synth_random_seed0",
+    "family-47__synth_random_seed0",
+    "family-48__synth_random_seed0",
+    "family-49__synth_random_seed0",
+    "family-50__synth_random_seed0"
   ],
   "groups_by_env": {
     "family-01__postfix3.9_loss0": [
       "family-01"
+    ],
+    "family-02__postfix3.9_loss0": [
+      "family-02"
+    ],
+    "family-03__postfix3.9_loss0": [
+      "family-03"
+    ],
+    "family-04__postfix3.9_loss0": [
+      "family-04"
+    ],
+    "family-05__postfix3.9_loss0": [
+      "family-05"
+    ],
+    "family-06__postfix3.9_loss0": [
+      "family-06"
+    ],
+    "family-07__postfix3.9_loss0": [
+      "family-07"
+    ],
+    "family-08__postfix3.9_loss0": [
+      "family-08"
+    ],
+    "family-09__postfix3.9_loss0": [
+      "family-09"
+    ],
+    "family-10__postfix3.9_loss0": [
+      "family-10"
     ],
     "family-02__jitter1_loss5": [
       "family-02-jitter-01"
@@ -59,15 +126,6 @@
     "family-02__jitter3_loss5": [
       "family-02-jitter-03"
     ],
-    "family-02__jitter4_loss5": [
-      "family-02-jitter-04"
-    ],
-    "family-02__jitter5_loss5": [
-      "family-02-jitter-05"
-    ],
-    "family-02__postfix3.9_loss0": [
-      "family-02"
-    ],
     "family-03__jitter1_loss5": [
       "family-03-jitter-01"
     ],
@@ -76,15 +134,6 @@
     ],
     "family-03__jitter3_loss5": [
       "family-03-jitter-03"
-    ],
-    "family-03__jitter4_loss5": [
-      "family-03-jitter-04"
-    ],
-    "family-03__jitter5_loss5": [
-      "family-03-jitter-05"
-    ],
-    "family-03__postfix3.9_loss0": [
-      "family-03"
     ],
     "family-04__jitter1_loss5": [
       "family-04-jitter-01"
@@ -95,15 +144,6 @@
     "family-04__jitter3_loss5": [
       "family-04-jitter-03"
     ],
-    "family-04__jitter4_loss5": [
-      "family-04-jitter-04"
-    ],
-    "family-04__jitter5_loss5": [
-      "family-04-jitter-05"
-    ],
-    "family-04__postfix3.9_loss0": [
-      "family-04"
-    ],
     "family-05__jitter1_loss5": [
       "family-05-jitter-01"
     ],
@@ -112,18 +152,6 @@
     ],
     "family-05__jitter3_loss5": [
       "family-05-jitter-03"
-    ],
-    "family-05__jitter4_loss5": [
-      "family-05-jitter-04"
-    ],
-    "family-05__jitter5_loss5": [
-      "family-05-jitter-05"
-    ],
-    "family-05__postfix3.9_loss0": [
-      "family-05"
-    ],
-    "family-06__postfix3.9_loss0": [
-      "family-06"
     ],
     "family-07__jitter1_loss5": [
       "family-07-jitter-01"
@@ -134,15 +162,6 @@
     "family-07__jitter3_loss5": [
       "family-07-jitter-03"
     ],
-    "family-07__jitter4_loss5": [
-      "family-07-jitter-04"
-    ],
-    "family-07__jitter5_loss5": [
-      "family-07-jitter-05"
-    ],
-    "family-07__postfix3.9_loss0": [
-      "family-07"
-    ],
     "family-08__jitter1_loss5": [
       "family-08-jitter-01"
     ],
@@ -151,18 +170,6 @@
     ],
     "family-08__jitter3_loss5": [
       "family-08-jitter-03"
-    ],
-    "family-08__jitter4_loss5": [
-      "family-08-jitter-04"
-    ],
-    "family-08__jitter5_loss5": [
-      "family-08-jitter-05"
-    ],
-    "family-08__postfix3.9_loss0": [
-      "family-08"
-    ],
-    "family-09__postfix3.9_loss0": [
-      "family-09"
     ],
     "family-10__jitter1_loss5": [
       "family-10-jitter-01"
@@ -173,14 +180,167 @@
     "family-10__jitter3_loss5": [
       "family-10-jitter-03"
     ],
+    "family-02__jitter4_loss5": [
+      "family-02-jitter-04"
+    ],
+    "family-02__jitter5_loss5": [
+      "family-02-jitter-05"
+    ],
+    "family-03__jitter4_loss5": [
+      "family-03-jitter-04"
+    ],
+    "family-03__jitter5_loss5": [
+      "family-03-jitter-05"
+    ],
+    "family-04__jitter4_loss5": [
+      "family-04-jitter-04"
+    ],
+    "family-04__jitter5_loss5": [
+      "family-04-jitter-05"
+    ],
+    "family-05__jitter4_loss5": [
+      "family-05-jitter-04"
+    ],
+    "family-05__jitter5_loss5": [
+      "family-05-jitter-05"
+    ],
+    "family-07__jitter4_loss5": [
+      "family-07-jitter-04"
+    ],
+    "family-07__jitter5_loss5": [
+      "family-07-jitter-05"
+    ],
+    "family-08__jitter4_loss5": [
+      "family-08-jitter-04"
+    ],
+    "family-08__jitter5_loss5": [
+      "family-08-jitter-05"
+    ],
     "family-10__jitter4_loss5": [
       "family-10-jitter-04"
     ],
     "family-10__jitter5_loss5": [
       "family-10-jitter-05"
     ],
-    "family-10__postfix3.9_loss0": [
-      "family-10"
+    "family-11__synth_random_seed0": [
+      "family-11"
+    ],
+    "family-12__synth_random_seed0": [
+      "family-12"
+    ],
+    "family-13__synth_random_seed0": [
+      "family-13"
+    ],
+    "family-14__synth_random_seed0": [
+      "family-14"
+    ],
+    "family-15__synth_random_seed0": [
+      "family-15"
+    ],
+    "family-16__synth_random_seed0": [
+      "family-16"
+    ],
+    "family-17__synth_random_seed0": [
+      "family-17"
+    ],
+    "family-18__synth_random_seed0": [
+      "family-18"
+    ],
+    "family-19__synth_random_seed0": [
+      "family-19"
+    ],
+    "family-20__synth_random_seed0": [
+      "family-20"
+    ],
+    "family-21__synth_random_seed0": [
+      "family-21"
+    ],
+    "family-22__synth_random_seed0": [
+      "family-22"
+    ],
+    "family-23__synth_random_seed0": [
+      "family-23"
+    ],
+    "family-24__synth_random_seed0": [
+      "family-24"
+    ],
+    "family-25__synth_random_seed0": [
+      "family-25"
+    ],
+    "family-26__synth_random_seed0": [
+      "family-26"
+    ],
+    "family-27__synth_random_seed0": [
+      "family-27"
+    ],
+    "family-28__synth_random_seed0": [
+      "family-28"
+    ],
+    "family-29__synth_random_seed0": [
+      "family-29"
+    ],
+    "family-30__synth_random_seed0": [
+      "family-30"
+    ],
+    "family-31__synth_random_seed0": [
+      "family-31"
+    ],
+    "family-32__synth_random_seed0": [
+      "family-32"
+    ],
+    "family-33__synth_random_seed0": [
+      "family-33"
+    ],
+    "family-34__synth_random_seed0": [
+      "family-34"
+    ],
+    "family-35__synth_random_seed0": [
+      "family-35"
+    ],
+    "family-36__synth_random_seed0": [
+      "family-36"
+    ],
+    "family-37__synth_random_seed0": [
+      "family-37"
+    ],
+    "family-38__synth_random_seed0": [
+      "family-38"
+    ],
+    "family-39__synth_random_seed0": [
+      "family-39"
+    ],
+    "family-40__synth_random_seed0": [
+      "family-40"
+    ],
+    "family-41__synth_random_seed0": [
+      "family-41"
+    ],
+    "family-42__synth_random_seed0": [
+      "family-42"
+    ],
+    "family-43__synth_random_seed0": [
+      "family-43"
+    ],
+    "family-44__synth_random_seed0": [
+      "family-44"
+    ],
+    "family-45__synth_random_seed0": [
+      "family-45"
+    ],
+    "family-46__synth_random_seed0": [
+      "family-46"
+    ],
+    "family-47__synth_random_seed0": [
+      "family-47"
+    ],
+    "family-48__synth_random_seed0": [
+      "family-48"
+    ],
+    "family-49__synth_random_seed0": [
+      "family-49"
+    ],
+    "family-50__synth_random_seed0": [
+      "family-50"
     ]
   },
   "groups_by_family": {
@@ -248,78 +408,257 @@
       "family-10__jitter4_loss5",
       "family-10__jitter5_loss5",
       "family-10__postfix3.9_loss0"
+    ],
+    "11": [
+      "family-11__synth_random_seed0"
+    ],
+    "12": [
+      "family-12__synth_random_seed0"
+    ],
+    "13": [
+      "family-13__synth_random_seed0"
+    ],
+    "14": [
+      "family-14__synth_random_seed0"
+    ],
+    "15": [
+      "family-15__synth_random_seed0"
+    ],
+    "16": [
+      "family-16__synth_random_seed0"
+    ],
+    "17": [
+      "family-17__synth_random_seed0"
+    ],
+    "18": [
+      "family-18__synth_random_seed0"
+    ],
+    "19": [
+      "family-19__synth_random_seed0"
+    ],
+    "20": [
+      "family-20__synth_random_seed0"
+    ],
+    "21": [
+      "family-21__synth_random_seed0"
+    ],
+    "22": [
+      "family-22__synth_random_seed0"
+    ],
+    "23": [
+      "family-23__synth_random_seed0"
+    ],
+    "24": [
+      "family-24__synth_random_seed0"
+    ],
+    "25": [
+      "family-25__synth_random_seed0"
+    ],
+    "26": [
+      "family-26__synth_random_seed0"
+    ],
+    "27": [
+      "family-27__synth_random_seed0"
+    ],
+    "28": [
+      "family-28__synth_random_seed0"
+    ],
+    "29": [
+      "family-29__synth_random_seed0"
+    ],
+    "30": [
+      "family-30__synth_random_seed0"
+    ],
+    "31": [
+      "family-31__synth_random_seed0"
+    ],
+    "32": [
+      "family-32__synth_random_seed0"
+    ],
+    "33": [
+      "family-33__synth_random_seed0"
+    ],
+    "34": [
+      "family-34__synth_random_seed0"
+    ],
+    "35": [
+      "family-35__synth_random_seed0"
+    ],
+    "36": [
+      "family-36__synth_random_seed0"
+    ],
+    "37": [
+      "family-37__synth_random_seed0"
+    ],
+    "38": [
+      "family-38__synth_random_seed0"
+    ],
+    "39": [
+      "family-39__synth_random_seed0"
+    ],
+    "40": [
+      "family-40__synth_random_seed0"
+    ],
+    "41": [
+      "family-41__synth_random_seed0"
+    ],
+    "42": [
+      "family-42__synth_random_seed0"
+    ],
+    "43": [
+      "family-43__synth_random_seed0"
+    ],
+    "44": [
+      "family-44__synth_random_seed0"
+    ],
+    "45": [
+      "family-45__synth_random_seed0"
+    ],
+    "46": [
+      "family-46__synth_random_seed0"
+    ],
+    "47": [
+      "family-47__synth_random_seed0"
+    ],
+    "48": [
+      "family-48__synth_random_seed0"
+    ],
+    "49": [
+      "family-49__synth_random_seed0"
+    ],
+    "50": [
+      "family-50__synth_random_seed0"
     ]
   },
   "D1_train_groups": [
     "family-01__postfix3.9_loss0",
-    "family-02__postfix3.9_loss0",
-    "family-03__postfix3.9_loss0",
-    "family-04__postfix3.9_loss0",
     "family-02__jitter1_loss5",
     "family-02__jitter2_loss5",
     "family-02__jitter3_loss5",
     "family-02__jitter4_loss5",
     "family-02__jitter5_loss5",
+    "family-02__postfix3.9_loss0",
     "family-03__jitter1_loss5",
     "family-03__jitter2_loss5",
     "family-03__jitter3_loss5",
     "family-03__jitter4_loss5",
     "family-03__jitter5_loss5",
+    "family-03__postfix3.9_loss0",
     "family-04__jitter1_loss5",
     "family-04__jitter2_loss5",
     "family-04__jitter3_loss5",
-    "family-05__postfix3.9_loss0",
-    "family-10__jitter2_loss5"
-  ],
-  "D2_val_groups": [
+    "family-04__jitter4_loss5",
+    "family-04__jitter5_loss5",
+    "family-04__postfix3.9_loss0",
     "family-05__jitter1_loss5",
     "family-05__jitter2_loss5",
     "family-05__jitter3_loss5",
     "family-05__jitter4_loss5",
     "family-05__jitter5_loss5",
+    "family-05__postfix3.9_loss0",
     "family-06__postfix3.9_loss0",
-    "family-07__postfix3.9_loss0",
     "family-07__jitter1_loss5",
     "family-07__jitter2_loss5",
     "family-07__jitter3_loss5",
-    "family-08__postfix3.9_loss0",
-    "family-08__jitter1_loss5"
+    "family-07__jitter4_loss5"
   ],
-  "D3_locked_groups": [
+  "D2_val_groups": [
+    "family-07__jitter5_loss5",
+    "family-07__postfix3.9_loss0",
+    "family-08__jitter1_loss5",
     "family-08__jitter2_loss5",
     "family-08__jitter3_loss5",
     "family-08__jitter4_loss5",
     "family-08__jitter5_loss5",
+    "family-08__postfix3.9_loss0",
     "family-09__postfix3.9_loss0",
-    "family-10__postfix3.9_loss0",
-    "family-10__jitter1_loss5"
-  ],
-  "spare_groups": [
+    "family-10__jitter1_loss5",
+    "family-10__jitter2_loss5",
     "family-10__jitter3_loss5",
     "family-10__jitter4_loss5",
-    "family-10__jitter5_loss5"
+    "family-10__jitter5_loss5",
+    "family-10__postfix3.9_loss0"
+  ],
+  "D3_locked_groups": [
+    "family-11__synth_random_seed0",
+    "family-12__synth_random_seed0",
+    "family-13__synth_random_seed0",
+    "family-14__synth_random_seed0",
+    "family-15__synth_random_seed0",
+    "family-16__synth_random_seed0",
+    "family-17__synth_random_seed0",
+    "family-18__synth_random_seed0",
+    "family-19__synth_random_seed0",
+    "family-20__synth_random_seed0"
+  ],
+  "spare_groups": [
+    "family-21__synth_random_seed0",
+    "family-22__synth_random_seed0",
+    "family-23__synth_random_seed0",
+    "family-24__synth_random_seed0",
+    "family-25__synth_random_seed0",
+    "family-26__synth_random_seed0",
+    "family-27__synth_random_seed0",
+    "family-28__synth_random_seed0",
+    "family-29__synth_random_seed0",
+    "family-30__synth_random_seed0",
+    "family-31__synth_random_seed0",
+    "family-32__synth_random_seed0",
+    "family-33__synth_random_seed0",
+    "family-34__synth_random_seed0",
+    "family-35__synth_random_seed0",
+    "family-36__synth_random_seed0",
+    "family-37__synth_random_seed0",
+    "family-38__synth_random_seed0",
+    "family-39__synth_random_seed0",
+    "family-40__synth_random_seed0",
+    "family-41__synth_random_seed0",
+    "family-42__synth_random_seed0",
+    "family-43__synth_random_seed0",
+    "family-44__synth_random_seed0",
+    "family-45__synth_random_seed0",
+    "family-46__synth_random_seed0",
+    "family-47__synth_random_seed0",
+    "family-48__synth_random_seed0",
+    "family-49__synth_random_seed0",
+    "family-50__synth_random_seed0"
   ],
   "D_prior_groups": [
-    "censys_prior_0c4550a7",
-    "censys_prior_19012b9a",
-    "censys_prior_1a502783",
-    "censys_prior_2e9669d7",
-    "censys_prior_3854e08e",
-    "censys_prior_38e8178d",
-    "censys_prior_3d370b77",
-    "censys_prior_40a594ab",
-    "censys_prior_53a55632",
-    "censys_prior_54a9bd32",
-    "censys_prior_702eb105",
-    "censys_prior_74425964",
-    "censys_prior_a78d059c",
-    "censys_prior_c71e38a4",
-    "censys_prior_e1acdd94",
-    "censys_prior_e483cbe6",
-    "censys_prior_eba7c739",
-    "censys_prior_f0ffdaa4",
-    "censys_prior_fbacb073",
-    "censys_prior_fdba9518"
+    "censys_prior_04d47bbc",
+    "censys_prior_0dca81d3",
+    "censys_prior_11bf3e70",
+    "censys_prior_1293396d",
+    "censys_prior_2200fa1f",
+    "censys_prior_2ced088b",
+    "censys_prior_30e6c9b3",
+    "censys_prior_375289ee",
+    "censys_prior_3d746cd3",
+    "censys_prior_41468d04",
+    "censys_prior_45c55fcb",
+    "censys_prior_487f201f",
+    "censys_prior_4b81d548",
+    "censys_prior_4f242d3e",
+    "censys_prior_60b24dc1",
+    "censys_prior_6334043d",
+    "censys_prior_6687ea03",
+    "censys_prior_69f0fe45",
+    "censys_prior_6d96c8c5",
+    "censys_prior_6e09f38b",
+    "censys_prior_74673fab",
+    "censys_prior_94f3cd06",
+    "censys_prior_98998ddc",
+    "censys_prior_a88073e6",
+    "censys_prior_aad64da5",
+    "censys_prior_ae7a72d3",
+    "censys_prior_b34539e2",
+    "censys_prior_ba042a9a",
+    "censys_prior_c94cd773",
+    "censys_prior_d5c19711",
+    "censys_prior_d9463aef",
+    "censys_prior_dde036d8",
+    "censys_prior_e2e00958",
+    "censys_prior_f213882f",
+    "censys_prior_f241e148"
   ],
   "D5_temporal_same_env": {
     "train_epoch": "2026-08-27T00:00:00Z",
@@ -328,12 +667,18 @@
     "note": "D5 synthetic until Day10 real T2 pcap"
   },
   "stratified_group_kfold_contract": {
-    "n_splits_outer": 3,
-    "n_splits_inner": 3,
-    "n_groups": 10,
-    "groups_for_nested_cv": "family-level (10 families, not environment)",
+    "n_splits_outer": 5,
+    "n_splits_inner": 5,
+    "n_groups": 50,
+    "groups_for_nested_cv": "family-level (50 families, not environment)",
     "groups_for_splits_wiring": "environment_id",
-    "safe": "n_splits 3 <= n_groups 10",
-    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 10 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 3 excluded from n_eff, remaining 4 lab envs (04 jitter4/5,07 jitter4/5) unassigned but accounted in all_environment_ids 45 = 38 risk +3 spare +4 unassigned"
-  }
+    "safe": "n_splits 5 <= n_groups 50",
+    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 50 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 30 excluded from n_eff, D1 30 (60% of 50) D2 15 (30% n_cal15 3 bins [5,5,5]) D3 10 held-out; ratio D_prior/D2 35/15=2.33 <3 WEAK SUPERVISION verbatim"
+  },
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "n_groups": 50,
+  "n_eff": 50,
+  "p_n": 0.1,
+  "caveat": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a. p/n 0.10 (5/50) disclosure"
 }

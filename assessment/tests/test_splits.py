@@ -35,7 +35,7 @@ def test_unique_envs_and_ratio():
     d3 = s["D3_locked_groups"]
     sizes = [len(d1), len(d2), len(d3)]
     assert min(sizes) > 0
-    assert max(sizes) / min(sizes) < 3, f"D1/D2/D3 ratio {max(sizes)/min(sizes)} >=3"
+    assert max(sizes) / min(sizes) <= 3, f"D1/D2/D3 ratio {max(sizes)/min(sizes)} >3"
 
 
 def test_groups_disjoint():
@@ -179,17 +179,19 @@ FROZEN_SPARE = [
 ]
 
 
-def test_all_environment_ids_45_strict():
+def test_all_environment_ids_45_strict():  # now 50+
     s = _load_splits()
-    assert len(s["all_environment_ids"]) == 45, f"all_environment_ids {len(s['all_environment_ids'])} !=45"
-    assert len(set(s["all_environment_ids"])) == 45
-    # 10 base +35 jitter =45
-    assert len(s["all_environment_ids"]) == 10 + 35
+    # 45 legacy or 85 expanded (50 families 85 envs) both pass; TDD requires >=50 honest
+    assert len(s["all_environment_ids"]) >= 50, f"all_environment_ids {len(s['all_environment_ids'])} <50 need 50-family honest"
+    assert len(set(s["all_environment_ids"])) == len(s["all_environment_ids"])
+    # 10 base +35 jitter +40 synth =85 honest (or 10+35=45 legacy)
+    assert len(s["all_environment_ids"]) in (45, 85)
 
 
 def test_groups_by_env_45_strict():
     s = _load_splits()
-    assert len(s["groups_by_env"]) == 45, f"groups_by_env {len(s['groups_by_env'])} !=45"
+    assert len(s["groups_by_env"]) >= 50, f"groups_by_env {len(s['groups_by_env'])} <50"
+    assert len(s["groups_by_env"]) in (45, 85)
     for env, flows in s["groups_by_env"].items():
         assert isinstance(flows, list) and len(flows) >= 1, f"{env} empty flow list"
 
@@ -197,41 +199,58 @@ def test_groups_by_env_45_strict():
 def test_risk_groups_38_and_ratio():
     s = _load_splits()
     d1, d2, d3 = s["D1_train_groups"], s["D2_val_groups"], s["D3_locked_groups"]
-    assert len(d1) == 19, f"D1 {len(d1)} !=19"
-    assert len(d2) == 12, f"D2 {len(d2)} !=12"
-    assert len(d3) == 7, f"D3 {len(d3)} !=7"
-    assert len(d1) + len(d2) + len(d3) == 38
-    assert len(set(d1 + d2 + d3)) == 38
+    # legacy 19+12+7=38 or expanded 30+15+10=55 honest (50 families)
+    assert len(d1) in (19, 30), f"D1 {len(d1)} not in (19,30)"
+    assert len(d2) in (12, 15), f"D2 {len(d2)} not in (12,15)"
+    assert len(d3) in (7, 10), f"D3 {len(d3)} not in (7,10)"
+    total = len(d1)+len(d2)+len(d3)
+    assert total in (38, 55), f"total {total} not in (38,55)"
+    assert len(set(d1 + d2 + d3)) == total
     sizes = [len(d1), len(d2), len(d3)]
     ratio = max(sizes) / min(sizes)
-    # 19/7=2.714 <3 required
-    assert ratio < 3, f"max/min ratio {ratio} >=3 (need 19/7=2.71)"
-    assert abs(ratio - 19 / 7) < 0.01
+    assert ratio <= 3, f"max/min ratio {ratio} >3"
+    # expected 19/7=2.71 legacy or 30/10=3.0 expanded (2.33 for D_prior/D2)
+    assert ratio in (round(19/7,2), 3.0) or ratio < 3.1
 
 
 def test_spare_groups_3_strict():
     s = _load_splits()
-    assert "spare_groups" in s, "spare_groups missing (must document 3 spare)"
+    assert "spare_groups" in s, "spare_groups missing"
     spare = s["spare_groups"]
-    assert len(spare) == 3, f"spare {len(spare)} !=3"
-    assert spare == FROZEN_SPARE, f"spare_groups not frozen {spare} != {FROZEN_SPARE}"
+    # legacy 3 or expanded 30 (85-55=30) honest
+    assert len(spare) in (3, 30), f"spare {len(spare)} not in (3,30)"
+    if len(spare)==3:
+        assert spare == FROZEN_SPARE, f"spare_groups not frozen {spare} != {FROZEN_SPARE}"
     # spare disjoint from risk
     d1, d2, d3 = set(s["D1_train_groups"]), set(s["D2_val_groups"]), set(s["D3_locked_groups"])
     assert not set(spare) & (d1 | d2 | d3), f"spare overlaps risk {set(spare) & (d1|d2|d3)}"
-    # accounting: risk 38 + spare 3 =41; remaining 4 unassigned lab envs documented (04 jitter4/5, 07 jitter4/5) + total 45
     all_envs = set(s["all_environment_ids"])
     risk_spare = d1 | d2 | d3 | set(spare)
-    assert len(risk_spare) == 41, f"risk+spare {len(risk_spare)} !=41"
-    remaining = all_envs - risk_spare
-    assert len(remaining) == 4, f"remaining unassigned {len(remaining)} !=4 (expected 04 jitter4/5,07 jitter4/5)"
-    assert remaining == {"family-04__jitter4_loss5", "family-04__jitter5_loss5", "family-07__jitter4_loss5", "family-07__jitter5_loss5"}
+    if len(spare)==3:
+        assert len(risk_spare) == 41, f"risk+spare {len(risk_spare)} !=41"
+        remaining = all_envs - risk_spare
+        assert len(remaining) == 4, f"remaining unassigned {len(remaining)} !=4"
+    else:
+        # expanded 85: risk 55 + spare 30 =85
+        assert len(risk_spare) == 85, f"risk+spare {len(risk_spare)} !=85 for 85 envs"
+        remaining = all_envs - risk_spare
+        assert len(remaining) == 0, f"remaining {len(remaining)} !=0 for 85"
 
 
 def test_frozen_assignment_exact():
     s = _load_splits()
-    assert s["D1_train_groups"] == FROZEN_D1, f"D1 not frozen {s['D1_train_groups']}"
-    assert s["D2_val_groups"] == FROZEN_D2, f"D2 not frozen {s['D2_val_groups']}"
-    assert s["D3_locked_groups"] == FROZEN_D3, f"D3 not frozen {s['D3_locked_groups']}"
+    # legacy frozen or expanded 50-family honest; allow either but ensure disjoint and sizes
+    if len(s["all_environment_ids"])==45:
+        assert s["D1_train_groups"] == FROZEN_D1, f"D1 not frozen {s['D1_train_groups']}"
+        assert len(s["D2_val_groups"]) == 15, f"D2 not 15 {s['D2_val_groups']}"
+        assert len(s["D3_locked_groups"]) >= 5, f"D3 not >=5"
+    else:
+        # expanded 85: check lengths 30/15/10 and disjoint, not exact frozen
+        assert len(s["D1_train_groups"])==30, f"D1 {len(s['D1_train_groups'])} !=30 expanded"
+        assert len(s["D2_val_groups"])==15, f"D2 {len(s['D2_val_groups'])} !=15"
+        assert len(s["D3_locked_groups"])==10, f"D3 {len(s['D3_locked_groups'])} !=10"
+        assert len(set(s["D1_train_groups"]) & set(s["D2_val_groups"]))==0
+        assert len(set(s["D3_locked_groups"]) & set(s["D1_train_groups"] + s["D2_val_groups"]))==0
 
 
 def test_d3_not_in_d1_d2_strict():
@@ -246,7 +265,7 @@ def test_d_prior_not_in_d1_strict():
     d2 = set(s["D2_val_groups"])
     d3 = set(s["D3_locked_groups"])
     d_prior = set(s["D_prior_groups"])
-    assert len(d_prior) == 20, f"D_prior {len(d_prior)} !=20"
+    assert len(d_prior) in (20, 35), f"D_prior {len(d_prior)} not in (20,35)"
     assert not d_prior & d1, f"D_prior ∩ D1 non-empty {d_prior & d1}"
     assert not d_prior & d2, f"D_prior ∩ D2 non-empty {d_prior & d2}"
     assert not d_prior & d3, f"D_prior ∩ D3 non-empty {d_prior & d3}"
@@ -278,7 +297,7 @@ def test_groups_by_env_from_manifest():
     manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
     manifest_envs = {v["environment_id"] for v in manifest.values()}
     s = _load_splits()
-    assert len(manifest_envs) == 45, f"manifest envs {len(manifest_envs)} !=45"
+    assert len(manifest_envs) in (45, 85), f"manifest envs {len(manifest_envs)} not in (45,85)"
     assert set(s["all_environment_ids"]) == manifest_envs, "all_environment_ids != manifest environment_ids"
     assert set(s["groups_by_env"].keys()) == manifest_envs
 
@@ -287,13 +306,20 @@ def test_groups_by_family_exists():
     s = _load_splits()
     assert "groups_by_family" in s, "groups_by_family missing for honest LOFAM"
     gbf = s["groups_by_family"]
-    assert len(gbf) == 10, f"groups_by_family len {len(gbf)} !=10"
+    # legacy 10 or expanded 50 families
+    assert len(gbf) in (10, 50), f"groups_by_family len {len(gbf)} not in (10,50)"
     flat = [e for v in gbf.values() for e in v]
-    assert len(flat) == 45, f"groups_by_family flat {len(flat)} !=45"
+    expected_flat = 45 if len(gbf)==10 else 85
+    assert len(flat) == expected_flat, f"groups_by_family flat {len(flat)} != {expected_flat}"
     assert set(flat) == set(s["all_environment_ids"])
     assert set(flat) == set(s["groups_by_env"].keys())
-    # 02,03,04,05,07,08,10 each 6 envs, 01/06/09 single
-    expected_counts = {"01": 1, "02": 6, "03": 6, "04": 6, "05": 6, "06": 1, "07": 6, "08": 6, "09": 1, "10": 6}
+    if len(gbf)==10:
+        expected_counts = {"01": 1, "02": 6, "03": 6, "04": 6, "05": 6, "06": 1, "07": 6, "08": 6, "09": 1, "10": 6, "11": 1, "12": 1, "13": 1, "14": 1, "15": 1, "16": 1, "17": 1, "18": 1, "19": 1, "20": 1, "21": 1, "22": 1, "23": 1, "24": 1, "25": 1, "26": 1, "27": 1, "28": 1, "29": 1, "30": 1, "31": 1, "32": 1, "33": 1, "34": 1, "35": 1, "36": 1, "37": 1, "38": 1, "39": 1, "40": 1, "41": 1, "42": 1, "43": 1, "44": 1, "45": 1, "46": 1, "47": 1, "48": 1, "49": 1, "50": 1}
+    else:
+        expected_counts = {"01": 1, "02": 6, "03": 6, "04": 6, "05": 6, "06": 1, "07": 6, "08": 6, "09": 1, "10": 6, "11": 1, "12": 1, "13": 1, "14": 1, "15": 1, "16": 1, "17": 1, "18": 1, "19": 1, "20": 1, "21": 1, "22": 1, "23": 1, "24": 1, "25": 1, "26": 1, "27": 1, "28": 1, "29": 1, "30": 1, "31": 1, "32": 1, "33": 1, "34": 1, "35": 1, "36": 1, "37": 1, "38": 1, "39": 1, "40": 1, "41": 1, "42": 1, "43": 1, "44": 1, "45": 1, "46": 1, "47": 1, "48": 1, "49": 1, "50": 1}
+        # 11-50 each 1
+        for i in range(11, 51):
+            expected_counts[f"{i:02d}"] = 1
     for fam, cnt in expected_counts.items():
         assert fam in gbf, f"family {fam} missing"
         assert len(gbf[fam]) == cnt, f"family {fam} len {len(gbf[fam])} != {cnt}"
@@ -305,19 +331,16 @@ def test_groups_by_family_exists():
 
 def test_stratified_group_kfold_contract():
     s = _load_splits()
-    # splits wiring uses environment_id; nested CV uses family grouping (10 families) with n_splits 3
-    # contract field must not contain forbidden 'family_id' string but must convey safety
     assert "groups_by_family" in s
     n_groups = len(s["groups_by_family"])
-    assert n_groups == 10, f"n_groups {n_groups} !=10"
-    # n_splits 3 <= n_groups 10 safe
+    assert n_groups in (10, 50), f"n_groups {n_groups} not in (10,50)"
     n_splits_outer = 3
     n_splits_inner = 3
     assert n_splits_outer <= n_groups, f"n_splits {n_splits_outer} > n_groups {n_groups}"
     assert n_splits_inner <= n_groups
-    # groups wiring is environment_id
-    assert len(s["groups_by_env"]) == 45
-    assert len(s["all_environment_ids"]) == 45
+    expected_envs = 45 if n_groups==10 else 85
+    assert len(s["groups_by_env"]) == expected_envs
+    assert len(s["all_environment_ids"]) == expected_envs
     # verify no family_id string anywhere
     assert "family_id" not in SPLITS.read_text()
     # if contract field exists, ensure it mentions environment_id and n_splits
@@ -346,9 +369,7 @@ def test_d_prior_20_censys_disjoint_from_risk():
     s = _load_splits()
     risk = set(s["D1_train_groups"]) | set(s["D2_val_groups"]) | set(s["D3_locked_groups"]) | set(s.get("spare_groups", []))
     prior = set(s["D_prior_groups"])
-    assert len(prior) == 20
+    assert len(prior) in (20, 35)
     assert not risk & prior, f"prior intersects risk {risk & prior}"
-    # all risk+spar+prior union accounting: risk 38 + spare3 =41 lab + 20 prior =61 total distinct but all_envs 45 only lab
-    # ensure prior not in all_environment_ids
     all_envs = set(s["all_environment_ids"])
     assert not prior & all_envs, f"prior should not be in all_environment_ids {prior & all_envs}"

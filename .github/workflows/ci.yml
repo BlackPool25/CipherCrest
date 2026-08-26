@@ -199,9 +199,10 @@ jobs:
       - name: 9 hard-fail guards (trap 4-prefs isotonic ja4 grouping prior TOP5 pkl vite health) + docker compose + buildx
         run: |
           echo "=== 9 hard-fail guards ==="
-          # guard 1 trap
-          grep -q "trap.*EXIT" scripts/turnup.sh || (echo "guard 1 trap missing — grep -q trap.*EXIT scripts/turnup.sh" && exit 1)
-          echo "guard 1 trap OK"
+          # guard 1 trap INT TERM only (pure Docker, no EXIT auto-down — use turndown.sh)
+          grep -q "trap.*INT.*TERM" scripts/turnup.sh || (echo "guard 1 trap INT TERM missing — grep -q trap.*INT.*TERM scripts/turnup.sh" && exit 1)
+          ! grep -q "trap.*EXIT" scripts/turnup.sh || (echo "guard 1 trap EXIT should not be present (pure Docker, use turndown.sh)" && exit 1)
+          echo "guard 1 trap INT TERM only OK"
           # guard 2 4-prefs
           python -c "from lab.reassembler.reassemble import get_tshark_prefs; assert len(get_tshark_prefs())==4 and 'tcp.reassemble_out_of_order:TRUE' in get_tshark_prefs()" || (echo "guard 2 4-prefs fail" && exit 1)
           echo "guard 2 4-prefs OK"

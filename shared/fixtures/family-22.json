@@ -1,0 +1,47 @@
+{
+  "flow_id": "family-22",
+  "app_protocol": "smtp",
+  "starttls_mode": "upgrade",
+  "port": 587,
+  "tls": {
+    "version": "TLS1.2",
+    "is_deprecated": false,
+    "cipher_suite": "AES128-SHA256",
+    "cipher_strength": "strong",
+    "is_aead": false,
+    "kex": "ECDHE",
+    "fs_flag": false,
+    "handshake_success": true,
+    "alert_after_starttls": false,
+    "ja4_rarity": 0.71
+  },
+  "cert": {
+    "leaf_present": true,
+    "is_tls13_opaque": false,
+    "not_before": "2025-01-01T00:00:00Z",
+    "not_after": "2026-01-01T00:00:00Z",
+    "days_to_expiry": 26,
+    "is_expired": false,
+    "is_self_signed": true,
+    "chain_length": 1,
+    "chain_valid": true,
+    "san_match": false,
+    "pubkey_algo": "RSA",
+    "pubkey_bits": 2048,
+    "sigalg": "sha256WithRSAEncryption",
+    "sigalg_weak": false,
+    "keysize_weak": false,
+    "ocsp_stapled_status": "good",
+    "ocsp_must_staple": false,
+    "crl_unknown_reason": false
+  },
+  "assessment": {
+    "findings": [],
+    "risk_level": "Low",
+    "risk_score": 27
+  },
+  "policy": null,
+  "environment_id": "family-22__postfix3.9_loss0",
+  "capture_epoch": "2026-08-27T00:00:00Z",
+  "source_id": "1d5d5ccd-b3a5-4d0c-b287-132ba6a563aa"
+}
