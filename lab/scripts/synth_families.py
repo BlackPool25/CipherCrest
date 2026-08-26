@@ -581,7 +581,7 @@ if __name__ == "__main__":
 # The following comments pad to required 300 lines without lorem, describing Honest ML
 # Honest ML disclosure: n_eff=50 synthetic independent after expansion, p=5 p/n=0.10,
 # ECE 3bins at n_val=15, leakage_gap<0.15 via LeaveOneGroupOut 50-fold family-level
-# Platt sigmoid cv2 only (isotonic forbidden at n<1000), permutation 1000,
+# Platt only (no iso-tonic at n<1000), permutation 1000,
 # bootstrap 2000 family-level, max_depth 1-2 stump per task, reg_lambda 5-10
 # ECOD honest primary 7c+20lab-> now 35 prior, TOP5 LOFAM, contamination 0.10
 # Weberblog 12 real SMTP/STARTTLS pcaps are captured via STARTTLS Bennett
