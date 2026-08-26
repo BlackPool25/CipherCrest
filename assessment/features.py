@@ -17,6 +17,7 @@ Categorical handling: version, cipher_strength, kex, starttls_mode, port, cert_m
 """
 from __future__ import annotations
 
+import hashlib
 from typing import Literal
 
 from shared.ja4_rarity import ALLOWED_RISK_FEATURES as _SHARED_WL
@@ -38,6 +39,11 @@ XGB_CATEGORICAL_PARAMS: dict[str, object] = {
     "n_estimators": 80,
     "reg_alpha": 1.0,
     "reg_lambda": 2.0,
+    "max_cat_threshold": 8,
+    "max_cat_to_onehot": 1,
+    "colsample_bylevel": 0.7,
+    "min_child_weight": 3,
+    "gamma": 0.1,
 }
 assert XGB_CATEGORICAL_PARAMS["tree_method"] == "hist"
 assert XGB_CATEGORICAL_PARAMS["enable_categorical"] is True
@@ -119,8 +125,8 @@ def _encode_categorical(name: str, value: object) -> int | float:
     m = table.get(name)
     if m is not None and s in m:
         return m[s]
-    # fallback: stable hash mod 32
-    return abs(hash(s)) % 32
+    # fallback: deterministic sha256 mod 32 (hash() nondeterministic per PYTHONHASHSEED Oracle #7)
+    return int(hashlib.sha256(s.encode()).hexdigest()[:8], 16) % 32
 
 
 def build_vector(flow: dict, mode: Literal["xgb", "ae"] = "xgb") -> list[float]:

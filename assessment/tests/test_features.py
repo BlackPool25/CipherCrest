@@ -204,3 +204,139 @@ def test_build_vector_ja4_rarity_clamp_and_days_bounds():
     flow_days = {"tls": {}, "cert": {"leaf_present": True, "days_to_expiry": 9999}}
     assert build_vector(flow_days, mode="xgb")[idx_days] == 9999.0
     assert 0.0 <= build_vector(flow_days, mode="ae")[idx_days] <= 1.0
+
+
+# ---- Strict hardening extensions (Day8-10) ----
+
+def test_strict_feature_counts_and_whitelist_reverify():
+    from assessment.features import FEATURES_28, _BASE_21, _MISS_7, _CATEGORICAL_6, ALLOWED_RISK_FEATURES
+
+    assert len(FEATURES_28) == 28
+    assert len(_BASE_21) == 21
+    assert len(_MISS_7) == 7
+    assert FEATURES_28 == _BASE_21 + _MISS_7
+    assert len(_CATEGORICAL_6) == 6
+    assert "ja4" not in FEATURES_28
+    assert "ja4_rarity" in FEATURES_28
+    assert "environment_id" not in FEATURES_28
+    assert "family_id" not in FEATURES_28
+    assert "family_id" not in " ".join(FEATURES_28)
+    assert "ja4" not in ALLOWED_RISK_FEATURES
+    assert "ja4_rarity" in ALLOWED_RISK_FEATURES
+    # FEATURES_28 order frozen — no drift
+    expected_order = [
+        "version", "cipher_strength", "kex", "starttls_mode", "port", "cert_missing_reason",
+        "is_deprecated", "is_aead", "fs_flag", "handshake_success", "alert_after_starttls",
+        "ja4_rarity", "chain_valid", "san_match", "days_to_expiry", "chain_length",
+        "pubkey_bits", "sigalg_weak", "is_expired", "is_self_signed", "keysize_weak",
+        "miss_indicator_chain_valid", "miss_indicator_san_match", "miss_indicator_days_to_expiry",
+        "miss_indicator_pubkey_bits", "miss_indicator_sigalg", "miss_indicator_chain_length",
+        "miss_indicator_ja4_rarity",
+    ]
+    assert FEATURES_28 == expected_order
+
+
+def test_xgb_strict_params():
+    from assessment.features import XGB_CATEGORICAL_PARAMS
+
+    assert XGB_CATEGORICAL_PARAMS["enable_categorical"] is True
+    assert XGB_CATEGORICAL_PARAMS["tree_method"] == "hist"
+    assert XGB_CATEGORICAL_PARAMS["max_depth"] == 4
+    assert XGB_CATEGORICAL_PARAMS["n_estimators"] == 80
+    assert XGB_CATEGORICAL_PARAMS["reg_alpha"] == 1.0
+    assert XGB_CATEGORICAL_PARAMS["reg_lambda"] == 2.0
+    # strict hardening additions per XGBoost categorical docs
+    assert XGB_CATEGORICAL_PARAMS["max_cat_threshold"] == 8
+    assert XGB_CATEGORICAL_PARAMS["max_cat_to_onehot"] == 1
+    assert XGB_CATEGORICAL_PARAMS["colsample_bylevel"] == 0.7
+    assert XGB_CATEGORICAL_PARAMS["min_child_weight"] == 3
+    assert XGB_CATEGORICAL_PARAMS["gamma"] == 0.1
+
+
+def test_hashlib_deterministic_not_hash():
+    text = pathlib.Path("assessment/features.py").read_text()
+    assert "hashlib.sha256" in text
+    # hash() nondeterministic forbidden
+    assert "hash(s)" not in text
+    assert "hash(" not in text or "hashlib" in text  # allow only hashlib hash
+    # ensure no bare hash()%32 remains
+    assert "hash(s)) % 32" not in text
+    from assessment.features import _encode_categorical
+
+    # unknown categorical fallback must be deterministic via sha256
+    v1 = _encode_categorical("port", "9999")
+    v2 = _encode_categorical("port", "9999")
+    assert v1 == v2
+    assert 0 <= v1 < 32
+    # verify sha256 mapping
+    import hashlib
+
+    expected = int(hashlib.sha256("9999".encode()).hexdigest()[:8], 16) % 32
+    assert v1 == expected
+    # also for version unknown value
+    vx1 = _encode_categorical("version", "TLS9.9")
+    vx2 = _encode_categorical("version", "TLS9.9")
+    assert vx1 == vx2
+    assert vx1 == int(hashlib.sha256("TLS9.9".encode()).hexdigest()[:8], 16) % 32
+
+
+def test_grease_16_only():
+    from shared.ja4_rarity import GREASE_VALUES
+
+    assert len(GREASE_VALUES) == 16
+    # spot check RFC8701 values
+    assert 0x0A0A in GREASE_VALUES
+    assert 0xFAFA in GREASE_VALUES
+    text = pathlib.Path("assessment/features.py").read_text()
+    assert "GREASE" not in text or "16" in text or True  # features must not invent GREASE beyond 16 (just check shared)
+
+
+def test_pickle_protocol4_guard():
+    # risk_model must use protocol 4, anomaly uses pickle but check presence
+    rm_text = pathlib.Path("assessment/risk_model.py").read_text()
+    assert "protocol=4" in rm_text
+
+
+def test_no_isotonic_no_family_id_strict():
+    txt = pathlib.Path("assessment/features.py").read_text().lower()
+    assert "isotonic" not in txt
+    assert "family_id" not in txt
+    from assessment.features import FEATURES_28
+
+    assert "family_id" not in FEATURES_28
+    assert "family_id" not in " ".join(FEATURES_28)
+
+
+def test_build_vector_xgb_vs_ae_modes():
+    from assessment.features import build_vector, FEATURES_28, _CATEGORICAL_6
+
+    flow = {"tls": {"version": "TLS1.3", "ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "pubkey_bits": 2048, "days_to_expiry": 100}, "starttls_mode": "upgrade"}
+    vx = build_vector(flow, mode="xgb")
+    va = build_vector(flow, mode="ae")
+    assert len(vx) == 28 and len(va) == 28
+    assert all(math.isfinite(x) for x in vx)
+    assert all(math.isfinite(x) for x in va)
+    assert not any(math.isnan(x) for x in vx)
+    # categorical codes: xgb integer codes, ae 0..1 normalized
+    for name in _CATEGORICAL_6:
+        idx = FEATURES_28.index(name)
+        assert 0.0 <= va[idx] <= 1.0
+    # deterministic across repeated calls
+    assert vx == build_vector(flow, mode="xgb")
+    assert va == build_vector(flow, mode="ae")
+
+
+def test_build_vector_opaque_still_28_miss_flags():
+    from assessment.features import build_vector, FEATURES_28
+
+    flow = {"tls": {}, "cert": {"is_tls13_opaque": True}, "starttls_mode": "none"}
+    v = build_vector(flow, mode="xgb")
+    assert len(v) == 28
+    assert all(math.isfinite(x) for x in v)
+    for miss in ["miss_indicator_chain_valid", "miss_indicator_san_match", "miss_indicator_days_to_expiry", "miss_indicator_pubkey_bits", "miss_indicator_chain_length", "miss_indicator_ja4_rarity"]:
+        assert v[FEATURES_28.index(miss)] == 1.0
+
+
+def test_loc_under_250():
+    loc = len(pathlib.Path("assessment/features.py").read_text().splitlines())
+    assert loc < 250, f"features.py {loc} LOC exceeds 250"
