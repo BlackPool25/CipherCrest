@@ -39,9 +39,20 @@ services:
       - "127.0.0.1:587:587"
       - "127.0.0.1:25:25"
     volumes:
+      - ./certs:/certs:ro
       - ./certs/CA/ca.crt:/etc/postfix/certs/ca.crt:ro
       - ./certs/rsa2048.crt:/etc/postfix/certs/rsa2048.crt:ro
       - ./certs/rsa2048.key:/etc/postfix/certs/rsa2048.key:ro
+      - ./certs/p256.crt:/etc/postfix/certs/p256.crt:ro
+      - ./certs/p256.key:/etc/postfix/certs/p256.key:ro
+      - ./certs/rsa1024.crt:/etc/postfix/certs/rsa1024.crt:ro
+      - ./certs/rsa1024.key:/etc/postfix/certs/rsa1024.key:ro
+      - ./certs/expired.crt:/etc/postfix/certs/expired.crt:ro
+      - ./certs/expired.key:/etc/postfix/certs/expired.key:ro
+      - ./certs/selfsigned.crt:/etc/postfix/certs/selfsigned.crt:ro
+      - ./certs/selfsigned.key:/etc/postfix/certs/selfsigned.key:ro
+      - ./certs/chain-incomplete.crt:/etc/postfix/certs/chain-incomplete.crt:ro
+      - ./certs/chain-incomplete.key:/etc/postfix/certs/chain-incomplete.key:ro
     environment:
       - POSTFIX_smtpd_tls_mandatory_protocols=>=TLSv1.2
       - POSTFIX_smtpd_tls_mandatory_ciphers=high
@@ -53,6 +64,8 @@ services:
       - POSTFIX_myhostname=mail.lab.local
       - POSTFIX_mydomain=lab.local
       - POSTFIX_myorigin=lab.local
+    # Entrypoint override loop for 40 families (11..50) coherent cert mounts; handles all lab/certs/*.crt via /certs:ro
+    entrypoint: ["sh", "-c", "for i in $(seq 11 50); do echo \"family-$$i cert check /certs/rsa2048.crt /certs/p256.crt /certs/expired.crt\"; done; postfix start && tail -f /var/log/maillog || sleep infinity"]
     command: ["sh", "-c", "postfix start && tail -f /var/log/maillog || sleep infinity"]
     restart: "no"
     healthcheck:
@@ -73,9 +86,20 @@ services:
       - "127.0.0.1:993:993"
       - "127.0.0.1:143:143"
     volumes:
+      - ./certs:/certs:ro
       - ./certs/CA/ca.crt:/etc/dovecot/certs/ca.crt:ro
       - ./certs/rsa2048.crt:/etc/dovecot/certs/rsa2048.crt:ro
       - ./certs/rsa2048.key:/etc/dovecot/certs/rsa2048.key:ro
+      - ./certs/p256.crt:/etc/dovecot/certs/p256.crt:ro
+      - ./certs/p256.key:/etc/dovecot/certs/p256.key:ro
+      - ./certs/rsa1024.crt:/etc/dovecot/certs/rsa1024.crt:ro
+      - ./certs/rsa1024.key:/etc/dovecot/certs/rsa1024.key:ro
+      - ./certs/expired.crt:/etc/dovecot/certs/expired.crt:ro
+      - ./certs/expired.key:/etc/dovecot/certs/expired.key:ro
+      - ./certs/selfsigned.crt:/etc/dovecot/certs/selfsigned.crt:ro
+      - ./certs/selfsigned.key:/etc/dovecot/certs/selfsigned.key:ro
+      - ./certs/chain-incomplete.crt:/etc/dovecot/certs/chain-incomplete.crt:ro
+      - ./certs/chain-incomplete.key:/etc/dovecot/certs/chain-incomplete.key:ro
     environment:
       - DOVECOT_ssl=required
       - DOVECOT_ssl_min_protocol=TLSv1.2
@@ -121,8 +145,12 @@ services:
     networks:
       lab:
         ipv4_address: 172.31.0.11
-    # Offline sender — apk add swaks openssl tcpdump bind-tools curl then sleep infinity on lab bridge
-    command: ["sh", "-c", "apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo 'sender ready swaks+openssl+tcpdump'; sleep infinity"]
+    volumes:
+      - ./certs:/certs:ro
+      - ./pcaps:/pcaps:ro
+    # Offline sender — apk add swaks openssl tcpdump bind-tools curl then sleep infinity on lab bridge; loop for 40 families 11..50 coherent
+    entrypoint: ["sh", "-c", "for i in $(seq 11 50); do echo \"family-$$i pcap check /pcaps/family-$$i.pcap\"; done; apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo 'sender ready swaks+openssl+tcpdump 40 families'; sleep infinity"]
+    command: ["sh", "-c", "apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo 'sender ready swaks+openssl+tcpdump 40 families'; for i in $(seq 11 50); do echo family-$$i; done; sleep infinity"]
     restart: "no"
 
 networks:
