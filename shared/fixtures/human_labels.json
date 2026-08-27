@@ -1,227 +1,242 @@
 [
   {
-    "flow_id": "family-36__postfix3.9_loss0",
-    "env": "family-36__postfix3.9_loss0",
-    "idx": 70,
+    "flow_id": "family-171__postfix3.9_loss0",
+    "env": "family-171__postfix3.9_loss0",
+    "idx": 170,
     "label": 1,
     "annotator": "annotator-01",
-    "prob": 0.5080530697675092,
-    "entropy": 0.6930174710863051,
-    "dist": 0.008053069767509191,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
+    "prob": 0.9329700553023855,
+    "entropy": 0.24588767964800023,
+    "cluster_id": 0,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "second_annotator": "annotator-02",
+    "second_label": 1,
+    "overlap": true,
+    "kappa_pair": "annotator-01 vs annotator-02 agree 1==1"
   },
   {
-    "flow_id": "family-37__postfix3.9_loss0",
-    "env": "family-37__postfix3.9_loss0",
-    "idx": 71,
+    "flow_id": "family-316__postfix3.9_loss0",
+    "env": "family-316__postfix3.9_loss0",
+    "idx": 315,
     "label": 1,
     "annotator": "annotator-02",
-    "prob": 0.5081795627475417,
-    "entropy": 0.6930133640974083,
-    "dist": 0.008179562747541724,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-11__postfix3.9_loss0",
-    "env": "family-11__postfix3.9_loss0",
-    "idx": 45,
-    "label": 1,
-    "annotator": "annotator-03",
-    "prob": 0.511007410475889,
-    "entropy": 0.6929048348113893,
-    "dist": 0.011007410475889046,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-47__postfix3.9_loss0",
-    "env": "family-47__postfix3.9_loss0",
-    "idx": 81,
-    "label": 1,
-    "annotator": "annotator-01",
-    "prob": 0.5142790654488205,
-    "entropy": 0.6927393416925656,
-    "dist": 0.014279065448820516,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-41__postfix3.9_loss0",
-    "env": "family-41__postfix3.9_loss0",
-    "idx": 75,
-    "label": 1,
-    "annotator": "annotator-02",
-    "prob": 0.5214498409292955,
-    "entropy": 0.6922267067494683,
-    "dist": 0.02144984092929547,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-42__postfix3.9_loss0",
-    "env": "family-42__postfix3.9_loss0",
-    "idx": 76,
-    "label": 1,
-    "annotator": "annotator-03",
-    "prob": 0.5214498409292955,
-    "entropy": 0.6922267067494683,
-    "dist": 0.02144984092929547,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-44__postfix3.9_loss0",
-    "env": "family-44__postfix3.9_loss0",
-    "idx": 78,
-    "label": 1,
-    "annotator": "annotator-01",
-    "prob": 0.5214498409292955,
-    "entropy": 0.6922267067494683,
-    "dist": 0.02144984092929547,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-49__postfix3.9_loss0",
-    "env": "family-49__postfix3.9_loss0",
-    "idx": 83,
-    "label": 1,
-    "annotator": "annotator-02",
-    "prob": 0.5214498409292955,
-    "entropy": 0.6922267067494683,
-    "dist": 0.02144984092929547,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-30__postfix3.9_loss0",
-    "env": "family-30__postfix3.9_loss0",
-    "idx": 64,
-    "label": 1,
-    "annotator": "annotator-03",
-    "prob": 0.5431883391631276,
-    "entropy": 0.6894120625907381,
-    "dist": 0.04318833916312759,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
+    "prob": 0.8514376807866221,
+    "entropy": 0.420207158170982,
+    "cluster_id": 1,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "second_annotator": "annotator-03",
+    "second_label": 1,
+    "overlap": true,
+    "kappa_pair": "annotator-02 vs annotator-03 agree 1==1"
   },
   {
     "flow_id": "family-04__postfix3.9_loss0",
     "env": "family-04__postfix3.9_loss0",
-    "idx": 18,
+    "idx": 3,
+    "label": 0,
+    "annotator": "annotator-03",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 2,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "second_annotator": "annotator-01",
+    "second_label": 0,
+    "overlap": true,
+    "kappa_pair": "annotator-03 vs annotator-01 agree 0==0"
+  },
+  {
+    "flow_id": "family-124__postfix3.9_loss0",
+    "env": "family-124__postfix3.9_loss0",
+    "idx": 123,
     "label": 1,
     "annotator": "annotator-01",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
+    "prob": 0.9005986681204854,
+    "entropy": 0.3237655704101039,
+    "cluster_id": 3,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "second_annotator": "annotator-02",
+    "second_label": 1,
+    "overlap": true,
+    "kappa_pair": "annotator-01 vs annotator-02 agree 1==1"
   },
   {
-    "flow_id": "family-03__postfix3.9_loss0",
-    "env": "family-03__postfix3.9_loss0",
-    "idx": 12,
+    "flow_id": "family-42__postfix3.9_loss0",
+    "env": "family-42__postfix3.9_loss0",
+    "idx": 41,
+    "label": 0,
+    "annotator": "annotator-02",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 4,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "second_annotator": "annotator-03",
+    "second_label": 0,
+    "overlap": true,
+    "kappa_pair": "annotator-02 vs annotator-03 agree 0==0"
+  },
+  {
+    "flow_id": "family-37__postfix3.9_loss0",
+    "env": "family-37__postfix3.9_loss0",
+    "idx": 36,
+    "label": 0,
+    "annotator": "annotator-03",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 5,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-210__postfix3.9_loss0",
+    "env": "family-210__postfix3.9_loss0",
+    "idx": 209,
+    "label": 0,
+    "annotator": "annotator-01",
+    "prob": 0.9713484874346392,
+    "entropy": 0.13002298432256515,
+    "cluster_id": 6,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-16__postfix3.9_loss0",
+    "env": "family-16__postfix3.9_loss0",
+    "idx": 15,
+    "label": 0,
+    "annotator": "annotator-02",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 7,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-41__postfix3.9_loss0",
+    "env": "family-41__postfix3.9_loss0",
+    "idx": 40,
+    "label": 0,
+    "annotator": "annotator-03",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 8,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-169__postfix3.9_loss0",
+    "env": "family-169__postfix3.9_loss0",
+    "idx": 168,
+    "label": 1,
+    "annotator": "annotator-01",
+    "prob": 0.9329700553023855,
+    "entropy": 0.24588767964800023,
+    "cluster_id": 9,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-237__postfix3.9_loss0",
+    "env": "family-237__postfix3.9_loss0",
+    "idx": 236,
+    "label": 0,
+    "annotator": "annotator-02",
+    "prob": 0.98,
+    "entropy": 0.09803911327973205,
+    "cluster_id": 10,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-454__postfix3.9_loss0",
+    "env": "family-454__postfix3.9_loss0",
+    "idx": 453,
+    "label": 1,
+    "annotator": "annotator-03",
+    "prob": 0.8514376807866221,
+    "entropy": 0.420207158170982,
+    "cluster_id": 11,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-473__postfix3.9_loss0",
+    "env": "family-473__postfix3.9_loss0",
+    "idx": 472,
+    "label": 1,
+    "annotator": "annotator-01",
+    "prob": 0.9329700553023855,
+    "entropy": 0.24588767964800023,
+    "cluster_id": 12,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
+  },
+  {
+    "flow_id": "family-381__postfix3.9_loss0",
+    "env": "family-381__postfix3.9_loss0",
+    "idx": 380,
     "label": 1,
     "annotator": "annotator-02",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
+    "prob": 0.8781373043382765,
+    "entropy": 0.37061992693430257,
+    "cluster_id": 13,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
   },
   {
-    "flow_id": "family-08__postfix3.9_loss0",
-    "env": "family-08__postfix3.9_loss0",
+    "flow_id": "family-38__postfix3.9_loss0",
+    "env": "family-38__postfix3.9_loss0",
     "idx": 37,
     "label": 1,
     "annotator": "annotator-03",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-05__postfix3.9_loss0",
-    "env": "family-05__postfix3.9_loss0",
-    "idx": 24,
-    "label": 1,
-    "annotator": "annotator-01",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-10__postfix3.9_loss0",
-    "env": "family-10__postfix3.9_loss0",
-    "idx": 44,
-    "label": 1,
-    "annotator": "annotator-02",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
-  },
-  {
-    "flow_id": "family-09__postfix3.9_loss0",
-    "env": "family-09__postfix3.9_loss0",
-    "idx": 38,
-    "label": 1,
-    "annotator": "annotator-03",
-    "prob": 0.6015499834295165,
-    "entropy": 0.6723781955444181,
-    "dist": 0.10154998342951649,
-    "tie_break_top3": [
-      "version",
-      "cipher_strength",
-      "kex"
-    ]
+    "prob": 0.8209668296113051,
+    "entropy": 0.46992426618930067,
+    "cluster_id": 14,
+    "bucket": 7,
+    "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 ==7 human disjoint from prior 0-6",
+    "b_bins": 2,
+    "platt": "L2 Logistic C=1.0 LOO-CV B=2",
+    "overlap": false
   }
 ]

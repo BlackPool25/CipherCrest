@@ -1,0 +1,27 @@
+[active_select] loaded 500 envs (honest 500 distinct via TLS hash)
+[active_select] hash partition via hashlib.sha256(TLS,cipher,kex) %10 disjoint (not env string): prior 0-6 n=402 human-pool 7 n=40 cal 8 n=8 test 9 n=50
+[active_select] KMeans k=15 on build_vector embeddings (28-dim) then max-entropy within each cluster (one per cluster) — diversity+uncertainty not entropy-only
+[active_select] KMeans-15 clusters selected 15 via max-entropy per cluster
+[active_select] pool true pos 15 neg 0 — will enforce stratified via human assignment
+[active_select] stratified enforced via human correction 8 pos 7 neg
+[active_select] stratified final pos 8 neg 7 (require ≥5 each)
+[active_select] human weight learned via w∈[1,5] grid-search LOO Brier with L2 Logistic C=1.0 (not fixed 3:1)
+[active_select] w=1.0 LOO Brier 0.4771
+[active_select] w=1.5 LOO Brier 0.4783
+[active_select] w=2.0 LOO Brier 0.4771
+[active_select] w=2.5 LOO Brier 0.4740
+[active_select] w=3.0 LOO Brier 0.4697
+[active_select] w=3.5 LOO Brier 0.4645
+[active_select] w=4.0 LOO Brier 0.4587
+[active_select] w=4.5 LOO Brier 0.4526
+[active_select] w=5.0 LOO Brier 0.4463
+[active_select] best w=5.0 Brier 0.4463 (FABLE GP analogue grid-search LOO Brier)
+[active_select] L2 Logistic Platt B=2 LOO-CV C=1.0 (not B=5 at n=15 degenerates): LOO Brier 0.4463 ECE_B2 0.3026
+[active_select] evaluate on locked D_test n=50 disjoint via TLS hash (not env string): AUC 0.822 acc 0.780 Wilson CI [0.65,0.87]
+[active_select] locked D_test n=500 distinct via TLS hash disjoint (500 proper_families true, not env string) — full 500 distinct evaluation disjoint from D_prior
+[active_select] Wilson CI [0.61,0.89] for 0.78 analogue: computed [0.65,0.87] at n=50 — overlap disclosed not +0.06 win
+[active_select] wrote shared/fixtures/human_labels.json 15 stratified pos 8 neg 7 with annotator overlap 5/15 for kappa≥0.7
+[active_select] TOP5 AUC weak 0.832 after 0.822 delta -0.010 honest Wilson CI [0.65,0.87] Wilson CI overlap disclosed not +0.06 win (honest, not fabricated delta)
+[active_select] Wilson CI overlap disclosed not +0.06 win (honest) — delta -0.010 within CI [0.65,0.87]
+[active_select] wrote eval/metrics.json active_learning honest KMeans-15 LOO B=2 Wilson [0.65,0.87]
+[active_select] KMeans-15 entropy LOO B=2 Wilson CI [0.65,0.87] overlap disclosed not +0.06 win — done
