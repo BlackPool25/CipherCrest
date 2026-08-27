@@ -71,7 +71,7 @@ def _filtered_lab_for_training(lab_flows: list[dict]) -> list[dict]:
 def _load_censys_flows() -> list[dict]:
     data = json.loads(CENSYS_PATH.read_text())
     data.sort(key=lambda x: x.get("flow_id", ""))
-    assert len(data) in (20, 35), f"censys {len(data)} not in (20,35)"
+    assert len(data) in (20, 35, 50), f"censys {len(data)} not in (20,35,50)"
     return data
 
 def _handle_zero_variance(X: np.ndarray, eps: float = 1e-6) -> np.ndarray:
