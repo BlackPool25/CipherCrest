@@ -233,7 +233,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
 
 ## Final verification wave
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
-- [ ] F1. Plan compliance audit
+- [x] F1. Plan compliance audit
   What to do: Verify every todo has exhaustive References (no interview context needed), agent-executable Acceptance, happy+failure QA with evidence path, Commit line; check p_n 0.025 disclosure, no isotonic, no raw ja4, no m23, no GPU XGB.
   Tool: `grep -c "^- \[ \] [0-9]" .omo/plans/sih26159-ml-accuracy-family-fix.md` ==19 and `grep -c "^- \[ \] F" .omo/plans/sih26159-ml-accuracy-family-fix.md` ==4
 - [ ] F2. Code quality review
