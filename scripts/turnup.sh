@@ -9,6 +9,7 @@
 # Env: API_PORT=8000, PYTHONHASHSEED=0, OMP_NUM_THREADS=6, WITH_LAB=0|1
 # Pure Docker path: no native uvicorn/vite when Docker available; INT TERM only (no auto-down on exit)
 set -uo pipefail
+trap 'exit 0' PIPE
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

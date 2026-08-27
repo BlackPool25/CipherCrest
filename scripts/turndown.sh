@@ -6,6 +6,7 @@
 # Pure Docker: down both composes, ss check port 8000, rm .tmp pid, log rotation
 # Port: 8000 via ss -ltn fallback fuser; Logs: logs/turndown_<ts>.log keep last 10 prune 7d
 set -uo pipefail
+trap 'exit 0' PIPE
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

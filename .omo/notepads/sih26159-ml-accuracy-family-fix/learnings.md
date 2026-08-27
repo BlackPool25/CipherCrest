@@ -36,3 +36,12 @@
 - Fixed lab/scripts/synth_families.py name_map missing 6 ciphers (0xC024,0xC028,0x002C,0x009E,0x009F etc.) — dry-run now 0 UNKNOWN (was 5-6) via `python lab/scripts/synth_families.py --count 40 --seed 0 --dry-run | grep -c UNKNOWN` ==0.
 - Verification: `python lab/scripts/validate_families.py --taxonomy docs/FAMILY_TAXONOMY.md` → 40 coherent families validated (exit 0); without flag → FAILED manifest incoherence (exit 1) proving guard; `pytest assessment/tests/test_features.py -q` 28 passed; py_compile clean.
 - Evidence: .omo/evidence/task-4-sih26159-ml-accuracy-family-fix.log (tee of validator + grep + dry-run + pytest tail)
+
+## 2026-08-27 — ci-hotfix with-lab SIGPIPE
+
+- Fix: `scripts/turnup.sh --help` intermittently failed `grep -q with-lab` under CI `set -uo pipefail` due to SIGPIPE race: `grep -q` exits early after matching first line (Usage), closing pipe while `do_help` still echoing remaining lines -> bash gets SIGPIPE -> exit 141 -> pipefail makes pipeline fail (flaky 80% fail over 10 runs).
+- Solution: added `trap 'exit 0' PIPE` after `set -uo pipefail` in both `scripts/turnup.sh` and `scripts/turndown.sh` so SIGPIPE yields clean exit 0 instead of 141; downstream grep still succeeds, pipeline returns 0 with pipefail.
+- Help already contained `with-lab` (Usage line + `--with-lab` line) so no text addition needed beyond SIGPIPE handling; verified `bash scripts/turnup.sh --help 2>&1 | grep -q with-lab && echo PASS` now deterministic PASS.
+- Verification: `bash scripts/tests/test_turnup_twofile.sh` now 10/10 runs `PASS=30 FAIL=0` (was 2/10 before fix, 8/10 failing on --help has with-lab); `grep "\[fail\]"` empty; `bash -n` syntax ok.
+- Evidence: .omo/evidence/ci-hotfix.log (30 PASS)
+

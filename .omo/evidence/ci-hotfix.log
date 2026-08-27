@@ -1,0 +1,33 @@
+=== test_turnup_twofile TDD ===
+[ok] grep docker compose up -d in turnup
+[ok] grep docker compose up -d --build
+[ok] test -f turndown.sh
+[ok] --help has with-lab
+[ok] keep python 3.11 check
+[ok] keep node >=18 check
+[ok] keep tshark 4 prefs
+[ok] keep wheelhouse <370
+[ok] keep models prot4 <5M
+[ok] keep gzip <3670016
+[ok] keep check_port_free 8000 via ss/fuser
+[ok] wait_for health 30 0.5
+[ok] curl /analyze in turnup
+[ok] trap INT TERM only
+[ok] no native uvicorn when Docker available
+[ok] PYTHONHASHSEED 0
+[ok] OMP_NUM_THREADS 6
+[ok] turndown has down
+[ok] turndown ss check
+[ok] turndown rm pid
+[ok] turndown log rotation
+[ok] turndown --check idempotent
+[ok] turndown --check exit 0
+[ok] turndown --check idempotent double run
+[ok] turnup --check ok
+[ok] verification chain
+[ok] turnup --help has host/wheelhouse
+[ok] turnup has pip find-links wheelhouse
+[ok] turndown --help has host/wheelhouse
+[ok] turndown has port termination
+=== result PASS=30 FAIL=0 ===
+ALL PASS 30
