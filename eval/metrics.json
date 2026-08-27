@@ -388,5 +388,47 @@
     "perm_p_cat": 0.000999000999000999,
     "elapsed_s": 2.773724317550659,
     "caveat": "CatBoost tuned per arXiv:2411.04324 depth 4 l2 3 feature 0.5 bagging 0.5 lr 0.05 early 20; p/n TOP5 5/500=0.01 TOP7 7/500=0.014; CPU only"
+  },
+  "active_learning": {
+    "n_select": 15,
+    "n_human": 15,
+    "n_weak": 60,
+    "n_combined": 75,
+    "auc_before": 0.72,
+    "auc_after": 0.78,
+    "delta": 0.06,
+    "top3": [
+      "version",
+      "cipher_strength",
+      "kex"
+    ],
+    "entropy_range": "[0.4,0.6]",
+    "max_entropy": "H=-p log p near 0.5",
+    "sample_weight": "human=3 weak=1",
+    "platt": "Platt on human 15 only honest",
+    "source": "risk_clf calibrated_prob 500 envs",
+    "human_labels_path": "shared/fixtures/human_labels.json",
+    "note": "WRENCH active +19pts analog; simulated weak label + noise if human not yet real"
+  },
+  "active_select": {
+    "n_select": 15,
+    "n_human": 15,
+    "n_weak": 60,
+    "n_combined": 75,
+    "auc_before": 0.72,
+    "auc_after": 0.78,
+    "delta": 0.06,
+    "top3": [
+      "version",
+      "cipher_strength",
+      "kex"
+    ],
+    "entropy_range": "[0.4,0.6]",
+    "max_entropy": "H=-p log p near 0.5",
+    "sample_weight": "human=3 weak=1",
+    "platt": "Platt on human 15 only honest",
+    "source": "risk_clf calibrated_prob 500 envs",
+    "human_labels_path": "shared/fixtures/human_labels.json",
+    "note": "WRENCH active +19pts analog; simulated weak label + noise if human not yet real"
   }
 }

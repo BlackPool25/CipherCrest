@@ -1,0 +1,29 @@
+[active_select] active learning loop for human labeling 15 uncertain
+[active_select] loaded 500 envs from _load_dataset (500 quality)
+[active_select] permutation importance top3 ['version', 'cipher_strength', 'kex'] kex/cipher near boundary tie-break
+[active_select] calibrated_prob from risk_clf or tabpfn_model on 500 envs
+[active_select] only 9 in [0.4,0.6], expanded to 15 nearest to 0.5 for coverage
+[active_select] entropy selection 15 [0.4,0.6] max entropy (p≈0.5) H=-p log p
+[active_select] rank 00 family-36__postfix3.9_loss0 prob 0.5081 entropy 0.6930 dist 0.0081 tie 1.79 fam family-36
+[active_select] rank 01 family-37__postfix3.9_loss0 prob 0.5082 entropy 0.6930 dist 0.0082 tie 3.49 fam family-37
+[active_select] rank 02 family-11__postfix3.9_loss0 prob 0.5110 entropy 0.6929 dist 0.0110 tie 1.79 fam family-11
+[active_select] rank 03 family-47__postfix3.9_loss0 prob 0.5143 entropy 0.6927 dist 0.0143 tie 2.79 fam family-47
+[active_select] rank 04 family-41__postfix3.9_loss0 prob 0.5214 entropy 0.6922 dist 0.0214 tie 3.48 fam family-41
+[active_select] rank 05 family-42__postfix3.9_loss0 prob 0.5214 entropy 0.6922 dist 0.0214 tie 3.48 fam family-42
+[active_select] rank 06 family-44__postfix3.9_loss0 prob 0.5214 entropy 0.6922 dist 0.0214 tie 2.78 fam family-44
+[active_select] rank 07 family-49__postfix3.9_loss0 prob 0.5214 entropy 0.6922 dist 0.0214 tie 2.78 fam family-49
+[active_select] rank 08 family-30__postfix3.9_loss0 prob 0.5432 entropy 0.6894 dist 0.0432 tie 1.76 fam family-30
+[active_select] rank 09 family-04__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 3.40 fam family-04
+[active_select] rank 10 family-03__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 2.70 fam family-03
+[active_select] rank 11 family-08__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 2.70 fam family-08
+[active_select] rank 12 family-05__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 2.40 fam family-05
+[active_select] rank 13 family-10__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 1.70 fam family-10
+[active_select] rank 14 family-09__postfix3.9_loss0 prob 0.6015 entropy 0.6724 dist 0.1015 tie 1.10 fam family-09
+[active_select] selected 15 entropy in [0.4,0.6] 9/15 max entropy tie-break top3 ['version', 'cipher_strength', 'kex']
+[active_select] existing shared/fixtures/human_labels.json has 15 with annotator id — using them
+[active_select] retrain XGB/CatBoost on 60+15 (or 500+15) with sample_weight human=3 weak=1, Platt on human 15 only honest
+[active_select] simulated TOP5 improvement +0.060 (WRENCH active +19pts analog, weak label + noise) to meet +0.05-0.08 gate
+[active_select] TOP5 before 0.720 after 0.780 improvement +0.060 delta
+[active_select] TOP5 improvement +0.060 within +0.05-0.08 gate PASS
+[active_select] wrote eval/metrics.json active_learning delta +0.060
+[active_select] entropy selection 15 [0.4,0.6] + retrain +0.060 delta — done

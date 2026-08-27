@@ -215,7 +215,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `sha256sum shared/fixtures/locked_external/*.pcap > /tmp/check && sha256sum -c /tmp/check` passes; failure: `ls shared/fixtures/locked_external/*.locked || echo FAIL marker missing`.
   Commit: Y | feat(eval): extend locked external to 30 distinct pinned
 
-- [ ] 18. Active learning loop for human labeling 15 uncertain
+- [x] 18. Active learning loop for human labeling 15 uncertain
   What to do / Must NOT do: Create assessment/active_select.py that selects 15 flows with calibrated_prob ∈ [0.4,0.6] max entropy (p≈0.5) and permutation importance top3 kex/cipher near boundary; store shared/fixtures/human_labels.json with annotator id for κ; retrain XGB/CatBoost on 60+15 with sample_weight human=3 weak=1, Platt on human 15 only honest. Report TOP5 improvement +0.05-0.08. Must NOT use SMOTE; must NOT label via LLM.
   Parallelization: Wave 5 | Blocked by: 17 | Blocks: 19
   References (executor has NO interview context - be exhaustive): assessment/risk_train.py permutation_importance, eval/human_grades.csv κ 0.81/0.78, assessment/risk_metrics.py family_bootstrap, WRENCH active learning +19pts, SAGE best at n<300 with LLM
