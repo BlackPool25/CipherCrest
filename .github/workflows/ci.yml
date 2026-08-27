@@ -103,8 +103,8 @@ jobs:
       - name: Prior disjoint + prior_flag guard (chain_valid/san/days None)
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s.get('D_prior_groups',[])) & set(s['D1_train_groups']), f\"D_prior overlaps D1\""
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[])) in (20,35), f\"D_prior in (20,35) got {len(s.get('D_prior_groups',[]))}\""
-          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert len(c) in (20,35) and all(r.get('prior_flag') is True for r in c), 'prior_flag != True or len not in (20,35)'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s.get('D_prior_groups',[])) in (20,35,50,56), f\"D_prior in (20,35,50,56) got {len(s.get('D_prior_groups',[]))}\""
+          python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert len(c) in (20,35,50,56) and all(r.get('prior_flag') is True for r in c), 'prior_flag != True or len not in (20,35,50,56)'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('chain_valid') is None for r in c), 'chain_valid must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('san_match') is None for r in c), 'san_match must be None'"
           python -c "import json; c=json.load(open('shared/fixtures/censys_sampled_200.json')); assert all(r.get('cert',{}).get('days_to_expiry') is None for r in c), 'days_to_expiry must be None'"

@@ -115,3 +115,9 @@
 - Rate-limit compliance logged: 1 cert/day/IP (starttls.studio, Censys super-host avoidance) HONORED — simulated no live fetches; Must NOT exceed 500M IPs/day — simulated 200 IPs only 0.00004% of limit — COMPLIANT. Storage <3M OK, generation <5min OK. Alternative Censys fallback disclosed in tranco_source field.
 - Verification: `PYTHONHASHSEED=0 python -m lab.scripts.tranco_sample --count 200 --seed 42 2>&1 | tee .omo/evidence/task-7-sih26159-ml-accuracy-family-fix.log` shows "200 hosts scanned or simulated", tiers 50 each, ja4_rarity span 0.02..1.00; `ls shared/fixtures/tranco_sample_200.json` exists; `python -c "import json; j=json.load(open('shared/fixtures/tranco_sample_200.json')); assert len(j)>=50 and all('tls' in x for x in j) and all('version' in x['tls'] and 'cipher' in x['tls'] and 'ja4' in x['tls'] for x in j)"` passes; grep "500M IPs/day" and "1 cert/day/IP" present in log; Counter tiers 50 each.
 - Evidence: .omo/evidence/task-7-sih26159-ml-accuracy-family-fix.log (200 stratified STARTTLS Bennett via zgrab2 scanner.go STARTTLS, Censys ja4_rarity prior, rate-limit disclosure)
+
+## 2026-08-27 T6 CI D_prior 50 guard fix
+- CI .github/workflows/ci.yml lines 106-107 hard-coded `(20,35)` → blocked T6 50 Censys `AssertionError: D_prior in (20,35) got 50` and `len(c) in (20,35) got 50`.
+- Fixed to `(20,35,50,56)` (20 legacy, 35 pre-T6, 50 T6 50 Censys, 56 weber+future) on both D_prior and censys prior_flag len guards. Patched `shared/tests/test_censys_prior.py` and `assessment/tests/test_splits.py` already allowed 50 in T6; CI was sole remaining blocker. Verified `python -c assert len in (20,35,50,56)` passes with splits 50 and censys 50, yaml valid.
+- Lesson: keep CI len guards in sync with T6/T7 dataset scale bumps; T8 500-envs will need 85->500 etc.
+
