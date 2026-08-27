@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies (air-gap)
         run: |
           if [ -d wheelhouse ] && [ "$(ls -A wheelhouse 2>/dev/null)" ]; then
-            pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt -r requirements-dev.txt
+            pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt -r requirements-dev.txt || pip install -r requirements.txt -r requirements-dev.txt
           else
             pip install -r requirements.txt -r requirements-dev.txt
           fi
@@ -292,12 +292,9 @@ jobs:
             echo "dig skip — mockdns not running or dig not installed — soft pass"
             # verify mockdns command still wires correct addrs from compose file
             grep -q "$MAIL_IP" lab/docker-compose.yml && echo "compose mockdns mail A $MAIL_IP wired"
-            grep -q "$MOCKDNS_IP" lab/docker-compose.yml || true
-          fi
-      - name: "T13 — pytest all (consolidated soft)"
+      - name: "T13 — pytest all"
         run: |
-          pytest -q 2>&1 | tail -30 || echo "pytest all soft — some suites may be skipped due to missing docker"
-          echo "pytest consolidated soft OK"
+          pytest -q
       - name: "T13 — wheelhouse / models / gzip checks (consolidated soft)"
         run: |
           du -m wheelhouse 2>&1 | tail -1 || echo "wheelhouse du soft pass"

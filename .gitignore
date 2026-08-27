@@ -35,9 +35,11 @@ api/flows.db
 .opencode/skills
 logs/
 
-# Ignore loose/temp capture files by default, but preserve essential lab datasets
+# Ignore loose/temp capture files and jitter artifacts
 *.pcap
+*.pcapng
+*.cap
 *.bin
-!lab/pcaps/**
-!lab/reassembled/**
-!lab/adversarial/**
+lab/pcaps/jittered/
+lab/pcaps/jittered.pcap
+lab/reassembled/*jitter*
