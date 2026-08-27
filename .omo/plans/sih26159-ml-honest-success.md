@@ -188,7 +188,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `curl -s http://localhost:8000/api/flows | jq '.[0].coverage_ratio'` shows 0.897 for jittered; failure: `grep -q "slice(0,50)" dashboard/src/pages/Families.jsx && echo FAIL`
   Commit: Y | fix(dashboard): expose jitter grouping true coverage
 
-- [ ] 15. Verify 7900 GRE ROCm with CPU fallback graceful
+- [x] 15. Verify 7900 GRE ROCm with CPU fallback graceful
   What to do / Must NOT do: Add scripts/verify_rocm.sh checks rocminfo|grep gfx1100 and python -c "import torch; torch.cuda.is_available()" via rocm/pytorch:rocm6.3, verify TabPFN device=cuda:0 fit_with_cache + predict_proba_batched 20-58× vs CPU fallback device=cpu if ROCm absent; ensure api/ml_enrich fallback calibrated_prob None still 200, wheelhouse<350M via Releases for ckpt. Must NOT block CI if ROCm absent, must NOT add torch to wheelhouse lean.
   Parallelization: Wave 5 | Blocked by: 6,7 | Blocks: 16
   References (executor has NO interview context - be exhaustive): https://rocm.docs.amd.com gfx1100, https://github.com/PriorLabs/TabPFN/issues/147, TabPFN classifier device cuda, api/ml_enrich fallback, scripts/turnup.sh

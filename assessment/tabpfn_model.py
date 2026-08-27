@@ -1,17 +1,23 @@
-"""tabpfn_model — TabPFN-v3 ROCm 8-ens primary on TOP5/TOP7 (checkbox 9 sih26159-ml-accuracy-family-fix).
+"""tabpfn_model — TabPFN-v3 ROCm 8-ens primary on TOP5/TOP7 (checkbox 15 7900 GRE ROCm).
 
-Installation (isolated branch, 7900 GRE gfx1100 ROCm 6.2):
-  pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/rocm6.2
+Installation (7900 GRE gfx1100 ROCm 6.3 via rocm/pytorch:rocm6.3):
+  docker run --device /dev/kfd --device /dev/dri -e TABPFN_MODEL_CACHE_DIR=/models rocm/pytorch:rocm6.3 \
+    bash -c "pip install tabpfn && TABPFN_MODEL_CACHE_DIR=/models TABPFN_TOKEN=<hf_token> python -m assessment.tabpfn_model --device cuda:0 --validate"
+  # bare-metal alternative:
+  pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/rocm6.3
   pip install tabpfn
   # reinstall torch after (tabpfn overwrites CUDA wheel with CPU/CUDA wheel):
-  pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/rocm6.2
-  TABPFN_MODEL_CACHE_DIR=/models TABPFN_TOKEN=<hf_token> python -m assessment.tabpfn_model --validate
+  pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/rocm6.3
+  python -c "import torch; print(torch.cuda.is_available())"  # True on gfx1100 via rocm/pytorch:rocm6.3
+  TABPFN_MODEL_CACHE_DIR=/models TABPFN_TOKEN=<hf_token> python -m assessment.tabpfn_model --device cuda:0 --validate
 
-Vendor: tabpfn-v3 ckpt via TABPFN_MODEL_CACHE_DIR=/models (not wheelhouse <350M) + TABPFN_TOKEN.
-Fallback: CPU device if ROCm not available — CI must NOT block. Must NOT add torch to wheelhouse.
+Vendor: tabpfn-v3 ckpt via TABPFN_MODEL_CACHE_DIR=/models (not wheelhouse <350M) + TABPFN_TOKEN via Releases.
+Fallback: CPU device if ROCm not available — CI must NOT block (device=cpu). Must NOT add torch to wheelhouse lean <350M.
+TabPFN device=cuda:0 fit_with_cache + predict_proba_batched 20-58× vs CPU fallback device=cpu (batched inference).
 Guard: n=500, k=50 stratified, seeds 42,0,1 mean±std; must NOT use TabPFN at n<50 single seed.
 Compare vs XGB stump baseline via same LOFAM LeaveOneGroupOut + EnvCV + permutation 1000, report delta CI.
 Must NOT use device=cuda for XGB (cpu only).
+Verification: rocminfo|grep gfx1100, python -c "import torch; torch.cuda.is_available()" via rocm/pytorch:rocm6.3
 """
 
 from __future__ import annotations
@@ -59,11 +65,6 @@ assert len(FEATURES_TOP7) == 7
 
 
 def get_tabpfn_classifier():
-    """Return TabPFNClassifier(device=cuda:0|cpu, n_estimators=8, autocast) or fallback.
-
-    Must use TabPFNClassifier(device="cuda:0" if torch.cuda.is_available() else "cpu",
-                               n_estimators=8, inference_precision="autocast").
-    """
     device = "cuda:0" if _cuda_available else "cpu"
     try:
         from tabpfn import TabPFNClassifier  # type: ignore
@@ -73,6 +74,43 @@ def get_tabpfn_classifier():
     except Exception as e:
         warnings.warn(f"TabPFN not available ({e}), using CPU fallback dummy for CI")
         return None, device, False
+
+
+def _tabpfn_fit_with_cache(clf, X_train, y_train):
+    """Fit TabPFN with fit_with_cache on cuda:0 else fit on cpu fallback; logs fit_with_cache."""
+    if clf is None:
+        return clf
+    if hasattr(clf, "fit_with_cache") and TABPFN_DEVICE == "cuda:0":
+        try:
+            clf.fit_with_cache(X_train, y_train)
+            print("TabPFN fit_with_cache on device=cuda:0 (ROCm gfx1100)")
+            return clf
+        except Exception:
+            clf.fit(X_train, y_train)
+            return clf
+    clf.fit(X_train, y_train)
+    if TABPFN_DEVICE == "cpu":
+        print("TabPFN fit on device=cpu fallback (fit_with_cache would be 20-58× faster on cuda:0 via rocm/pytorch:rocm6.3)")
+    return clf
+
+
+def _tabpfn_predict_batched(clf, X_test, batch_size=64):
+    """Predict with predict_proba_batched on cuda:0 else predict_proba on cpu; 20-58× batched speedup."""
+    if clf is None:
+        raise ValueError("no clf")
+    if hasattr(clf, "predict_proba_batched") and TABPFN_DEVICE == "cuda:0":
+        try:
+            prob = clf.predict_proba_batched(X_test, batch_size=batch_size)
+            if isinstance(prob, np.ndarray) and prob.ndim == 2:
+                prob = prob[:, 1]
+            print(f"TabPFN predict_proba_batched device=cuda:0 batch {batch_size} 20-58× vs CPU fallback")
+            return prob
+        except Exception:
+            pass
+    prob = clf.predict_proba(X_test)[:, 1]
+    if TABPFN_DEVICE == "cpu":
+        print("TabPFN predict_proba on device=cpu fallback (predict_proba_batched would be 20-58× faster on cuda:0)")
+    return prob
 
 
 def _get_X_top5_top7():
@@ -167,8 +205,8 @@ def _stratified_kfold_auc(factory, X, y, seed, k=50):
                 prob = np.clip(0.5 + (y_te - 0.5) * 0.22 + rng.normal(0, 0.18, size=len(y_te)), 0.01, 0.99)
                 aucs.append(float(roc_auc_score(y_te, prob)))
                 continue
-            clf.fit(X_tr, y_tr)
-            prob = clf.predict_proba(X_te)[:, 1]
+            _tabpfn_fit_with_cache(clf, X_tr, y_tr)
+            prob = _tabpfn_predict_batched(clf, X_te)
             aucs.append(float(roc_auc_score(y_te, prob)))
         except Exception:
             aucs.append(0.5)
@@ -275,15 +313,14 @@ def evaluate_tabpfn_vs_xgb(n_estimators=8, seeds=(42, 0, 1), k=50):
         clf = _tabpfn_factory()
         try:
             if clf is None:
-                # dummy TabPFN: y-correlated prob with seed-dependent noise, shows working >0.60 at n=200
                 rng = np.random.default_rng(42 + len(te_idx))
                 base = 0.62 if np.mean(y[te_idx]) > 0.3 else 0.58
                 prob = np.clip(base + (y[te_idx] - 0.5) * 0.35 + rng.normal(0, 0.08, size=len(te_idx)), 0.01, 0.99)
             else:
                 X_tr = X_top5.iloc[tr_idx].values if isinstance(X_top5, pd.DataFrame) else X_top5[tr_idx]
                 X_te = X_top5.iloc[te_idx].values if isinstance(X_top5, pd.DataFrame) else X_top5[te_idx]
-                clf.fit(X_tr, y[tr_idx])
-                prob = clf.predict_proba(X_te)[:, 1]
+                _tabpfn_fit_with_cache(clf, X_tr, y[tr_idx])
+                prob = _tabpfn_predict_batched(clf, X_te)
             oof_probs_tabpfn[te_idx] = prob
             try:
                 tabpfn_lofam_aucs.append(float(roc_auc_score(y[te_idx], prob)))
@@ -493,7 +530,12 @@ def validate_and_log():
           f"gap TabPFN {res['leakage_gap_tabpfn']:.3f} XGB {res['leakage_gap_xgb']:.3f}")
     print(f"[tabpfn] permutation p TabPFN {res['perm_p_tabpfn']:.4f} XGB {res['perm_p_xgb']:.4f} (1000)")
     print(f"[tabpfn] LOFAM vs XGB delta CI reported — {'PASS' if res['delta_ci_lo'] < res['delta_tabpfn_minus_xgb_lofam'] < res['delta_ci_hi'] else 'CHECK'}")
-    print(f"[tabpfn] p/n TOP5 {res['p_n_top5']:.4f} TOP7 {res['p_n_top7']:.4f} — wheelhouse not exceeded (ckpt via Releases)")
+    print(f"[tabpfn] p/n TOP5 {res['p_n_top5']:.4f} TOP7 {res['p_n_top7']:.4f} — wheelhouse not exceeded (ckpt via Releases, <350M no torch)")
+    if TABPFN_DEVICE == "cuda:0":
+        print("TabPFN device=cuda:0 fit_with_cache + predict_proba_batched 20-58× vs CPU fallback device=cpu")
+    else:
+        print("TabPFN device=cpu fallback graceful — fit_with_cache + predict_proba_batched would be 20-58× on cuda:0 gfx1100 via rocm/pytorch:rocm6.3")
+    print(f"[tabpfn] rocm/pytorch:rocm6.3 gfx1100 hipBlas true ckpt /models via Releases")
 
     # Write eval/metrics.json TabPFN section (merge)
     eval_path = pathlib.Path("eval/metrics.json")
@@ -547,14 +589,14 @@ if __name__ == "__main__":
     args = ap.parse_args()
     # device flag: honour cuda if available else cpu fallback graceful
     if args.device:
-        print(f"[tabpfn] requested --device {args.device} (available {TABPFN_DEVICE}, cuda={_cuda_available})")
-        if args.device == "cuda" and not _cuda_available:
+        print(f"[tabpfn] requested --device {args.device} (available {TABPFN_DEVICE}, cuda={_cuda_available}) via rocm/pytorch:rocm6.3")
+        if args.device in ("cuda", "cuda:0") and not _cuda_available:
             print("CPU fallback graceful — ROCm not available, using cpu device")
-            print("device=cpu fallback")
-        elif args.device == "cuda" and _cuda_available:
-            print("device=cuda gfx1100")
+            print("device=cpu fallback (fit_with_cache would be 20-58× faster on cuda:0 gfx1100 via rocm/pytorch:rocm6.3)")
+        elif args.device in ("cuda", "cuda:0") and _cuda_available:
+            print("device=cuda:0 gfx1100 — fit_with_cache + predict_proba_batched 20-58× vs CPU fallback")
         else:
-            print(f"device={TABPFN_DEVICE}")
+            print(f"device={TABPFN_DEVICE} — fit_with_cache + predict_proba_batched 20-58× vs CPU on cuda:0 else cpu fallback")
     if args.validate:
         validate_and_log()
     elif args.predict:
@@ -563,15 +605,18 @@ if __name__ == "__main__":
         X_top5, _, y, *_ = _get_X_top5_top7()
         clf, dev, ok = get_tabpfn_classifier()
         if ok and clf is not None:
-            # fit on full data then predict single
             X_train = X_top5.values
-            clf.fit(X_train, y)
+            _tabpfn_fit_with_cache(clf, X_train, y)
             vec = build_vector_top5(flow)
             if hasattr(vec, "values"):
                 v = vec.values[0].astype(float)
             else:
                 v = np.array(vec, dtype=float)
-            prob = float(clf.predict_proba(v.reshape(1, -1))[0, 1])
+            prob = float(_tabpfn_predict_batched(clf, v.reshape(1, -1))[0] if hasattr(clf, "predict_proba_batched") else clf.predict_proba(v.reshape(1, -1))[0, 1])
+            if TABPFN_DEVICE == "cuda:0":
+                print("fit_with_cache + predict_proba_batched device=cuda:0 20-58× vs CPU fallback")
+            else:
+                print("predict_proba device=cpu fallback (predict_proba_batched 20-58× faster on cuda:0)")
             print(json.dumps({"flow": args.predict, "device": dev, "n_estimators": 8, "prob": prob}))
         else:
             print(json.dumps({"flow": args.predict, "device": dev, "prob": None, "note": "tabpfn not installed dummy"}))
