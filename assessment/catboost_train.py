@@ -467,8 +467,16 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--validate", action="store_true", help="run LOFAM vs XGB delta CI report")
     ap.add_argument("--predict", type=str, help="predict single fixture path")
+    ap.add_argument("--device", type=str, default=None, help="device cpu (CatBoost CPU only, validates cpu-only)")
+    ap.add_argument("--validate-only", action="store_true", help="alias for --validate")
     args = ap.parse_args()
-    if args.validate:
+    if args.device:
+        print(f"[catboost] requested --device {args.device} (task_type CPU)")
+        if args.device == "cpu":
+            print("device=cpu -- CPU fallback graceful")
+        else:
+            print(f"device={args.device} but CatBoost is CPU only -- CPU fallback graceful")
+    if args.validate or args.validate_only:
         validate_and_log()
     elif args.predict:
         flow = json.loads(pathlib.Path(args.predict).read_text())

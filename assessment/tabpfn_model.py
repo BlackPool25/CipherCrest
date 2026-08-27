@@ -543,7 +543,18 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--validate", action="store_true", help="run LOFAM vs XGB delta CI report")
     ap.add_argument("--predict", type=str, help="predict single fixture path")
+    ap.add_argument("--device", type=str, default=None, help="device cuda|cpu (ROCm gfx1100 or cpu fallback graceful)")
     args = ap.parse_args()
+    # device flag: honour cuda if available else cpu fallback graceful
+    if args.device:
+        print(f"[tabpfn] requested --device {args.device} (available {TABPFN_DEVICE}, cuda={_cuda_available})")
+        if args.device == "cuda" and not _cuda_available:
+            print("CPU fallback graceful — ROCm not available, using cpu device")
+            print("device=cpu fallback")
+        elif args.device == "cuda" and _cuda_available:
+            print("device=cuda gfx1100")
+        else:
+            print(f"device={TABPFN_DEVICE}")
     if args.validate:
         validate_and_log()
     elif args.predict:

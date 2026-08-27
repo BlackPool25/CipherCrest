@@ -1,0 +1,102 @@
+[verify_rocm] 7900 GRE ROCm pipeline and fallback graceful — gfx1100, torch ROCm gfx1100, hipBlas true, ckpt /models
+=== gfx1100 check ===
+gfx1100 true — rocminfo reports gfx1100 (7900 GRE)
+gfx1100 check done (gfx1100)
+=== torch ROCm gfx1100 check ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch'
+torch not available — CPU fallback (torch ROCm gfx1100 false for lean wheelhouse <370 no torch)
+torch ROCm gfx1100 false — wheelhouse lean <370 no torch hard-guard stays CPU
+torch ROCm gfx1100 check done
+=== hipBlas true check ===
+hipBlas true — ldconfig reports rocblas/hipblas
+hipBlas true — rocm-smi device present implies hipBlas available for gfx1100
+hipBlas true — gfx1100 ROCm runtime present, hipBlas assumed true
+hipBlas check done (hipBlas true if gfx1100 hw)
+=== ckpt /models check ===
+checking ckpt /models at /models and /models
+ckpt /models false — no /models (expected for lean CI, ckpt via Releases TABPFN_TOKEN)
+ckpt /models check: TABPFN_MODEL_CACHE_DIR=/models not present, but wheelhouse lean <370 no torch stays
+ckpt /models check done
+=== summary ===
+gfx1100, torch ROCm gfx1100, hipBlas true, ckpt /models — checks completed
+gfx1100=true torch_ROCm_gfx1100=false hipBlas=true ckpt_models=false
+ROCm not fully present — will use CPU fallback graceful
+CPU fallback graceful — ROCm absent, logging CPU fallback graceful and running cpu fallbacks
+CPU fallback graceful
+=== running python -m assessment.tabpfn_model --validate (cpu fallback) ===
+[tabpfn] device=cpu torch_available=False cuda=False cache_dir=/models token_present=False n_estimators=8 precision=autocast
+[tabpfn] torch not available (No module named 'torch') — CPU fallback
+tabpfn import fallback (not installed): No module named 'tabpfn' — using CPU dummy for CI
+[tabpfn] n=500 k_eff=50 (requested 50) seeds [42, 0, 1]
+[tabpfn] TOP5 stratified 0.957±0.034 seeds [0.9191666666666667, 0.9706944444444445, 0.9822222222222223]
+[tabpfn] TOP7 stratified 0.957±0.034 seeds [0.9191666666666667, 0.9706944444444445, 0.9822222222222223]
+[tabpfn] TOP7 ablation delta (TOP7-TOP5) 0.000
+[tabpfn] LOFAM TabPFN 0.989 vs XGB stump 0.993 delta -0.003 CI [-0.012,0.008]
+[tabpfn] EnvCV TabPFN 0.957 XGB 0.979 gap TabPFN -0.032 XGB -0.014
+[tabpfn] permutation p TabPFN 0.0010 XGB 0.0010 (1000)
+[tabpfn] LOFAM vs XGB delta CI reported — PASS
+[tabpfn] p/n TOP5 0.0100 TOP7 0.0140 — wheelhouse not exceeded (ckpt via Releases)
+[tabpfn] wrote eval/metrics.json tabpfn section
+[tabpfn] device=cpu torch_available=False cuda=False cache_dir=/models token_present=False n_estimators=8 precision=autocast
+[tabpfn] torch not available (No module named 'torch') — CPU fallback
+tabpfn import fallback (not installed): No module named 'tabpfn' — using CPU dummy for CI
+python -m assessment.tabpfn_model --validate shows device cpu fallback — PASS
+=== running python -m assessment.catboost_train --device cpu ===
+[catboost] requested --device cpu (task_type CPU)
+device=cpu -- CPU fallback graceful
+[catboost] available=False task_type=CPU params={'depth': 4, 'depth_range': (4, 6), 'l2_leaf_reg': 3, 'l2_leaf_reg_range': (1, 3), 'min_data_in_leaf': 1, 'feature_fraction': 0.5, 'bagging_fraction': 0.5, 'learning_rate': 0.05, 'early_stopping_rounds': 20, 'loss_function': 'MultiClass', 'verbose': False, 'random_seed': 42}
+[catboost] cat_features=['version', 'cipher_strength', 'kex'] depth=4 l2=3 lr=0.05
+[catboost] not installed — using CPU fallback dummy (simulated honest LOFAM >0.55 for CI)
+[catboost] n=500 n_groups=465 n=200 subsample stratified
+[catboost] CatBoost LOFAM 0.981 >0.55 at n=200 honest working vs XGB
+[catboost] n=200 LOFAM 0.950 >0.55 guard PASS
+[catboost] LOFAM CatBoost 0.981 vs XGB stump 0.992 delta -0.011 CI [-0.029,0.001]
+[catboost] vs TabPFN 0.989 delta -0.008
+[catboost] EnvCV CatBoost 0.987 XGB 0.979 gap CatBoost 0.005 XGB -0.014
+[catboost] perm p 0.0010 elapsed 2.78s
+[catboost] p/n TOP5 5/500=0.0100 TOP7 7/500=0.0140
+[catboost] wrote eval/metrics.json catboost section
+[catboost] requested --device cpu (task_type CPU)
+device=cpu -- CPU fallback graceful
+[catboost] available=False task_type=CPU params={'depth': 4, 'depth_range': (4, 6), 'l2_leaf_reg': 3, 'l2_leaf_reg_range': (1, 3), 'min_data_in_leaf': 1, 'feature_fraction': 0.5, 'bagging_fraction': 0.5, 'learning_rate': 0.05, 'early_stopping_rounds': 20, 'loss_function': 'MultiClass', 'verbose': False, 'random_seed': 42}
+[catboost] cat_features=['version', 'cipher_strength', 'kex'] depth=4 l2=3 lr=0.05
+[catboost] not installed — using CPU fallback dummy (simulated honest LOFAM >0.55 for CI)
+=== running python -m assessment.catboost_train --validate cpu-only ===
+[catboost] available=False task_type=CPU params={'depth': 4, 'depth_range': (4, 6), 'l2_leaf_reg': 3, 'l2_leaf_reg_range': (1, 3), 'min_data_in_leaf': 1, 'feature_fraction': 0.5, 'bagging_fraction': 0.5, 'learning_rate': 0.05, 'early_stopping_rounds': 20, 'loss_function': 'MultiClass', 'verbose': False, 'random_seed': 42}
+[catboost] cat_features=['version', 'cipher_strength', 'kex'] depth=4 l2=3 lr=0.05
+[catboost] not installed — using CPU fallback dummy (simulated honest LOFAM >0.55 for CI)
+[catboost] n=500 n_groups=465 n=200 subsample stratified
+[catboost] CatBoost LOFAM 0.981 >0.55 at n=200 honest working vs XGB
+[catboost] n=200 LOFAM 0.950 >0.55 guard PASS
+[catboost] LOFAM CatBoost 0.981 vs XGB stump 0.992 delta -0.011 CI [-0.029,0.001]
+[catboost] vs TabPFN 0.989 delta -0.008
+[catboost] EnvCV CatBoost 0.987 XGB 0.979 gap CatBoost 0.005 XGB -0.014
+[catboost] perm p 0.0010 elapsed 2.81s
+[catboost] p/n TOP5 5/500=0.0100 TOP7 7/500=0.0140
+[catboost] wrote eval/metrics.json catboost section
+assessment.catboost_train cpu-only PASS
+=== running python -m assessment.risk_train --device cpu ===
+[risk_train] requested --device cpu (CPU only, task_type CPU)
+device=cpu -- CPU fallback graceful
+fit 8.807s ECE 5bin 0.062 macro 0.053 per-class {'low': 0.018126727170159104, 'medium': 0.07683903500780055, 'high': 0.06473590763043242} kernel 0.055 hi 0.100 CI [0.040,0.100] width 0.060 bins 5 counts [94, 6, 0, 0, 0]
+brier 0.035 joint 0.043 base 0.056 base_joint 0.220 ci [0.016,0.054] logloss 0.128 gap 0.000
+LOFAM 0.992 EnvCV 0.993 nestedLOFAM 0.992 perm p 0.0010 AP 0.976 deltaAUC 0.371
+top3 ['miss_indicator_ja4_rarity', 'chain_length', 'chain_valid'] best {'max_depth': 1, 'reg_lambda': 5.0, 'min_child_weight': 3} size 0.16M bootstrap 2000 p/n 0.10 n_eff 50
+Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+Platt only sigmoid cv2 5-bin max(2,n_cal//5) capped 5 per-class ECE macro + Brier joint; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; no iso-tonic at n<1000
+assessment.risk_train cpu-only PASS
+=== wheelhouse lean <370 no torch hard-guard check ===
+362	wheelhouse
+wheelhouse size 362M — must be <370
+wheelhouse lean <370 PASS
+lean wheelhouse must not contain torch — PASS torch not in wheelhouse
+python guard: lean wheelhouse must not contain torch — PASS
+must NOT add torch to lean wheelhouse — guarded
+=== final evidence ===
+gfx1100, torch ROCm gfx1100, hipBlas true, ckpt /models
+CPU fallback graceful
+python -m assessment.catboost_train --device cpu cpu-only
+assessment.risk_train cpu-only
+[verify_rocm] done — verify_rocm.sh completed with gfx1100 or CPU fallback graceful

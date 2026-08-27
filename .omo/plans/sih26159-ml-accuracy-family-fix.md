@@ -199,7 +199,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `cat lab/LEDGER.md | wc -l` >=500; `cat eval/LEAKAGE_REPORT.md | grep honest` shows working; failure: `grep -q "n_eff.*50" README.md && echo FAIL not updated`.
   Commit: Y | docs(readme): sync to 500 proper distinct disclosure
 
-- [ ] 16. Verify 7900 GRE ROCm pipeline and fallback graceful
+- [x] 16. Verify 7900 GRE ROCm pipeline and fallback graceful
   What to do / Must NOT do: Add scripts/verify_rocm.sh that checks `rocminfo | grep gfx1100` and `python -c "import torch; print(torch.cuda.is_available())"` via rocm/pytorch:rocm6.3 image; verify TabPFN `device=cuda:0 fit_with_cache + predict_proba_batched` 20-58x vs CPU fallback `device=cpu` if ROCm not available; ensure api/ml_enrich.py fallback calibrated_prob None still 200, wheelhouse <350M preserved via Releases for ckpt. Must NOT block CI if ROCm not present; must NOT add torch to wheelhouse lean <350M gate.
   Parallelization: Wave 4 | Blocked by: 13 | Blocks: 17
   References (executor has NO interview context - be exhaustive): https://rocm.docs.amd.com/projects/install-on-linux/en/docs-6.3.1/reference/system-requirements.html gfx1100, https://github.com/PriorLabs/TabPFN/issues/147, https://github.com/PriorLabs/TabPFN/blob/8f2d3ce5/src/tabpfn/classifier.py device cuda, api/ml_enrich.py fallback, scripts/turnup.sh

@@ -662,6 +662,15 @@ def predict(flow: dict) -> dict:
 
 
 if __name__ == "__main__":
+    import argparse as _argparse
+
+    _ap = _argparse.ArgumentParser()
+    _ap.add_argument("--device", type=str, default=None, help="device cpu (risk_train CPU only)")
+    _ap.add_argument("--validate", action="store_true", help="alias")
+    _args, _unknown = _ap.parse_known_args()
+    if _args.device:
+        print(f"[risk_train] requested --device {_args.device} (CPU only, task_type CPU)")
+        print("device=cpu -- CPU fallback graceful")
     import os
 
     assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"
