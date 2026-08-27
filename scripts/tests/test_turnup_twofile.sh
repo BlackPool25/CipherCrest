@@ -58,6 +58,11 @@ fi
 check "turnup --check ok" "bash \"$TURNUP\" --check > /tmp/turnup_twofile_check.txt 2>&1; grep -q 'turnup --check done\|--check done' /tmp/turnup_twofile_check.txt"
 # 12 combined verification
 check "verification chain" "bash \"$TURNUP\" --check >/dev/null 2>&1 && { [[ -f \"$TURNDOWN\" ]] && bash \"$TURNDOWN\" --check >/dev/null 2>&1; } && grep -q 'docker compose up -d' \"$TURNUP\" && test -f \"$TURNDOWN\""
+# 13 host / wheelhouse option checks
+check "turnup --help has host/wheelhouse" "bash \"$TURNUP\" --help 2>&1 | grep -q 'host.*wheelhouse\|wheelhouse'"
+check "turnup has pip find-links wheelhouse" "grep -q 'find-links wheelhouse' \"$TURNUP\""
+check "turndown --help has host/wheelhouse" "bash \"$TURNDOWN\" --help 2>&1 | grep -q 'host.*wheelhouse\|wheelhouse'"
+check "turndown has port termination" "grep -q 'fuser -k 8000\|lsof -ti :8000' \"$TURNDOWN\""
 
 echo "=== result PASS=$PASS FAIL=$FAIL ==="
 if [[ $FAIL -gt 0 ]]; then echo "FAIL $FAIL tests"; exit 1; else echo "ALL PASS $PASS"; exit 0; fi

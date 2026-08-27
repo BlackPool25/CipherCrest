@@ -10,11 +10,13 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+HOST_MODE="${HOST_MODE:-0}"
 MODE="down"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --check) MODE="check"; shift ;;
     --help|-h) MODE="help"; shift ;;
+    --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
     *) echo "[warn] unknown arg $1"; shift ;;
   esac
 done
@@ -29,9 +31,10 @@ LOG_FILE="$LOG_DIR/turndown_$(date +%Y%m%d_%H%M%S).log"
 touch "$LOG_FILE" 2>/dev/null || true
 
 do_help(){
-  echo "Usage: bash scripts/turndown.sh [--check|--help]"
-  echo "  --check  dry-run idempotent checks (no down)"
-  echo "  --help   show help"
+  echo "Usage: bash scripts/turndown.sh [--check|--help] [--host|--wheelhouse]"
+  echo "  --check               dry-run idempotent checks (no down)"
+  echo "  --host, --wheelhouse  clean down host processes (PIDs and port 8000)"
+  echo "  --help                show help"
   echo "Does: docker compose down + docker compose --profile lab down"
   echo "      ss check port 8000, rm .tmp/*.pid, log rotation"
 }
@@ -81,6 +84,23 @@ do_down(){
   rm -f "$ROOT/.tmp/ciphercrest_api.pid" 2>/dev/null || true
   rm -f "$ROOT/.tmp/ciphercrest_front.pid" 2>/dev/null || true
   echo "[ok] rm .tmp pid files cleaned"
+
+  # cleanup port 8000 process if lingering
+  if command -v fuser >/dev/null 2>&1; then
+    if fuser 8000/tcp >/dev/null 2>&1; then
+      echo "terminating process on port 8000 via fuser"
+      fuser -k 8000/tcp 2>/dev/null || true
+      sleep 0.5
+    fi
+  elif command -v lsof >/dev/null 2>&1; then
+    lingering_pid=$(lsof -ti :8000 2>/dev/null || echo "")
+    if [[ -n "$lingering_pid" ]]; then
+      echo "terminating process on port 8000 (pid $lingering_pid) via lsof"
+      kill $lingering_pid 2>/dev/null || true
+      sleep 0.5
+    fi
+  fi
+
   # ss check port 8000
   if command -v ss >/dev/null 2>&1; then
     if ss -ltn 2>/dev/null | grep -q ":8000 "; then

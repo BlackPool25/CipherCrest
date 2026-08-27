@@ -44,6 +44,8 @@ fail(){ echo -e "${RED}[fail]${NC} $*"; }
 info(){ echo -e "${DIM}[info]${NC} $*"; }
 log(){ echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG_FILE" >/dev/null 2>&1 || true; echo "$*"; }
 
+HOST_MODE="${HOST_MODE:-0}"
+
 # parse args
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,6 +53,8 @@ while [[ $# -gt 0 ]]; do
     --help|-h) MODE="help"; shift ;;
     --port) API_PORT="$2"; shift 2 ;;
     --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
+    --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
+    --docker) HOST_MODE=0; shift ;;
     --frontend-port) warn "frontend-port ignored in pure Docker single-port 8000 mode"; shift 2 ;;
     --down) warn "--down is now scripts/turndown.sh (two-file lifecycle)"; MODE="help"; shift ;;
     *) warn "unknown arg $1"; shift ;;
@@ -73,26 +77,30 @@ check_port_free(){
 }
 
 do_help(){
-  echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab]"
-  echo "  --check         dry-run checks only (no servers) — CI-safe"
-  echo "  --with-lab      also bring lab profile (WITH_LAB=1)"
-  echo "  --port N        API port (default 8000, env API_PORT)"
-  echo "  --help          show this help"
+  echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab] [--host|--wheelhouse]"
+  echo "  --check               dry-run checks only (no servers) — CI-safe"
+  echo "  --with-lab            also bring lab profile (WITH_LAB=1)"
+  echo "  --host, --wheelhouse  run natively on host using wheelhouse dependencies (no Docker required for demo)"
+  echo "  --docker              force pure Docker mode (default)"
+  echo "  --port N              API port (default 8000, env API_PORT)"
+  echo "  --help                show this help"
   echo ""
   echo "Env: WITH_LAB=0  docker compose up -d --build demo (default, single service demo on 8000)"
   echo "     WITH_LAB=1  docker compose --profile lab up -d --build (also lab 5 services)"
+  echo "     HOST_MODE=1 run host wheelhouse mode natively"
   echo "     PYTHONHASHSEED=0 OMP_NUM_THREADS=6  deterministic"
   echo "     API_PORT=8000"
   echo ""
   echo "Pure Docker path — no native uvicorn/vite when Docker available"
-  echo "Lifecycle: bash scripts/turnup.sh [--with-lab]  # up"
-  echo "           bash scripts/turndown.sh              # down (ss check + rm pid + log rotation)"
+  echo "Lifecycle: bash scripts/turnup.sh [--with-lab] [--host]  # up"
+  echo "           bash scripts/turndown.sh [--host]             # down (ss check + rm pid + log rotation)"
   echo "Trap: INT TERM only (no auto-down on exit) — use turndown.sh to stop"
   echo ""
   echo "Quick: git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope"
   echo "       docker compose up -d --build              # demo on http://localhost:8000/dashboard"
   echo "       bash scripts/turnup.sh --check            # dry-run checks models/wheelhouse/frontend/tshark(optional)"
   echo "       bash scripts/turnup.sh --with-lab         # also lab profile"
+  echo "       bash scripts/turnup.sh --host             # host install via wheelhouse & run natively"
   echo "       bash scripts/turndown.sh                  # clean down"
   echo "See docs/LARGE_FILES.md §5 and README Quick Start (git clone + compose)."
 }
@@ -320,8 +328,136 @@ do_full(){
   echo "Stop      bash scripts/turndown.sh  (no auto-down on exit — INT TERM only)"
 }
 
-case "$MODE" in
-  check) do_check ;;
-  help) do_help ;;
-  full) do_full ;;
-esac
+do_host(){
+  # INT TERM only (no auto-down on exit) — use turndown.sh to stop
+  trap 'echo "Interrupted — run bash scripts/turndown.sh to clean"; exit 130' INT TERM
+  echo "=== turnup host / wheelhouse mode (demo :$API_PORT) ==="
+  check_python; echo ""
+  check_node; echo ""
+  check_tshark; echo ""
+  check_wheelhouse; echo ""
+  check_models; echo ""
+  check_frontend; echo ""
+  check_pcap; echo ""
+  
+  echo "--- host dependency install (wheelhouse) ---"
+  if [[ -d wheelhouse ]] && [ "$(ls -A wheelhouse/*.whl 2>/dev/null)" ]; then
+    ok "wheelhouse/ present — installing offline dependencies via --no-index --find-links wheelhouse"
+    pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt 2>&1 | tee -a "$LOG_FILE" || {
+      warn "wheelhouse install had warnings — falling back to pip install"
+      pip install -r requirements.txt 2>&1 | tee -a "$LOG_FILE" || true
+    }
+  else
+    warn "wheelhouse/ missing or empty — creating wheelhouse via pip download..."
+    mkdir -p wheelhouse
+    pip download --only-binary=:all: --prefer-binary -d wheelhouse -r requirements.txt 2>&1 | tee -a "$LOG_FILE" || true
+    ok "wheelhouse/ created — installing dependencies"
+    pip install --no-index --find-links wheelhouse --only-binary=:all: -r requirements.txt 2>&1 | tee -a "$LOG_FILE" || pip install -r requirements.txt 2>&1 | tee -a "$LOG_FILE" || true
+  fi
+  echo ""
+
+  if [[ ! -f dashboard/dist/index.html ]]; then
+    if command -v npm >/dev/null 2>&1; then
+      info "building dashboard frontend: npm run build"
+      npm --prefix dashboard ci 2>/dev/null || npm --prefix dashboard install 2>/dev/null || true
+      npm --prefix dashboard run build 2>&1 | tee -a "$LOG_FILE" || warn "dashboard build failed"
+    else
+      warn "node/npm not found — dashboard frontend dist missing"
+    fi
+  fi
+
+  echo "--- port preflight ---"
+  if ! check_port_free "$API_PORT"; then
+    warn "port $API_PORT already in use — checking for previous PID"
+    for pid_f in "$TMP_DIR/ciphercrest_api.pid" "$ROOT/.tmp/ciphercrest_api.pid"; do
+      if [[ -f "$pid_f" ]]; then
+        old_pid=$(cat "$pid_f" 2>/dev/null || echo "")
+        if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+          info "stopping existing host pid $old_pid"
+          kill "$old_pid" 2>/dev/null || true
+          sleep 1
+        fi
+      fi
+    done
+  else
+    ok "port $API_PORT free (ss/fuser preflight)"
+  fi
+  echo ""
+
+  echo "--- starting uvicorn host API ---"
+  nohup uvicorn api.app:app --host 0.0.0.0 --port "$API_PORT" > "$LOG_DIR/api_host.log" 2>&1 &
+  API_PID=$!
+  echo "$API_PID" > "$TMP_DIR/ciphercrest_api.pid"
+  echo "$API_PID" > "$ROOT/.tmp/ciphercrest_api.pid"
+  chmod 600 "$TMP_DIR/ciphercrest_api.pid" 2>/dev/null || true
+  chmod 600 "$ROOT/.tmp/ciphercrest_api.pid" 2>/dev/null || true
+  ok "API started on PID $API_PID (log: $LOG_DIR/api_host.log)"
+  echo ""
+
+  if [[ "$WITH_LAB" == "1" ]]; then
+    if command -v docker >/dev/null 2>&1; then
+      echo "WITH_LAB=1 — bringing up docker lab profile containers..."
+      docker compose --profile lab up -d 2>&1 | tee -a "$LOG_FILE" || warn "docker compose --profile lab up -d failed"
+    else
+      warn "docker not found — lab profile requires docker"
+    fi
+  else
+    info "WITH_LAB=0 — skip lab (use --with-lab or WITH_LAB=1 to bring lab profile)"
+  fi
+  echo ""
+
+  echo "--- wait_for health 30 0.5 ---"
+  if wait_for "http://localhost:${API_PORT}/health" 30 0.5; then
+    ok "health up http://localhost:${API_PORT}/health (wait_for 30 0.5)"
+  else
+    if wait_for "http://localhost:${API_PORT}/flows" 30 0.5; then
+      ok "flows up http://localhost:${API_PORT}/flows (health fallback)"
+    else
+      warn "API not up after 15s — see $LOG_DIR/api_host.log"
+      cat "$LOG_DIR/api_host.log" 2>/dev/null | tail -20 || true
+    fi
+  fi
+  echo ""
+
+  echo "--- verify API curl /analyze ---"
+  if curl -sf "http://localhost:${API_PORT}/health" >/dev/null 2>&1; then ok "GET /health ok"; else warn "GET /health not reachable"; fi
+  if curl -sf "http://localhost:${API_PORT}/flows" >/dev/null 2>&1; then ok "GET /flows ok"; else warn "GET /flows not reachable"; fi
+  if [[ -f lab/pcaps/family-01.pcap ]]; then
+    code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:${API_PORT}/analyze" 2>/dev/null || echo "000")
+    echo "POST /analyze family-01.pcap -> HTTP $code"
+    if [[ "$code" == "200" ]]; then
+      echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
+      ok "POST /analyze ok (curl /analyze)"
+      if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
+    else
+      warn "POST /analyze failed — see /tmp/turnup_analyze.json"
+      cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
+    fi
+  else
+    warn "lab/pcaps/family-01.pcap missing — skip curl /analyze"
+  fi
+  echo ""
+
+  echo "=== turnup host done ==="
+  echo "Demo      http://localhost:${API_PORT}/dashboard (host mode)"
+  echo "Health    http://localhost:${API_PORT}/health"
+  echo "Docs      http://localhost:${API_PORT}/docs"
+  echo "PID       $API_PID (saved in $TMP_DIR/ciphercrest_api.pid)"
+  echo "Logs      $LOG_FILE  +  $LOG_DIR/api_host.log"
+  echo "Lab       $(if [[ "$WITH_LAB" == "1" ]]; then echo "up (--profile lab)"; else echo "not up (use --with-lab)"; fi)"
+  echo "Stop      bash scripts/turndown.sh --host  (or bash scripts/turndown.sh)"
+}
+
+if [[ "$HOST_MODE" -eq 1 ]]; then
+  case "$MODE" in
+    check) do_check ;;
+    help) do_help ;;
+    full) do_host ;;
+  esac
+else
+  case "$MODE" in
+    check) do_check ;;
+    help) do_help ;;
+    full) do_full ;;
+  esac
+fi

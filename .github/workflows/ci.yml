@@ -186,7 +186,7 @@ jobs:
           pytest lab/reassembler/tests -q
       - name: Turnup dry-run (models/wheelhouse/frontend checks)
         run: |
-          chmod +x scripts/turnup.sh scripts/download_models.sh
+          chmod +x scripts/turnup.sh scripts/download_models.sh scripts/turndown.sh
           bash scripts/download_models.sh --check
           bash scripts/turnup.sh --check
           test -f docs/LARGE_FILES.md || (echo "docs/LARGE_FILES.md missing" && exit 1)
@@ -195,6 +195,13 @@ jobs:
           grep -q "Quick Turn-Up" README.md || (echo "README Quick Turn-Up missing" && exit 1)
           grep -q "scripts/turnup.sh" README.md || (echo "README turnup link missing" && exit 1)
           grep -q "docs/LARGE_FILES.md" README.md || (echo "README LARGE_FILES link missing" && exit 1)
+      - name: Host wheelhouse turnup & turndown lifecycle
+        run: |
+          bash scripts/tests/test_turnup_twofile.sh
+          bash scripts/turnup.sh --host
+          curl -fsS http://localhost:8000/health || (echo "host health check failed" && exit 1)
+          bash scripts/turndown.sh --host
+          bash scripts/turndown.sh --check | grep -q "port 8000 free" || (echo "port 8000 not freed" && exit 1)
       - name: 9 hard-fail guards (trap 4-prefs isotonic ja4 grouping prior TOP5 pkl vite health) + docker compose + buildx
         run: |
           echo "=== 9 hard-fail guards ==="
