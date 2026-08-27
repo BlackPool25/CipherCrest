@@ -150,7 +150,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -c "from assessment.tabpfn_model import compare; print(compare)"` shows TOP5 0.60-0.69 at n=200 vs random 0.473; `python -c "import torch; print(torch.cuda.is_available())"` shows gfx1100 True if ROCm; failure: `pip show torch | grep rocm || echo CPU fallback` must not block CI.
   Commit: Y | feat(tabpfn): integrate TabPFN-v3 ROCm 8-ens primary on TOP5/TOP7
 
-- [ ] 10. Integrate CatBoost tuned fallback CPU
+- [x] 10. Integrate CatBoost tuned fallback CPU
   What to do / Must NOT do: Create assessment/catboost_train.py wrapping CatBoostClassifier(depth 4-6, l2_leaf_reg 1-3, min_data_in_leaf 1, feature_fraction 0.5, bagging_fraction 0.5, learning_rate 0.05, early_stopping 20) per arXiv:2411.04324; handle categorical version/cipher_strength/kex natively; compare vs XGB stump and TabPFN via same LOFAM. Must NOT use default min_data_in_leaf 20 (fails to split at n=200); must NOT use GPU.
   Parallelization: Wave 3 | Blocked by: 8 | Blocks: 13,14
   References (executor has NO interview context - be exhaustive): arXiv:2411.04324 LightGBM +290%, CatBoost #3117, assessment/catboost_params.py, assessment/risk_train.py PARAM_GRID, eval/metrics.json

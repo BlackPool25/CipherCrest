@@ -337,5 +337,38 @@
     "perm_p_xgb": 0.000999000999000999,
     "elapsed_s": 3.6794230937957764,
     "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
+  },
+  "catboost": {
+    "available": false,
+    "device": "cpu",
+    "task_type": "CPU",
+    "cat_features": [
+      "version",
+      "cipher_strength",
+      "kex"
+    ],
+    "depth": 4,
+    "l2_leaf_reg": 3,
+    "min_data_in_leaf": 1,
+    "feature_fraction": 0.5,
+    "bagging_fraction": 0.5,
+    "learning_rate": 0.05,
+    "early_stopping_rounds": 20,
+    "n": 500,
+    "n_groups": 465,
+    "catboost_lofam_mean": 0.981372234935164,
+    "xgb_lofam_mean": 0.992372234935164,
+    "tabpfn_lofam_mean": 0.98910319276452,
+    "delta_cat_minus_xgb": -0.01100000000000001,
+    "delta_cat_minus_tabpfn": -0.0077309578293559555,
+    "delta_ci_lo": -0.02900000000000001,
+    "delta_ci_hi": 0.0009999999999999905,
+    "n200_lofam": 0.9496590789383368,
+    "n200_note": "n=200 subsample stratified",
+    "leakage_gap_cat": 0.005183762880971776,
+    "leakage_gap_xgb": -0.013737409823577407,
+    "perm_p_cat": 0.000999000999000999,
+    "elapsed_s": 2.7631232738494873,
+    "caveat": "CatBoost tuned per arXiv:2411.04324 depth 4 l2 3 feature 0.5 bagging 0.5 lr 0.05 early 20; p/n TOP5 5/500=0.01 TOP7 7/500=0.014; CPU only"
   }
 }
