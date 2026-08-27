@@ -42,6 +42,28 @@ def serve_spa() -> Any:
     if index_file.exists():
         return FileResponse(str(index_file))
     return RedirectResponse(url="/docs")
+
+
+@app.get("/lab/manifest.json", include_in_schema=False)
+@app.get("/api/manifest", include_in_schema=False)
+def get_manifest() -> Any:
+    import json
+    manifest_path = pathlib.Path(__file__).resolve().parent.parent / "lab" / "manifest.json"
+    if manifest_path.exists():
+        try:
+            return json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {}
+
+
+@app.get("/lab/pcaps/{pcap_name}", include_in_schema=False)
+def get_lab_pcap(pcap_name: str) -> Any:
+    safe_name = pathlib.Path(pcap_name).name
+    pcap_file = pathlib.Path(__file__).resolve().parent.parent / "lab" / "pcaps" / safe_name
+    if pcap_file.exists() and pcap_file.is_file():
+        return FileResponse(str(pcap_file), media_type="application/vnd.tcpdump.pcap", filename=safe_name)
+    raise HTTPException(status_code=404, detail="pcap not found")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
 _connected_ws: set[WebSocket] = set()

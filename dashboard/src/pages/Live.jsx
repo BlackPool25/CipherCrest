@@ -346,9 +346,9 @@ export default function Live() {
     const connect=()=>{
       if(!alive || pausedRef.current) return
       const proto = window.location.protocol==='https:' ? 'wss:' : 'ws:'
-      const host = window.location.hostname ? `${window.location.hostname}:8000` : 'localhost:8000'
-      const url = `ws://localhost:8000/ws/flows`
-      const altUrl = `${proto}//${host}/ws/flows`
+      const host = window.location.host || 'localhost:8000'
+      const url = `${proto}//${host}/ws/flows`
+      const altUrl = `${proto}//${host}/api/ws/flows`
       let ws
       try{ ws=new WebSocket(url) } catch { try{ ws=new WebSocket(altUrl)} catch{ scheduleReconnect(); return } }
       wsRef.current=ws
