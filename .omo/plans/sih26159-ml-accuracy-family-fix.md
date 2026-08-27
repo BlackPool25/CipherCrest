@@ -174,7 +174,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -m assessment.anomaly_train --report 2>&1 | grep ensemble` shows 0.60-0.65 honest; failure: `grep -q "17.869" assessment/anomaly_train.py && echo FAIL hardcode`.
   Commit: Y | feat(anomaly): scale to 200 ensemble honest vs ja4 ablation
 
-- [ ] 13. Implement working calibration with per-class ECE and Brier joint
+- [x] 13. Implement working calibration with per-class ECE and Brier joint
   What to do / Must NOT do: Create assessment/calibration.py wrapping best head (TabPFN/CatBoost winner) with MAPIE split-conformal α=0.1 + Venn-Abers or Beta calibration on held-out 30% (n_cal≥50 at n=200); report pooled ECE 5-bin 12/bin, kernel ECE, Brier vs base, Spiegelhalter Z, ECI + per-class ECE via PCDM (calibration-collapse) for imbalance; keep Platt cv2 as baseline diagnostic. Must NOT use isotonic at n<1000; must NOT report pooled ECE alone.
   Parallelization: Wave 4 | Blocked by: 9,10,11 | Blocks: 17,18
   References (executor has NO interview context - be exhaustive): Calibration at Scale 2026 5 post-hoc calibrators, VBLL-TabPFN ECE 0.072, https://github.com/mdshoaibuddinchanda/calibration-collapse PCDM, assessment/risk_metrics.py _ece, eval/metrics.json ece 0.386, shared/schemas_eval.py

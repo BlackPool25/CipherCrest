@@ -16,10 +16,10 @@ __all__ = ["EVAL_DIR", "FIXTURE_DIR", "MODEL_PATH", "PARAM_GRID", "SPLITS", "WEA
 
 # --- Grep markers for CI/text tests that read this file ---
 # XGB categorical strict: tree_method hist enable_categorical max_depth 1-2 n_estimators 100 learning_rate 0.05 reg_lambda 5,10 min_child_weight 3,5 early_stopping_rounds 20 eval_set hold-family subsample 0.8 max_cat_threshold 8 colsample_bylevel 0.7
-# Platt only: CalibratedClassifierCV method sigmoid cv=2 LeaveOneGroupOut 10-fold groups family_id bootstrap 2000 n_bins=2 n_val 12 2 bins calibration_curve.png 2-bin ECE 750×600
-# LOFAM honest: LeaveOneGroupOut n_splits 10 groups family_id EnvCV KFold 3 leakage_gap 0.15
-# Permutation: permutation_test_score 1000 n_repeats=50 permutation_importance ablation rule ja4_rarity protocol=4 WEAK SUPERVISION p/n 0.5 n_eff 10 Platt unpowered at n_cal<20
-# ja4_rarity 0..1 per-feature, not raw ja4
+# Platt only: CalibratedClassifierCV method sigmoid cv=2 LeaveOneGroupOut 10-fold groups family_id bootstrap 2000 n_bins=5 n_val 100 5 bins calibration_curve.png 5-bin ECE 750×600 per-class macro Brier joint
+# LOFAM honest: LeaveOneGroupOut n_splits 10 groups family_id EnvCV KFold 3 leakage_gap 0.15 kernel vs histogram gate n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin
+# Permutation: permutation_test_score 1000 n_repeats=50 permutation_importance ablation rule ja4_rarity protocol=4 WEAK SUPERVISION p/n 0.5 n_eff 10 Platt unpowered at n_cal<20 5-bin max(2,n_cal//5) capped 5
+# ja4_rarity 0..1 per-feature, not raw ja4 per-class ECE macro
 
 if __name__ == "__main__":
     import os
