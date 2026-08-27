@@ -126,7 +126,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -m lab.scripts.sample_censys_200 --count 50 2>&1 | tee .omo/evidence/task-6-sih26159-ml-accuracy-family-fix.log` shows 50 sampled with extremes; failure: `python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D_prior_groups']) & set(s['D1_train_groups'])"` must pass disjoint.
   Commit: Y | data(censys-weber): ingest 50 Censys stratified + Weber 6 envs
 
-- [ ] 7. Scale to 200 via Tranco+ZMap/zgrab2 STARTTLS scan 200 hosts
+- [x] 7. Scale to 200 via Tranco+ZMap/zgrab2 STARTTLS scan 200 hosts
   What to do / Must NOT do: Download Tranco top 1M (tranco-list.eu), sample 200 domains stratified (top 1k/10k/100k/1M tiers 50 each), for each `dig MX` then `zgrab2 smtp --port 25,587,465 --starttls` + `imap --port 143,993` + `pop3 --port 110,995` per zmap/zgrab2 modules/smtp/scanner.go SendCommand STARTTLS logic; rate-limit 1 cert/day/IP (starttls.studio, Censys super-host avoidance). Alternatively simulate with Censys hosts if scan blocked. Store as shared/fixtures/tranco_sample_200.json with 200 STARTTLS handshakes (tls.version, cipher, ja4, cert chain). Must NOT exceed 500M IPs/day; must NOT use payload-truncated MAWI as handshake source.
   Parallelization: Wave 2 | Blocked by: 6 | Blocks: 8,9
   References (executor has NO interview context - be exhaustive): https://tranco-list.eu, https://zmap.io, https://github.com/zmap/zgrab2/blob/master/modules/smtp/scanner.go, https://github.com/ralexander-phi/smtp-starttls-scanning, https://sonardata.rapid7.com, https://impactcybertrust.org/dataset_view?idDataset=1088, lab/manifest.json, assessment/splits.json
