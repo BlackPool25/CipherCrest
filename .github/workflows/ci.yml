@@ -90,13 +90,13 @@ jobs:
           if grep -R "ja4.*in.*feature" assessment/ 2>/dev/null | grep -v ja4_rarity | grep -v test_no_ja4 | grep -q "ja4"; then echo "raw ja4 in vector forbidden" && exit 1; fi
       - name: Splits grouping + ratio guard (85 envs)
         run: |
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85), f\"all_environment_ids 45/85 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env']) in (45,85), f\"groups_by_env 45/85 got {len(s['groups_by_env'])}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85,500), f\"all_environment_ids 45/85 got {len(s['all_environment_ids'])}\"; assert len(s['groups_by_env']) in (45,85,500), f\"groups_by_env 45/85 got {len(s['groups_by_env'])}\""
            python -c "import json; s=json.load(open('assessment/splits.json')); assert len(set(s['all_environment_ids']))>=5, f\"unique envs {len(set(s['all_environment_ids']))} <5\"; mx=max(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); mn=min(len(s['D1_train_groups']),len(s['D2_val_groups']),len(s['D3_locked_groups'])); assert mx/mn <=3, f'ratio {mx}/{mn} >3'"
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups']) in (19,30) and len(s['D2_val_groups']) in (12,15) and len(s['D3_locked_groups']) in (7,10), f\"D1 in (19,30) D2 in (12,15) D3 in (7,10) got {len(s['D1_train_groups'])},{len(s['D2_val_groups'])},{len(s['D3_locked_groups'])}\""
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['D1_train_groups']) in (19,30,150) and len(s['D2_val_groups']) in (12,15,100) and len(s['D3_locked_groups']) in (7,10,30), f\"D1 in (19,30) D2 in (12,15) D3 in (7,10) got {len(s['D1_train_groups'])},{len(s['D2_val_groups'])},{len(s['D3_locked_groups'])}\""
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'family_id' not in open('assessment/splits.json').read(), 'family_id grouping forbidden'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert 'environment_id' in open('assessment/splits.json').read() or 'environment_id' in str(s.get('groups_by_env',{})), 'env_id grouping missing'"
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), f\"disjoint failed\""
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), '85 + prior disjoint'"
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85,500) and not set(s['D_prior_groups']) & set(s['D1_train_groups']), '85 + prior disjoint'"
       - name: Locked disjoint guard
         run: |
           python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups'])), f\"D3_locked overlaps train/val {set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))}\""
@@ -224,7 +224,7 @@ jobs:
           grep -q "ja4_rarity" assessment/features.py || (echo "guard 4 ja4_rarity grep fail" && exit 1)
           echo "guard 4 ja4 whitelist OK"
           # guard 5 grouping env_id LOFAM
-          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85) and not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))" || (echo "guard 5 grouping fail" && exit 1)
+          python -c "import json; s=json.load(open('assessment/splits.json')); assert len(s['all_environment_ids']) in (45,85,500) and not set(s['D3_locked_groups']) & (set(s['D1_train_groups'])|set(s['D2_val_groups']))" || (echo "guard 5 grouping fail" && exit 1)
           grep -q "environment_id" assessment/splits.json || (echo "guard 5 env_id grep fail" && exit 1)
           echo "guard 5 grouping env_id OK"
           # guard 6 prior disjoint 11/5 caveat

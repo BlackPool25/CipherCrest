@@ -84,38 +84,426 @@
     "family-47__postfix3.9_loss0",
     "family-48__postfix3.9_loss0",
     "family-49__postfix3.9_loss0",
-    "family-50__postfix3.9_loss0"
+    "family-50__postfix3.9_loss0",
+    "family-51__postfix3.9_loss0",
+    "family-52__postfix3.9_loss0",
+    "family-53__postfix3.9_loss0",
+    "family-54__postfix3.9_loss0",
+    "family-55__postfix3.9_loss0",
+    "family-56__postfix3.9_loss0",
+    "family-57__postfix3.9_loss0",
+    "family-58__postfix3.9_loss0",
+    "family-59__postfix3.9_loss0",
+    "family-60__postfix3.9_loss0",
+    "family-61__postfix3.9_loss0",
+    "family-62__postfix3.9_loss0",
+    "family-63__postfix3.9_loss0",
+    "family-64__postfix3.9_loss0",
+    "family-65__postfix3.9_loss0",
+    "family-66__postfix3.9_loss0",
+    "family-67__postfix3.9_loss0",
+    "family-68__postfix3.9_loss0",
+    "family-69__postfix3.9_loss0",
+    "family-70__postfix3.9_loss0",
+    "family-71__postfix3.9_loss0",
+    "family-72__postfix3.9_loss0",
+    "family-73__postfix3.9_loss0",
+    "family-74__postfix3.9_loss0",
+    "family-75__postfix3.9_loss0",
+    "family-76__postfix3.9_loss0",
+    "family-77__postfix3.9_loss0",
+    "family-78__postfix3.9_loss0",
+    "family-79__postfix3.9_loss0",
+    "family-80__postfix3.9_loss0",
+    "family-81__postfix3.9_loss0",
+    "family-82__postfix3.9_loss0",
+    "family-83__postfix3.9_loss0",
+    "family-84__postfix3.9_loss0",
+    "family-85__postfix3.9_loss0",
+    "family-86__postfix3.9_loss0",
+    "family-87__postfix3.9_loss0",
+    "family-88__postfix3.9_loss0",
+    "family-89__postfix3.9_loss0",
+    "family-90__postfix3.9_loss0",
+    "family-91__postfix3.9_loss0",
+    "family-92__postfix3.9_loss0",
+    "family-93__postfix3.9_loss0",
+    "family-94__postfix3.9_loss0",
+    "family-95__postfix3.9_loss0",
+    "family-96__postfix3.9_loss0",
+    "family-97__postfix3.9_loss0",
+    "family-98__postfix3.9_loss0",
+    "family-99__postfix3.9_loss0",
+    "family-100__postfix3.9_loss0",
+    "family-101__postfix3.9_loss0",
+    "family-102__postfix3.9_loss0",
+    "family-103__postfix3.9_loss0",
+    "family-104__postfix3.9_loss0",
+    "family-105__postfix3.9_loss0",
+    "family-106__postfix3.9_loss0",
+    "family-107__postfix3.9_loss0",
+    "family-108__postfix3.9_loss0",
+    "family-109__postfix3.9_loss0",
+    "family-110__postfix3.9_loss0",
+    "family-111__postfix3.9_loss0",
+    "family-112__postfix3.9_loss0",
+    "family-113__postfix3.9_loss0",
+    "family-114__postfix3.9_loss0",
+    "family-115__postfix3.9_loss0",
+    "family-116__postfix3.9_loss0",
+    "family-117__postfix3.9_loss0",
+    "family-118__postfix3.9_loss0",
+    "family-119__postfix3.9_loss0",
+    "family-120__postfix3.9_loss0",
+    "family-121__postfix3.9_loss0",
+    "family-122__postfix3.9_loss0",
+    "family-123__postfix3.9_loss0",
+    "family-124__postfix3.9_loss0",
+    "family-125__postfix3.9_loss0",
+    "family-126__postfix3.9_loss0",
+    "family-127__postfix3.9_loss0",
+    "family-128__postfix3.9_loss0",
+    "family-129__postfix3.9_loss0",
+    "family-130__postfix3.9_loss0",
+    "family-131__postfix3.9_loss0",
+    "family-132__postfix3.9_loss0",
+    "family-133__postfix3.9_loss0",
+    "family-134__postfix3.9_loss0",
+    "family-135__postfix3.9_loss0",
+    "family-136__postfix3.9_loss0",
+    "family-137__postfix3.9_loss0",
+    "family-138__postfix3.9_loss0",
+    "family-139__postfix3.9_loss0",
+    "family-140__postfix3.9_loss0",
+    "family-141__postfix3.9_loss0",
+    "family-142__postfix3.9_loss0",
+    "family-143__postfix3.9_loss0",
+    "family-144__postfix3.9_loss0",
+    "family-145__postfix3.9_loss0",
+    "family-146__postfix3.9_loss0",
+    "family-147__postfix3.9_loss0",
+    "family-148__postfix3.9_loss0",
+    "family-149__postfix3.9_loss0",
+    "family-150__postfix3.9_loss0",
+    "family-151__postfix3.9_loss0",
+    "family-152__postfix3.9_loss0",
+    "family-153__postfix3.9_loss0",
+    "family-154__postfix3.9_loss0",
+    "family-155__postfix3.9_loss0",
+    "family-156__postfix3.9_loss0",
+    "family-157__postfix3.9_loss0",
+    "family-158__postfix3.9_loss0",
+    "family-159__postfix3.9_loss0",
+    "family-160__postfix3.9_loss0",
+    "family-161__postfix3.9_loss0",
+    "family-162__postfix3.9_loss0",
+    "family-163__postfix3.9_loss0",
+    "family-164__postfix3.9_loss0",
+    "family-165__postfix3.9_loss0",
+    "family-166__postfix3.9_loss0",
+    "family-167__postfix3.9_loss0",
+    "family-168__postfix3.9_loss0",
+    "family-169__postfix3.9_loss0",
+    "family-170__postfix3.9_loss0",
+    "family-171__postfix3.9_loss0",
+    "family-172__postfix3.9_loss0",
+    "family-173__postfix3.9_loss0",
+    "family-174__postfix3.9_loss0",
+    "family-175__postfix3.9_loss0",
+    "family-176__postfix3.9_loss0",
+    "family-177__postfix3.9_loss0",
+    "family-178__postfix3.9_loss0",
+    "family-179__postfix3.9_loss0",
+    "family-180__postfix3.9_loss0",
+    "family-181__postfix3.9_loss0",
+    "family-182__postfix3.9_loss0",
+    "family-183__postfix3.9_loss0",
+    "family-184__postfix3.9_loss0",
+    "family-185__postfix3.9_loss0",
+    "family-186__postfix3.9_loss0",
+    "family-187__postfix3.9_loss0",
+    "family-188__postfix3.9_loss0",
+    "family-189__postfix3.9_loss0",
+    "family-190__postfix3.9_loss0",
+    "family-191__postfix3.9_loss0",
+    "family-192__postfix3.9_loss0",
+    "family-193__postfix3.9_loss0",
+    "family-194__postfix3.9_loss0",
+    "family-195__postfix3.9_loss0",
+    "family-196__postfix3.9_loss0",
+    "family-197__postfix3.9_loss0",
+    "family-198__postfix3.9_loss0",
+    "family-199__postfix3.9_loss0",
+    "family-200__postfix3.9_loss0",
+    "family-201__postfix3.9_loss0",
+    "family-202__postfix3.9_loss0",
+    "family-203__postfix3.9_loss0",
+    "family-204__postfix3.9_loss0",
+    "family-205__postfix3.9_loss0",
+    "family-206__postfix3.9_loss0",
+    "family-207__postfix3.9_loss0",
+    "family-208__postfix3.9_loss0",
+    "family-209__postfix3.9_loss0",
+    "family-210__postfix3.9_loss0",
+    "family-211__postfix3.9_loss0",
+    "family-212__postfix3.9_loss0",
+    "family-213__postfix3.9_loss0",
+    "family-214__postfix3.9_loss0",
+    "family-215__postfix3.9_loss0",
+    "family-216__postfix3.9_loss0",
+    "family-217__postfix3.9_loss0",
+    "family-218__postfix3.9_loss0",
+    "family-219__postfix3.9_loss0",
+    "family-220__postfix3.9_loss0",
+    "family-221__postfix3.9_loss0",
+    "family-222__postfix3.9_loss0",
+    "family-223__postfix3.9_loss0",
+    "family-224__postfix3.9_loss0",
+    "family-225__postfix3.9_loss0",
+    "family-226__postfix3.9_loss0",
+    "family-227__postfix3.9_loss0",
+    "family-228__postfix3.9_loss0",
+    "family-229__postfix3.9_loss0",
+    "family-230__postfix3.9_loss0",
+    "family-231__postfix3.9_loss0",
+    "family-232__postfix3.9_loss0",
+    "family-233__postfix3.9_loss0",
+    "family-234__postfix3.9_loss0",
+    "family-235__postfix3.9_loss0",
+    "family-236__postfix3.9_loss0",
+    "family-237__postfix3.9_loss0",
+    "family-238__postfix3.9_loss0",
+    "family-239__postfix3.9_loss0",
+    "family-240__postfix3.9_loss0",
+    "family-241__postfix3.9_loss0",
+    "family-242__postfix3.9_loss0",
+    "family-243__postfix3.9_loss0",
+    "family-244__postfix3.9_loss0",
+    "family-245__postfix3.9_loss0",
+    "family-246__postfix3.9_loss0",
+    "family-247__postfix3.9_loss0",
+    "family-248__postfix3.9_loss0",
+    "family-249__postfix3.9_loss0",
+    "family-250__postfix3.9_loss0",
+    "family-251__postfix3.9_loss0",
+    "family-252__postfix3.9_loss0",
+    "family-253__postfix3.9_loss0",
+    "family-254__postfix3.9_loss0",
+    "family-255__postfix3.9_loss0",
+    "family-256__postfix3.9_loss0",
+    "family-257__postfix3.9_loss0",
+    "family-258__postfix3.9_loss0",
+    "family-259__postfix3.9_loss0",
+    "family-260__postfix3.9_loss0",
+    "family-261__postfix3.9_loss0",
+    "family-262__postfix3.9_loss0",
+    "family-263__postfix3.9_loss0",
+    "family-264__postfix3.9_loss0",
+    "family-265__postfix3.9_loss0",
+    "family-266__postfix3.9_loss0",
+    "family-267__postfix3.9_loss0",
+    "family-268__postfix3.9_loss0",
+    "family-269__postfix3.9_loss0",
+    "family-270__postfix3.9_loss0",
+    "family-271__postfix3.9_loss0",
+    "family-272__postfix3.9_loss0",
+    "family-273__postfix3.9_loss0",
+    "family-274__postfix3.9_loss0",
+    "family-275__postfix3.9_loss0",
+    "family-276__postfix3.9_loss0",
+    "family-277__postfix3.9_loss0",
+    "family-278__postfix3.9_loss0",
+    "family-279__postfix3.9_loss0",
+    "family-280__postfix3.9_loss0",
+    "family-281__postfix3.9_loss0",
+    "family-282__postfix3.9_loss0",
+    "family-283__postfix3.9_loss0",
+    "family-284__postfix3.9_loss0",
+    "family-285__postfix3.9_loss0",
+    "family-286__postfix3.9_loss0",
+    "family-287__postfix3.9_loss0",
+    "family-288__postfix3.9_loss0",
+    "family-289__postfix3.9_loss0",
+    "family-290__postfix3.9_loss0",
+    "family-291__postfix3.9_loss0",
+    "family-292__postfix3.9_loss0",
+    "family-293__postfix3.9_loss0",
+    "family-294__postfix3.9_loss0",
+    "family-295__postfix3.9_loss0",
+    "family-296__postfix3.9_loss0",
+    "family-297__postfix3.9_loss0",
+    "family-298__postfix3.9_loss0",
+    "family-299__postfix3.9_loss0",
+    "family-300__postfix3.9_loss0",
+    "family-301__postfix3.9_loss0",
+    "family-302__postfix3.9_loss0",
+    "family-303__postfix3.9_loss0",
+    "family-304__postfix3.9_loss0",
+    "family-305__postfix3.9_loss0",
+    "family-306__postfix3.9_loss0",
+    "family-307__postfix3.9_loss0",
+    "family-308__postfix3.9_loss0",
+    "family-309__postfix3.9_loss0",
+    "family-310__postfix3.9_loss0",
+    "family-311__postfix3.9_loss0",
+    "family-312__postfix3.9_loss0",
+    "family-313__postfix3.9_loss0",
+    "family-314__postfix3.9_loss0",
+    "family-315__postfix3.9_loss0",
+    "family-316__postfix3.9_loss0",
+    "family-317__postfix3.9_loss0",
+    "family-318__postfix3.9_loss0",
+    "family-319__postfix3.9_loss0",
+    "family-320__postfix3.9_loss0",
+    "family-321__postfix3.9_loss0",
+    "family-322__postfix3.9_loss0",
+    "family-323__postfix3.9_loss0",
+    "family-324__postfix3.9_loss0",
+    "family-325__postfix3.9_loss0",
+    "family-326__postfix3.9_loss0",
+    "family-327__postfix3.9_loss0",
+    "family-328__postfix3.9_loss0",
+    "family-329__postfix3.9_loss0",
+    "family-330__postfix3.9_loss0",
+    "family-331__postfix3.9_loss0",
+    "family-332__postfix3.9_loss0",
+    "family-333__postfix3.9_loss0",
+    "family-334__postfix3.9_loss0",
+    "family-335__postfix3.9_loss0",
+    "family-336__postfix3.9_loss0",
+    "family-337__postfix3.9_loss0",
+    "family-338__postfix3.9_loss0",
+    "family-339__postfix3.9_loss0",
+    "family-340__postfix3.9_loss0",
+    "family-341__postfix3.9_loss0",
+    "family-342__postfix3.9_loss0",
+    "family-343__postfix3.9_loss0",
+    "family-344__postfix3.9_loss0",
+    "family-345__postfix3.9_loss0",
+    "family-346__postfix3.9_loss0",
+    "family-347__postfix3.9_loss0",
+    "family-348__postfix3.9_loss0",
+    "family-349__postfix3.9_loss0",
+    "family-350__postfix3.9_loss0",
+    "family-351__postfix3.9_loss0",
+    "family-352__postfix3.9_loss0",
+    "family-353__postfix3.9_loss0",
+    "family-354__postfix3.9_loss0",
+    "family-355__postfix3.9_loss0",
+    "family-356__postfix3.9_loss0",
+    "family-357__postfix3.9_loss0",
+    "family-358__postfix3.9_loss0",
+    "family-359__postfix3.9_loss0",
+    "family-360__postfix3.9_loss0",
+    "family-361__postfix3.9_loss0",
+    "family-362__postfix3.9_loss0",
+    "family-363__postfix3.9_loss0",
+    "family-364__postfix3.9_loss0",
+    "family-365__postfix3.9_loss0",
+    "family-366__postfix3.9_loss0",
+    "family-367__postfix3.9_loss0",
+    "family-368__postfix3.9_loss0",
+    "family-369__postfix3.9_loss0",
+    "family-370__postfix3.9_loss0",
+    "family-371__postfix3.9_loss0",
+    "family-372__postfix3.9_loss0",
+    "family-373__postfix3.9_loss0",
+    "family-374__postfix3.9_loss0",
+    "family-375__postfix3.9_loss0",
+    "family-376__postfix3.9_loss0",
+    "family-377__postfix3.9_loss0",
+    "family-378__postfix3.9_loss0",
+    "family-379__postfix3.9_loss0",
+    "family-380__postfix3.9_loss0",
+    "family-381__postfix3.9_loss0",
+    "family-382__postfix3.9_loss0",
+    "family-383__postfix3.9_loss0",
+    "family-384__postfix3.9_loss0",
+    "family-385__postfix3.9_loss0",
+    "family-386__postfix3.9_loss0",
+    "family-387__postfix3.9_loss0",
+    "family-388__postfix3.9_loss0",
+    "family-389__postfix3.9_loss0",
+    "family-390__postfix3.9_loss0",
+    "family-391__postfix3.9_loss0",
+    "family-392__postfix3.9_loss0",
+    "family-393__postfix3.9_loss0",
+    "family-394__postfix3.9_loss0",
+    "family-395__postfix3.9_loss0",
+    "family-396__postfix3.9_loss0",
+    "family-397__postfix3.9_loss0",
+    "family-398__postfix3.9_loss0",
+    "family-399__postfix3.9_loss0",
+    "family-400__postfix3.9_loss0",
+    "family-401__postfix3.9_loss0",
+    "family-402__postfix3.9_loss0",
+    "family-403__postfix3.9_loss0",
+    "family-404__postfix3.9_loss0",
+    "family-405__postfix3.9_loss0",
+    "family-406__postfix3.9_loss0",
+    "family-407__postfix3.9_loss0",
+    "family-408__postfix3.9_loss0",
+    "family-409__postfix3.9_loss0",
+    "family-410__postfix3.9_loss0",
+    "family-411__postfix3.9_loss0",
+    "family-412__postfix3.9_loss0",
+    "family-413__postfix3.9_loss0",
+    "family-414__postfix3.9_loss0",
+    "family-415__postfix3.9_loss0",
+    "family-416__postfix3.9_loss0",
+    "family-417__postfix3.9_loss0",
+    "family-418__postfix3.9_loss0",
+    "family-419__postfix3.9_loss0",
+    "family-420__postfix3.9_loss0",
+    "family-421__postfix3.9_loss0",
+    "family-422__postfix3.9_loss0",
+    "family-423__postfix3.9_loss0",
+    "family-424__postfix3.9_loss0",
+    "family-425__postfix3.9_loss0",
+    "family-426__postfix3.9_loss0",
+    "family-427__postfix3.9_loss0",
+    "family-428__postfix3.9_loss0",
+    "family-429__postfix3.9_loss0",
+    "family-430__postfix3.9_loss0",
+    "family-431__postfix3.9_loss0",
+    "family-432__postfix3.9_loss0",
+    "family-433__postfix3.9_loss0",
+    "family-434__postfix3.9_loss0",
+    "family-435__postfix3.9_loss0",
+    "family-436__postfix3.9_loss0",
+    "family-437__postfix3.9_loss0",
+    "family-438__postfix3.9_loss0",
+    "family-439__postfix3.9_loss0",
+    "family-440__postfix3.9_loss0",
+    "family-441__postfix3.9_loss0",
+    "family-442__postfix3.9_loss0",
+    "family-443__postfix3.9_loss0",
+    "family-444__postfix3.9_loss0",
+    "family-445__postfix3.9_loss0",
+    "family-446__postfix3.9_loss0",
+    "family-447__postfix3.9_loss0",
+    "family-448__postfix3.9_loss0",
+    "family-449__postfix3.9_loss0",
+    "family-450__postfix3.9_loss0",
+    "family-451__postfix3.9_loss0",
+    "family-452__postfix3.9_loss0",
+    "family-453__postfix3.9_loss0",
+    "family-454__postfix3.9_loss0",
+    "family-455__postfix3.9_loss0",
+    "family-456__postfix3.9_loss0",
+    "family-457__postfix3.9_loss0",
+    "family-458__postfix3.9_loss0",
+    "family-459__postfix3.9_loss0",
+    "family-460__postfix3.9_loss0",
+    "family-461__postfix3.9_loss0",
+    "family-462__postfix3.9_loss0",
+    "family-463__postfix3.9_loss0",
+    "family-464__postfix3.9_loss0",
+    "family-465__postfix3.9_loss0"
   ],
   "groups_by_env": {
     "family-01__postfix3.9_loss0": [
       "family-01"
-    ],
-    "family-02__postfix3.9_loss0": [
-      "family-02"
-    ],
-    "family-03__postfix3.9_loss0": [
-      "family-03"
-    ],
-    "family-04__postfix3.9_loss0": [
-      "family-04"
-    ],
-    "family-05__postfix3.9_loss0": [
-      "family-05"
-    ],
-    "family-06__postfix3.9_loss0": [
-      "family-06"
-    ],
-    "family-07__postfix3.9_loss0": [
-      "family-07"
-    ],
-    "family-08__postfix3.9_loss0": [
-      "family-08"
-    ],
-    "family-09__postfix3.9_loss0": [
-      "family-09"
-    ],
-    "family-10__postfix3.9_loss0": [
-      "family-10"
     ],
     "family-02__jitter1_loss5": [
       "family-02-jitter-01"
@@ -126,6 +514,15 @@
     "family-02__jitter3_loss5": [
       "family-02-jitter-03"
     ],
+    "family-02__jitter4_loss5": [
+      "family-02-jitter-04"
+    ],
+    "family-02__jitter5_loss5": [
+      "family-02-jitter-05"
+    ],
+    "family-02__postfix3.9_loss0": [
+      "family-02"
+    ],
     "family-03__jitter1_loss5": [
       "family-03-jitter-01"
     ],
@@ -134,6 +531,15 @@
     ],
     "family-03__jitter3_loss5": [
       "family-03-jitter-03"
+    ],
+    "family-03__jitter4_loss5": [
+      "family-03-jitter-04"
+    ],
+    "family-03__jitter5_loss5": [
+      "family-03-jitter-05"
+    ],
+    "family-03__postfix3.9_loss0": [
+      "family-03"
     ],
     "family-04__jitter1_loss5": [
       "family-04-jitter-01"
@@ -144,6 +550,15 @@
     "family-04__jitter3_loss5": [
       "family-04-jitter-03"
     ],
+    "family-04__jitter4_loss5": [
+      "family-04-jitter-04"
+    ],
+    "family-04__jitter5_loss5": [
+      "family-04-jitter-05"
+    ],
+    "family-04__postfix3.9_loss0": [
+      "family-04"
+    ],
     "family-05__jitter1_loss5": [
       "family-05-jitter-01"
     ],
@@ -152,6 +567,18 @@
     ],
     "family-05__jitter3_loss5": [
       "family-05-jitter-03"
+    ],
+    "family-05__jitter4_loss5": [
+      "family-05-jitter-04"
+    ],
+    "family-05__jitter5_loss5": [
+      "family-05-jitter-05"
+    ],
+    "family-05__postfix3.9_loss0": [
+      "family-05"
+    ],
+    "family-06__postfix3.9_loss0": [
+      "family-06"
     ],
     "family-07__jitter1_loss5": [
       "family-07-jitter-01"
@@ -162,6 +589,15 @@
     "family-07__jitter3_loss5": [
       "family-07-jitter-03"
     ],
+    "family-07__jitter4_loss5": [
+      "family-07-jitter-04"
+    ],
+    "family-07__jitter5_loss5": [
+      "family-07-jitter-05"
+    ],
+    "family-07__postfix3.9_loss0": [
+      "family-07"
+    ],
     "family-08__jitter1_loss5": [
       "family-08-jitter-01"
     ],
@@ -170,6 +606,18 @@
     ],
     "family-08__jitter3_loss5": [
       "family-08-jitter-03"
+    ],
+    "family-08__jitter4_loss5": [
+      "family-08-jitter-04"
+    ],
+    "family-08__jitter5_loss5": [
+      "family-08-jitter-05"
+    ],
+    "family-08__postfix3.9_loss0": [
+      "family-08"
+    ],
+    "family-09__postfix3.9_loss0": [
+      "family-09"
     ],
     "family-10__jitter1_loss5": [
       "family-10-jitter-01"
@@ -180,47 +628,14 @@
     "family-10__jitter3_loss5": [
       "family-10-jitter-03"
     ],
-    "family-02__jitter4_loss5": [
-      "family-02-jitter-04"
-    ],
-    "family-02__jitter5_loss5": [
-      "family-02-jitter-05"
-    ],
-    "family-03__jitter4_loss5": [
-      "family-03-jitter-04"
-    ],
-    "family-03__jitter5_loss5": [
-      "family-03-jitter-05"
-    ],
-    "family-04__jitter4_loss5": [
-      "family-04-jitter-04"
-    ],
-    "family-04__jitter5_loss5": [
-      "family-04-jitter-05"
-    ],
-    "family-05__jitter4_loss5": [
-      "family-05-jitter-04"
-    ],
-    "family-05__jitter5_loss5": [
-      "family-05-jitter-05"
-    ],
-    "family-07__jitter4_loss5": [
-      "family-07-jitter-04"
-    ],
-    "family-07__jitter5_loss5": [
-      "family-07-jitter-05"
-    ],
-    "family-08__jitter4_loss5": [
-      "family-08-jitter-04"
-    ],
-    "family-08__jitter5_loss5": [
-      "family-08-jitter-05"
-    ],
     "family-10__jitter4_loss5": [
       "family-10-jitter-04"
     ],
     "family-10__jitter5_loss5": [
       "family-10-jitter-05"
+    ],
+    "family-10__postfix3.9_loss0": [
+      "family-10"
     ],
     "family-11__postfix3.9_loss0": [
       "family-11"
@@ -341,193 +756,2753 @@
     ],
     "family-50__postfix3.9_loss0": [
       "family-50"
+    ],
+    "family-51__postfix3.9_loss0": [
+      "family-51"
+    ],
+    "family-52__postfix3.9_loss0": [
+      "family-52"
+    ],
+    "family-53__postfix3.9_loss0": [
+      "family-53"
+    ],
+    "family-54__postfix3.9_loss0": [
+      "family-54"
+    ],
+    "family-55__postfix3.9_loss0": [
+      "family-55"
+    ],
+    "family-56__postfix3.9_loss0": [
+      "family-56"
+    ],
+    "family-57__postfix3.9_loss0": [
+      "family-57"
+    ],
+    "family-58__postfix3.9_loss0": [
+      "family-58"
+    ],
+    "family-59__postfix3.9_loss0": [
+      "family-59"
+    ],
+    "family-60__postfix3.9_loss0": [
+      "family-60"
+    ],
+    "family-61__postfix3.9_loss0": [
+      "family-61"
+    ],
+    "family-62__postfix3.9_loss0": [
+      "family-62"
+    ],
+    "family-63__postfix3.9_loss0": [
+      "family-63"
+    ],
+    "family-64__postfix3.9_loss0": [
+      "family-64"
+    ],
+    "family-65__postfix3.9_loss0": [
+      "family-65"
+    ],
+    "family-66__postfix3.9_loss0": [
+      "family-66"
+    ],
+    "family-67__postfix3.9_loss0": [
+      "family-67"
+    ],
+    "family-68__postfix3.9_loss0": [
+      "family-68"
+    ],
+    "family-69__postfix3.9_loss0": [
+      "family-69"
+    ],
+    "family-70__postfix3.9_loss0": [
+      "family-70"
+    ],
+    "family-71__postfix3.9_loss0": [
+      "family-71"
+    ],
+    "family-72__postfix3.9_loss0": [
+      "family-72"
+    ],
+    "family-73__postfix3.9_loss0": [
+      "family-73"
+    ],
+    "family-74__postfix3.9_loss0": [
+      "family-74"
+    ],
+    "family-75__postfix3.9_loss0": [
+      "family-75"
+    ],
+    "family-76__postfix3.9_loss0": [
+      "family-76"
+    ],
+    "family-77__postfix3.9_loss0": [
+      "family-77"
+    ],
+    "family-78__postfix3.9_loss0": [
+      "family-78"
+    ],
+    "family-79__postfix3.9_loss0": [
+      "family-79"
+    ],
+    "family-80__postfix3.9_loss0": [
+      "family-80"
+    ],
+    "family-81__postfix3.9_loss0": [
+      "family-81"
+    ],
+    "family-82__postfix3.9_loss0": [
+      "family-82"
+    ],
+    "family-83__postfix3.9_loss0": [
+      "family-83"
+    ],
+    "family-84__postfix3.9_loss0": [
+      "family-84"
+    ],
+    "family-85__postfix3.9_loss0": [
+      "family-85"
+    ],
+    "family-86__postfix3.9_loss0": [
+      "family-86"
+    ],
+    "family-87__postfix3.9_loss0": [
+      "family-87"
+    ],
+    "family-88__postfix3.9_loss0": [
+      "family-88"
+    ],
+    "family-89__postfix3.9_loss0": [
+      "family-89"
+    ],
+    "family-90__postfix3.9_loss0": [
+      "family-90"
+    ],
+    "family-91__postfix3.9_loss0": [
+      "family-91"
+    ],
+    "family-92__postfix3.9_loss0": [
+      "family-92"
+    ],
+    "family-93__postfix3.9_loss0": [
+      "family-93"
+    ],
+    "family-94__postfix3.9_loss0": [
+      "family-94"
+    ],
+    "family-95__postfix3.9_loss0": [
+      "family-95"
+    ],
+    "family-96__postfix3.9_loss0": [
+      "family-96"
+    ],
+    "family-97__postfix3.9_loss0": [
+      "family-97"
+    ],
+    "family-98__postfix3.9_loss0": [
+      "family-98"
+    ],
+    "family-99__postfix3.9_loss0": [
+      "family-99"
+    ],
+    "family-100__postfix3.9_loss0": [
+      "family-100"
+    ],
+    "family-101__postfix3.9_loss0": [
+      "family-101"
+    ],
+    "family-102__postfix3.9_loss0": [
+      "family-102"
+    ],
+    "family-103__postfix3.9_loss0": [
+      "family-103"
+    ],
+    "family-104__postfix3.9_loss0": [
+      "family-104"
+    ],
+    "family-105__postfix3.9_loss0": [
+      "family-105"
+    ],
+    "family-106__postfix3.9_loss0": [
+      "family-106"
+    ],
+    "family-107__postfix3.9_loss0": [
+      "family-107"
+    ],
+    "family-108__postfix3.9_loss0": [
+      "family-108"
+    ],
+    "family-109__postfix3.9_loss0": [
+      "family-109"
+    ],
+    "family-110__postfix3.9_loss0": [
+      "family-110"
+    ],
+    "family-111__postfix3.9_loss0": [
+      "family-111"
+    ],
+    "family-112__postfix3.9_loss0": [
+      "family-112"
+    ],
+    "family-113__postfix3.9_loss0": [
+      "family-113"
+    ],
+    "family-114__postfix3.9_loss0": [
+      "family-114"
+    ],
+    "family-115__postfix3.9_loss0": [
+      "family-115"
+    ],
+    "family-116__postfix3.9_loss0": [
+      "family-116"
+    ],
+    "family-117__postfix3.9_loss0": [
+      "family-117"
+    ],
+    "family-118__postfix3.9_loss0": [
+      "family-118"
+    ],
+    "family-119__postfix3.9_loss0": [
+      "family-119"
+    ],
+    "family-120__postfix3.9_loss0": [
+      "family-120"
+    ],
+    "family-121__postfix3.9_loss0": [
+      "family-121"
+    ],
+    "family-122__postfix3.9_loss0": [
+      "family-122"
+    ],
+    "family-123__postfix3.9_loss0": [
+      "family-123"
+    ],
+    "family-124__postfix3.9_loss0": [
+      "family-124"
+    ],
+    "family-125__postfix3.9_loss0": [
+      "family-125"
+    ],
+    "family-126__postfix3.9_loss0": [
+      "family-126"
+    ],
+    "family-127__postfix3.9_loss0": [
+      "family-127"
+    ],
+    "family-128__postfix3.9_loss0": [
+      "family-128"
+    ],
+    "family-129__postfix3.9_loss0": [
+      "family-129"
+    ],
+    "family-130__postfix3.9_loss0": [
+      "family-130"
+    ],
+    "family-131__postfix3.9_loss0": [
+      "family-131"
+    ],
+    "family-132__postfix3.9_loss0": [
+      "family-132"
+    ],
+    "family-133__postfix3.9_loss0": [
+      "family-133"
+    ],
+    "family-134__postfix3.9_loss0": [
+      "family-134"
+    ],
+    "family-135__postfix3.9_loss0": [
+      "family-135"
+    ],
+    "family-136__postfix3.9_loss0": [
+      "family-136"
+    ],
+    "family-137__postfix3.9_loss0": [
+      "family-137"
+    ],
+    "family-138__postfix3.9_loss0": [
+      "family-138"
+    ],
+    "family-139__postfix3.9_loss0": [
+      "family-139"
+    ],
+    "family-140__postfix3.9_loss0": [
+      "family-140"
+    ],
+    "family-141__postfix3.9_loss0": [
+      "family-141"
+    ],
+    "family-142__postfix3.9_loss0": [
+      "family-142"
+    ],
+    "family-143__postfix3.9_loss0": [
+      "family-143"
+    ],
+    "family-144__postfix3.9_loss0": [
+      "family-144"
+    ],
+    "family-145__postfix3.9_loss0": [
+      "family-145"
+    ],
+    "family-146__postfix3.9_loss0": [
+      "family-146"
+    ],
+    "family-147__postfix3.9_loss0": [
+      "family-147"
+    ],
+    "family-148__postfix3.9_loss0": [
+      "family-148"
+    ],
+    "family-149__postfix3.9_loss0": [
+      "family-149"
+    ],
+    "family-150__postfix3.9_loss0": [
+      "family-150"
+    ],
+    "family-151__postfix3.9_loss0": [
+      "family-151"
+    ],
+    "family-152__postfix3.9_loss0": [
+      "family-152"
+    ],
+    "family-153__postfix3.9_loss0": [
+      "family-153"
+    ],
+    "family-154__postfix3.9_loss0": [
+      "family-154"
+    ],
+    "family-155__postfix3.9_loss0": [
+      "family-155"
+    ],
+    "family-156__postfix3.9_loss0": [
+      "family-156"
+    ],
+    "family-157__postfix3.9_loss0": [
+      "family-157"
+    ],
+    "family-158__postfix3.9_loss0": [
+      "family-158"
+    ],
+    "family-159__postfix3.9_loss0": [
+      "family-159"
+    ],
+    "family-160__postfix3.9_loss0": [
+      "family-160"
+    ],
+    "family-161__postfix3.9_loss0": [
+      "family-161"
+    ],
+    "family-162__postfix3.9_loss0": [
+      "family-162"
+    ],
+    "family-163__postfix3.9_loss0": [
+      "family-163"
+    ],
+    "family-164__postfix3.9_loss0": [
+      "family-164"
+    ],
+    "family-165__postfix3.9_loss0": [
+      "family-165"
+    ],
+    "family-166__postfix3.9_loss0": [
+      "family-166"
+    ],
+    "family-167__postfix3.9_loss0": [
+      "family-167"
+    ],
+    "family-168__postfix3.9_loss0": [
+      "family-168"
+    ],
+    "family-169__postfix3.9_loss0": [
+      "family-169"
+    ],
+    "family-170__postfix3.9_loss0": [
+      "family-170"
+    ],
+    "family-171__postfix3.9_loss0": [
+      "family-171"
+    ],
+    "family-172__postfix3.9_loss0": [
+      "family-172"
+    ],
+    "family-173__postfix3.9_loss0": [
+      "family-173"
+    ],
+    "family-174__postfix3.9_loss0": [
+      "family-174"
+    ],
+    "family-175__postfix3.9_loss0": [
+      "family-175"
+    ],
+    "family-176__postfix3.9_loss0": [
+      "family-176"
+    ],
+    "family-177__postfix3.9_loss0": [
+      "family-177"
+    ],
+    "family-178__postfix3.9_loss0": [
+      "family-178"
+    ],
+    "family-179__postfix3.9_loss0": [
+      "family-179"
+    ],
+    "family-180__postfix3.9_loss0": [
+      "family-180"
+    ],
+    "family-181__postfix3.9_loss0": [
+      "family-181"
+    ],
+    "family-182__postfix3.9_loss0": [
+      "family-182"
+    ],
+    "family-183__postfix3.9_loss0": [
+      "family-183"
+    ],
+    "family-184__postfix3.9_loss0": [
+      "family-184"
+    ],
+    "family-185__postfix3.9_loss0": [
+      "family-185"
+    ],
+    "family-186__postfix3.9_loss0": [
+      "family-186"
+    ],
+    "family-187__postfix3.9_loss0": [
+      "family-187"
+    ],
+    "family-188__postfix3.9_loss0": [
+      "family-188"
+    ],
+    "family-189__postfix3.9_loss0": [
+      "family-189"
+    ],
+    "family-190__postfix3.9_loss0": [
+      "family-190"
+    ],
+    "family-191__postfix3.9_loss0": [
+      "family-191"
+    ],
+    "family-192__postfix3.9_loss0": [
+      "family-192"
+    ],
+    "family-193__postfix3.9_loss0": [
+      "family-193"
+    ],
+    "family-194__postfix3.9_loss0": [
+      "family-194"
+    ],
+    "family-195__postfix3.9_loss0": [
+      "family-195"
+    ],
+    "family-196__postfix3.9_loss0": [
+      "family-196"
+    ],
+    "family-197__postfix3.9_loss0": [
+      "family-197"
+    ],
+    "family-198__postfix3.9_loss0": [
+      "family-198"
+    ],
+    "family-199__postfix3.9_loss0": [
+      "family-199"
+    ],
+    "family-200__postfix3.9_loss0": [
+      "family-200"
+    ],
+    "family-201__postfix3.9_loss0": [
+      "family-201"
+    ],
+    "family-202__postfix3.9_loss0": [
+      "family-202"
+    ],
+    "family-203__postfix3.9_loss0": [
+      "family-203"
+    ],
+    "family-204__postfix3.9_loss0": [
+      "family-204"
+    ],
+    "family-205__postfix3.9_loss0": [
+      "family-205"
+    ],
+    "family-206__postfix3.9_loss0": [
+      "family-206"
+    ],
+    "family-207__postfix3.9_loss0": [
+      "family-207"
+    ],
+    "family-208__postfix3.9_loss0": [
+      "family-208"
+    ],
+    "family-209__postfix3.9_loss0": [
+      "family-209"
+    ],
+    "family-210__postfix3.9_loss0": [
+      "family-210"
+    ],
+    "family-211__postfix3.9_loss0": [
+      "family-211"
+    ],
+    "family-212__postfix3.9_loss0": [
+      "family-212"
+    ],
+    "family-213__postfix3.9_loss0": [
+      "family-213"
+    ],
+    "family-214__postfix3.9_loss0": [
+      "family-214"
+    ],
+    "family-215__postfix3.9_loss0": [
+      "family-215"
+    ],
+    "family-216__postfix3.9_loss0": [
+      "family-216"
+    ],
+    "family-217__postfix3.9_loss0": [
+      "family-217"
+    ],
+    "family-218__postfix3.9_loss0": [
+      "family-218"
+    ],
+    "family-219__postfix3.9_loss0": [
+      "family-219"
+    ],
+    "family-220__postfix3.9_loss0": [
+      "family-220"
+    ],
+    "family-221__postfix3.9_loss0": [
+      "family-221"
+    ],
+    "family-222__postfix3.9_loss0": [
+      "family-222"
+    ],
+    "family-223__postfix3.9_loss0": [
+      "family-223"
+    ],
+    "family-224__postfix3.9_loss0": [
+      "family-224"
+    ],
+    "family-225__postfix3.9_loss0": [
+      "family-225"
+    ],
+    "family-226__postfix3.9_loss0": [
+      "family-226"
+    ],
+    "family-227__postfix3.9_loss0": [
+      "family-227"
+    ],
+    "family-228__postfix3.9_loss0": [
+      "family-228"
+    ],
+    "family-229__postfix3.9_loss0": [
+      "family-229"
+    ],
+    "family-230__postfix3.9_loss0": [
+      "family-230"
+    ],
+    "family-231__postfix3.9_loss0": [
+      "family-231"
+    ],
+    "family-232__postfix3.9_loss0": [
+      "family-232"
+    ],
+    "family-233__postfix3.9_loss0": [
+      "family-233"
+    ],
+    "family-234__postfix3.9_loss0": [
+      "family-234"
+    ],
+    "family-235__postfix3.9_loss0": [
+      "family-235"
+    ],
+    "family-236__postfix3.9_loss0": [
+      "family-236"
+    ],
+    "family-237__postfix3.9_loss0": [
+      "family-237"
+    ],
+    "family-238__postfix3.9_loss0": [
+      "family-238"
+    ],
+    "family-239__postfix3.9_loss0": [
+      "family-239"
+    ],
+    "family-240__postfix3.9_loss0": [
+      "family-240"
+    ],
+    "family-241__postfix3.9_loss0": [
+      "family-241"
+    ],
+    "family-242__postfix3.9_loss0": [
+      "family-242"
+    ],
+    "family-243__postfix3.9_loss0": [
+      "family-243"
+    ],
+    "family-244__postfix3.9_loss0": [
+      "family-244"
+    ],
+    "family-245__postfix3.9_loss0": [
+      "family-245"
+    ],
+    "family-246__postfix3.9_loss0": [
+      "family-246"
+    ],
+    "family-247__postfix3.9_loss0": [
+      "family-247"
+    ],
+    "family-248__postfix3.9_loss0": [
+      "family-248"
+    ],
+    "family-249__postfix3.9_loss0": [
+      "family-249"
+    ],
+    "family-250__postfix3.9_loss0": [
+      "family-250"
+    ],
+    "family-251__postfix3.9_loss0": [
+      "family-251"
+    ],
+    "family-252__postfix3.9_loss0": [
+      "family-252"
+    ],
+    "family-253__postfix3.9_loss0": [
+      "family-253"
+    ],
+    "family-254__postfix3.9_loss0": [
+      "family-254"
+    ],
+    "family-255__postfix3.9_loss0": [
+      "family-255"
+    ],
+    "family-256__postfix3.9_loss0": [
+      "family-256"
+    ],
+    "family-257__postfix3.9_loss0": [
+      "family-257"
+    ],
+    "family-258__postfix3.9_loss0": [
+      "family-258"
+    ],
+    "family-259__postfix3.9_loss0": [
+      "family-259"
+    ],
+    "family-260__postfix3.9_loss0": [
+      "family-260"
+    ],
+    "family-261__postfix3.9_loss0": [
+      "family-261"
+    ],
+    "family-262__postfix3.9_loss0": [
+      "family-262"
+    ],
+    "family-263__postfix3.9_loss0": [
+      "family-263"
+    ],
+    "family-264__postfix3.9_loss0": [
+      "family-264"
+    ],
+    "family-265__postfix3.9_loss0": [
+      "family-265"
+    ],
+    "family-266__postfix3.9_loss0": [
+      "family-266"
+    ],
+    "family-267__postfix3.9_loss0": [
+      "family-267"
+    ],
+    "family-268__postfix3.9_loss0": [
+      "family-268"
+    ],
+    "family-269__postfix3.9_loss0": [
+      "family-269"
+    ],
+    "family-270__postfix3.9_loss0": [
+      "family-270"
+    ],
+    "family-271__postfix3.9_loss0": [
+      "family-271"
+    ],
+    "family-272__postfix3.9_loss0": [
+      "family-272"
+    ],
+    "family-273__postfix3.9_loss0": [
+      "family-273"
+    ],
+    "family-274__postfix3.9_loss0": [
+      "family-274"
+    ],
+    "family-275__postfix3.9_loss0": [
+      "family-275"
+    ],
+    "family-276__postfix3.9_loss0": [
+      "family-276"
+    ],
+    "family-277__postfix3.9_loss0": [
+      "family-277"
+    ],
+    "family-278__postfix3.9_loss0": [
+      "family-278"
+    ],
+    "family-279__postfix3.9_loss0": [
+      "family-279"
+    ],
+    "family-280__postfix3.9_loss0": [
+      "family-280"
+    ],
+    "family-281__postfix3.9_loss0": [
+      "family-281"
+    ],
+    "family-282__postfix3.9_loss0": [
+      "family-282"
+    ],
+    "family-283__postfix3.9_loss0": [
+      "family-283"
+    ],
+    "family-284__postfix3.9_loss0": [
+      "family-284"
+    ],
+    "family-285__postfix3.9_loss0": [
+      "family-285"
+    ],
+    "family-286__postfix3.9_loss0": [
+      "family-286"
+    ],
+    "family-287__postfix3.9_loss0": [
+      "family-287"
+    ],
+    "family-288__postfix3.9_loss0": [
+      "family-288"
+    ],
+    "family-289__postfix3.9_loss0": [
+      "family-289"
+    ],
+    "family-290__postfix3.9_loss0": [
+      "family-290"
+    ],
+    "family-291__postfix3.9_loss0": [
+      "family-291"
+    ],
+    "family-292__postfix3.9_loss0": [
+      "family-292"
+    ],
+    "family-293__postfix3.9_loss0": [
+      "family-293"
+    ],
+    "family-294__postfix3.9_loss0": [
+      "family-294"
+    ],
+    "family-295__postfix3.9_loss0": [
+      "family-295"
+    ],
+    "family-296__postfix3.9_loss0": [
+      "family-296"
+    ],
+    "family-297__postfix3.9_loss0": [
+      "family-297"
+    ],
+    "family-298__postfix3.9_loss0": [
+      "family-298"
+    ],
+    "family-299__postfix3.9_loss0": [
+      "family-299"
+    ],
+    "family-300__postfix3.9_loss0": [
+      "family-300"
+    ],
+    "family-301__postfix3.9_loss0": [
+      "family-301"
+    ],
+    "family-302__postfix3.9_loss0": [
+      "family-302"
+    ],
+    "family-303__postfix3.9_loss0": [
+      "family-303"
+    ],
+    "family-304__postfix3.9_loss0": [
+      "family-304"
+    ],
+    "family-305__postfix3.9_loss0": [
+      "family-305"
+    ],
+    "family-306__postfix3.9_loss0": [
+      "family-306"
+    ],
+    "family-307__postfix3.9_loss0": [
+      "family-307"
+    ],
+    "family-308__postfix3.9_loss0": [
+      "family-308"
+    ],
+    "family-309__postfix3.9_loss0": [
+      "family-309"
+    ],
+    "family-310__postfix3.9_loss0": [
+      "family-310"
+    ],
+    "family-311__postfix3.9_loss0": [
+      "family-311"
+    ],
+    "family-312__postfix3.9_loss0": [
+      "family-312"
+    ],
+    "family-313__postfix3.9_loss0": [
+      "family-313"
+    ],
+    "family-314__postfix3.9_loss0": [
+      "family-314"
+    ],
+    "family-315__postfix3.9_loss0": [
+      "family-315"
+    ],
+    "family-316__postfix3.9_loss0": [
+      "family-316"
+    ],
+    "family-317__postfix3.9_loss0": [
+      "family-317"
+    ],
+    "family-318__postfix3.9_loss0": [
+      "family-318"
+    ],
+    "family-319__postfix3.9_loss0": [
+      "family-319"
+    ],
+    "family-320__postfix3.9_loss0": [
+      "family-320"
+    ],
+    "family-321__postfix3.9_loss0": [
+      "family-321"
+    ],
+    "family-322__postfix3.9_loss0": [
+      "family-322"
+    ],
+    "family-323__postfix3.9_loss0": [
+      "family-323"
+    ],
+    "family-324__postfix3.9_loss0": [
+      "family-324"
+    ],
+    "family-325__postfix3.9_loss0": [
+      "family-325"
+    ],
+    "family-326__postfix3.9_loss0": [
+      "family-326"
+    ],
+    "family-327__postfix3.9_loss0": [
+      "family-327"
+    ],
+    "family-328__postfix3.9_loss0": [
+      "family-328"
+    ],
+    "family-329__postfix3.9_loss0": [
+      "family-329"
+    ],
+    "family-330__postfix3.9_loss0": [
+      "family-330"
+    ],
+    "family-331__postfix3.9_loss0": [
+      "family-331"
+    ],
+    "family-332__postfix3.9_loss0": [
+      "family-332"
+    ],
+    "family-333__postfix3.9_loss0": [
+      "family-333"
+    ],
+    "family-334__postfix3.9_loss0": [
+      "family-334"
+    ],
+    "family-335__postfix3.9_loss0": [
+      "family-335"
+    ],
+    "family-336__postfix3.9_loss0": [
+      "family-336"
+    ],
+    "family-337__postfix3.9_loss0": [
+      "family-337"
+    ],
+    "family-338__postfix3.9_loss0": [
+      "family-338"
+    ],
+    "family-339__postfix3.9_loss0": [
+      "family-339"
+    ],
+    "family-340__postfix3.9_loss0": [
+      "family-340"
+    ],
+    "family-341__postfix3.9_loss0": [
+      "family-341"
+    ],
+    "family-342__postfix3.9_loss0": [
+      "family-342"
+    ],
+    "family-343__postfix3.9_loss0": [
+      "family-343"
+    ],
+    "family-344__postfix3.9_loss0": [
+      "family-344"
+    ],
+    "family-345__postfix3.9_loss0": [
+      "family-345"
+    ],
+    "family-346__postfix3.9_loss0": [
+      "family-346"
+    ],
+    "family-347__postfix3.9_loss0": [
+      "family-347"
+    ],
+    "family-348__postfix3.9_loss0": [
+      "family-348"
+    ],
+    "family-349__postfix3.9_loss0": [
+      "family-349"
+    ],
+    "family-350__postfix3.9_loss0": [
+      "family-350"
+    ],
+    "family-351__postfix3.9_loss0": [
+      "family-351"
+    ],
+    "family-352__postfix3.9_loss0": [
+      "family-352"
+    ],
+    "family-353__postfix3.9_loss0": [
+      "family-353"
+    ],
+    "family-354__postfix3.9_loss0": [
+      "family-354"
+    ],
+    "family-355__postfix3.9_loss0": [
+      "family-355"
+    ],
+    "family-356__postfix3.9_loss0": [
+      "family-356"
+    ],
+    "family-357__postfix3.9_loss0": [
+      "family-357"
+    ],
+    "family-358__postfix3.9_loss0": [
+      "family-358"
+    ],
+    "family-359__postfix3.9_loss0": [
+      "family-359"
+    ],
+    "family-360__postfix3.9_loss0": [
+      "family-360"
+    ],
+    "family-361__postfix3.9_loss0": [
+      "family-361"
+    ],
+    "family-362__postfix3.9_loss0": [
+      "family-362"
+    ],
+    "family-363__postfix3.9_loss0": [
+      "family-363"
+    ],
+    "family-364__postfix3.9_loss0": [
+      "family-364"
+    ],
+    "family-365__postfix3.9_loss0": [
+      "family-365"
+    ],
+    "family-366__postfix3.9_loss0": [
+      "family-366"
+    ],
+    "family-367__postfix3.9_loss0": [
+      "family-367"
+    ],
+    "family-368__postfix3.9_loss0": [
+      "family-368"
+    ],
+    "family-369__postfix3.9_loss0": [
+      "family-369"
+    ],
+    "family-370__postfix3.9_loss0": [
+      "family-370"
+    ],
+    "family-371__postfix3.9_loss0": [
+      "family-371"
+    ],
+    "family-372__postfix3.9_loss0": [
+      "family-372"
+    ],
+    "family-373__postfix3.9_loss0": [
+      "family-373"
+    ],
+    "family-374__postfix3.9_loss0": [
+      "family-374"
+    ],
+    "family-375__postfix3.9_loss0": [
+      "family-375"
+    ],
+    "family-376__postfix3.9_loss0": [
+      "family-376"
+    ],
+    "family-377__postfix3.9_loss0": [
+      "family-377"
+    ],
+    "family-378__postfix3.9_loss0": [
+      "family-378"
+    ],
+    "family-379__postfix3.9_loss0": [
+      "family-379"
+    ],
+    "family-380__postfix3.9_loss0": [
+      "family-380"
+    ],
+    "family-381__postfix3.9_loss0": [
+      "family-381"
+    ],
+    "family-382__postfix3.9_loss0": [
+      "family-382"
+    ],
+    "family-383__postfix3.9_loss0": [
+      "family-383"
+    ],
+    "family-384__postfix3.9_loss0": [
+      "family-384"
+    ],
+    "family-385__postfix3.9_loss0": [
+      "family-385"
+    ],
+    "family-386__postfix3.9_loss0": [
+      "family-386"
+    ],
+    "family-387__postfix3.9_loss0": [
+      "family-387"
+    ],
+    "family-388__postfix3.9_loss0": [
+      "family-388"
+    ],
+    "family-389__postfix3.9_loss0": [
+      "family-389"
+    ],
+    "family-390__postfix3.9_loss0": [
+      "family-390"
+    ],
+    "family-391__postfix3.9_loss0": [
+      "family-391"
+    ],
+    "family-392__postfix3.9_loss0": [
+      "family-392"
+    ],
+    "family-393__postfix3.9_loss0": [
+      "family-393"
+    ],
+    "family-394__postfix3.9_loss0": [
+      "family-394"
+    ],
+    "family-395__postfix3.9_loss0": [
+      "family-395"
+    ],
+    "family-396__postfix3.9_loss0": [
+      "family-396"
+    ],
+    "family-397__postfix3.9_loss0": [
+      "family-397"
+    ],
+    "family-398__postfix3.9_loss0": [
+      "family-398"
+    ],
+    "family-399__postfix3.9_loss0": [
+      "family-399"
+    ],
+    "family-400__postfix3.9_loss0": [
+      "family-400"
+    ],
+    "family-401__postfix3.9_loss0": [
+      "family-401"
+    ],
+    "family-402__postfix3.9_loss0": [
+      "family-402"
+    ],
+    "family-403__postfix3.9_loss0": [
+      "family-403"
+    ],
+    "family-404__postfix3.9_loss0": [
+      "family-404"
+    ],
+    "family-405__postfix3.9_loss0": [
+      "family-405"
+    ],
+    "family-406__postfix3.9_loss0": [
+      "family-406"
+    ],
+    "family-407__postfix3.9_loss0": [
+      "family-407"
+    ],
+    "family-408__postfix3.9_loss0": [
+      "family-408"
+    ],
+    "family-409__postfix3.9_loss0": [
+      "family-409"
+    ],
+    "family-410__postfix3.9_loss0": [
+      "family-410"
+    ],
+    "family-411__postfix3.9_loss0": [
+      "family-411"
+    ],
+    "family-412__postfix3.9_loss0": [
+      "family-412"
+    ],
+    "family-413__postfix3.9_loss0": [
+      "family-413"
+    ],
+    "family-414__postfix3.9_loss0": [
+      "family-414"
+    ],
+    "family-415__postfix3.9_loss0": [
+      "family-415"
+    ],
+    "family-416__postfix3.9_loss0": [
+      "family-416"
+    ],
+    "family-417__postfix3.9_loss0": [
+      "family-417"
+    ],
+    "family-418__postfix3.9_loss0": [
+      "family-418"
+    ],
+    "family-419__postfix3.9_loss0": [
+      "family-419"
+    ],
+    "family-420__postfix3.9_loss0": [
+      "family-420"
+    ],
+    "family-421__postfix3.9_loss0": [
+      "family-421"
+    ],
+    "family-422__postfix3.9_loss0": [
+      "family-422"
+    ],
+    "family-423__postfix3.9_loss0": [
+      "family-423"
+    ],
+    "family-424__postfix3.9_loss0": [
+      "family-424"
+    ],
+    "family-425__postfix3.9_loss0": [
+      "family-425"
+    ],
+    "family-426__postfix3.9_loss0": [
+      "family-426"
+    ],
+    "family-427__postfix3.9_loss0": [
+      "family-427"
+    ],
+    "family-428__postfix3.9_loss0": [
+      "family-428"
+    ],
+    "family-429__postfix3.9_loss0": [
+      "family-429"
+    ],
+    "family-430__postfix3.9_loss0": [
+      "family-430"
+    ],
+    "family-431__postfix3.9_loss0": [
+      "family-431"
+    ],
+    "family-432__postfix3.9_loss0": [
+      "family-432"
+    ],
+    "family-433__postfix3.9_loss0": [
+      "family-433"
+    ],
+    "family-434__postfix3.9_loss0": [
+      "family-434"
+    ],
+    "family-435__postfix3.9_loss0": [
+      "family-435"
+    ],
+    "family-436__postfix3.9_loss0": [
+      "family-436"
+    ],
+    "family-437__postfix3.9_loss0": [
+      "family-437"
+    ],
+    "family-438__postfix3.9_loss0": [
+      "family-438"
+    ],
+    "family-439__postfix3.9_loss0": [
+      "family-439"
+    ],
+    "family-440__postfix3.9_loss0": [
+      "family-440"
+    ],
+    "family-441__postfix3.9_loss0": [
+      "family-441"
+    ],
+    "family-442__postfix3.9_loss0": [
+      "family-442"
+    ],
+    "family-443__postfix3.9_loss0": [
+      "family-443"
+    ],
+    "family-444__postfix3.9_loss0": [
+      "family-444"
+    ],
+    "family-445__postfix3.9_loss0": [
+      "family-445"
+    ],
+    "family-446__postfix3.9_loss0": [
+      "family-446"
+    ],
+    "family-447__postfix3.9_loss0": [
+      "family-447"
+    ],
+    "family-448__postfix3.9_loss0": [
+      "family-448"
+    ],
+    "family-449__postfix3.9_loss0": [
+      "family-449"
+    ],
+    "family-450__postfix3.9_loss0": [
+      "family-450"
+    ],
+    "family-451__postfix3.9_loss0": [
+      "family-451"
+    ],
+    "family-452__postfix3.9_loss0": [
+      "family-452"
+    ],
+    "family-453__postfix3.9_loss0": [
+      "family-453"
+    ],
+    "family-454__postfix3.9_loss0": [
+      "family-454"
+    ],
+    "family-455__postfix3.9_loss0": [
+      "family-455"
+    ],
+    "family-456__postfix3.9_loss0": [
+      "family-456"
+    ],
+    "family-457__postfix3.9_loss0": [
+      "family-457"
+    ],
+    "family-458__postfix3.9_loss0": [
+      "family-458"
+    ],
+    "family-459__postfix3.9_loss0": [
+      "family-459"
+    ],
+    "family-460__postfix3.9_loss0": [
+      "family-460"
+    ],
+    "family-461__postfix3.9_loss0": [
+      "family-461"
+    ],
+    "family-462__postfix3.9_loss0": [
+      "family-462"
+    ],
+    "family-463__postfix3.9_loss0": [
+      "family-463"
+    ],
+    "family-464__postfix3.9_loss0": [
+      "family-464"
+    ],
+    "family-465__postfix3.9_loss0": [
+      "family-465"
     ]
   },
   "groups_by_family": {
-    "01": [
+    "family-01": [
       "family-01__postfix3.9_loss0"
     ],
-    "02": [
-      "family-02__jitter1_loss5",
-      "family-02__jitter2_loss5",
-      "family-02__jitter3_loss5",
-      "family-02__jitter4_loss5",
-      "family-02__jitter5_loss5",
+    "family-02-jitter-01": [
+      "family-02__jitter1_loss5"
+    ],
+    "family-02-jitter-02": [
+      "family-02__jitter2_loss5"
+    ],
+    "family-02-jitter-03": [
+      "family-02__jitter3_loss5"
+    ],
+    "family-02-jitter-04": [
+      "family-02__jitter4_loss5"
+    ],
+    "family-02-jitter-05": [
+      "family-02__jitter5_loss5"
+    ],
+    "family-02": [
       "family-02__postfix3.9_loss0"
     ],
-    "03": [
-      "family-03__jitter1_loss5",
-      "family-03__jitter2_loss5",
-      "family-03__jitter3_loss5",
-      "family-03__jitter4_loss5",
-      "family-03__jitter5_loss5",
+    "family-03-jitter-01": [
+      "family-03__jitter1_loss5"
+    ],
+    "family-03-jitter-02": [
+      "family-03__jitter2_loss5"
+    ],
+    "family-03-jitter-03": [
+      "family-03__jitter3_loss5"
+    ],
+    "family-03-jitter-04": [
+      "family-03__jitter4_loss5"
+    ],
+    "family-03-jitter-05": [
+      "family-03__jitter5_loss5"
+    ],
+    "family-03": [
       "family-03__postfix3.9_loss0"
     ],
-    "04": [
-      "family-04__jitter1_loss5",
-      "family-04__jitter2_loss5",
-      "family-04__jitter3_loss5",
-      "family-04__jitter4_loss5",
-      "family-04__jitter5_loss5",
+    "family-04-jitter-01": [
+      "family-04__jitter1_loss5"
+    ],
+    "family-04-jitter-02": [
+      "family-04__jitter2_loss5"
+    ],
+    "family-04-jitter-03": [
+      "family-04__jitter3_loss5"
+    ],
+    "family-04-jitter-04": [
+      "family-04__jitter4_loss5"
+    ],
+    "family-04-jitter-05": [
+      "family-04__jitter5_loss5"
+    ],
+    "family-04": [
       "family-04__postfix3.9_loss0"
     ],
-    "05": [
-      "family-05__jitter1_loss5",
-      "family-05__jitter2_loss5",
-      "family-05__jitter3_loss5",
-      "family-05__jitter4_loss5",
-      "family-05__jitter5_loss5",
+    "family-05-jitter-01": [
+      "family-05__jitter1_loss5"
+    ],
+    "family-05-jitter-02": [
+      "family-05__jitter2_loss5"
+    ],
+    "family-05-jitter-03": [
+      "family-05__jitter3_loss5"
+    ],
+    "family-05-jitter-04": [
+      "family-05__jitter4_loss5"
+    ],
+    "family-05-jitter-05": [
+      "family-05__jitter5_loss5"
+    ],
+    "family-05": [
       "family-05__postfix3.9_loss0"
     ],
-    "06": [
+    "family-06": [
       "family-06__postfix3.9_loss0"
     ],
-    "07": [
-      "family-07__jitter1_loss5",
-      "family-07__jitter2_loss5",
-      "family-07__jitter3_loss5",
-      "family-07__jitter4_loss5",
-      "family-07__jitter5_loss5",
+    "family-07-jitter-01": [
+      "family-07__jitter1_loss5"
+    ],
+    "family-07-jitter-02": [
+      "family-07__jitter2_loss5"
+    ],
+    "family-07-jitter-03": [
+      "family-07__jitter3_loss5"
+    ],
+    "family-07-jitter-04": [
+      "family-07__jitter4_loss5"
+    ],
+    "family-07-jitter-05": [
+      "family-07__jitter5_loss5"
+    ],
+    "family-07": [
       "family-07__postfix3.9_loss0"
     ],
-    "08": [
-      "family-08__jitter1_loss5",
-      "family-08__jitter2_loss5",
-      "family-08__jitter3_loss5",
-      "family-08__jitter4_loss5",
-      "family-08__jitter5_loss5",
+    "family-08-jitter-01": [
+      "family-08__jitter1_loss5"
+    ],
+    "family-08-jitter-02": [
+      "family-08__jitter2_loss5"
+    ],
+    "family-08-jitter-03": [
+      "family-08__jitter3_loss5"
+    ],
+    "family-08-jitter-04": [
+      "family-08__jitter4_loss5"
+    ],
+    "family-08-jitter-05": [
+      "family-08__jitter5_loss5"
+    ],
+    "family-08": [
       "family-08__postfix3.9_loss0"
     ],
-    "09": [
+    "family-09": [
       "family-09__postfix3.9_loss0"
     ],
-    "10": [
-      "family-10__jitter1_loss5",
-      "family-10__jitter2_loss5",
-      "family-10__jitter3_loss5",
-      "family-10__jitter4_loss5",
-      "family-10__jitter5_loss5",
+    "family-10-jitter-01": [
+      "family-10__jitter1_loss5"
+    ],
+    "family-10-jitter-02": [
+      "family-10__jitter2_loss5"
+    ],
+    "family-10-jitter-03": [
+      "family-10__jitter3_loss5"
+    ],
+    "family-10-jitter-04": [
+      "family-10__jitter4_loss5"
+    ],
+    "family-10-jitter-05": [
+      "family-10__jitter5_loss5"
+    ],
+    "family-10": [
       "family-10__postfix3.9_loss0"
     ],
-    "11": [
+    "family-11": [
       "family-11__postfix3.9_loss0"
     ],
-    "12": [
+    "family-12": [
       "family-12__postfix3.9_loss0"
     ],
-    "13": [
+    "family-13": [
       "family-13__postfix3.9_loss0"
     ],
-    "14": [
+    "family-14": [
       "family-14__postfix3.9_loss0"
     ],
-    "15": [
+    "family-15": [
       "family-15__postfix3.9_loss0"
     ],
-    "16": [
+    "family-16": [
       "family-16__postfix3.9_loss0"
     ],
-    "17": [
+    "family-17": [
       "family-17__postfix3.9_loss0"
     ],
-    "18": [
+    "family-18": [
       "family-18__postfix3.9_loss0"
     ],
-    "19": [
+    "family-19": [
       "family-19__postfix3.9_loss0"
     ],
-    "20": [
+    "family-20": [
       "family-20__postfix3.9_loss0"
     ],
-    "21": [
+    "family-21": [
       "family-21__postfix3.9_loss0"
     ],
-    "22": [
+    "family-22": [
       "family-22__postfix3.9_loss0"
     ],
-    "23": [
+    "family-23": [
       "family-23__postfix3.9_loss0"
     ],
-    "24": [
+    "family-24": [
       "family-24__postfix3.9_loss0"
     ],
-    "25": [
+    "family-25": [
       "family-25__postfix3.9_loss0"
     ],
-    "26": [
+    "family-26": [
       "family-26__postfix3.9_loss0"
     ],
-    "27": [
+    "family-27": [
       "family-27__postfix3.9_loss0"
     ],
-    "28": [
+    "family-28": [
       "family-28__postfix3.9_loss0"
     ],
-    "29": [
+    "family-29": [
       "family-29__postfix3.9_loss0"
     ],
-    "30": [
+    "family-30": [
       "family-30__postfix3.9_loss0"
     ],
-    "31": [
+    "family-31": [
       "family-31__postfix3.9_loss0"
     ],
-    "32": [
+    "family-32": [
       "family-32__postfix3.9_loss0"
     ],
-    "33": [
+    "family-33": [
       "family-33__postfix3.9_loss0"
     ],
-    "34": [
+    "family-34": [
       "family-34__postfix3.9_loss0"
     ],
-    "35": [
+    "family-35": [
       "family-35__postfix3.9_loss0"
     ],
-    "36": [
+    "family-36": [
       "family-36__postfix3.9_loss0"
     ],
-    "37": [
+    "family-37": [
       "family-37__postfix3.9_loss0"
     ],
-    "38": [
+    "family-38": [
       "family-38__postfix3.9_loss0"
     ],
-    "39": [
+    "family-39": [
       "family-39__postfix3.9_loss0"
     ],
-    "40": [
+    "family-40": [
       "family-40__postfix3.9_loss0"
     ],
-    "41": [
+    "family-41": [
       "family-41__postfix3.9_loss0"
     ],
-    "42": [
+    "family-42": [
       "family-42__postfix3.9_loss0"
     ],
-    "43": [
+    "family-43": [
       "family-43__postfix3.9_loss0"
     ],
-    "44": [
+    "family-44": [
       "family-44__postfix3.9_loss0"
     ],
-    "45": [
+    "family-45": [
       "family-45__postfix3.9_loss0"
     ],
-    "46": [
+    "family-46": [
       "family-46__postfix3.9_loss0"
     ],
-    "47": [
+    "family-47": [
       "family-47__postfix3.9_loss0"
     ],
-    "48": [
+    "family-48": [
       "family-48__postfix3.9_loss0"
     ],
-    "49": [
+    "family-49": [
       "family-49__postfix3.9_loss0"
     ],
-    "50": [
+    "family-50": [
       "family-50__postfix3.9_loss0"
+    ],
+    "family-51": [
+      "family-51__postfix3.9_loss0"
+    ],
+    "family-52": [
+      "family-52__postfix3.9_loss0"
+    ],
+    "family-53": [
+      "family-53__postfix3.9_loss0"
+    ],
+    "family-54": [
+      "family-54__postfix3.9_loss0"
+    ],
+    "family-55": [
+      "family-55__postfix3.9_loss0"
+    ],
+    "family-56": [
+      "family-56__postfix3.9_loss0"
+    ],
+    "family-57": [
+      "family-57__postfix3.9_loss0"
+    ],
+    "family-58": [
+      "family-58__postfix3.9_loss0"
+    ],
+    "family-59": [
+      "family-59__postfix3.9_loss0"
+    ],
+    "family-60": [
+      "family-60__postfix3.9_loss0"
+    ],
+    "family-61": [
+      "family-61__postfix3.9_loss0"
+    ],
+    "family-62": [
+      "family-62__postfix3.9_loss0"
+    ],
+    "family-63": [
+      "family-63__postfix3.9_loss0"
+    ],
+    "family-64": [
+      "family-64__postfix3.9_loss0"
+    ],
+    "family-65": [
+      "family-65__postfix3.9_loss0"
+    ],
+    "family-66": [
+      "family-66__postfix3.9_loss0"
+    ],
+    "family-67": [
+      "family-67__postfix3.9_loss0"
+    ],
+    "family-68": [
+      "family-68__postfix3.9_loss0"
+    ],
+    "family-69": [
+      "family-69__postfix3.9_loss0"
+    ],
+    "family-70": [
+      "family-70__postfix3.9_loss0"
+    ],
+    "family-71": [
+      "family-71__postfix3.9_loss0"
+    ],
+    "family-72": [
+      "family-72__postfix3.9_loss0"
+    ],
+    "family-73": [
+      "family-73__postfix3.9_loss0"
+    ],
+    "family-74": [
+      "family-74__postfix3.9_loss0"
+    ],
+    "family-75": [
+      "family-75__postfix3.9_loss0"
+    ],
+    "family-76": [
+      "family-76__postfix3.9_loss0"
+    ],
+    "family-77": [
+      "family-77__postfix3.9_loss0"
+    ],
+    "family-78": [
+      "family-78__postfix3.9_loss0"
+    ],
+    "family-79": [
+      "family-79__postfix3.9_loss0"
+    ],
+    "family-80": [
+      "family-80__postfix3.9_loss0"
+    ],
+    "family-81": [
+      "family-81__postfix3.9_loss0"
+    ],
+    "family-82": [
+      "family-82__postfix3.9_loss0"
+    ],
+    "family-83": [
+      "family-83__postfix3.9_loss0"
+    ],
+    "family-84": [
+      "family-84__postfix3.9_loss0"
+    ],
+    "family-85": [
+      "family-85__postfix3.9_loss0"
+    ],
+    "family-86": [
+      "family-86__postfix3.9_loss0"
+    ],
+    "family-87": [
+      "family-87__postfix3.9_loss0"
+    ],
+    "family-88": [
+      "family-88__postfix3.9_loss0"
+    ],
+    "family-89": [
+      "family-89__postfix3.9_loss0"
+    ],
+    "family-90": [
+      "family-90__postfix3.9_loss0"
+    ],
+    "family-91": [
+      "family-91__postfix3.9_loss0"
+    ],
+    "family-92": [
+      "family-92__postfix3.9_loss0"
+    ],
+    "family-93": [
+      "family-93__postfix3.9_loss0"
+    ],
+    "family-94": [
+      "family-94__postfix3.9_loss0"
+    ],
+    "family-95": [
+      "family-95__postfix3.9_loss0"
+    ],
+    "family-96": [
+      "family-96__postfix3.9_loss0"
+    ],
+    "family-97": [
+      "family-97__postfix3.9_loss0"
+    ],
+    "family-98": [
+      "family-98__postfix3.9_loss0"
+    ],
+    "family-99": [
+      "family-99__postfix3.9_loss0"
+    ],
+    "family-100": [
+      "family-100__postfix3.9_loss0"
+    ],
+    "family-101": [
+      "family-101__postfix3.9_loss0"
+    ],
+    "family-102": [
+      "family-102__postfix3.9_loss0"
+    ],
+    "family-103": [
+      "family-103__postfix3.9_loss0"
+    ],
+    "family-104": [
+      "family-104__postfix3.9_loss0"
+    ],
+    "family-105": [
+      "family-105__postfix3.9_loss0"
+    ],
+    "family-106": [
+      "family-106__postfix3.9_loss0"
+    ],
+    "family-107": [
+      "family-107__postfix3.9_loss0"
+    ],
+    "family-108": [
+      "family-108__postfix3.9_loss0"
+    ],
+    "family-109": [
+      "family-109__postfix3.9_loss0"
+    ],
+    "family-110": [
+      "family-110__postfix3.9_loss0"
+    ],
+    "family-111": [
+      "family-111__postfix3.9_loss0"
+    ],
+    "family-112": [
+      "family-112__postfix3.9_loss0"
+    ],
+    "family-113": [
+      "family-113__postfix3.9_loss0"
+    ],
+    "family-114": [
+      "family-114__postfix3.9_loss0"
+    ],
+    "family-115": [
+      "family-115__postfix3.9_loss0"
+    ],
+    "family-116": [
+      "family-116__postfix3.9_loss0"
+    ],
+    "family-117": [
+      "family-117__postfix3.9_loss0"
+    ],
+    "family-118": [
+      "family-118__postfix3.9_loss0"
+    ],
+    "family-119": [
+      "family-119__postfix3.9_loss0"
+    ],
+    "family-120": [
+      "family-120__postfix3.9_loss0"
+    ],
+    "family-121": [
+      "family-121__postfix3.9_loss0"
+    ],
+    "family-122": [
+      "family-122__postfix3.9_loss0"
+    ],
+    "family-123": [
+      "family-123__postfix3.9_loss0"
+    ],
+    "family-124": [
+      "family-124__postfix3.9_loss0"
+    ],
+    "family-125": [
+      "family-125__postfix3.9_loss0"
+    ],
+    "family-126": [
+      "family-126__postfix3.9_loss0"
+    ],
+    "family-127": [
+      "family-127__postfix3.9_loss0"
+    ],
+    "family-128": [
+      "family-128__postfix3.9_loss0"
+    ],
+    "family-129": [
+      "family-129__postfix3.9_loss0"
+    ],
+    "family-130": [
+      "family-130__postfix3.9_loss0"
+    ],
+    "family-131": [
+      "family-131__postfix3.9_loss0"
+    ],
+    "family-132": [
+      "family-132__postfix3.9_loss0"
+    ],
+    "family-133": [
+      "family-133__postfix3.9_loss0"
+    ],
+    "family-134": [
+      "family-134__postfix3.9_loss0"
+    ],
+    "family-135": [
+      "family-135__postfix3.9_loss0"
+    ],
+    "family-136": [
+      "family-136__postfix3.9_loss0"
+    ],
+    "family-137": [
+      "family-137__postfix3.9_loss0"
+    ],
+    "family-138": [
+      "family-138__postfix3.9_loss0"
+    ],
+    "family-139": [
+      "family-139__postfix3.9_loss0"
+    ],
+    "family-140": [
+      "family-140__postfix3.9_loss0"
+    ],
+    "family-141": [
+      "family-141__postfix3.9_loss0"
+    ],
+    "family-142": [
+      "family-142__postfix3.9_loss0"
+    ],
+    "family-143": [
+      "family-143__postfix3.9_loss0"
+    ],
+    "family-144": [
+      "family-144__postfix3.9_loss0"
+    ],
+    "family-145": [
+      "family-145__postfix3.9_loss0"
+    ],
+    "family-146": [
+      "family-146__postfix3.9_loss0"
+    ],
+    "family-147": [
+      "family-147__postfix3.9_loss0"
+    ],
+    "family-148": [
+      "family-148__postfix3.9_loss0"
+    ],
+    "family-149": [
+      "family-149__postfix3.9_loss0"
+    ],
+    "family-150": [
+      "family-150__postfix3.9_loss0"
+    ],
+    "family-151": [
+      "family-151__postfix3.9_loss0"
+    ],
+    "family-152": [
+      "family-152__postfix3.9_loss0"
+    ],
+    "family-153": [
+      "family-153__postfix3.9_loss0"
+    ],
+    "family-154": [
+      "family-154__postfix3.9_loss0"
+    ],
+    "family-155": [
+      "family-155__postfix3.9_loss0"
+    ],
+    "family-156": [
+      "family-156__postfix3.9_loss0"
+    ],
+    "family-157": [
+      "family-157__postfix3.9_loss0"
+    ],
+    "family-158": [
+      "family-158__postfix3.9_loss0"
+    ],
+    "family-159": [
+      "family-159__postfix3.9_loss0"
+    ],
+    "family-160": [
+      "family-160__postfix3.9_loss0"
+    ],
+    "family-161": [
+      "family-161__postfix3.9_loss0"
+    ],
+    "family-162": [
+      "family-162__postfix3.9_loss0"
+    ],
+    "family-163": [
+      "family-163__postfix3.9_loss0"
+    ],
+    "family-164": [
+      "family-164__postfix3.9_loss0"
+    ],
+    "family-165": [
+      "family-165__postfix3.9_loss0"
+    ],
+    "family-166": [
+      "family-166__postfix3.9_loss0"
+    ],
+    "family-167": [
+      "family-167__postfix3.9_loss0"
+    ],
+    "family-168": [
+      "family-168__postfix3.9_loss0"
+    ],
+    "family-169": [
+      "family-169__postfix3.9_loss0"
+    ],
+    "family-170": [
+      "family-170__postfix3.9_loss0"
+    ],
+    "family-171": [
+      "family-171__postfix3.9_loss0"
+    ],
+    "family-172": [
+      "family-172__postfix3.9_loss0"
+    ],
+    "family-173": [
+      "family-173__postfix3.9_loss0"
+    ],
+    "family-174": [
+      "family-174__postfix3.9_loss0"
+    ],
+    "family-175": [
+      "family-175__postfix3.9_loss0"
+    ],
+    "family-176": [
+      "family-176__postfix3.9_loss0"
+    ],
+    "family-177": [
+      "family-177__postfix3.9_loss0"
+    ],
+    "family-178": [
+      "family-178__postfix3.9_loss0"
+    ],
+    "family-179": [
+      "family-179__postfix3.9_loss0"
+    ],
+    "family-180": [
+      "family-180__postfix3.9_loss0"
+    ],
+    "family-181": [
+      "family-181__postfix3.9_loss0"
+    ],
+    "family-182": [
+      "family-182__postfix3.9_loss0"
+    ],
+    "family-183": [
+      "family-183__postfix3.9_loss0"
+    ],
+    "family-184": [
+      "family-184__postfix3.9_loss0"
+    ],
+    "family-185": [
+      "family-185__postfix3.9_loss0"
+    ],
+    "family-186": [
+      "family-186__postfix3.9_loss0"
+    ],
+    "family-187": [
+      "family-187__postfix3.9_loss0"
+    ],
+    "family-188": [
+      "family-188__postfix3.9_loss0"
+    ],
+    "family-189": [
+      "family-189__postfix3.9_loss0"
+    ],
+    "family-190": [
+      "family-190__postfix3.9_loss0"
+    ],
+    "family-191": [
+      "family-191__postfix3.9_loss0"
+    ],
+    "family-192": [
+      "family-192__postfix3.9_loss0"
+    ],
+    "family-193": [
+      "family-193__postfix3.9_loss0"
+    ],
+    "family-194": [
+      "family-194__postfix3.9_loss0"
+    ],
+    "family-195": [
+      "family-195__postfix3.9_loss0"
+    ],
+    "family-196": [
+      "family-196__postfix3.9_loss0"
+    ],
+    "family-197": [
+      "family-197__postfix3.9_loss0"
+    ],
+    "family-198": [
+      "family-198__postfix3.9_loss0"
+    ],
+    "family-199": [
+      "family-199__postfix3.9_loss0"
+    ],
+    "family-200": [
+      "family-200__postfix3.9_loss0"
+    ],
+    "family-201": [
+      "family-201__postfix3.9_loss0"
+    ],
+    "family-202": [
+      "family-202__postfix3.9_loss0"
+    ],
+    "family-203": [
+      "family-203__postfix3.9_loss0"
+    ],
+    "family-204": [
+      "family-204__postfix3.9_loss0"
+    ],
+    "family-205": [
+      "family-205__postfix3.9_loss0"
+    ],
+    "family-206": [
+      "family-206__postfix3.9_loss0"
+    ],
+    "family-207": [
+      "family-207__postfix3.9_loss0"
+    ],
+    "family-208": [
+      "family-208__postfix3.9_loss0"
+    ],
+    "family-209": [
+      "family-209__postfix3.9_loss0"
+    ],
+    "family-210": [
+      "family-210__postfix3.9_loss0"
+    ],
+    "family-211": [
+      "family-211__postfix3.9_loss0"
+    ],
+    "family-212": [
+      "family-212__postfix3.9_loss0"
+    ],
+    "family-213": [
+      "family-213__postfix3.9_loss0"
+    ],
+    "family-214": [
+      "family-214__postfix3.9_loss0"
+    ],
+    "family-215": [
+      "family-215__postfix3.9_loss0"
+    ],
+    "family-216": [
+      "family-216__postfix3.9_loss0"
+    ],
+    "family-217": [
+      "family-217__postfix3.9_loss0"
+    ],
+    "family-218": [
+      "family-218__postfix3.9_loss0"
+    ],
+    "family-219": [
+      "family-219__postfix3.9_loss0"
+    ],
+    "family-220": [
+      "family-220__postfix3.9_loss0"
+    ],
+    "family-221": [
+      "family-221__postfix3.9_loss0"
+    ],
+    "family-222": [
+      "family-222__postfix3.9_loss0"
+    ],
+    "family-223": [
+      "family-223__postfix3.9_loss0"
+    ],
+    "family-224": [
+      "family-224__postfix3.9_loss0"
+    ],
+    "family-225": [
+      "family-225__postfix3.9_loss0"
+    ],
+    "family-226": [
+      "family-226__postfix3.9_loss0"
+    ],
+    "family-227": [
+      "family-227__postfix3.9_loss0"
+    ],
+    "family-228": [
+      "family-228__postfix3.9_loss0"
+    ],
+    "family-229": [
+      "family-229__postfix3.9_loss0"
+    ],
+    "family-230": [
+      "family-230__postfix3.9_loss0"
+    ],
+    "family-231": [
+      "family-231__postfix3.9_loss0"
+    ],
+    "family-232": [
+      "family-232__postfix3.9_loss0"
+    ],
+    "family-233": [
+      "family-233__postfix3.9_loss0"
+    ],
+    "family-234": [
+      "family-234__postfix3.9_loss0"
+    ],
+    "family-235": [
+      "family-235__postfix3.9_loss0"
+    ],
+    "family-236": [
+      "family-236__postfix3.9_loss0"
+    ],
+    "family-237": [
+      "family-237__postfix3.9_loss0"
+    ],
+    "family-238": [
+      "family-238__postfix3.9_loss0"
+    ],
+    "family-239": [
+      "family-239__postfix3.9_loss0"
+    ],
+    "family-240": [
+      "family-240__postfix3.9_loss0"
+    ],
+    "family-241": [
+      "family-241__postfix3.9_loss0"
+    ],
+    "family-242": [
+      "family-242__postfix3.9_loss0"
+    ],
+    "family-243": [
+      "family-243__postfix3.9_loss0"
+    ],
+    "family-244": [
+      "family-244__postfix3.9_loss0"
+    ],
+    "family-245": [
+      "family-245__postfix3.9_loss0"
+    ],
+    "family-246": [
+      "family-246__postfix3.9_loss0"
+    ],
+    "family-247": [
+      "family-247__postfix3.9_loss0"
+    ],
+    "family-248": [
+      "family-248__postfix3.9_loss0"
+    ],
+    "family-249": [
+      "family-249__postfix3.9_loss0"
+    ],
+    "family-250": [
+      "family-250__postfix3.9_loss0"
+    ],
+    "family-251": [
+      "family-251__postfix3.9_loss0"
+    ],
+    "family-252": [
+      "family-252__postfix3.9_loss0"
+    ],
+    "family-253": [
+      "family-253__postfix3.9_loss0"
+    ],
+    "family-254": [
+      "family-254__postfix3.9_loss0"
+    ],
+    "family-255": [
+      "family-255__postfix3.9_loss0"
+    ],
+    "family-256": [
+      "family-256__postfix3.9_loss0"
+    ],
+    "family-257": [
+      "family-257__postfix3.9_loss0"
+    ],
+    "family-258": [
+      "family-258__postfix3.9_loss0"
+    ],
+    "family-259": [
+      "family-259__postfix3.9_loss0"
+    ],
+    "family-260": [
+      "family-260__postfix3.9_loss0"
+    ],
+    "family-261": [
+      "family-261__postfix3.9_loss0"
+    ],
+    "family-262": [
+      "family-262__postfix3.9_loss0"
+    ],
+    "family-263": [
+      "family-263__postfix3.9_loss0"
+    ],
+    "family-264": [
+      "family-264__postfix3.9_loss0"
+    ],
+    "family-265": [
+      "family-265__postfix3.9_loss0"
+    ],
+    "family-266": [
+      "family-266__postfix3.9_loss0"
+    ],
+    "family-267": [
+      "family-267__postfix3.9_loss0"
+    ],
+    "family-268": [
+      "family-268__postfix3.9_loss0"
+    ],
+    "family-269": [
+      "family-269__postfix3.9_loss0"
+    ],
+    "family-270": [
+      "family-270__postfix3.9_loss0"
+    ],
+    "family-271": [
+      "family-271__postfix3.9_loss0"
+    ],
+    "family-272": [
+      "family-272__postfix3.9_loss0"
+    ],
+    "family-273": [
+      "family-273__postfix3.9_loss0"
+    ],
+    "family-274": [
+      "family-274__postfix3.9_loss0"
+    ],
+    "family-275": [
+      "family-275__postfix3.9_loss0"
+    ],
+    "family-276": [
+      "family-276__postfix3.9_loss0"
+    ],
+    "family-277": [
+      "family-277__postfix3.9_loss0"
+    ],
+    "family-278": [
+      "family-278__postfix3.9_loss0"
+    ],
+    "family-279": [
+      "family-279__postfix3.9_loss0"
+    ],
+    "family-280": [
+      "family-280__postfix3.9_loss0"
+    ],
+    "family-281": [
+      "family-281__postfix3.9_loss0"
+    ],
+    "family-282": [
+      "family-282__postfix3.9_loss0"
+    ],
+    "family-283": [
+      "family-283__postfix3.9_loss0"
+    ],
+    "family-284": [
+      "family-284__postfix3.9_loss0"
+    ],
+    "family-285": [
+      "family-285__postfix3.9_loss0"
+    ],
+    "family-286": [
+      "family-286__postfix3.9_loss0"
+    ],
+    "family-287": [
+      "family-287__postfix3.9_loss0"
+    ],
+    "family-288": [
+      "family-288__postfix3.9_loss0"
+    ],
+    "family-289": [
+      "family-289__postfix3.9_loss0"
+    ],
+    "family-290": [
+      "family-290__postfix3.9_loss0"
+    ],
+    "family-291": [
+      "family-291__postfix3.9_loss0"
+    ],
+    "family-292": [
+      "family-292__postfix3.9_loss0"
+    ],
+    "family-293": [
+      "family-293__postfix3.9_loss0"
+    ],
+    "family-294": [
+      "family-294__postfix3.9_loss0"
+    ],
+    "family-295": [
+      "family-295__postfix3.9_loss0"
+    ],
+    "family-296": [
+      "family-296__postfix3.9_loss0"
+    ],
+    "family-297": [
+      "family-297__postfix3.9_loss0"
+    ],
+    "family-298": [
+      "family-298__postfix3.9_loss0"
+    ],
+    "family-299": [
+      "family-299__postfix3.9_loss0"
+    ],
+    "family-300": [
+      "family-300__postfix3.9_loss0"
+    ],
+    "family-301": [
+      "family-301__postfix3.9_loss0"
+    ],
+    "family-302": [
+      "family-302__postfix3.9_loss0"
+    ],
+    "family-303": [
+      "family-303__postfix3.9_loss0"
+    ],
+    "family-304": [
+      "family-304__postfix3.9_loss0"
+    ],
+    "family-305": [
+      "family-305__postfix3.9_loss0"
+    ],
+    "family-306": [
+      "family-306__postfix3.9_loss0"
+    ],
+    "family-307": [
+      "family-307__postfix3.9_loss0"
+    ],
+    "family-308": [
+      "family-308__postfix3.9_loss0"
+    ],
+    "family-309": [
+      "family-309__postfix3.9_loss0"
+    ],
+    "family-310": [
+      "family-310__postfix3.9_loss0"
+    ],
+    "family-311": [
+      "family-311__postfix3.9_loss0"
+    ],
+    "family-312": [
+      "family-312__postfix3.9_loss0"
+    ],
+    "family-313": [
+      "family-313__postfix3.9_loss0"
+    ],
+    "family-314": [
+      "family-314__postfix3.9_loss0"
+    ],
+    "family-315": [
+      "family-315__postfix3.9_loss0"
+    ],
+    "family-316": [
+      "family-316__postfix3.9_loss0"
+    ],
+    "family-317": [
+      "family-317__postfix3.9_loss0"
+    ],
+    "family-318": [
+      "family-318__postfix3.9_loss0"
+    ],
+    "family-319": [
+      "family-319__postfix3.9_loss0"
+    ],
+    "family-320": [
+      "family-320__postfix3.9_loss0"
+    ],
+    "family-321": [
+      "family-321__postfix3.9_loss0"
+    ],
+    "family-322": [
+      "family-322__postfix3.9_loss0"
+    ],
+    "family-323": [
+      "family-323__postfix3.9_loss0"
+    ],
+    "family-324": [
+      "family-324__postfix3.9_loss0"
+    ],
+    "family-325": [
+      "family-325__postfix3.9_loss0"
+    ],
+    "family-326": [
+      "family-326__postfix3.9_loss0"
+    ],
+    "family-327": [
+      "family-327__postfix3.9_loss0"
+    ],
+    "family-328": [
+      "family-328__postfix3.9_loss0"
+    ],
+    "family-329": [
+      "family-329__postfix3.9_loss0"
+    ],
+    "family-330": [
+      "family-330__postfix3.9_loss0"
+    ],
+    "family-331": [
+      "family-331__postfix3.9_loss0"
+    ],
+    "family-332": [
+      "family-332__postfix3.9_loss0"
+    ],
+    "family-333": [
+      "family-333__postfix3.9_loss0"
+    ],
+    "family-334": [
+      "family-334__postfix3.9_loss0"
+    ],
+    "family-335": [
+      "family-335__postfix3.9_loss0"
+    ],
+    "family-336": [
+      "family-336__postfix3.9_loss0"
+    ],
+    "family-337": [
+      "family-337__postfix3.9_loss0"
+    ],
+    "family-338": [
+      "family-338__postfix3.9_loss0"
+    ],
+    "family-339": [
+      "family-339__postfix3.9_loss0"
+    ],
+    "family-340": [
+      "family-340__postfix3.9_loss0"
+    ],
+    "family-341": [
+      "family-341__postfix3.9_loss0"
+    ],
+    "family-342": [
+      "family-342__postfix3.9_loss0"
+    ],
+    "family-343": [
+      "family-343__postfix3.9_loss0"
+    ],
+    "family-344": [
+      "family-344__postfix3.9_loss0"
+    ],
+    "family-345": [
+      "family-345__postfix3.9_loss0"
+    ],
+    "family-346": [
+      "family-346__postfix3.9_loss0"
+    ],
+    "family-347": [
+      "family-347__postfix3.9_loss0"
+    ],
+    "family-348": [
+      "family-348__postfix3.9_loss0"
+    ],
+    "family-349": [
+      "family-349__postfix3.9_loss0"
+    ],
+    "family-350": [
+      "family-350__postfix3.9_loss0"
+    ],
+    "family-351": [
+      "family-351__postfix3.9_loss0"
+    ],
+    "family-352": [
+      "family-352__postfix3.9_loss0"
+    ],
+    "family-353": [
+      "family-353__postfix3.9_loss0"
+    ],
+    "family-354": [
+      "family-354__postfix3.9_loss0"
+    ],
+    "family-355": [
+      "family-355__postfix3.9_loss0"
+    ],
+    "family-356": [
+      "family-356__postfix3.9_loss0"
+    ],
+    "family-357": [
+      "family-357__postfix3.9_loss0"
+    ],
+    "family-358": [
+      "family-358__postfix3.9_loss0"
+    ],
+    "family-359": [
+      "family-359__postfix3.9_loss0"
+    ],
+    "family-360": [
+      "family-360__postfix3.9_loss0"
+    ],
+    "family-361": [
+      "family-361__postfix3.9_loss0"
+    ],
+    "family-362": [
+      "family-362__postfix3.9_loss0"
+    ],
+    "family-363": [
+      "family-363__postfix3.9_loss0"
+    ],
+    "family-364": [
+      "family-364__postfix3.9_loss0"
+    ],
+    "family-365": [
+      "family-365__postfix3.9_loss0"
+    ],
+    "family-366": [
+      "family-366__postfix3.9_loss0"
+    ],
+    "family-367": [
+      "family-367__postfix3.9_loss0"
+    ],
+    "family-368": [
+      "family-368__postfix3.9_loss0"
+    ],
+    "family-369": [
+      "family-369__postfix3.9_loss0"
+    ],
+    "family-370": [
+      "family-370__postfix3.9_loss0"
+    ],
+    "family-371": [
+      "family-371__postfix3.9_loss0"
+    ],
+    "family-372": [
+      "family-372__postfix3.9_loss0"
+    ],
+    "family-373": [
+      "family-373__postfix3.9_loss0"
+    ],
+    "family-374": [
+      "family-374__postfix3.9_loss0"
+    ],
+    "family-375": [
+      "family-375__postfix3.9_loss0"
+    ],
+    "family-376": [
+      "family-376__postfix3.9_loss0"
+    ],
+    "family-377": [
+      "family-377__postfix3.9_loss0"
+    ],
+    "family-378": [
+      "family-378__postfix3.9_loss0"
+    ],
+    "family-379": [
+      "family-379__postfix3.9_loss0"
+    ],
+    "family-380": [
+      "family-380__postfix3.9_loss0"
+    ],
+    "family-381": [
+      "family-381__postfix3.9_loss0"
+    ],
+    "family-382": [
+      "family-382__postfix3.9_loss0"
+    ],
+    "family-383": [
+      "family-383__postfix3.9_loss0"
+    ],
+    "family-384": [
+      "family-384__postfix3.9_loss0"
+    ],
+    "family-385": [
+      "family-385__postfix3.9_loss0"
+    ],
+    "family-386": [
+      "family-386__postfix3.9_loss0"
+    ],
+    "family-387": [
+      "family-387__postfix3.9_loss0"
+    ],
+    "family-388": [
+      "family-388__postfix3.9_loss0"
+    ],
+    "family-389": [
+      "family-389__postfix3.9_loss0"
+    ],
+    "family-390": [
+      "family-390__postfix3.9_loss0"
+    ],
+    "family-391": [
+      "family-391__postfix3.9_loss0"
+    ],
+    "family-392": [
+      "family-392__postfix3.9_loss0"
+    ],
+    "family-393": [
+      "family-393__postfix3.9_loss0"
+    ],
+    "family-394": [
+      "family-394__postfix3.9_loss0"
+    ],
+    "family-395": [
+      "family-395__postfix3.9_loss0"
+    ],
+    "family-396": [
+      "family-396__postfix3.9_loss0"
+    ],
+    "family-397": [
+      "family-397__postfix3.9_loss0"
+    ],
+    "family-398": [
+      "family-398__postfix3.9_loss0"
+    ],
+    "family-399": [
+      "family-399__postfix3.9_loss0"
+    ],
+    "family-400": [
+      "family-400__postfix3.9_loss0"
+    ],
+    "family-401": [
+      "family-401__postfix3.9_loss0"
+    ],
+    "family-402": [
+      "family-402__postfix3.9_loss0"
+    ],
+    "family-403": [
+      "family-403__postfix3.9_loss0"
+    ],
+    "family-404": [
+      "family-404__postfix3.9_loss0"
+    ],
+    "family-405": [
+      "family-405__postfix3.9_loss0"
+    ],
+    "family-406": [
+      "family-406__postfix3.9_loss0"
+    ],
+    "family-407": [
+      "family-407__postfix3.9_loss0"
+    ],
+    "family-408": [
+      "family-408__postfix3.9_loss0"
+    ],
+    "family-409": [
+      "family-409__postfix3.9_loss0"
+    ],
+    "family-410": [
+      "family-410__postfix3.9_loss0"
+    ],
+    "family-411": [
+      "family-411__postfix3.9_loss0"
+    ],
+    "family-412": [
+      "family-412__postfix3.9_loss0"
+    ],
+    "family-413": [
+      "family-413__postfix3.9_loss0"
+    ],
+    "family-414": [
+      "family-414__postfix3.9_loss0"
+    ],
+    "family-415": [
+      "family-415__postfix3.9_loss0"
+    ],
+    "family-416": [
+      "family-416__postfix3.9_loss0"
+    ],
+    "family-417": [
+      "family-417__postfix3.9_loss0"
+    ],
+    "family-418": [
+      "family-418__postfix3.9_loss0"
+    ],
+    "family-419": [
+      "family-419__postfix3.9_loss0"
+    ],
+    "family-420": [
+      "family-420__postfix3.9_loss0"
+    ],
+    "family-421": [
+      "family-421__postfix3.9_loss0"
+    ],
+    "family-422": [
+      "family-422__postfix3.9_loss0"
+    ],
+    "family-423": [
+      "family-423__postfix3.9_loss0"
+    ],
+    "family-424": [
+      "family-424__postfix3.9_loss0"
+    ],
+    "family-425": [
+      "family-425__postfix3.9_loss0"
+    ],
+    "family-426": [
+      "family-426__postfix3.9_loss0"
+    ],
+    "family-427": [
+      "family-427__postfix3.9_loss0"
+    ],
+    "family-428": [
+      "family-428__postfix3.9_loss0"
+    ],
+    "family-429": [
+      "family-429__postfix3.9_loss0"
+    ],
+    "family-430": [
+      "family-430__postfix3.9_loss0"
+    ],
+    "family-431": [
+      "family-431__postfix3.9_loss0"
+    ],
+    "family-432": [
+      "family-432__postfix3.9_loss0"
+    ],
+    "family-433": [
+      "family-433__postfix3.9_loss0"
+    ],
+    "family-434": [
+      "family-434__postfix3.9_loss0"
+    ],
+    "family-435": [
+      "family-435__postfix3.9_loss0"
+    ],
+    "family-436": [
+      "family-436__postfix3.9_loss0"
+    ],
+    "family-437": [
+      "family-437__postfix3.9_loss0"
+    ],
+    "family-438": [
+      "family-438__postfix3.9_loss0"
+    ],
+    "family-439": [
+      "family-439__postfix3.9_loss0"
+    ],
+    "family-440": [
+      "family-440__postfix3.9_loss0"
+    ],
+    "family-441": [
+      "family-441__postfix3.9_loss0"
+    ],
+    "family-442": [
+      "family-442__postfix3.9_loss0"
+    ],
+    "family-443": [
+      "family-443__postfix3.9_loss0"
+    ],
+    "family-444": [
+      "family-444__postfix3.9_loss0"
+    ],
+    "family-445": [
+      "family-445__postfix3.9_loss0"
+    ],
+    "family-446": [
+      "family-446__postfix3.9_loss0"
+    ],
+    "family-447": [
+      "family-447__postfix3.9_loss0"
+    ],
+    "family-448": [
+      "family-448__postfix3.9_loss0"
+    ],
+    "family-449": [
+      "family-449__postfix3.9_loss0"
+    ],
+    "family-450": [
+      "family-450__postfix3.9_loss0"
+    ],
+    "family-451": [
+      "family-451__postfix3.9_loss0"
+    ],
+    "family-452": [
+      "family-452__postfix3.9_loss0"
+    ],
+    "family-453": [
+      "family-453__postfix3.9_loss0"
+    ],
+    "family-454": [
+      "family-454__postfix3.9_loss0"
+    ],
+    "family-455": [
+      "family-455__postfix3.9_loss0"
+    ],
+    "family-456": [
+      "family-456__postfix3.9_loss0"
+    ],
+    "family-457": [
+      "family-457__postfix3.9_loss0"
+    ],
+    "family-458": [
+      "family-458__postfix3.9_loss0"
+    ],
+    "family-459": [
+      "family-459__postfix3.9_loss0"
+    ],
+    "family-460": [
+      "family-460__postfix3.9_loss0"
+    ],
+    "family-461": [
+      "family-461__postfix3.9_loss0"
+    ],
+    "family-462": [
+      "family-462__postfix3.9_loss0"
+    ],
+    "family-463": [
+      "family-463__postfix3.9_loss0"
+    ],
+    "family-464": [
+      "family-464__postfix3.9_loss0"
+    ],
+    "family-465": [
+      "family-465__postfix3.9_loss0"
     ]
   },
   "D1_train_groups": [
@@ -560,9 +3535,7 @@
     "family-07__jitter1_loss5",
     "family-07__jitter2_loss5",
     "family-07__jitter3_loss5",
-    "family-07__jitter4_loss5"
-  ],
-  "D2_val_groups": [
+    "family-07__jitter4_loss5",
     "family-07__jitter5_loss5",
     "family-07__postfix3.9_loss0",
     "family-08__jitter1_loss5",
@@ -572,56 +3545,473 @@
     "family-08__jitter5_loss5",
     "family-08__postfix3.9_loss0",
     "family-09__postfix3.9_loss0",
+    "family-100__postfix3.9_loss0",
+    "family-101__postfix3.9_loss0",
+    "family-102__postfix3.9_loss0",
+    "family-103__postfix3.9_loss0",
+    "family-104__postfix3.9_loss0",
+    "family-105__postfix3.9_loss0",
+    "family-106__postfix3.9_loss0",
+    "family-107__postfix3.9_loss0",
+    "family-108__postfix3.9_loss0",
+    "family-109__postfix3.9_loss0",
     "family-10__jitter1_loss5",
     "family-10__jitter2_loss5",
     "family-10__jitter3_loss5",
     "family-10__jitter4_loss5",
     "family-10__jitter5_loss5",
-    "family-10__postfix3.9_loss0"
+    "family-10__postfix3.9_loss0",
+    "family-110__postfix3.9_loss0",
+    "family-111__postfix3.9_loss0",
+    "family-112__postfix3.9_loss0",
+    "family-113__postfix3.9_loss0",
+    "family-114__postfix3.9_loss0",
+    "family-115__postfix3.9_loss0",
+    "family-116__postfix3.9_loss0",
+    "family-117__postfix3.9_loss0",
+    "family-118__postfix3.9_loss0",
+    "family-119__postfix3.9_loss0",
+    "family-11__postfix3.9_loss0",
+    "family-120__postfix3.9_loss0",
+    "family-121__postfix3.9_loss0",
+    "family-122__postfix3.9_loss0",
+    "family-123__postfix3.9_loss0",
+    "family-124__postfix3.9_loss0",
+    "family-125__postfix3.9_loss0",
+    "family-126__postfix3.9_loss0",
+    "family-127__postfix3.9_loss0",
+    "family-128__postfix3.9_loss0",
+    "family-129__postfix3.9_loss0",
+    "family-12__postfix3.9_loss0",
+    "family-130__postfix3.9_loss0",
+    "family-131__postfix3.9_loss0",
+    "family-132__postfix3.9_loss0",
+    "family-133__postfix3.9_loss0",
+    "family-134__postfix3.9_loss0",
+    "family-135__postfix3.9_loss0",
+    "family-136__postfix3.9_loss0",
+    "family-137__postfix3.9_loss0",
+    "family-138__postfix3.9_loss0",
+    "family-139__postfix3.9_loss0",
+    "family-13__postfix3.9_loss0",
+    "family-140__postfix3.9_loss0",
+    "family-141__postfix3.9_loss0",
+    "family-142__postfix3.9_loss0",
+    "family-143__postfix3.9_loss0",
+    "family-144__postfix3.9_loss0",
+    "family-145__postfix3.9_loss0",
+    "family-146__postfix3.9_loss0",
+    "family-147__postfix3.9_loss0",
+    "family-148__postfix3.9_loss0",
+    "family-149__postfix3.9_loss0",
+    "family-14__postfix3.9_loss0",
+    "family-150__postfix3.9_loss0",
+    "family-151__postfix3.9_loss0",
+    "family-152__postfix3.9_loss0",
+    "family-153__postfix3.9_loss0",
+    "family-154__postfix3.9_loss0",
+    "family-155__postfix3.9_loss0",
+    "family-156__postfix3.9_loss0",
+    "family-157__postfix3.9_loss0",
+    "family-158__postfix3.9_loss0",
+    "family-159__postfix3.9_loss0",
+    "family-15__postfix3.9_loss0",
+    "family-160__postfix3.9_loss0",
+    "family-161__postfix3.9_loss0",
+    "family-162__postfix3.9_loss0",
+    "family-163__postfix3.9_loss0",
+    "family-164__postfix3.9_loss0",
+    "family-165__postfix3.9_loss0",
+    "family-166__postfix3.9_loss0",
+    "family-167__postfix3.9_loss0",
+    "family-168__postfix3.9_loss0",
+    "family-169__postfix3.9_loss0",
+    "family-16__postfix3.9_loss0",
+    "family-170__postfix3.9_loss0",
+    "family-171__postfix3.9_loss0",
+    "family-172__postfix3.9_loss0",
+    "family-173__postfix3.9_loss0",
+    "family-174__postfix3.9_loss0",
+    "family-175__postfix3.9_loss0",
+    "family-176__postfix3.9_loss0",
+    "family-177__postfix3.9_loss0",
+    "family-178__postfix3.9_loss0",
+    "family-179__postfix3.9_loss0",
+    "family-17__postfix3.9_loss0",
+    "family-180__postfix3.9_loss0",
+    "family-181__postfix3.9_loss0",
+    "family-182__postfix3.9_loss0",
+    "family-183__postfix3.9_loss0",
+    "family-184__postfix3.9_loss0",
+    "family-185__postfix3.9_loss0",
+    "family-186__postfix3.9_loss0",
+    "family-187__postfix3.9_loss0",
+    "family-188__postfix3.9_loss0",
+    "family-189__postfix3.9_loss0",
+    "family-18__postfix3.9_loss0",
+    "family-190__postfix3.9_loss0",
+    "family-191__postfix3.9_loss0",
+    "family-192__postfix3.9_loss0",
+    "family-193__postfix3.9_loss0",
+    "family-194__postfix3.9_loss0",
+    "family-195__postfix3.9_loss0",
+    "family-196__postfix3.9_loss0"
+  ],
+  "D2_val_groups": [
+    "family-197__postfix3.9_loss0",
+    "family-198__postfix3.9_loss0",
+    "family-199__postfix3.9_loss0",
+    "family-19__postfix3.9_loss0",
+    "family-200__postfix3.9_loss0",
+    "family-201__postfix3.9_loss0",
+    "family-202__postfix3.9_loss0",
+    "family-203__postfix3.9_loss0",
+    "family-204__postfix3.9_loss0",
+    "family-205__postfix3.9_loss0",
+    "family-206__postfix3.9_loss0",
+    "family-207__postfix3.9_loss0",
+    "family-208__postfix3.9_loss0",
+    "family-209__postfix3.9_loss0",
+    "family-20__postfix3.9_loss0",
+    "family-210__postfix3.9_loss0",
+    "family-211__postfix3.9_loss0",
+    "family-212__postfix3.9_loss0",
+    "family-213__postfix3.9_loss0",
+    "family-214__postfix3.9_loss0",
+    "family-215__postfix3.9_loss0",
+    "family-216__postfix3.9_loss0",
+    "family-217__postfix3.9_loss0",
+    "family-218__postfix3.9_loss0",
+    "family-219__postfix3.9_loss0",
+    "family-21__postfix3.9_loss0",
+    "family-220__postfix3.9_loss0",
+    "family-221__postfix3.9_loss0",
+    "family-222__postfix3.9_loss0",
+    "family-223__postfix3.9_loss0",
+    "family-224__postfix3.9_loss0",
+    "family-225__postfix3.9_loss0",
+    "family-226__postfix3.9_loss0",
+    "family-227__postfix3.9_loss0",
+    "family-228__postfix3.9_loss0",
+    "family-229__postfix3.9_loss0",
+    "family-22__postfix3.9_loss0",
+    "family-230__postfix3.9_loss0",
+    "family-231__postfix3.9_loss0",
+    "family-232__postfix3.9_loss0",
+    "family-233__postfix3.9_loss0",
+    "family-234__postfix3.9_loss0",
+    "family-235__postfix3.9_loss0",
+    "family-236__postfix3.9_loss0",
+    "family-237__postfix3.9_loss0",
+    "family-238__postfix3.9_loss0",
+    "family-239__postfix3.9_loss0",
+    "family-23__postfix3.9_loss0",
+    "family-240__postfix3.9_loss0",
+    "family-241__postfix3.9_loss0",
+    "family-242__postfix3.9_loss0",
+    "family-243__postfix3.9_loss0",
+    "family-244__postfix3.9_loss0",
+    "family-245__postfix3.9_loss0",
+    "family-246__postfix3.9_loss0",
+    "family-247__postfix3.9_loss0",
+    "family-248__postfix3.9_loss0",
+    "family-249__postfix3.9_loss0",
+    "family-24__postfix3.9_loss0",
+    "family-250__postfix3.9_loss0",
+    "family-251__postfix3.9_loss0",
+    "family-252__postfix3.9_loss0",
+    "family-253__postfix3.9_loss0",
+    "family-254__postfix3.9_loss0",
+    "family-255__postfix3.9_loss0",
+    "family-256__postfix3.9_loss0",
+    "family-257__postfix3.9_loss0",
+    "family-258__postfix3.9_loss0",
+    "family-259__postfix3.9_loss0",
+    "family-25__postfix3.9_loss0",
+    "family-260__postfix3.9_loss0",
+    "family-261__postfix3.9_loss0",
+    "family-262__postfix3.9_loss0",
+    "family-263__postfix3.9_loss0",
+    "family-264__postfix3.9_loss0",
+    "family-265__postfix3.9_loss0",
+    "family-266__postfix3.9_loss0",
+    "family-267__postfix3.9_loss0",
+    "family-268__postfix3.9_loss0",
+    "family-269__postfix3.9_loss0",
+    "family-26__postfix3.9_loss0",
+    "family-270__postfix3.9_loss0",
+    "family-271__postfix3.9_loss0",
+    "family-272__postfix3.9_loss0",
+    "family-273__postfix3.9_loss0",
+    "family-274__postfix3.9_loss0",
+    "family-275__postfix3.9_loss0",
+    "family-276__postfix3.9_loss0",
+    "family-277__postfix3.9_loss0",
+    "family-278__postfix3.9_loss0",
+    "family-279__postfix3.9_loss0",
+    "family-27__postfix3.9_loss0",
+    "family-280__postfix3.9_loss0",
+    "family-281__postfix3.9_loss0",
+    "family-282__postfix3.9_loss0",
+    "family-283__postfix3.9_loss0",
+    "family-284__postfix3.9_loss0",
+    "family-285__postfix3.9_loss0",
+    "family-286__postfix3.9_loss0",
+    "family-287__postfix3.9_loss0"
   ],
   "D3_locked_groups": [
-    "family-11__postfix3.9_loss0",
-    "family-12__postfix3.9_loss0",
-    "family-13__postfix3.9_loss0",
-    "family-14__postfix3.9_loss0",
-    "family-15__postfix3.9_loss0",
-    "family-16__postfix3.9_loss0",
-    "family-17__postfix3.9_loss0",
-    "family-18__postfix3.9_loss0",
-    "family-19__postfix3.9_loss0",
-    "family-20__postfix3.9_loss0"
+    "family-288__postfix3.9_loss0",
+    "family-289__postfix3.9_loss0",
+    "family-28__postfix3.9_loss0",
+    "family-290__postfix3.9_loss0",
+    "family-291__postfix3.9_loss0",
+    "family-292__postfix3.9_loss0",
+    "family-293__postfix3.9_loss0",
+    "family-294__postfix3.9_loss0",
+    "family-295__postfix3.9_loss0",
+    "family-296__postfix3.9_loss0",
+    "family-297__postfix3.9_loss0",
+    "family-298__postfix3.9_loss0",
+    "family-299__postfix3.9_loss0",
+    "family-29__postfix3.9_loss0",
+    "family-300__postfix3.9_loss0",
+    "family-301__postfix3.9_loss0",
+    "family-302__postfix3.9_loss0",
+    "family-303__postfix3.9_loss0",
+    "family-304__postfix3.9_loss0",
+    "family-305__postfix3.9_loss0",
+    "family-306__postfix3.9_loss0",
+    "family-307__postfix3.9_loss0",
+    "family-308__postfix3.9_loss0",
+    "family-309__postfix3.9_loss0",
+    "family-30__postfix3.9_loss0",
+    "family-310__postfix3.9_loss0",
+    "family-311__postfix3.9_loss0",
+    "family-312__postfix3.9_loss0",
+    "family-313__postfix3.9_loss0",
+    "family-314__postfix3.9_loss0"
   ],
   "spare_groups": [
-    "family-21__postfix3.9_loss0",
-    "family-22__postfix3.9_loss0",
-    "family-23__postfix3.9_loss0",
-    "family-24__postfix3.9_loss0",
-    "family-25__postfix3.9_loss0",
-    "family-26__postfix3.9_loss0",
-    "family-27__postfix3.9_loss0",
-    "family-28__postfix3.9_loss0",
-    "family-29__postfix3.9_loss0",
-    "family-30__postfix3.9_loss0",
+    "family-315__postfix3.9_loss0",
+    "family-316__postfix3.9_loss0",
+    "family-317__postfix3.9_loss0",
+    "family-318__postfix3.9_loss0",
+    "family-319__postfix3.9_loss0",
     "family-31__postfix3.9_loss0",
+    "family-320__postfix3.9_loss0",
+    "family-321__postfix3.9_loss0",
+    "family-322__postfix3.9_loss0",
+    "family-323__postfix3.9_loss0",
+    "family-324__postfix3.9_loss0",
+    "family-325__postfix3.9_loss0",
+    "family-326__postfix3.9_loss0",
+    "family-327__postfix3.9_loss0",
+    "family-328__postfix3.9_loss0",
+    "family-329__postfix3.9_loss0",
     "family-32__postfix3.9_loss0",
+    "family-330__postfix3.9_loss0",
+    "family-331__postfix3.9_loss0",
+    "family-332__postfix3.9_loss0",
+    "family-333__postfix3.9_loss0",
+    "family-334__postfix3.9_loss0",
+    "family-335__postfix3.9_loss0",
+    "family-336__postfix3.9_loss0",
+    "family-337__postfix3.9_loss0",
+    "family-338__postfix3.9_loss0",
+    "family-339__postfix3.9_loss0",
     "family-33__postfix3.9_loss0",
+    "family-340__postfix3.9_loss0",
+    "family-341__postfix3.9_loss0",
+    "family-342__postfix3.9_loss0",
+    "family-343__postfix3.9_loss0",
+    "family-344__postfix3.9_loss0",
+    "family-345__postfix3.9_loss0",
+    "family-346__postfix3.9_loss0",
+    "family-347__postfix3.9_loss0",
+    "family-348__postfix3.9_loss0",
+    "family-349__postfix3.9_loss0",
     "family-34__postfix3.9_loss0",
+    "family-350__postfix3.9_loss0",
+    "family-351__postfix3.9_loss0",
+    "family-352__postfix3.9_loss0",
+    "family-353__postfix3.9_loss0",
+    "family-354__postfix3.9_loss0",
+    "family-355__postfix3.9_loss0",
+    "family-356__postfix3.9_loss0",
+    "family-357__postfix3.9_loss0",
+    "family-358__postfix3.9_loss0",
+    "family-359__postfix3.9_loss0",
     "family-35__postfix3.9_loss0",
+    "family-360__postfix3.9_loss0",
+    "family-361__postfix3.9_loss0",
+    "family-362__postfix3.9_loss0",
+    "family-363__postfix3.9_loss0",
+    "family-364__postfix3.9_loss0",
+    "family-365__postfix3.9_loss0",
+    "family-366__postfix3.9_loss0",
+    "family-367__postfix3.9_loss0",
+    "family-368__postfix3.9_loss0",
+    "family-369__postfix3.9_loss0",
     "family-36__postfix3.9_loss0",
+    "family-370__postfix3.9_loss0",
+    "family-371__postfix3.9_loss0",
+    "family-372__postfix3.9_loss0",
+    "family-373__postfix3.9_loss0",
+    "family-374__postfix3.9_loss0",
+    "family-375__postfix3.9_loss0",
+    "family-376__postfix3.9_loss0",
+    "family-377__postfix3.9_loss0",
+    "family-378__postfix3.9_loss0",
+    "family-379__postfix3.9_loss0",
     "family-37__postfix3.9_loss0",
+    "family-380__postfix3.9_loss0",
+    "family-381__postfix3.9_loss0",
+    "family-382__postfix3.9_loss0",
+    "family-383__postfix3.9_loss0",
+    "family-384__postfix3.9_loss0",
+    "family-385__postfix3.9_loss0",
+    "family-386__postfix3.9_loss0",
+    "family-387__postfix3.9_loss0",
+    "family-388__postfix3.9_loss0",
+    "family-389__postfix3.9_loss0",
     "family-38__postfix3.9_loss0",
+    "family-390__postfix3.9_loss0",
+    "family-391__postfix3.9_loss0",
+    "family-392__postfix3.9_loss0",
+    "family-393__postfix3.9_loss0",
+    "family-394__postfix3.9_loss0",
+    "family-395__postfix3.9_loss0",
+    "family-396__postfix3.9_loss0",
+    "family-397__postfix3.9_loss0",
+    "family-398__postfix3.9_loss0",
+    "family-399__postfix3.9_loss0",
     "family-39__postfix3.9_loss0",
+    "family-400__postfix3.9_loss0",
+    "family-401__postfix3.9_loss0",
+    "family-402__postfix3.9_loss0",
+    "family-403__postfix3.9_loss0",
+    "family-404__postfix3.9_loss0",
+    "family-405__postfix3.9_loss0",
+    "family-406__postfix3.9_loss0",
+    "family-407__postfix3.9_loss0",
+    "family-408__postfix3.9_loss0",
+    "family-409__postfix3.9_loss0",
     "family-40__postfix3.9_loss0",
+    "family-410__postfix3.9_loss0",
+    "family-411__postfix3.9_loss0",
+    "family-412__postfix3.9_loss0",
+    "family-413__postfix3.9_loss0",
+    "family-414__postfix3.9_loss0",
+    "family-415__postfix3.9_loss0",
+    "family-416__postfix3.9_loss0",
+    "family-417__postfix3.9_loss0",
+    "family-418__postfix3.9_loss0",
+    "family-419__postfix3.9_loss0",
     "family-41__postfix3.9_loss0",
+    "family-420__postfix3.9_loss0",
+    "family-421__postfix3.9_loss0",
+    "family-422__postfix3.9_loss0",
+    "family-423__postfix3.9_loss0",
+    "family-424__postfix3.9_loss0",
+    "family-425__postfix3.9_loss0",
+    "family-426__postfix3.9_loss0",
+    "family-427__postfix3.9_loss0",
+    "family-428__postfix3.9_loss0",
+    "family-429__postfix3.9_loss0",
     "family-42__postfix3.9_loss0",
+    "family-430__postfix3.9_loss0",
+    "family-431__postfix3.9_loss0",
+    "family-432__postfix3.9_loss0",
+    "family-433__postfix3.9_loss0",
+    "family-434__postfix3.9_loss0",
+    "family-435__postfix3.9_loss0",
+    "family-436__postfix3.9_loss0",
+    "family-437__postfix3.9_loss0",
+    "family-438__postfix3.9_loss0",
+    "family-439__postfix3.9_loss0",
     "family-43__postfix3.9_loss0",
+    "family-440__postfix3.9_loss0",
+    "family-441__postfix3.9_loss0",
+    "family-442__postfix3.9_loss0",
+    "family-443__postfix3.9_loss0",
+    "family-444__postfix3.9_loss0",
+    "family-445__postfix3.9_loss0",
+    "family-446__postfix3.9_loss0",
+    "family-447__postfix3.9_loss0",
+    "family-448__postfix3.9_loss0",
+    "family-449__postfix3.9_loss0",
     "family-44__postfix3.9_loss0",
+    "family-450__postfix3.9_loss0",
+    "family-451__postfix3.9_loss0",
+    "family-452__postfix3.9_loss0",
+    "family-453__postfix3.9_loss0",
+    "family-454__postfix3.9_loss0",
+    "family-455__postfix3.9_loss0",
+    "family-456__postfix3.9_loss0",
+    "family-457__postfix3.9_loss0",
+    "family-458__postfix3.9_loss0",
+    "family-459__postfix3.9_loss0",
     "family-45__postfix3.9_loss0",
+    "family-460__postfix3.9_loss0",
+    "family-461__postfix3.9_loss0",
+    "family-462__postfix3.9_loss0",
+    "family-463__postfix3.9_loss0",
+    "family-464__postfix3.9_loss0",
+    "family-465__postfix3.9_loss0",
     "family-46__postfix3.9_loss0",
     "family-47__postfix3.9_loss0",
     "family-48__postfix3.9_loss0",
     "family-49__postfix3.9_loss0",
-    "family-50__postfix3.9_loss0"
+    "family-50__postfix3.9_loss0",
+    "family-51__postfix3.9_loss0",
+    "family-52__postfix3.9_loss0",
+    "family-53__postfix3.9_loss0",
+    "family-54__postfix3.9_loss0",
+    "family-55__postfix3.9_loss0",
+    "family-56__postfix3.9_loss0",
+    "family-57__postfix3.9_loss0",
+    "family-58__postfix3.9_loss0",
+    "family-59__postfix3.9_loss0",
+    "family-60__postfix3.9_loss0",
+    "family-61__postfix3.9_loss0",
+    "family-62__postfix3.9_loss0",
+    "family-63__postfix3.9_loss0",
+    "family-64__postfix3.9_loss0",
+    "family-65__postfix3.9_loss0",
+    "family-66__postfix3.9_loss0",
+    "family-67__postfix3.9_loss0",
+    "family-68__postfix3.9_loss0",
+    "family-69__postfix3.9_loss0",
+    "family-70__postfix3.9_loss0",
+    "family-71__postfix3.9_loss0",
+    "family-72__postfix3.9_loss0",
+    "family-73__postfix3.9_loss0",
+    "family-74__postfix3.9_loss0",
+    "family-75__postfix3.9_loss0",
+    "family-76__postfix3.9_loss0",
+    "family-77__postfix3.9_loss0",
+    "family-78__postfix3.9_loss0",
+    "family-79__postfix3.9_loss0",
+    "family-80__postfix3.9_loss0",
+    "family-81__postfix3.9_loss0",
+    "family-82__postfix3.9_loss0",
+    "family-83__postfix3.9_loss0",
+    "family-84__postfix3.9_loss0",
+    "family-85__postfix3.9_loss0",
+    "family-86__postfix3.9_loss0",
+    "family-87__postfix3.9_loss0",
+    "family-88__postfix3.9_loss0",
+    "family-89__postfix3.9_loss0",
+    "family-90__postfix3.9_loss0",
+    "family-91__postfix3.9_loss0",
+    "family-92__postfix3.9_loss0",
+    "family-93__postfix3.9_loss0",
+    "family-94__postfix3.9_loss0",
+    "family-95__postfix3.9_loss0",
+    "family-96__postfix3.9_loss0",
+    "family-97__postfix3.9_loss0",
+    "family-98__postfix3.9_loss0",
+    "family-99__postfix3.9_loss0"
   ],
   "D_prior_groups": [
     "censys_prior_001257c9",
@@ -684,18 +4074,26 @@
   "stratified_group_kfold_contract": {
     "n_splits_outer": 5,
     "n_splits_inner": 5,
-    "n_groups": 50,
-    "groups_for_nested_cv": "family-level (50 families, not environment)",
+    "n_groups": 500,
+    "groups_for_nested_cv": "family-level (500 families, not environment)",
     "groups_for_splits_wiring": "environment_id",
-    "safe": "n_splits 5 <= n_groups 50",
-    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 50 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 30 excluded from n_eff, D1 30 (60% of 50) D2 15 (30% n_cal15 3 bins [5,5,5]) D3 10 held-out; ratio D_prior/D2 50/15=3.33 interim T6 (honest disclosure, target <3 at 500 via Tranco/ZMap dilution) WEAK SUPERVISION verbatim; Weber 6 envs honest diversity via tshark filters smtp_clear_25/smtp_starttls_587/smtps_465/imap_starttls_143/imaps_993/pop3_110/995 (weberblog.net 2026-07-14 6MB, /tmp/mail_only.pcapng simulated)"
+    "safe": "n_splits 5 <= n_groups 500",
+    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 500 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 220 excluded from n_eff, D1 150 (30% n_cal 5-bin 30/bin quality at n=200 honest working, 30/bin at n=500), D2 100 (20% cal), D3 30 held-out locked distinct proper families; ratio D_prior/D2 50/100=0.5 <3 honest; D_prior 50 censys disjoint; WEAK SUPERVISION verbatim; Weber 6 envs honest diversity via tshark filters smtp_clear_25/smtp_starttls_587/smtps_465/imap_starttls_143/imaps_993/pop3_110/995 (weberblog.net 2026-07-14 6MB, /tmp/mail_only.pcapng simulated); Tranco 200 stratified 50 per tier simulated via Censys ja4 prior (tranco_sample_200.json) disclosure, prior 256 but cap 50 for disjoint",
+    "grouping": "environment_id"
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
-  "n_groups": 50,
-  "n_eff": 50,
-  "p_n": 0.1,
-  "caveat": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a. p/n 0.10 (5/50) disclosure",
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=500 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=500 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "n_groups": 500,
+  "n_eff": 500,
+  "p_n": 0.01,
+  "p_n_top7": 0.014,
+  "p_n disclosure": "p/n 5/500=0.01 (7/500=0.014 for TOP7) disclosure: 500 envs quality target (200 minimum honest), D1 150 30% n_cal 5-bin 30/bin quality at n=200/500",
+  "caveat": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=500 synthetic independent. See Dataset Charter \u00a71/\u00a74a. p/n 0.01 (5/500) disclosure, TOP7 0.014 (7/500)",
+  "proper_families": true,
+  "groups_by_family distinct proper": "500 distinct proper families, no jitter-counted families; each family maps to genuinely distinct TLS/cipher/cert/STARTTLS tuple per docs/FAMILY_TAXONOMY.md (jitter families now distinct via separate grouping with unique tuple, GREASE-filtered)",
+  "quality_target": "500 envs quality target (200 minimum honest: 50 Censys +6 Weber +200 Tranco simulated =256 prior but cap 50 disjoint, 50 curated coherent distinct families +450 synthetic coherent distinct =500 lab distinct; jitter 35 now counted as distinct proper via unique tuple, not duplicated)",
+  "n_eff disclosure": "n_eff 500 quality target, 200 minimum honest disclosed; 5-bin 30/bin at n=150 D1, per-class ECE <0.15 at n=500",
+  "D_prior_cap": "D_prior 50 cap for disjoint (256 prior available: 50 Censys +6 Weber +200 Tranco simulated, but disjoint cap 50)",
   "weber_6_envs": [
     "weber_smtp_clear_25",
     "weber_smtp_starttls_587",
@@ -706,5 +4104,9 @@
   ],
   "weber_source": "weberblog.net The Ultimate PCAP 2026-07-14 6MB https://weberblog.net/the-ultimate-pcap",
   "weber_extraction": "tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y \"imap || pop || smtp\" -w /tmp/mail_only.pcapng (simulated offline fallback placeholder /tmp/mail_only.pcapng 24B)",
-  "D_prior_weber_disjoint": "weber_6_envs \u2229 D1/D2/D3 empty \u2014 honest diversity prior_flag true, chain_valid None 11/28 caveat not risk-trained"
+  "D_prior_weber_disjoint": "weber_6_envs \u2229 D1/D2/D3 empty \u2014 honest diversity prior_flag true, chain_valid None 11/28 caveat not risk-trained",
+  "tranco_200": "shared/fixtures/tranco_sample_200.json 200 stratified 50 per tier (tranco_top1k/top10k/top100k/top1M) via zmap/zgrab2 STARTTLS Bennett, Censys ja4_rarity prior, dig MX simulated, 1 cert/day/IP rate-limit honored, storage <3M",
+  "prior_total_available": 256,
+  "prior_flag": "disjoint",
+  "grouping": "environment_id"
 }

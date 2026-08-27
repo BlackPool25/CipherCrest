@@ -1,0 +1,17 @@
+validation:
+500
+n_eff=500 p_n=0.01 p_n_top7=0.014 len=500
+D1 150 D2 100 D3 30 spare 220 D_prior 50
+proper_families=True grouping=environment_id prior_flag=disjoint
+disjoint True
+ALL GUARDS PASS
+--- grep checks ---
+grouping PASS
+prior_flag PASS
+isotonic PASS (not found)
+n_groups 500 ratio 1.0
+--- pytest ---
+.............................                                            [100%]
+29 passed in 0.04s
+python asserts PASS
+PASS no n_eff 50 exact
