@@ -158,7 +158,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -c "from catboost import CatBoostClassifier; print(CatBoostClassifier(min_data_in_leaf=1).get_params()['min_data_in_leaf'])"` ==1; failure: `grep -q "min_data_in_leaf.*20" assessment/catboost_train.py && echo FAIL default`.
   Commit: Y | feat(catboost): add tuned CatBoost fallback CPU
 
-- [ ] 11. Implement reduced weak supervision m=6-8 MajorityVoter limited to critical metrics
+- [x] 11. Implement reduced weak supervision m=6-8 MajorityVoter limited to critical metrics
   What to do / Must NOT do: Create assessment/weak_supervision.py with 6 LFs: TLS deprecated (1.0/1.1), weak cipher (RC4/DES), weak KEX (RSA noFS), chain invalid, days_to_expiry<30, san mismatch (or ja4_rarity>0.9); use snorkel MajorityLabelVoter cardinality=2 tie→abstain→human review (not LabelModel m23). Log coverage/accuracy/conflict, enforce pairwise Jaccard <0.7, keep snippet mapping to assessment/rules.py. Use only for critical metrics (permutation importance, coverage report) not primary label. Must NOT use m=23 LabelModel as primary at n<200; must NOT double-count correlated cert checks.
   Parallelization: Wave 3 | Blocked by: 8 | Blocks: 13
   References (executor has NO interview context - be exhaustive): assessment/rules.py 23 checks, assessment/score.py weights, arXiv:1711.10160 Snorkel m>sqrt(n) unstable, MetricGate weak supervision, assessment/risk_dataset.py WEAK_SUPERVISION, eval/metrics.json

@@ -1,0 +1,14 @@
+[weak_supervision] m=6 n=500 coverage >0.6 overall 1.000 pairwise <0.7 max 0.278
+[weak_supervision] LFs: lf_tls_deprecated, lf_weak_cipher, lf_weak_kex, lf_chain_invalid, lf_days_expiry_lt30, lf_san_mismatch_or_ja4_high
+  LF 01 lf_tls_deprecated: coverage 0.034
+  LF 02 lf_weak_cipher: coverage 0.058
+  LF 03 lf_weak_kex: coverage 1.000
+  LF 04 lf_chain_invalid: coverage 0.026
+  LF 05 lf_days_expiry_lt30: coverage 0.004
+  LF 06 lf_san_mismatch_or_ja4_high: coverage 0.044
+[weak_supervision] conflict 0.032 voter coverage 0.982 abstain 0.018 tie->abstain->human review
+[weak_supervision] Jaccard pairwise max 0.278 threshold <0.7 PASS
+[weak_supervision] accuracy vs weak label (critical metrics only) 0.996 (not primary)
+[weak_supervision] cardinality=2 voter=MajorityLabelVoter m=6 < sqrt(n) ~22.4 stable
+[weak_supervision] limited to critical metrics (permutation importance, coverage report) not primary label
+[weak_supervision] validate PASS
