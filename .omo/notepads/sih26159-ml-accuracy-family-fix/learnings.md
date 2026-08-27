@@ -214,3 +214,18 @@
 - Kept other gates: bootstrap_n 2000, brier<base, ece<0.40, ja4>0.90, kappa>0.45, WEAK SUPERVISION verbatim, leak_gap<0.15 — no isotonic added, no downgrade to 3 bins.
 - Verification: `python -c "import json; m=json.load(open('eval/metrics.json')); print(m['risk']['ece_bins'], m['n']['n_risk'], m['n']['n_families'])"` -> 5 500 465; `python -c "from shared.schemas_eval import load_and_validate; load_and_validate(); print('PASS')"` -> PASS exit 0; `grep -n ece_bins shared/schemas_eval.py` shows enum [2,3,5] and validator 2,3,5; lsp diagnostics only Ruff SIM102/F541/BLE001 pre-existing warnings (py_compile OK).
 - Evidence: .omo/evidence/schemas_eval_fix.log (PASS + grep outputs)
+
+## 2026-08-27 — task-17 locked external 30 distinct pinned families (checkbox 17)
+
+- Created lab/scripts/gen_locked_external.py 175 lines: imports _load_taxonomy/_hash_seed/make_pcap from lab.scripts.synth_families, generates 30 locked families via `--count 30 --seed 42` with distinct taxonomy (not jitter) using docs/FAMILY_TAXONOMY.md first 30 rows (A-J groups) distinct tuple (TLS,cipher,KEX,cert,STARTTLS,Port) — port included to distinguish D group 587 vs 25 cleartext duplicates. GREASE-filtered IANA coherence via synth_families (TLS1.3 <=> 0x1301/0x1302/1303), not Censys prior. Output shared/fixtures/locked_external/family-locked-01..30.pcap (30) + family-locked-01..30.sha256 (30, single per pcap, `sha  filename` format) + .locked hidden marker + locked_external.locked visible *.locked for glob verification. Supports both `python lab/scripts/gen_locked_external.py --count 30 --seed 42` and `python -m lab.scripts.gen_locked_external --count 30 --seed 42` entry points; py_compile clean.
+
+- Corrected duplicate sha generation: initially produced 60 sha (both .sha256 and .pcap.sha256) breaking `ls *.sha256 | wc -l ==30`; fixed to single primary family-locked-XX.sha256 per pcap. Hidden .locked not matched by `ls *.locked` glob, added visible locked_external.locked alongside .locked to satisfy both `ls -a .locked` and `ls *.locked` checks.
+
+- Created eval/tests/test_locked_external.py 6 tests: n_locked 30 asserts D3_locked_groups len 30 (must NOT keep 10 at 200 scale), locked ∩ (train ∪ prior) == ∅ and not censys_prior_* (must NOT use Censys prior as locked), pcap+sha256 30 counts + .locked marker exists, sha256 sidecar hash matches pcap bytes, distinct taxonomy not jitter via markdown parsing rows 1-30 tuple (TLS,cipher,KEX,cert,STARTTLS,Port) len 30, groups_by_family distinct 500/200.
+
+- Verified assessment/splits.json stays 30 D3 distinct proper families, D_prior 50 censys disjoint, groups_by_family 500 distinct ratio 1.0, D3 not overlapping train/prior (0 overlap). No file count jitter, no Censys prior leakage.
+
+- Verification: `python -m lab.scripts.gen_locked_external --count 30 --seed 42 2>&1 | tee .omo/evidence/task-17-sih26159-ml-accuracy-family-fix.log` shows 30 Wrote distinct lines seed 42; `ls *.pcap | wc -l 30`, `ls *.sha256 | wc -l 30`, `ls -a .locked` exists, `ls *.locked` exists (locked_external.locked), `pytest eval/tests/test_locked_external.py -q 6 passed`, `sha256sum *.pcap > /tmp/check && sha256sum -c /tmp/check` OK 30, `python -c assert len(D3)==30` PASS, both `python -m` and `python lab/scripts/gen_locked_external.py` work; py_compile clean.
+
+- Evidence: .omo/evidence/task-17-sih26159-ml-accuracy-family-fix.log (30 distinct pinned, counts 30/30, 6 passed, sha OK)
+

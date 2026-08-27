@@ -207,7 +207,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `bash scripts/verify_rocm.sh` exits 0 with fallback; failure: `pip show torch | grep -q rocm || echo CPU fallback` must not fail build.
   Commit: N | chore(rocm): verify 7900 GRE pipeline with CPU fallback
 
-- [ ] 17. Extend locked external to 30 distinct families pinned
+- [x] 17. Extend locked external to 30 distinct families pinned
   What to do / Must NOT do: Generate 30 locked families via `lab/scripts/gen_locked_external.py --count 30 --seed 42` with distinct taxonomy (not jitter), output shared/fixtures/locked_external/*.pcap + *.sha256 + .locked marker, update assessment/splits.json D3 10→30, D_prior disjoint, groups_by_family 200. Validate `python eval/tests/test_locked_external.py` asserts `locked ∩ (train ∪ prior) == ∅` and `n_locked 30`. Must NOT keep 10 locked at 200 scale; must NOT use Censys prior as locked for risk.
   Parallelization: Wave 5 | Blocked by: 8,9,13 | Blocks: 18,19
   References (executor has NO interview context - be exhaustive): assessment/splits.json D3 10, shared/fixtures/locked_external, eval/tests/test_locked_external.py, lab/manifest.json, eval/EVIDENCE_Day13.md

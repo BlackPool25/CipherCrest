@@ -1,0 +1,58 @@
+=== gen_locked_external --count 30 --seed 42 via python -m ===
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-01.pcap TLS1.0 RC4-SHA RSA rsa2048 upgrade sha256:e483753179b2 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-02.pcap TLS1.1 AES128-SHA RSA rsa2048 upgrade sha256:1848d01d08f1 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-03.pcap TLS1.2 DES-CBC3-SHA RSA rsa2048 upgrade sha256:9b5b162fec02 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-04.pcap TLS1.2 DES-CBC-SHA RSA rsa1024 upgrade sha256:d9c6a3bc4a0c distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-05.pcap TLS1.2 DES-CBC3-SHA ECDHE rsa2048 upgrade sha256:00dde1832cca distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-06.pcap TLS1.2 RC4-MD5 RSA rsa2048 upgrade sha256:9545ae4da210 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-07.pcap TLS1.2 AES256-SHA RSA chain-incomplete upgrade sha256:aa07c7b214d6 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-08.pcap TLS1.2 AES128-SHA256 ECDHE expired upgrade sha256:c8e74a8e9d94 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-09.pcap TLS1.2 AES128-SHA RSA selfsigned upgrade sha256:1a7599e1420c distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-10.pcap TLS1.2 AES128-SHA256 ECDHE rsa1024 upgrade sha256:49b423b24943 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-11.pcap TLS1.2 RSA-AES128-GCM-SHA256 RSA chain-incomplete upgrade sha256:206260a40605 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-12.pcap TLS1.2 RC4-MD5 RSA md5-weak upgrade sha256:16f9d3e58aad distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-13.pcap none none unknown none cleartext sha256:ba00dd18d1f6 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-14.pcap none none unknown none cleartext sha256:5f3d38cca11c distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-15.pcap TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 ECDHE rsa2048 upgrade sha256:796487bd9e40 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-16.pcap TLS1.0 RC4-SHA RSA selfsigned upgrade sha256:b09a21689504 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-17.pcap TLS1.3 TLS_AES_128_GCM_SHA256 ECDHE p256 implicit sha256:2118bda9cdcb distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-18.pcap TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 ECDHE p256 upgrade sha256:76dd18e7fbc8 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-19.pcap TLS1.2 AES128-SHA256 ECDHE rsa2048 upgrade sha256:f71c8db0be45 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-20.pcap TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 ECDHE rsa2048 upgrade sha256:3c3caf41a7b1 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-21.pcap TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 ECDHE rsa2048 upgrade sha256:f83caf3d0dc9 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-22.pcap TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 ECDHE p256 upgrade sha256:0ea18f21a000 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-23.pcap TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 ECDHE p256 upgrade sha256:d7da110c4ec3 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-24.pcap TLS1.2 AES128-SHA256 ECDHE rsa2048 upgrade sha256:5b8dc0bf9618 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-25.pcap TLS1.2 ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE rsa2048 upgrade sha256:b7513b0355d4 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-26.pcap TLS1.3 TLS_AES_128_GCM_SHA256 ECDHE p256 upgrade sha256:8adc35424625 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-27.pcap TLS1.3 TLS_AES_256_GCM_SHA384 ECDHE p256 upgrade sha256:1915d4e53f99 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-28.pcap TLS1.3 TLS_CHACHA20_POLY1305_SHA256 ECDHE p256 upgrade sha256:0e4b1ef86acb distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-29.pcap TLS1.2 ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE p256 upgrade sha256:cd3dd2cfac91 distinct
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-30.pcap TLS1.2 RSA-AES128-GCM-SHA256 RSA rsa2048 upgrade sha256:043a7e00a78b distinct
+Generated 30 locked families distinct taxonomy seed 42 to /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external
+Marker /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/.locked exists
+=== counts ===
+30
+30
+shared/fixtures/locked_external/.locked
+shared/fixtures/locked_external/locked_external.locked
+=== pytest ===
+......                                                                   [100%]
+6 passed in 0.01s
+=== sha256sum check ===
+shared/fixtures/locked_external/family-locked-01.pcap: OK
+shared/fixtures/locked_external/family-locked-02.pcap: OK
+shared/fixtures/locked_external/family-locked-03.pcap: OK
+shared/fixtures/locked_external/family-locked-04.pcap: OK
+shared/fixtures/locked_external/family-locked-05.pcap: OK
+shared/fixtures/locked_external/family-locked-06.pcap: OK
+shared/fixtures/locked_external/family-locked-07.pcap: OK
+shared/fixtures/locked_external/family-locked-08.pcap: OK
+shared/fixtures/locked_external/family-locked-09.pcap: OK
+shared/fixtures/locked_external/family-locked-10.pcap: OK
+=== splits D3 ===
+D3_locked_groups 30 PASS locked ∩ train empty: True
+=== lab/scripts/gen_locked_external.py direct ===
+Wrote /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/family-locked-30.pcap TLS1.2 RSA-AES128-GCM-SHA256 RSA rsa2048 upgrade sha256:4662115361a5 distinct
+Generated 30 locked families distinct taxonomy seed 42 to /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external
+Marker /home/shreyas/projects/CipherCrest/shared/fixtures/locked_external/.locked exists
