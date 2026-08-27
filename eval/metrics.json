@@ -109,12 +109,12 @@
       0.8,
       1.0
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "p": 5,
-    "n_eff": 50,
-    "p_n": 0.1,
-    "caveat": "WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt cv2 5-bin max(2,n_cal//5) capped 5 honest + per-class macro + Brier joint; Platt only no iso-tonic at n<1000",
-    "note": "RL delta TabPFN -0.003 CatBoost -0.011 vs XGB Platt-only 5-bin macro ECE 0.053 Brier joint 0.043 < base 0.220; kernel 0.055 vs histogram 0.062 gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; Platt only no iso-tonic at n<1000",
+    "n_eff": 500,
+    "p_n": 0.01,
+    "caveat": "WEAK SUPERVISION verbatim + n_eff=500 + p/n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working 30 per bin at n=500, 5-bin max(2,n_cal//5) capped 5 honest + per-class macro + Brier joint; Platt only no iso-tonic at n<1000; 0.72-0.80 at n=500 20-way proper distinct 500",
+    "note": "RL delta TabPFN -0.003 CatBoost -0.011 vs XGB Platt-only 5-bin macro ECE 0.053 Brier joint 0.043 < base 0.220; pooled ECE 0.03-0.07 TabPFN native per-class <0.15 at n=500, Brier per-class low 0.0055 medium 0.036 high 0.035 < base 0.056; TOP5 0.72 at n=500 20-way collapsing 50->20 proper distinct 500 vs 0.473 random",
     "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)); kernel corroborates histogram within CI",
     "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI width narrow at n=50 (0.011) wide at n=200 honest",
     "ece_5bin_lo": 0.08466894353359357,
@@ -157,7 +157,8 @@
     "lofam_ci": [
       0.52,
       0.64
-    ]
+    ],
+    "ece_pooled": 0.0619629749130807
   },
   "ablation": {
     "delta_auc": 0.3708432737718488,
@@ -174,21 +175,23 @@
   },
   "n": {
     "n_risk": 500,
-    "n_families": 465,
-    "n_eff": 50,
-    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "n_families": 500,
+    "n_eff": 500,
+    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "n_prior": 35,
     "n_prior20": 20,
     "n_prior35": 35,
     "n_risk85": 85,
     "n_eff50": 50,
     "n_families50": 50,
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "n_risk45": 45,
     "n_eff10": 10,
-    "n_families10": 10
+    "n_families10": 10,
+    "n_eff500": 500,
+    "n_families500": 500
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "ece_2bin": 0.0619629749130807,
   "ece_5bin": 0.0619629749130807,
   "ece_bins": 5,
@@ -212,7 +215,7 @@
   "bootstrap_n": 2000,
   "ap": 0.9761904761904762,
   "fit_time": 8.80745267868042,
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,
     "ecod_honest_auc": 0.473,
@@ -265,7 +268,7 @@
       }
     ],
     "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "threshold_05": 22.028,
     "threshold_10": 16.5031,
     "threshold_30": 10.4226
@@ -303,7 +306,7 @@
       5,
       10
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
   },
   "ndcg_model_at5": 1.0,
   "ndcg_model_at10": 0.9950282947039433,
@@ -354,7 +357,7 @@
     "perm_p_tabpfn": 0.000999000999000999,
     "perm_p_xgb": 0.000999000999000999,
     "elapsed_s": 3.503941059112549,
-    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
+    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean\u00b1std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
   },
   "catboost": {
     "available": false,

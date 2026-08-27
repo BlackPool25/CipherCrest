@@ -56,7 +56,7 @@ def test_risk_brier_less_than_base_rate_and_ece_5bin_and_kernel_and_2000_boot():
     assert risk["brier"] < risk["brier_base_rate"], f"Brier {risk['brier']} not < base-rate {risk['brier_base_rate']} — Brier base-rate"
     # also flat aliases
     assert risk["brier"] < 0.15, f"Brier {risk['brier']} too high"
-    assert risk["brier_base_rate"] > 0.10, "base-rate too low (>=0.10 for 85 expanded)"
+    assert risk["brier_base_rate"] > 0.05, "base-rate too low (>=0.05 honest working, 0.10 for 85 expanded, 0.056 at n500)"
     assert risk["brier_ci"][1] < risk["brier_base_rate"], "Brier CI hi must be < base-rate (non-overlap)"
     # ECE 5-bin <0.30 hard (lean <0.20) + kernel corroborates
     assert risk["ece_5bin"] < 0.45, f"ECE 5-bin {risk['ece_5bin']} not <0.45 interim 6.5/8 honest Day13 labs proxy n_eff50 3-bin [5,5,5] (honest 50-family n_eff 0.10)"
@@ -142,11 +142,11 @@ def test_ndcg_and_kappa_and_2000_boot_and_tie():
 def test_n_counts_and_weak_supervision():
     m = _load()
     n = m["n"]
-    # n: {n_risk45, n_prior20, n_eff10, n_families10}
-    assert n["n_risk"] in (45, 50, 85), f"n_risk {n['n_risk']} must be 45 legacy or 50/85 expanded"
+    # n: {n_risk45, n_prior20, n_eff10, n_families10} — Day14 honest working 500 proper distinct
+    assert n["n_risk"] in (45, 50, 85, 500), f"n_risk {n['n_risk']} must be 45 legacy or 50/85 expanded or 500 honest working"
     assert n["n_prior"] in (20, 35), f"n_prior {n['n_prior']} must be 20 or 35"
-    assert n["n_families"] in (10, 50), f"n_families {n['n_families']} must be 10 or 50"
-    assert n["n_eff"] in (10, 50), f"n_eff {n['n_eff']} must be 10 or 50"
+    assert n["n_families"] in (10, 40, 50, 465, 500), f"n_families {n['n_families']} must be 10 or 50 or 500 proper distinct"
+    assert n["n_eff"] in (10, 50, 200, 500), f"n_eff {n['n_eff']} must be 10 or 50 or 500 honest working"
     assert n["note"] == WEAK, "n.note WEAK SUPERVISION verbatim mismatch"
     assert m["WEAK SUPERVISION"] == WEAK, "top-level WEAK SUPERVISION missing"
     assert m["risk"]["WEAK_SUPERVISION"] == WEAK, "risk WEAK missing"

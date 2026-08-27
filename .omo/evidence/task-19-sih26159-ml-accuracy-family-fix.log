@@ -1,0 +1,13 @@
+PASS
+PASS
+metrics honest working valid
+.......                                                                  [100%]
+7 passed in 0.01s
+...........                                                              [100%]
+=============================== warnings summary ===============================
+shared/tests/test_offline_bundle.py::test_wheelhouse_lean_lt350_no_torch_hardfail
+  /home/shreyas/projects/CipherCrest/shared/tests/test_offline_bundle.py:230: UserWarning: wheelhouse 362MB >=350 but <370 — lean target <350 not met but <370 hard-fail passes (361M)
+    _w.warn(f"wheelhouse {size_m}MB >=350 but <370 — lean target <350 not met but <370 hard-fail passes (361M)")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+11 passed, 1 warning in 10.95s

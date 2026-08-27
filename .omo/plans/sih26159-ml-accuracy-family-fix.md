@@ -223,7 +223,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -m assessment.active_select --dry-run 2>&1 | grep "selected 15"`; failure: `ls shared/fixtures/human_labels.json || echo FAIL no human labels`.
   Commit: Y | feat(active): add uncertainty sampling 15 human labels with weighted retrain
 
-- [ ] 19. Publish honest working evidence EVIDENCE_Day14 + metrics.json for n=500 quality
+- [x] 19. Publish honest working evidence EVIDENCE_Day14 + metrics.json for n=500 quality
   What to do / Must NOT do: Generate eval/EVIDENCE_Day14.md **500-envs quality**: risk LOFAM vs CatBoost vs TabPFN table (TOP5 0.60-0.69 at n=200 → **0.72-0.80 at n=500 20-way collapsing 50→20 meta if needed** vs 0.473 random, Brier per-class, pooled ECE 0.03-0.07 TabPFN native, per-class ECE <0.15 at n=500), anomaly ensemble 0.60-0.65 honest vs ja4 0.926, calibration 5-bin 30/bin at n=500, 30 locked proper distinct NDCG, active learning delta, 7900 GRE 46x report, quality per-component 7.5-8.5/10 proper families disclosure; update eval/metrics.json honest working gates (no clamps) and shared/schemas_eval.py n_eff 500 p_n 0.01, ece<0.15 pooled per-class <0.15, brier<base, gap<0.15, ja4>0.90, κ>0.45. Must NOT keep clamp disclosure as pass; must NOT claim >0.80 at n=500 without proper families.
   Parallelization: Wave 5 | Blocked by: 17,18 | Blocks: -
   References (executor has NO interview context - be exhaustive): eval/EVIDENCE_Day13.md 6.5/8 interim, eval/metrics.json 267 lines risk block, shared/schemas_eval.py hard-fail, eval/LEAKAGE_REPORT.md, docs/FAMILY_TAXONOMY.md proper families distinct, assessment/calibration.py, assessment/tabpfn_model.py
