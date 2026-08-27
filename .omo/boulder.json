@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": null,
+  "active_work_id": "wrk_sih26159_ml_honest_success",
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -79,6 +79,31 @@
       "started_at": "2026-08-26T11:34:21.146104Z",
       "ended_at": "2026-08-26T14:06:24.578413Z",
       "elapsed_ms": 9123432
+    },
+    "wrk_sih26159_ml_accuracy_family": {
+      "work_id": "wrk_sih26159_ml_accuracy_family",
+      "active_plan": ".omo/plans/sih26159-ml-accuracy-family-fix.md",
+      "plan_name": "sih26159-ml-accuracy-family-fix",
+      "session_ids": [
+        "codex:ses_atlas_ml_accuracy"
+      ],
+      "status": "completed",
+      "worktree_path": null,
+      "started_at": "2026-08-27T04:00:00Z",
+      "ended_at": "2026-08-27T08:11:45Z",
+      "elapsed_ms": 15105000
+    },
+    "wrk_sih26159_ml_honest_success": {
+      "work_id": "wrk_sih26159_ml_honest_success",
+      "active_plan": ".omo/plans/sih26159-ml-honest-success.md",
+      "plan_name": "sih26159-ml-honest-success",
+      "session_ids": [
+        "codex:ses_atlas_honest_success"
+      ],
+      "status": "active",
+      "worktree_path": null,
+      "started_at": "2026-08-27T15:30:00Z",
+      "elapsed_ms": 0
     }
   }
 }

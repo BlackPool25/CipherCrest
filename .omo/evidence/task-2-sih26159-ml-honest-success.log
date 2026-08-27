@@ -1,0 +1,24 @@
+=== TASK 2 EVIDENCE 2026-08-27T15:34:14+05:30 ===
+grep check:
+grep found PASS
+empty-bin NaN test risk_metrics:
+risk_metrics EMPTY NAN PASS
+empty-bin NaN test risk_train:
+risk_train EMPTY NAN PASS
+quantile-5 in metrics.json:
+quantile-5 present 0.07105448522605377
+bin_counts_quantile [91, 0, 0, 0, 9]
+SmoothECE 0.03485139969827427
+kernel 0.054 vs hist 0.062 disclosure check [99, 1, 0, 0, 0]
+python -m assessment.risk_metrics:
+EW 0.0398 quantile 0.0711 SmoothECE 0.0349 within CI [0.0117,0.0722] skew_flag=True
+pytest calibrate:
+.                                                                        [100%]
+1 passed, 159 deselected in 1.30s
+risk_train run:
+fit 9.385s ECE 5bin EW 0.040 quantile 0.071 Smooth 0.035 debiased 0.008 macro 0.024 max 0.036 per-class {'low': 0.005361443105489616, 'medium': 0.030424411222748932, 'high': 0.0357858543282387} kernel 0.035 hi 0.072 CI [0.012,0.072] width 0.060 bins 3 EW counts [99, 1, 0, 0, 0] quantile [91, 0, 0, 0, 9] skew 0.031 flag True smooth_within_ci True
+brier 0.053 joint 0.062 decomp {'brier': 0.053157615865165084, 'reliability': 0.006208952684579477, 'resolution': 0.008925252525252525, 'uncertainty': 0.05639999999999999, 'rel': 0.006208952684579477, 'res': 0.008925252525252525, 'unc': 0.05639999999999999} base 0.056 base_joint 0.220 ci [0.019,0.084] logloss 0.219 gap 0.001
+LOFAM 0.992 EnvCV 0.993 nestedLOFAM 0.992 perm p 0.0010 AP 0.819 deltaAUC 0.361
+top3 ['chain_length', 'is_aead', 'cipher_strength'] best {'max_depth': 1, 'reg_lambda': 5.0, 'min_child_weight': 3} size 0.16M bootstrap 2000 p/n 0.10 n_eff 50
+Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000

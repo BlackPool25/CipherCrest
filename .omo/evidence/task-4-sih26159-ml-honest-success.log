@@ -1,0 +1,106 @@
+# Task 4 Evidence — CPI/TRIP + LFFO inside outer fold (Sisyphus-Junior)
+# Date: 2026-08-27
+
+## Files created
+-rw-r--r--. 1 shreyas shreyas 21K Aug 27 15:42 assessment/feature_importance.py
+
+## grep conditional permutation / TRIP
+1:"""assessment/feature_importance.py — CPI/TRIP + Leave-Family-Feature-Out inside outer fold.
+3:Chamma 2023 CPI (arXiv:2408.13002) conditional permutation importance via
+4:conditional permutations (2309.07593) — correlation confounder handling at
+7:Hooker 1905.03151 TRIP nonparametric test for extrapolation bias under
+14:conditional model fitted on outer train only). Raw permutation is NOT
+22:- Hooker & Mentch TRIP (1905.03151) — Permutation importance needs TRIP
+47:TRIP_N_PERM = 30
+51:_CPI_MARKER = "conditional permutation importance Chamma 2023 2309.07593 2408.13002"
+52:_TRIP_MARKER = "TRIP Hooker 1905.03151 nonparametric extrapolation test"
+107:    """Generate one conditional permutation for column col in X_test.
+183:    """conditional permutation importance inside nested SGKF outer fold only.
+229:        # conditional permutation importance — conditional permutation via RF on outer train only
+250:        # TRIP extrapolation test — 1905.03151
+251:        trip_rate, trip_p = _trip_test_for_feature(X_train, X_test, col, n_perm=min(n_perm, TRIP_N_PERM), seed=outer_idx)
+277:def _trip_test_for_feature(X_train: pd.DataFrame, X_test: pd.DataFrame, col: str, n_perm: int = TRIP_N_PERM, seed: int = 0):
+278:    """TRIP nonparametric test for extrapolation bias (Hooker 1905.03151).
+399:    """Run CPI/TRIP for all 5 outer folds + LFFO summary."""
+409:    print(f"[feature_importance] outer={oi} baseline_auc={res['baseline_auc']:.4f} n_train={res['n_train']} n_test={res['n_test']} — CPI conditional permutation importance (Chamma 2023 2408.13002 via 2309.07593)")
+412:    hdr = f"{'feature':<18} {'|r|max':>7} {'CPI_import':>11} {'CPI_p':>8} {'raw_report':>12} {'TRIP_extrap':>11} {'TRIP_p':>8} {'controlled':>11}"
+419:        trip_flag = "TRIP" if v["trip_flag"] else "ok"
+426:    print(f"  TRIP Hooker 1905.03151 nonparametric test — extrapolation rate high => permutation biased, CPI corrects")
+439:    ap = argparse.ArgumentParser(description="CPI/TRIP + LFFO inside nested SGKF outer fold (assessment/feature_importance)")
+477:    print("\nDone — CPI/TRIP inside nested SGKF outer fold only, LFFO LOGO deltas reported. No permutation on same data as model; raw perm suppressed at |r|>0.7.")
+
+## CPI outer 0 (must show p>0.05 controlled, no leakage)
+[feature_importance] outer=0 baseline_auc=1.0000 n_train=400 n_test=100 — CPI conditional permutation importance (Chamma 2023 2408.13002 via 2309.07593)
+  permutation on outer test only, model fitted on outer train (no leakage) — never on same data
+  corr threshold 0.70 — raw permutation suppressed when |r|>threshold (controlled)
+feature             |r|max  CPI_import    CPI_p   raw_report TRIP_extrap   TRIP_p  controlled
+---------------------------------------------------------------------------------------------
+version               0.22     +0.0000    1.000 ns      +0.0000       0.118TRIP    0.000          ok
+cipher_strength       0.84     +0.0061    1.000 ns   SUPPRESSED       0.076TRIP    0.000  CONTROLLED
+kex                   0.84     +0.0039    1.000 ns   SUPPRESSED       0.127TRIP    0.000  CONTROLLED
+chain_valid           0.73     +0.0013    1.000 ns   SUPPRESSED       0.090TRIP    0.000  CONTROLLED
+days_to_expiry        0.60     +0.0005    1.000 ns      +0.0056       0.133TRIP    0.000          ok
+  CPI p>0.05 controlled: min_p=1.000 PASS >0.05
+  TRIP Hooker 1905.03151 nonparametric test — extrapolation rate high => permutation biased, CPI corrects
+CPI p>0.05 controlled min_p=1.0000 for outer 0 (honest, not significant at alpha 0.05)
+
+## CPI controlled (--cpi)
+[feature_importance] outer=0 baseline_auc=1.0000 n_train=400 n_test=100 — CPI conditional permutation importance (Chamma 2023 2408.13002 via 2309.07593)
+  permutation on outer test only, model fitted on outer train (no leakage) — never on same data
+  corr threshold 0.70 — raw permutation suppressed when |r|>threshold (controlled)
+feature             |r|max  CPI_import    CPI_p   raw_report TRIP_extrap   TRIP_p  controlled
+---------------------------------------------------------------------------------------------
+version               0.22     +0.0000    1.000 ns      +0.0000       0.118TRIP    0.000          ok
+cipher_strength       0.84     +0.0061    1.000 ns   SUPPRESSED       0.076TRIP    0.000  CONTROLLED
+kex                   0.84     +0.0039    1.000 ns   SUPPRESSED       0.127TRIP    0.000  CONTROLLED
+chain_valid           0.73     +0.0013    1.000 ns   SUPPRESSED       0.090TRIP    0.000  CONTROLLED
+days_to_expiry        0.60     +0.0005    1.000 ns      +0.0056       0.133TRIP    0.000          ok
+  CPI p>0.05 controlled: min_p=1.000 PASS >0.05
+  TRIP Hooker 1905.03151 nonparametric test — extrapolation rate high => permutation biased, CPI corrects
+controlled — raw permutation suppressed when |r|>0.7 (must NOT report raw at correlation>0.7 without conditioning)
+no leakage: permutation on outer test only, model fitted on outer train (StratifiedGroupKFold) — not on test data same as model
+
+## LFFO LOGO delta
+[feature_importance] LFFO Leave-Family-Feature-Out — LOGO delta per TOP feature (retrain without each)
+  Full TOP5 LOGO AUC=0.9916 (LFFO LOGO LeaveOneGroupOut families)
+  feature             AUC_without delta(full-without)   helps?
+------------------------------------------------------------
+  version                  0.9916            +0.0000    False
+  cipher_strength          0.9917            -0.0001    False
+  kex                      0.9811            +0.0104     True
+  chain_valid              0.9931            -0.0015    False
+  days_to_expiry           0.9280            +0.0636     True
+
+## Verification: no leakage permutation on same data as model
+12:fold train/test split, never on test-data used to fit model (no leakage:
+13:model fit on outer train, permutation evaluated on outer test with
+14:conditional model fitted on outer train only). Raw permutation is NOT
+85:    """Fit RF to predict target_col from other TOP columns on outer train only."""
+109:    Fits conditional model on X_train only (no leakage), predicts E[col|others]
+140:    """Train XGB stump on outer train only. Returns fitted model."""
+185:    Outer split via StratifiedGroupKFold(n_splits=5) — model fit on outer train,
+186:    permutation evaluated on outer test with conditional model fitted on outer train only.
+203:    # baseline AUC on outer test only (honest)
+229:        # conditional permutation importance — conditional permutation via RF on outer train only
+410:    print("  permutation on outer test only, model fitted on outer train (no leakage) — never on same data")
+458:        # Show controlled for outer 0 by default, plus note never on test leakage
+462:        print("no leakage: permutation on outer test only, model fitted on outer train (StratifiedGroupKFold) — not on test data same as model")
+
+## Verification: raw suppressed at corr>0.7
+15:reported when |r|>0.7 without conditioning (controlled).
+45:CORR_THRESHOLD = 0.7
+182:def cpi_for_outer_fold(outer_idx: int, n_perm: int = CPI_N_PERM, corr_thresh: float = CORR_THRESHOLD) -> dict:
+252:        controlled = bool(rmax > corr_thresh)
+254:        raw_report = None if controlled else float(raw_importance)
+258:            "controlled": controlled,
+411:    print(f"  corr threshold {res['corr_threshold']:.2f} — raw permutation suppressed when |r|>threshold (controlled)")
+412:    hdr = f"{'feature':<18} {'|r|max':>7} {'CPI_import':>11} {'CPI_p':>8} {'raw_report':>12} {'TRIP_extrap':>11} {'TRIP_p':>8} {'controlled':>11}"
+416:        controlled = "CONTROLLED" if v["controlled"] else "ok"
+417:        raw_disp = "SUPPRESSED" if v["raw_importance"] is None else f"{v['raw_importance']:+.4f}"
+421:            f"{col:<18} {v['corr_max']:7.2f} {v['cpi_importance']:+11.4f} {v['cpi_p']:8.3f}{cpi_sig:>3} {raw_disp:>12} {v['trip_extrap_rate']:11.3f}{trip_flag:>3} {v['trip_p']:8.3f} {controlled:>11}"
+425:    print(f"  CPI p>0.05 controlled: min_p={min_p:.3f} {'PASS >0.05' if min_p>0.05 else 'FAIL <0.05 sig (honest but flagged)'}")
+441:    ap.add_argument("--cpi", action="store_true", help="show CPI controlled (conditional vs raw, correlation>0.7 suppression)")
+444:    ap.add_argument("--corr-thresh", type=float, default=CORR_THRESHOLD, help=f"correlation threshold to suppress raw (default {CORR_THRESHOLD})")
+454:            print(f"CPI p>0.05 controlled min_p={min_p:.4f} for outer 0 (honest, not significant at alpha 0.05)")
+458:        # Show controlled for outer 0 by default, plus note never on test leakage
+461:        print("controlled — raw permutation suppressed when |r|>0.7 (must NOT report raw at correlation>0.7 without conditioning)")

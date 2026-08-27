@@ -1,0 +1,66 @@
+# Task 3 Evidence — TOP5/TOP7 hygiene with _Top5List shim and p/n guards
+# Date: 2026-08-27
+# Files modified: assessment/features.py, assessment/tests/test_features.py (p_n disclosure fix)
+
+## Codegraph explore
+query: FEATURES_TOP5 FEATURES_TOP7 ALLOWED_RISK_FEATURES ja4_rarity
+- FEATURES_TOP5 5 cols, FEATURES_TOP7 7 cols, ALLOWED_RISK_FEATURES shared/ja4_rarity mirror
+
+## Before
+p_n_ratio = 5/50=0.10 (interim synthetic n=50)
+p_n_ratio_top7 = 7/200=0.035 (old n=200 honest working)
+p_n_ratio_top7_at_n50 = 7/50=0.14 guard equality only
+
+## After (assessment/features.py)
+p_n_ratio = 5/500=0.01        # honest @ n=500 quality, vs 28/500=0.056 forbidden
+p_n_ratio_at_n50 = 5/50=0.10  # preserved interim disclosure
+p_n_ratio_top7 = 7/500=0.014  # honest @ n=500 quality (fix old 7/200=0.035)
+p_n_ratio_top7_at_n50 = 7/50=0.14 <=0.14 explicit guard
+
+## Guards
+assert abs(p_n_ratio -0.01)<1e-9
+assert abs(p_n_ratio_top7 -0.014)<1e-9
+assert abs(p_n_ratio_top7_at_n50 -0.14)<1e-9
+assert p_n_ratio_top7_at_n50 <=0.14
+assert p_n_ratio_top7 <=0.14
+assert set(FEATURES_TOP5).issubset(set(FEATURES_28))
+assert _TOP5_CATEGORICAL.issubset(_CATEGORICAL_6)
+assert set(FEATURES_TOP7).issubset(set(FEATURES_28))
+assert _TOP7_CATEGORICAL.issubset(_CATEGORICAL_6)
+assert "ja4" not in ALLOWED_RISK_FEATURES
+assert "ja4_rarity" in ALLOWED_RISK_FEATURES  # shim retains
+assert "ja4" not in FEATURES_TOP5/28/TOP7 (via _Top5List __contains__ ja4->False, ja4_rarity->True)
+miss_indicator_ja4_rarity only in _MISS_7, not in TOP5/TOP7 (only if needed)
+
+## Verification commands
+## python -c check
+PASS
+
+## grep p_n_ratio_top7
+146:p_n_ratio_top7: float = len(FEATURES_TOP7) / 500  # disclosure: 7/500=0.014 honest @ n=500 quality
+147:p_n_ratio_top7_at_n50: float = len(FEATURES_TOP7) / 50  # 7/50=0.14 exactly max
+157:assert abs(p_n_ratio_top7 - 0.014) < 1e-9  # 7/500=0.014 honest
+158:assert abs(p_n_ratio_top7 - 7 / 500) < 1e-9
+159:assert abs(p_n_ratio_top7_at_n50 - 0.14) < 1e-9  # guard: must NOT exceed 0.14 at n=50
+160:assert p_n_ratio_top7_at_n50 <= 0.14  # explicit guard: MUST NOT exceed 0.14
+161:assert p_n_ratio_top7 <= 0.14
+162:assert p_n_ratio <= p_n_ratio_top7_at_n50  # TOP5 p/n <= TOP7 p/n at n=50
+297:    print(f"FEATURES_TOP7: {len(FEATURES_TOP7)} cols p/n 7/500={p_n_ratio_top7:.3f} 7/50={p_n_ratio_top7_at_n50:.3f} {list(FEATURES_TOP7)}")
+298:    print(f"TOP7 p_n_ratio_top7={p_n_ratio_top7:.4f} (7/500=0.014) guard at n50={p_n_ratio_top7_at_n50:.4f} <=0.14 OK")
+299:    print(f"TOP5 p/n 5/500={p_n_ratio:.4f} TOP7 p/n 7/500={p_n_ratio_top7:.4f} (vs 28/500=0.056 forbidden)")
+
+## python -m assessment.features
+FEATURES_28: 28 cols
+FEATURES_TOP5: 5 cols p/n 5/500=0.010 5/50=0.100 ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry']
+FEATURES_TOP7: 7 cols p/n 7/500=0.014 7/50=0.140 ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry']
+TOP7 p_n_ratio_top7=0.0140 (7/500=0.014) guard at n50=0.1400 <=0.14 OK
+TOP5 p/n 5/500=0.0100 TOP7 p/n 7/500=0.0140 (vs 28/500=0.056 forbidden)
+build_vector_top7 demo shape (1, 7) cols ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry']
+
+## pytest assessment/tests/test_features.py -q
+............................                                             [100%]
+28 passed in 0.27s
+
+## grep raw ja4 (should not find raw ja4 as feature)
+## p/n values
+p_n_ratio=0.01 p_n_ratio_top7=0.014 p_n_ratio_top7_at_n50=0.14

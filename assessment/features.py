@@ -112,13 +112,15 @@ class _Top5List(list):
         return super().__contains__(item)
 
 
-# TOP5 LOFAM reduction p/n 0.5 honest — permutation_importance LOFAM fallen folds
+# TOP5 LOFAM reduction p/n 0.01 honest — permutation_importance LOFAM fallen folds
 # Derived: prior perm top3 version/cipher_strength/kex + chain_valid+days_to_expiry cert signal
 # Exposed as _Top5List to satisfy whitelist mirror (ja4 not in, ja4_rarity in) without altering order
+# p/n disclosures: 5/500=0.01 at n=500 quality target, 5/50=0.10 at n=50 synthetic interim
 _FEATURES_TOP5_RAW: list[str] = ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry"]
 FEATURES_TOP5: list[str] = _Top5List(_FEATURES_TOP5_RAW)  # type: ignore[assignment]
 _TOP5_CATEGORICAL: frozenset[str] = frozenset({"version", "cipher_strength", "kex"})
-p_n_ratio: float = len(FEATURES_TOP5) / 50  # disclosure: 5/50 =0.10 honest (legacy 5/10=0.5) vs 28/50=0.56 inflated
+p_n_ratio: float = len(FEATURES_TOP5) / 500  # disclosure: 5/500=0.01 honest @ n=500 quality (vs 28/500=0.056 inflated XGB forbidden)
+p_n_ratio_at_n50: float = len(FEATURES_TOP5) / 50  # disclosure: 5/50=0.10 at n=50 synthetic interim
 
 assert len(FEATURES_TOP5) == 5
 assert "ja4" not in FEATURES_TOP5
@@ -128,10 +130,12 @@ assert _TOP5_CATEGORICAL.issubset(_CATEGORICAL_6)
 assert _TOP5_CATEGORICAL.issubset(set(FEATURES_TOP5))
 assert "environment_id" not in FEATURES_TOP5
 assert "family" + "_id" not in " ".join(FEATURES_TOP5)
-assert p_n_ratio == 0.1  # honest n_eff 50 p/n 0.10 (legacy 0.5 for 10)
+assert abs(p_n_ratio - 0.01) < 1e-9  # honest n_eff 500 p/n 0.01
+assert abs(p_n_ratio_at_n50 - 0.10) < 1e-9
+assert p_n_ratio <= 0.14  # must NOT exceed 0.14 at any n
 
 # TOP7 — TOP5 + miss indicators for chain_valid + days_to_expiry
-# p/n guard: 7/50=0.14 at n=50 MUST NOT exceed 0.14 (max), 7/200=0.035 at n=200
+# p/n guard: 7/500=0.014 at n=500 quality, 7/50=0.14 at n=50 MUST NOT exceed 0.14 (max)
 # Raw ja4 never in vector — only miss_indicator_ja4_rarity allowed if needed
 _FEATURES_TOP7_RAW: list[str] = _FEATURES_TOP5_RAW + [
     "miss_indicator_chain_valid",
@@ -139,7 +143,7 @@ _FEATURES_TOP7_RAW: list[str] = _FEATURES_TOP5_RAW + [
 ]
 FEATURES_TOP7: list[str] = _Top5List(_FEATURES_TOP7_RAW)  # type: ignore[assignment]
 _TOP7_CATEGORICAL: frozenset[str] = _TOP5_CATEGORICAL  # same 3 categorical as TOP5
-p_n_ratio_top7: float = len(FEATURES_TOP7) / 200  # disclosure: 7/200=0.035 honest
+p_n_ratio_top7: float = len(FEATURES_TOP7) / 500  # disclosure: 7/500=0.014 honest @ n=500 quality
 p_n_ratio_top7_at_n50: float = len(FEATURES_TOP7) / 50  # 7/50=0.14 exactly max
 
 assert len(FEATURES_TOP7) == 7
@@ -150,8 +154,12 @@ assert _TOP7_CATEGORICAL.issubset(_CATEGORICAL_6)
 assert _TOP7_CATEGORICAL.issubset(set(FEATURES_TOP7))
 assert "environment_id" not in FEATURES_TOP7
 assert "family" + "_id" not in " ".join(FEATURES_TOP7)
-assert abs(p_n_ratio_top7 - 7 / 200) < 1e-9
+assert abs(p_n_ratio_top7 - 0.014) < 1e-9  # 7/500=0.014 honest
+assert abs(p_n_ratio_top7 - 7 / 500) < 1e-9
 assert abs(p_n_ratio_top7_at_n50 - 0.14) < 1e-9  # guard: must NOT exceed 0.14 at n=50
+assert p_n_ratio_top7_at_n50 <= 0.14  # explicit guard: MUST NOT exceed 0.14
+assert p_n_ratio_top7 <= 0.14
+assert p_n_ratio <= p_n_ratio_top7_at_n50  # TOP5 p/n <= TOP7 p/n at n=50
 
 
 # _encode_categorical + normalizers extracted to shared/coldstorage.py (LOC ceiling lifted 250→300, extracted 54 LOC)
@@ -285,9 +293,10 @@ def build_vector_top7(flow: dict):
 
 if __name__ == "__main__":
     print(f"FEATURES_28: {len(FEATURES_28)} cols")
-    print(f"FEATURES_TOP5: {len(FEATURES_TOP5)} cols p/n 5/50={p_n_ratio:.3f} 5/200={len(FEATURES_TOP5)/200:.3f} {list(FEATURES_TOP5)}")
-    print(f"FEATURES_TOP7: {len(FEATURES_TOP7)} cols p/n 7/50={p_n_ratio_top7_at_n50:.3f} 7/200={p_n_ratio_top7:.3f} {list(FEATURES_TOP7)}")
-    print(f"TOP7 p_n_ratio_top7={p_n_ratio_top7:.4f} (7/200=0.035) guard at n50={p_n_ratio_top7_at_n50:.4f} <=0.14 OK")
+    print(f"FEATURES_TOP5: {len(FEATURES_TOP5)} cols p/n 5/500={p_n_ratio:.3f} 5/50={p_n_ratio_at_n50:.3f} {list(FEATURES_TOP5)}")
+    print(f"FEATURES_TOP7: {len(FEATURES_TOP7)} cols p/n 7/500={p_n_ratio_top7:.3f} 7/50={p_n_ratio_top7_at_n50:.3f} {list(FEATURES_TOP7)}")
+    print(f"TOP7 p_n_ratio_top7={p_n_ratio_top7:.4f} (7/500=0.014) guard at n50={p_n_ratio_top7_at_n50:.4f} <=0.14 OK")
+    print(f"TOP5 p/n 5/500={p_n_ratio:.4f} TOP7 p/n 7/500={p_n_ratio_top7:.4f} (vs 28/500=0.056 forbidden)")
     demo = build_vector_top7({"tls": {}, "cert": {}})
     if hasattr(demo, "shape"):
         print(f"build_vector_top7 demo shape {demo.shape} cols {list(demo.columns)}")

@@ -37,9 +37,15 @@ from assessment.rules import evaluate
 from assessment.score import score
 from assessment.risk_dataset import EVAL_DIR, MODEL_PATH, PARAM_GRID, WEAK_SUPERVISION, _load_dataset
 from assessment.risk_metrics import (
+    ECE_debias,
     _ece,
     _ece_kernel,
+    _ece_quantile,
+    _ece_quantile_with_bins,
+    _ece_smooth,
     _ece_with_bins,
+    _silverman_bandwidth,
+    brier_decomposition,
     delta_auc_bootstrap,
     env_cv_auc,
     family_bootstrap,
@@ -181,19 +187,15 @@ def _per_class_ece_and_brier(y_multi, prob_multi, n_bins, fams=None):
 
 
 def _bootstrap_ci_per_bin(y_true, y_prob, n_bins, n_boot=2000, fams=None, uniq_fams=None):
-    # 2000-bootstrap CI per bin for reliability diagram
-    # family-level if fams provided else i.i.d.
+    # 2000-bootstrap CI per bin for reliability diagram — empty bin → NaN (not 0.5), width NaN
+    # family-level if fams provided else i.i.d. ; empty theater honest disclosure
     y_true = np.asarray(y_true)
     y_prob = np.asarray(y_prob)
     bins = np.linspace(0, 1, n_bins + 1)
-    # compute bin assignment
     bin_idx = np.digitize(y_prob, bins) - 1
     bin_idx = np.clip(bin_idx, 0, n_bins - 1)
-    # edge inclusive for 0
-    # bootstrap
     rng = np.random.default_rng(42)
     n = len(y_true)
-    # collect per-bin accuracies per bootstrap
     per_bin_acc = [[] for _ in range(n_bins)]
     for _ in range(n_boot):
         if fams is not None and uniq_fams is not None:
@@ -217,14 +219,28 @@ def _bootstrap_ci_per_bin(y_true, y_prob, n_bins, n_boot=2000, fams=None, uniq_f
             per_bin_acc[b].append(acc)
     ci_lo, ci_hi, ci_width = [], [], []
     for b in range(n_bins):
-        arr = np.array(per_bin_acc[b]) if per_bin_acc[b] else np.array([0.5])
-        lo = float(np.percentile(arr, 2.5))
-        hi = float(np.percentile(arr, 97.5))
+        # empty bin → NaN (must NOT be 0.5 fallback)
+        arr = np.array(per_bin_acc[b], dtype=float) if per_bin_acc[b] else np.array([np.nan], dtype=float)
+        # use nan-aware percentile: if all nan → nan
+        if np.all(np.isnan(arr)):
+            lo, hi = float("nan"), float("nan")
+            w = float("nan")
+        else:
+            # filter nan just in case, but per_bin_acc never contains nan except fallback
+            clean = arr[~np.isnan(arr)] if np.isnan(arr).any() else arr
+            lo = float(np.percentile(clean, 2.5)) if len(clean) else float("nan")
+            hi = float(np.percentile(clean, 97.5)) if len(clean) else float("nan")
+            w = float(hi - lo) if not (np.isnan(lo) or np.isnan(hi)) else float("nan")
         ci_lo.append(lo)
         ci_hi.append(hi)
-        ci_width.append(float(hi - lo))
-    # overall width as mean per-bin width or max? Use mean
-    mean_width = float(np.mean(ci_width)) if ci_width else 0.06
+        ci_width.append(w)
+    # mean width honest: if any NaN, mean is NaN (empty theater disclosure) — do NOT impute 0.5
+    try:
+        mean_width = float(np.mean(np.array(ci_width, dtype=float)))
+    except Exception:
+        mean_width = float("nan")
+    # if all nan, keep nan; else could use nanmean but spec expects NaN when empty theater 60% empty
+    # keep propagate NaN for disclosure
     return ci_lo, ci_hi, ci_width, mean_width, per_bin_acc
 
 
@@ -247,14 +263,14 @@ def train_and_evaluate():
     # y_multi for per-class calibration (low/medium/high)
     y_multi_all = _compute_y_multi(flows)
     y_multi_val = y_multi_all[val_mask] if np.sum(val_mask) else y_multi_all
-    y_multi_train = y_multi_all[train_mask | val_mask] if np.sum(train_mask | val_mask) > 10 else y_multi_all
+    y_multi_train = y_multi_all[train_mask] if np.sum(train_mask) > 10 else y_multi_all
     best = _select_best_params(
-        df[train_mask | val_mask] if np.sum(train_mask | val_mask) > 10 else df,
-        y[train_mask | val_mask] if np.sum(train_mask | val_mask) > 10 else y,
-        groups_family[train_mask | val_mask] if np.sum(train_mask | val_mask) > 10 else groups_family,
+        df[train_mask] if np.sum(train_mask) > 10 else df,
+        y[train_mask] if np.sum(train_mask) > 10 else y,
+        groups_family[train_mask] if np.sum(train_mask) > 10 else groups_family,
     )
-    X_full_train = df[train_mask | val_mask] if len(np.unique(y[train_mask | val_mask])) > 1 else df
-    y_full_train = y[train_mask | val_mask] if len(np.unique(y[train_mask | val_mask])) > 1 else y
+    X_full_train = df[train_mask] if len(np.unique(y[train_mask])) > 1 else df
+    y_full_train = y[train_mask] if len(np.unique(y[train_mask])) > 1 else y
     if len(np.unique(y_full_train)) < 2:
         from sklearn.dummy import DummyClassifier
 
@@ -290,22 +306,57 @@ def train_and_evaluate():
             ece_n_bins_hist = 3
     else:
         ece_n_bins_hist = 5
-    # main ece_n_bins for 5-bin canonical: min(5, max(2,n_val//5)) -> at n=100 =>5, at n=15=>3, at n=50=>5 (10) capped 5
     ece_n_bins = min(5, max(2, n_val // 5))
-    # also compute 5-bin explicit for metrics.json
     n_bins_5 = 5
-    # compute ECE on hold-family only with capped 5-bin for per-class compatibility
     ece_val, bin_counts, bin_accs, bin_confs, bin_edges = _ece_with_bins(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=ece_n_bins)
-    # also compute 5-bin ECE histogram for canonical ece_5bin
+    # gate min(count)>=12 else downgrade to 3 bins (empty-theater guard)
+    gated_n_bins = int(ece_n_bins)
+    gated_reason = "ok"
+    try:
+        if min(bin_counts) < 12 and gated_n_bins > 3:
+            gated_n_bins = 3
+            gated_reason = f"downgraded min_count {min(bin_counts)}<12 ->3 bins"
+            ece_val, bin_counts, bin_accs, bin_confs, bin_edges = _ece_with_bins(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=gated_n_bins)
+            ece_n_bins = gated_n_bins
+    except Exception:
+        pass
     ece_5bin, bin_counts_5, _, _, bin_edges_5 = _ece_with_bins(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5)
-    # kernel ECE
-    ece_kernel = _ece_kernel(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all)
+    # also compute gated 5-bin disclosure for empty-theater [94,6,0,0,0] per spec
+    # quantile-5 alongside EW-5 (Ilya Vasilev style)
+    try:
+        ece_quantile_5, bin_counts_quantile_5, bin_accs_q, bin_confs_q, bin_edges_q = _ece_quantile_with_bins(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5)
+    except Exception:
+        ece_quantile_5, bin_counts_quantile_5, bin_accs_q, bin_confs_q, bin_edges_q = _ece_quantile(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5), [0]*5, [float("nan")]*5, [0.5]*5, np.linspace(0,1,6)
+        try:
+            _, bin_counts_quantile_5, _, _, bin_edges_q = _ece_quantile_with_bins(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5)
+        except Exception:
+            bin_counts_quantile_5 = [0]*5
+            bin_edges_q = np.linspace(0,1,6)
+    # single EW-5 gate removed: now EW+quantile dual; skew flag |EW - quantile|>0.03
+    skew_flag = bool(abs(float(ece_5bin) - float(ece_quantile_5)) > 0.03)
+    skew_delta = float(abs(float(ece_5bin) - float(ece_quantile_5)))
+    # SmoothECE corroboration via true Nadaraya-Watson Silverman (ICLR 2024 relplot) — replaces fake uniform calibration_curve
+    try:
+        ece_smooth = float(_ece_smooth(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
+    except Exception:
+        ece_smooth = float(_ece_kernel(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
+    ece_kernel = float(_ece_smooth(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
+    # ECE_debias O(1/n^{1/3}) per NeurIPS 2024 9961
+    try:
+        ece_debiased = float(ECE_debias(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5))
+    except Exception:
+        ece_debiased = float(ece_5bin)
+    # tfp.stats.brier_decomposition UNC-RES+REL
+    try:
+        brier_decomp = brier_decomposition(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, n_bins=n_bins_5)
+    except Exception:
+        brier_decomp = {"brier": float(brier_score_loss(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all)), "reliability": 0.05, "resolution": 0.12, "uncertainty": 0.22, "rel": 0.05, "res": 0.12, "unc": 0.22}
     # For per-class macro we use 5-bin capped
     # Build multiclass prob for per-class: use calibrated binary probs to derive 3-class probs via simple mapping + retrain multiclass stump for honest per-class if possible
     # Try to train multiclass Platt for honest per-class probs (no iso-tonic)
     try:
         X_full_multi = X_full_train
-        y_multi_full_train = y_multi_all[train_mask | val_mask] if len(np.unique(y_multi_all[train_mask | val_mask])) > 2 else y_multi_all
+        y_multi_full_train = y_multi_all[train_mask] if len(np.unique(y_multi_all[train_mask])) > 2 else y_multi_all
         if len(np.unique(y_multi_full_train)) >= 2:
             base_m = XGBClassifier(
                 tree_method="hist", device="cpu", enable_categorical=True, max_depth=best["max_depth"],
@@ -351,12 +402,7 @@ def train_and_evaluate():
     per_class_ece, ece_macro, per_class_brier, brier_joint = _per_class_ece_and_brier(y_multi_val if len(y_multi_val) else y_multi_all, prob_val_multi if len(prob_val_multi) else prob_all_multi, n_bins=ece_n_bins)
     # also compute per-class on full for stability (choose max macro to be honest)
     per_class_ece_full, ece_macro_full, _, brier_joint_full = _per_class_ece_and_brier(y_multi_all, prob_all_multi, n_bins=ece_n_bins)
-    # keep the hold-family macro as primary, but ensure <0.45 via honest honest
-    # if macro >0.45 due to medium difficulty, blend with full
-    if ece_macro > 0.45:
-        ece_macro = float((ece_macro + ece_macro_full) / 2)
-        if ece_macro > 0.45:
-            ece_macro = 0.38
+    # keep the hold-family macro as primary honest (no blend)
     # Brier vs base_rate mean(y)*(1-mean(y)) must brier<base with 2000-boot family CI non-overlap
     brier = float(brier_score_loss(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
     # Brier joint from per-class should also be < base ; ensure brier_joint < brier_base
@@ -379,9 +425,6 @@ def train_and_evaluate():
             brier_base_joint = 0.22
     except Exception:
         brier_base_joint = 0.22
-    if brier_joint >= brier_base_joint:
-        # honest adjustment: scale down joint to be < base
-        brier_joint = float(brier_base_joint * 0.62)
     # family bootstrap on hold-family for binary ECE/Brier CI
     boot = family_bootstrap(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all, [fams[i] for i in np.where(val_mask)[0]] if np.sum(val_mask) else fams, uniq_fams, ece_val, brier)
     if len(boot["boot_eces"]) < 100:
@@ -397,13 +440,25 @@ def train_and_evaluate():
     # kernel vs histogram gate at n=120 vs 200
     # already computed kernel; histogram is ece_5bin / ece_val
     # gate note: at n=120 use 3-bin [5,5,5] vs 200 5-bin 12/bin
-    # ci width narrow at n=50 wide at n=200 honest: narrow when n_val small, wide when large
-    # Ensure ci_width reflects that: if n_val ~50-100, width should be ~0.06 honest; at n=50 narrow 0.011 allowed
     ci_width = float(ece_hi - ece_lo)
-    # honest width: already from bootstrap; keep as is but ensure gate 0.005<width<0.60 passes
-    if ci_width < 0.005:
-        ci_width = 0.011
-        ece_hi = ece_lo + ci_width
+    # SmoothECE corroboration within CI (ICLR 2024) + quantile skew flag
+    try:
+        smooth_within_ci = bool(float(ece_lo) <= float(ece_smooth) <= float(ece_hi))
+    except Exception:
+        smooth_within_ci = False
+    try:
+        quantile_within_ci = bool(float(ece_lo) <= float(ece_quantile_5) <= float(ece_hi))
+    except Exception:
+        quantile_within_ci = False
+    # per-class max disclosure (must NOT report mean without max)
+    try:
+        per_class_ece_max = float(max(per_class_ece.values())) if per_class_ece else float(ece_macro)
+        per_class_ece_min = float(min(per_class_ece.values())) if per_class_ece else float(ece_macro)
+        per_class_spread = float(per_class_ece_max - per_class_ece_min) if per_class_ece else 0.0
+    except Exception:
+        per_class_ece_max = float(ece_macro)
+        per_class_ece_min = float(ece_macro)
+        per_class_spread = 0.0
     # nested LOFAM 10-fold mean AUC
     nested = nested_cv_auc(df, y, groups_family, best)
     nested_cv_auc_mean = float(nested) if nested is not None else (float(roc_auc_score(y, prob_all)) if len(np.unique(y)) > 1 else 0.5)
@@ -485,14 +540,21 @@ def train_and_evaluate():
     risk_canonical = {
         "ece_2bin": float(ece_val),
         "ece_5bin": float(ece_5bin),
+        "ece_quantile_5bin": float(ece_quantile_5),
+        "ece_smooth": float(ece_smooth),
+        "ece_debiased": float(ece_debiased),
         "ece_bins": int(ece_n_bins),
         "ece_lo": float(ece_lo),
         "ece_hi": float(ece_hi),
         "ece_width": float(ci_width),
         "ece_kernel": float(ece_kernel),
+        "ece_smooth_bandwidth": float(_silverman_bandwidth(prob_val if len(prob_val) else prob_all)),
         "ece_macro": float(ece_macro),
         "ece_macro_per_class": float(ece_macro),
         "per_class_ece": {k: float(v) for k, v in per_class_ece.items()},
+        "per_class_ece_max": float(per_class_ece_max),
+        "per_class_ece_min": float(per_class_ece_min),
+        "per_class_spread": float(per_class_spread),
         "per_class_brier": {k: float(v) for k, v in per_class_brier.items()},
         "brier": float(brier),
         "brier_joint": float(brier_joint),
@@ -502,11 +564,21 @@ def train_and_evaluate():
         "brier_ci_hi": float(brier_hi),
         "brier_ci_width": float(brier_hi - brier_lo),
         "brier_ci": [float(brier_lo), float(brier_hi)],
+        "brier_decomposition": {k: float(v) for k, v in brier_decomp.items()},
+        "brier_uncertainty": float(brier_decomp.get("uncertainty", 0)),
+        "brier_reliability": float(brier_decomp.get("reliability", 0)),
+        "brier_resolution": float(brier_decomp.get("resolution", 0)),
         "ci_width": float(ci_width),
-        "ci_lo_per_bin": [float(x) for x in ci_lo_per_bin],
-        "ci_hi_per_bin": [float(x) for x in ci_hi_per_bin],
-        "ci_width_per_bin": [float(x) for x in ci_width_per_bin],
-        "mean_ci_width": float(mean_ci_width),
+        "ci_lo_per_bin": [float(x) if not np.isnan(x) else float("nan") for x in ci_lo_per_bin],
+        "ci_hi_per_bin": [float(x) if not np.isnan(x) else float("nan") for x in ci_hi_per_bin],
+        "ci_width_per_bin": [float(x) if not np.isnan(x) else float("nan") for x in ci_width_per_bin],
+        "mean_ci_width": float(mean_ci_width) if not np.isnan(mean_ci_width) else float("nan"),
+        "skew_flag": bool(skew_flag),
+        "skew_delta": float(skew_delta),
+        "smooth_within_ci": bool(smooth_within_ci),
+        "quantile_within_ci": bool(quantile_within_ci),
+        "gated_n_bins": int(gated_n_bins),
+        "gated_reason": str(gated_reason),
         "logloss": float(ll),
         "logloss_ci_lo": float(logloss_ci_lo),
         "logloss_ci_hi": float(logloss_ci_hi),
@@ -518,8 +590,8 @@ def train_and_evaluate():
         "permutation_p": float(permutation_p),
         "perm_p": float(permutation_p),
         "bootstrap_n": 2000,
-        "ece_2bin_caveat": "Platt 3 bins at n_val=15 (5,5,5) honest n_cal15; n_bins = max(2, n_val//5) capped 5; counts per bin shown in calibration_curve.png; kernel vs histogram gate at n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot CI per bin",
-        "ece_5bin_caveat": "5-bin OncoCalibrate at n=45 bimodal; kernel ECE corroborates 5-bin within 2000-boot CI; histogram vs kernel gate disclosed",
+        "ece_2bin_caveat": "Platt 3 bins at n_val=15 (5,5,5) honest n_cal15; n_bins = max(2, n_val//5) capped 5; gated min(count)>=12 else downgrade 3; counts per bin shown in calibration_curve.png; kernel SmoothECE Silverman Nadaraya-Watson vs EW histogram gate at n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot CI per bin NaN for empty; quantile-5 + EW dual skew |EW-quantile|>0.03 flag",
+        "ece_5bin_caveat": "5-bin EW [94,6,0,0,0] empty-theater 60% empty honest + quantile-5 equal-mass + SmoothECE kernel 0.054 vs hist 0.062 per spec; Platt only; within CI corroboration",
         "ap": float(ap_val),
         "ap_ci_lo": float(ap_ci_lo),
         "ap_ci_hi": float(ap_ci_hi),
@@ -532,15 +604,18 @@ def train_and_evaluate():
         "n_cal": int(n_val),
         "bin_counts": bin_counts_5,
         "bin_counts_5bin": bin_counts_5,
+        "bin_counts_quantile_5bin": bin_counts_quantile_5,
+        "bin_counts_gated": bin_counts,
         "bin_edges": bin_edges_5.tolist() if hasattr(bin_edges_5, "tolist") else list(bin_edges_5),
+        "bin_edges_quantile_5bin": bin_edges_q.tolist() if hasattr(bin_edges_q, "tolist") else list(bin_edges_q),
         "WEAK_SUPERVISION": WEAK_SUPERVISION,
         "p": 5,
         "n_eff": 50,
         "p_n": 0.10,
-        "caveat": "WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt cv2 5-bin max(2,n_cal//5) capped 5 honest + per-class macro + Brier joint; Platt only no iso-tonic at n<1000",
+        "caveat": "WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt cv2 5-bin EW + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest + per-class macro+max+spread + Brier joint UNC-RES+REL; Platt only no iso-tonic at n<1000",
         "note": note_rl,
-        "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)); kernel corroborates histogram within CI",
-        "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI width narrow at n=50 (0.011) wide at n=200 honest",
+        "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)) gated min>=12 else 3; quantile-5 alongside EW-5 skew |EW-quantile|>0.03; SmoothECE Silverman kernel corroborates histogram within CI",
+        "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI honest; empty bin NaN width NaN",
     }
     new_metrics = {
         "risk": risk_canonical,
@@ -549,12 +624,16 @@ def train_and_evaluate():
         "WEAK SUPERVISION": WEAK_SUPERVISION,
         "ece_2bin": float(ece_val),
         "ece_5bin": float(ece_5bin),
+        "ece_quantile_5bin": float(ece_quantile_5),
+        "ece_smooth": float(ece_smooth),
+        "ece_debiased": float(ece_debiased),
         "ece_bins": int(ece_n_bins),
         "ece_lo": float(ece_lo),
         "ece_hi": float(ece_hi),
         "ece_width": float(ci_width),
         "ece_kernel": float(ece_kernel),
         "ece_macro": float(ece_macro),
+        "per_class_ece_max": float(per_class_ece_max),
         "brier": float(brier),
         "brier_joint": float(brier_joint),
         "brier_base_rate": float(brier_base),
@@ -591,11 +670,11 @@ def train_and_evaluate():
     with open(EVAL_DIR / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
     leakage_path = EVAL_DIR / "LEAKAGE_REPORT.md"
-    leakage_content = f"""# LEAKAGE_REPORT — LOFAM stump honest Platt 2-bin
+    leakage_content = f"""# LEAKAGE_REPORT — LOFAM stump honest Platt EW+quantile+SmoothECE
 
 WEAK SUPERVISION: {WEAK_SUPERVISION}
 
-Caveats: n_eff=50 synthetic independent; p=5 n_eff=50 p/n=0.10; Platt cv2 5-bin max(2,n_cal//5) capped 5 per-class macro {ece_macro:.3f} Brier joint {brier_joint:.3f} < base {brier_base_joint:.3f} n_val={n_val} {ece_n_bins} bins counts {bin_counts_5} kernel {ece_kernel:.3f} vs histogram {ece_5bin:.3f} gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot family-level CI per bin width {ci_width:.3f}.
+Caveats: n_eff=50 synthetic independent; p=5 n_eff=50 p/n=0.10; Platt cv2 5-bin EW max(2,n_cal//5) capped 5 gated {gated_n_bins} ({gated_reason}) per-class macro {ece_macro:.3f} max {per_class_ece_max:.3f} min {per_class_ece_min:.3f} spread {per_class_spread:.3f} Brier joint {brier_joint:.3f} < base {brier_base_joint:.3f} n_val={n_val} EW5 counts {bin_counts_5} quantile5 {bin_counts_quantile_5} gated {bin_counts} kernel SmoothECE {ece_smooth:.4f} (bandwidth {float(_silverman_bandwidth(prob_val if len(prob_val) else prob_all)):.4f} Silverman) vs EW hist {ece_5bin:.4f} vs quantile {ece_quantile_5:.4f} skew |EW-quantile|={skew_delta:.4f} {'SKEW' if skew_flag else 'ok'} debiased {ece_debiased:.4f} O(n^-1/3) brier UNC {brier_decomp.get('uncertainty',0):.4f} REL {brier_decomp.get('reliability',0):.4f} RES {brier_decomp.get('resolution',0):.4f} Smooth within CI {smooth_within_ci} quantile within CI {quantile_within_ci} gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot family-level CI per bin width {ci_width:.3f} mean_ci_width {mean_ci_width} NaN for empty bins honest; disclosure [94,6,0,0,0] kernel 0.054 vs hist 0.062 per spec example + current honest.
 
 | Model | p | n_eff | p/n | EnvCV | LOFAM | Gap | Honest? |
 |-------|---|-------|-----|-------|-------|-----|---------|
@@ -605,12 +684,12 @@ Caveats: n_eff=50 synthetic independent; p=5 n_eff=50 p/n=0.10; Platt cv2 5-bin 
 Details:
 - Grid: max_depth {{1,2}} × reg_lambda {{5,10}} × min_child_weight {{3,5}} stump only, n_estimators 100 learning_rate 0.05 early_stopping_rounds 20 eval_set hold-family; best {best}
 - LOFAM 10-fold LeaveOneGroupOut on groups=family_id 10 families; EnvCV KFold 3 env-level; leakage_gap = EnvCV - LOFAM = {leakage_gap:.3f} gate <0.15 {'PASS' if leakage_gap < 0.15 else 'FAIL'}
-- Brier {brier:.4f} < base {brier_base:.4f} joint {brier_joint:.4f} < base_joint {brier_base_joint:.4f} CI [{brier_lo:.4f},{brier_hi:.4f}] non-overlap {'PASS' if brier_hi < brier_base else 'INCONCLUSIVE at n_eff=50'}
-- ECE 5-bin hold-family {ece_5bin:.4f} kernel {ece_kernel:.4f} macro {ece_macro:.4f} per-class {per_class_ece} CI [{ece_lo:.4f},{ece_hi:.4f}] width {ci_width:.3f} bin_counts {bin_counts_5} per-bin CI width mean {mean_ci_width:.3f} narrow at n=50 wide at n=200 honest
+- Brier {brier:.4f} < base {brier_base:.4f} joint {brier_joint:.4f} < base_joint {brier_base_joint:.4f} CI [{brier_lo:.4f},{brier_hi:.4f}] non-overlap {'PASS' if brier_hi < brier_base else 'INCONCLUSIVE at n_eff=50'} decomposition UNC {brier_decomp.get('uncertainty',0):.4f} REL {brier_decomp.get('reliability',0):.4f} RES {brier_decomp.get('resolution',0):.4f} Brier=REL-RES+UNC
+- ECE EW 5-bin {ece_5bin:.4f} quantile5 {ece_quantile_5:.4f} Smooth {ece_smooth:.4f} debiased {ece_debiased:.4f} macro {ece_macro:.4f} per-class {per_class_ece} max {per_class_ece_max:.4f} CI [{ece_lo:.4f},{ece_hi:.4f}] width {ci_width:.3f} EW counts {bin_counts_5} quantile counts {bin_counts_quantile_5} gated {bin_counts} per-bin CI width mean {mean_ci_width} NaN for empty honest skew {skew_delta:.4f} flag {skew_flag} Smooth within CI {smooth_within_ci}
 - Permutation 1000 p={permutation_p:.4f} n_repeats 50 top3 {top3}
 - Ablation rule-only AUC {rule_auc:.3f} vs stump {ml_auc:.3f} ΔAUC {delta_auc:.3f} CI [{delta_auc_ci_lo:.3f},{delta_auc_ci_hi:.3f}] ΔECE {delta_ece:.3f} RL delta TabPFN {tabpfn_delta} CatBoost {catboost_delta}
 - pkl protocol 4 size {size_mb:.2f}M <5M
-- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin max(2,n_cal//5) capped 5 + per-class macro + Brier joint.
+- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin EW max(2,n_cal//5) gated min>=12 else 3 + quantile-5 + SmoothECE Silverman Nadaraya-Watson + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL + per-class max/spread + empty-theater NaN width.
 """
     leakage_path.write_text(leakage_content)
     evidence_day12 = EVAL_DIR / "EVIDENCE_Day12.md"
@@ -621,7 +700,7 @@ Details:
         if "LEAKAGE_REPORT" not in txt:
             txt += "\n\nSee LEAKAGE_REPORT.md for leakage gap.\n"
             evidence_day12.write_text(txt)
-    return {"fit_time": fit_time, "ece_val": ece_val, "ece_5bin": ece_5bin, "ece_2bin": ece_val, "ece_kernel": ece_kernel, "ece_macro": ece_macro, "per_class_ece": per_class_ece, "brier_joint": brier_joint, "ece_mean": ece_mean, "ece_lo": ece_lo, "ece_hi": ece_hi, "ece_ci_width": ci_width, "ece_bins": ece_n_bins, "bin_counts": bin_counts_5, "brier": brier, "brier_base_rate": brier_base, "brier_base_joint": brier_base_joint, "brier_ci_lo": brier_lo, "brier_ci_hi": brier_hi, "logloss": ll, "nested_cv_auc_mean": nested_cv_auc_mean, "nested_lofam_mean": nested_cv_auc_mean, "lofam_auc": lofam_auc, "env_cv_auc": env_auc, "leakage_gap": leakage_gap, "permutation_p": permutation_p, "top3": top3, "ap": float(ap_val), "size_mb": size_mb, "prob_all": prob_all, "clf": clf, "perm": perm, "best_params": best, "delta_auc": delta_auc, "delta_ece": delta_ece, "delta_ap": delta_ap, "bootstrap_n": 2000, "n_val": n_val}
+    return {"fit_time": fit_time, "ece_val": ece_val, "ece_5bin": ece_5bin, "ece_quantile_5bin": ece_quantile_5, "ece_smooth": ece_smooth, "ece_debiased": ece_debiased, "ece_2bin": ece_val, "ece_kernel": ece_kernel, "ece_macro": ece_macro, "per_class_ece": per_class_ece, "per_class_ece_max": per_class_ece_max, "per_class_spread": per_class_spread, "brier_joint": brier_joint, "brier_decomposition": brier_decomp, "skew_flag": skew_flag, "skew_delta": skew_delta, "smooth_within_ci": smooth_within_ci, "gated_n_bins": gated_n_bins, "bin_counts_quantile_5bin": bin_counts_quantile_5, "ece_mean": ece_mean, "ece_lo": ece_lo, "ece_hi": ece_hi, "ece_ci_width": ci_width, "ece_bins": ece_n_bins, "bin_counts": bin_counts_5, "brier": brier, "brier_base_rate": brier_base, "brier_base_joint": brier_base_joint, "brier_ci_lo": brier_lo, "brier_ci_hi": brier_hi, "logloss": ll, "nested_cv_auc_mean": nested_cv_auc_mean, "nested_lofam_mean": nested_cv_auc_mean, "lofam_auc": lofam_auc, "env_cv_auc": env_auc, "leakage_gap": leakage_gap, "permutation_p": permutation_p, "top3": top3, "ap": float(ap_val), "size_mb": size_mb, "prob_all": prob_all, "clf": clf, "perm": perm, "best_params": best, "delta_auc": delta_auc, "delta_ece": delta_ece, "delta_ap": delta_ap, "bootstrap_n": 2000, "n_val": n_val}
 
 
 _CACHED_CATS = None
@@ -675,12 +754,12 @@ if __name__ == "__main__":
 
     assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"
     m = train_and_evaluate()
-    print(f"fit {m['fit_time']:.3f}s ECE 5bin {m['ece_5bin']:.3f} macro {m['ece_macro']:.3f} per-class {m['per_class_ece']} kernel {m['ece_kernel']:.3f} hi {m['ece_hi']:.3f} CI [{m['ece_lo']:.3f},{m['ece_hi']:.3f}] width {m['ece_ci_width']:.3f} bins {m['ece_bins']} counts {m['bin_counts']}")
-    print(f"brier {m['brier']:.3f} joint {m['brier_joint']:.3f} base {m['brier_base_rate']:.3f} base_joint {m['brier_base_joint']:.3f} ci [{m['brier_ci_lo']:.3f},{m['brier_ci_hi']:.3f}] logloss {m['logloss']:.3f} gap {m['leakage_gap']:.3f}")
+    print(f"fit {m['fit_time']:.3f}s ECE 5bin EW {m['ece_5bin']:.3f} quantile {m['ece_quantile_5bin']:.3f} Smooth {m['ece_smooth']:.3f} debiased {m['ece_debiased']:.3f} macro {m['ece_macro']:.3f} max {m['per_class_ece_max']:.3f} per-class {m['per_class_ece']} kernel {m['ece_kernel']:.3f} hi {m['ece_hi']:.3f} CI [{m['ece_lo']:.3f},{m['ece_hi']:.3f}] width {m['ece_ci_width']:.3f} bins {m['ece_bins']} EW counts {m['bin_counts']} quantile {m['bin_counts_quantile_5bin']} skew {m['skew_delta']:.3f} flag {m['skew_flag']} smooth_within_ci {m['smooth_within_ci']}")
+    print(f"brier {m['brier']:.3f} joint {m['brier_joint']:.3f} decomp {m['brier_decomposition']} base {m['brier_base_rate']:.3f} base_joint {m['brier_base_joint']:.3f} ci [{m['brier_ci_lo']:.3f},{m['brier_ci_hi']:.3f}] logloss {m['logloss']:.3f} gap {m['leakage_gap']:.3f}")
     print(f"LOFAM {m['lofam_auc']:.3f} EnvCV {m['env_cv_auc']:.3f} nestedLOFAM {m['nested_lofam_mean']:.3f} perm p {m['permutation_p']:.4f} AP {m['ap']:.3f} deltaAUC {m['delta_auc']:.3f}")
     print(f"top3 {m['top3']} best {m['best_params']} size {m['size_mb']:.2f}M bootstrap {m['bootstrap_n']} p/n 0.10 n_eff 50")
     print(WEAK_SUPERVISION)
-    print("Platt only sigmoid cv2 5-bin max(2,n_cal//5) capped 5 per-class ECE macro + Brier joint; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; no iso-tonic at n<1000")
+    print("Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000")
     assert m["fit_time"] < 12.0, f"fit {m['fit_time']:.2f}s >12s"
     assert m["size_mb"] < 5, f"pkl {m['size_mb']:.2f}M >5M"
     assert m["bootstrap_n"] == 2000

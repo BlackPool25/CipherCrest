@@ -1,0 +1,142 @@
+=== TASK 1 EVIDENCE LOG ===
+Date: Thu Aug 27 09:56:42 AM UTC 2026
+
+--- BASELINE PRE (leakage theater) ---
+fit 10.235s ECE 5bin 0.062 macro 0.053 per-class {'low': 0.018126727170159104, 'medium': 0.07683903500780055, 'high': 0.06473590763043242} kernel 0.055 hi 0.100 CI [0.040,0.100] width 0.060 bins 5 counts [94, 6, 0, 0, 0]
+brier 0.035 joint 0.043 base 0.056 base_joint 0.220 ci [0.016,0.054] logloss 0.128 gap 0.000
+LOFAM 0.992 EnvCV 0.993 nestedLOFAM 0.992 perm p 0.0010 AP 0.976 deltaAUC 0.371
+top3 ['miss_indicator_ja4_rarity', 'chain_length', 'chain_valid'] best {'max_depth': 1, 'reg_lambda': 5.0, 'min_child_weight': 3} size 0.16M bootstrap 2000 p/n 0.10 n_eff 50
+Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+Platt only sigmoid cv2 5-bin max(2,n_cal//5) capped 5 per-class ECE macro + Brier joint; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; no iso-tonic at n<1000
+
+--- POST-FIX (honest train only) ---
+fit 10.022s ECE 5bin 0.040 macro 0.024 per-class {'low': 0.005361443105489616, 'medium': 0.030424411222748932, 'high': 0.0357858543282387} kernel 0.033 hi 0.072 CI [0.012,0.072] width 0.060 bins 5 counts [99, 1, 0, 0, 0]
+brier 0.053 joint 0.062 base 0.056 base_joint 0.220 ci [0.019,0.084] logloss 0.219 gap 0.001
+LOFAM 0.992 EnvCV 0.993 nestedLOFAM 0.992 perm p 0.0010 AP 0.819 deltaAUC 0.361
+top3 ['chain_length', 'is_aead', 'cipher_strength'] best {'max_depth': 1, 'reg_lambda': 5.0, 'min_child_weight': 3} size 0.16M bootstrap 2000 p/n 0.10 n_eff 50
+Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+Platt only sigmoid cv2 5-bin max(2,n_cal//5) capped 5 per-class ECE macro + Brier joint; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; no iso-tonic at n<1000
+
+--- GREP CHECKS ---
+grep train_mask|val_mask (should 0):
+0 matches PASS
+grep ece_macro 0.38 etc (should 0):
+0 matches PASS
+grep array[0.5] risk_train (should 0):
+0 matches PASS
+
+--- PYTEST ---
+.............                                                            [100%]
+=============================== warnings summary ===============================
+assessment/tests/test_risk_ablation.py: 828 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:386: DeprecationWarning: is_sparse is deprecated and will be removed in a future version. Check `isinstance(dtype, pd.SparseDtype)` instead.
+    or is_sparse(dtype)
+
+assessment/tests/test_risk_ablation.py: 4692 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:336: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    return is_int or is_bool or is_float or is_categorical_dtype(dtype)
+
+assessment/tests/test_risk_ablation.py: 828 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:387: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    or (is_nullable_dtype(dtype) and not is_categorical_dtype(dtype))
+
+assessment/tests/test_risk_ablation.py: 828 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:388: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    or (is_categorical_dtype(dtype) and enable_categorical)
+
+assessment/tests/test_risk_ablation.py: 3864 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:312: DeprecationWarning: is_sparse is deprecated and will be removed in a future version. Check `isinstance(dtype, pd.SparseDtype)` instead.
+    if is_sparse(dtype):
+
+assessment/tests/test_risk_ablation.py: 3864 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:314: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    elif is_categorical_dtype(dtype) and enable_categorical:
+
+assessment/tests/test_risk_ablation.py: 3864 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:345: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    if is_categorical_dtype(dtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+13 passed, 18768 warnings in 20.31s
+
+--- METRICS POST-FIX ---
+{
+    "risk": {
+        "ece_2bin": 0.03977997237188354,
+        "ece_5bin": 0.03977997237188354,
+        "ece_bins": 5,
+        "ece_lo": 0.01174802025397271,
+        "ece_hi": 0.0722169646905285,
+        "ece_width": 0.060468944436555795,
+        "ece_kernel": 0.032943863192397324,
+        "ece_macro": 0.02385723621882575,
+        "ece_macro_per_class": 0.02385723621882575,
+        "per_class_ece": {
+            "low": 0.005361443105489616,
+            "medium": 0.030424411222748932,
+            "high": 0.0357858543282387
+        },
+        "per_class_brier": {
+            "low": 0.008471923127072557,
+            "medium": 0.05336473711636283,
+            "high": 0.05007989569074688
+        },
+        "brier": 0.053157615865165084,
+        "brier_joint": 0.062175864407879027,
+        "brier_base_rate": 0.05639999999999999,
+        "brier_base_joint": 0.22,
+        "brier_ci_lo": 0.018768704305304185,
+        "brier_ci_hi": 0.08419812817226882,
+        "brier_ci_width": 0.06542942386696464,
+        "brier_ci": [
+            0.018768704305304185,
+            0.08419812817226882
+        ],
+        "ci_width": 0.060468944436555795,
+        "ci_lo_per_bin": [
+            0.015625,
+            1.0,
+            NaN,
+            NaN,
+            NaN
+        ],
+        "ci_hi_per_bin": [
+            0.08196721311475409,
+            1.0,
+            NaN,
+            NaN,
+            NaN
+        ],
+        "ci_width_per_bin": [
+            0.06634221311475409,
+            0.0,
+            NaN,
+            NaN,
+            NaN
+        ],
+        "mean_ci_width": NaN,
+        "logloss": 0.21931035928377035,
+        "logloss_ci_lo": 0.10625202778390432,
+        "logloss_ci_hi": 0.20738360390049576,
+        "nested_cv_auc_mean": 0.991863717264175,
+        "nested_lofam_mean": 0.991863717264175,
+        "lofam_auc": 0.991863717264175,
+        "env_cv_auc": 0.992703981009828,
+        "leakage_gap": 0.0008402637456530471,
+        "permutation_p": 0.000999000999000999,
+        "perm_p": 0.000999000999000999,
+        "bootstrap_n": 2000,
+        "ece_2bin_caveat": "Platt 3 bins at n_val=15 (5,5,5) honest n_cal15; n_bins = max(2, n_val//5) capped 5; counts per bin shown in calibration_curve.png; kernel vs histogram gate at n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot CI per bin",
+        "ece_5bin_caveat": "5-bin OncoCalibrate at n=45 bimodal; kernel ECE corroborates 5-bin within 2000-boot CI; histogram vs kernel gate disclosed",
+        "ap": 0.8194444444444444,
+        "ap_ci_lo": 0.5,
+        "ap_ci_hi": 1.0,
+        "ap_ci": [
+            0.5,
+            1.0
+        ],
+        "top3": [
+            "chain_length",
+            "is_aead",
+            "cipher_strength"
+        ],

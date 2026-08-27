@@ -1,0 +1,6 @@
+fit 10.022s ECE 5bin 0.040 macro 0.024 per-class {'low': 0.005361443105489616, 'medium': 0.030424411222748932, 'high': 0.0357858543282387} kernel 0.033 hi 0.072 CI [0.012,0.072] width 0.060 bins 5 counts [99, 1, 0, 0, 0]
+brier 0.053 joint 0.062 base 0.056 base_joint 0.220 ci [0.019,0.084] logloss 0.219 gap 0.001
+LOFAM 0.992 EnvCV 0.993 nestedLOFAM 0.992 perm p 0.0010 AP 0.819 deltaAUC 0.361
+top3 ['chain_length', 'is_aead', 'cipher_strength'] best {'max_depth': 1, 'reg_lambda': 5.0, 'min_child_weight': 3} size 0.16M bootstrap 2000 p/n 0.10 n_eff 50
+Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.
+Platt only sigmoid cv2 5-bin max(2,n_cal//5) capped 5 per-class ECE macro + Brier joint; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; no iso-tonic at n<1000

@@ -369,12 +369,17 @@ def test_top5_categorical_subset():
 
 
 def test_p_n_ratio_disclosure():
-    from assessment.features import FEATURES_TOP5, p_n_ratio
+    from assessment.features import FEATURES_TOP5, FEATURES_TOP7, p_n_ratio, p_n_ratio_top7, p_n_ratio_top7_at_n50
 
-    assert p_n_ratio == len(FEATURES_TOP5) / 50
-    assert p_n_ratio == 0.1
-    # docs: p/n = 5/50 honest vs inflated 28/50=0.56
-    assert p_n_ratio < 1.0
+    assert p_n_ratio == len(FEATURES_TOP5) / 500
+    assert abs(p_n_ratio - 0.01) < 1e-9
+    assert abs(p_n_ratio_top7 - 0.014) < 1e-9  # 7/500=0.014 honest
+    assert p_n_ratio_top7 == len(FEATURES_TOP7) / 500
+    assert abs(p_n_ratio_top7_at_n50 - 0.14) < 1e-9
+    assert p_n_ratio_top7_at_n50 <= 0.14
+    # docs: p/n = 5/500=0.01 honest vs inflated 28/500=0.056 at n=500 quality
+    assert p_n_ratio < 0.14
+    assert p_n_ratio_top7 < 0.14
 
 
 def test_build_vector_top5_5col_deterministic():
