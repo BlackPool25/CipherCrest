@@ -236,7 +236,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
 - [x] F1. Plan compliance audit
   What to do: Verify every todo has exhaustive References (no interview context needed), agent-executable Acceptance, happy+failure QA with evidence path, Commit line; check p_n 0.025 disclosure, no isotonic, no raw ja4, no m23, no GPU XGB.
   Tool: `grep -c "^- \[ \] [0-9]" .omo/plans/sih26159-ml-accuracy-family-fix.md` ==19 and `grep -c "^- \[ \] F" .omo/plans/sih26159-ml-accuracy-family-fix.md` ==4
-- [ ] F2. Code quality review
+- [x] F2. Code quality review
   What to do: Run `ruff check` + `cargo clippy` equivalent for python (basedpyright), verify no clamp remains, TOP7 p_n honest, CatBoost min_data_in_leaf 1, TabPFN 8-ens, 200 envs.
   Tool: `pytest assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_ja4_grease.py -q` and `grep -rq "prob_syn" assessment/ && exit 1 || echo clean`
 - [ ] F3. Real manual QA

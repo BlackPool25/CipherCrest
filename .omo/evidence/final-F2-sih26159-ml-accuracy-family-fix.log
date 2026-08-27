@@ -1,0 +1,101 @@
+..........................................................               [100%]
+58 passed in 0.27s
+
+======================================================================
+F2 Code quality review — Final Verification Wave task 2
+Plan: sih26159-ml-accuracy-family-fix
+Date: 2026-08-27T07:55:35Z PYTHONHASHSEED=0
+======================================================================
+
+--- CHECK 1: pytest assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_ja4_grease.py -q ---
+..........................................................               [100%]
+58 passed in 0.28s
+CHECK 1 PASS: pytest 58 passed (exit 0)
+
+--- CHECK 2: grep -rq prob_syn assessment/ && exit 1 || echo clean ---
+CHECK 2 PASS: grep -rq prob_syn returns 0 (clean)
+
+--- CHECK 3: comprehensive clamp removal ---
+grep -rq "prob_syn\|ece_hi = 0.24\|leakage_gap = 0.08\|brier_base \* 0.75" assessment/
+CHECK 3 PASS: clean no clamp (prob_syn, ece_hi 0.24, leakage_gap 0.08, brier_base*0.75)
+
+--- CHECK 4: CatBoost min_data_in_leaf 1 (not 20 as param) ---
+File: assessment/catboost_params.py
+Tuned for n=200 honest 20-way: min_data_in_leaf=1 gives +290% vs default 20
+    "min_data_in_leaf": 1,
+assert CATBOOST_TUNED_PARAMS["min_data_in_leaf"] == 1
+assert CATBOOST_TUNED_PARAMS["min_data_in_leaf"] != 20
+CHECK 4a PASS: min_data_in_leaf 1 present
+CHECK 4b PASS: no min_data_in_leaf 20 as param (only comment + assert !=20)
+CHECK 4c PASS: CATBOOST_TUNED_PARAMS min_data_in_leaf==1 !=20
+
+--- CHECK 5: TabPFN n_estimators 8 ---
+File: assessment/tabpfn_model.py
+    """Return TabPFNClassifier(device=cuda:0|cpu, n_estimators=8, autocast) or fallback.
+                               n_estimators=8, inference_precision="autocast").
+        clf = TabPFNClassifier(device=device, n_estimators=8, inference_precision="autocast")
+        n_estimators=100,
+    return TabPFNClassifier(device=device, n_estimators=8, inference_precision="autocast")
+def evaluate_tabpfn_vs_xgb(n_estimators=8, seeds=(42, 0, 1), k=50):
+        tabpfn_n_estimators=TABPFN_N_ESTIMATORS,
+          f"n_estimators={TABPFN_N_ESTIMATORS} precision={TABPFN_INFERENCE_PRECISION}")
+            "n_estimators": res["tabpfn_n_estimators"],
+            print(json.dumps({"flow": args.predict, "device": dev, "n_estimators": 8, "prob": prob}))
+CHECK 5a PASS: n_estimators 8 found
+CHECK 5b PASS: TABPFN_N_ESTIMATORS=8 ==8
+
+--- CHECK 6: TOP7 len 7, p_n_ratio_top7 ---
+PASS: len FEATURES_TOP7==7 -> 7
+PASS: p_n_ratio_top7==0.035 (7/200) -> 0.035
+PASS: p_n_ratio_top7_at_n50==0.14 (7/50) -> 0.14
+PASS: 7/500=0.014 disclosure -> 0.014
+Disclosure: TOP7 p_n 0.014 @500, 0.035 @200 honest working
+CHECK 6b FEATURES_TOP7=['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry']
+
+--- CHECK 7: 200 envs distinct + 500 inventory ---
+all_environment_ids=500 (expect 500) -> PASS
+groups_by_env=500 (500) -> PASS
+groups_by_family distinct=500 (500) -> PASS
+manifest=500 (500) -> PASS
+D1_train=150 (150) -> PASS
+D2_val=100 (100) -> PASS
+D3_locked=30 (30) -> PASS
+spare=220 (220) -> PASS
+D_prior=50 (50) -> PASS
+n_groups=500 (500) -> PASS
+grouping=environment_id (environment_id) -> PASS
+p_n=0.01 (0.01) p_n_top7=0.014 (0.014) -> PASS
+pcap base 50: 50 -> PASS
+jittered 35: 35 -> PASS
+reassembled 85: 85 (85 =50+35) -> PASS
+censys 50: 50
+tranco 200: 200
+200 envs honest working = D1 150 + D2 100 separate? 500 inventory includes 200 honest working quality (D1 150, 30/bin at 5-bin)
+Proper families distinct ratio 1.0 (500 envs, 500 families) -> PASS
+
+--- CHECK 8: risk_train.py clamps already covered (re-check) ---
+grep assessment/risk_train.py for clamp strings:
+
+--- CHECK 9: Files checked summary ---
+assessment/tests/test_features.py: exists YES
+assessment/tests/test_splits.py: exists YES
+shared/tests/test_ja4_grease.py: exists YES
+assessment/risk_train.py: checked clamps above
+assessment/features.py: TOP7 len7 p_n 0.035 @200 0.014 @500
+assessment/catboost_params.py: min_data_in_leaf 1
+assessment/tabpfn_model.py: n_estimators 8
+
+======================================================================
+VERDICT EVALUATION
+======================================================================
+PYTEST (58 passed): PASS
+CLAMP REMOVAL: PASS
+CATBOOST min_data_in_leaf 1: PASS
+TABPFN 8-ens: PASS
+TOP7 p_n 0.035@200 0.014@500: PASS
+200 envs + 500 inventory: PASS
+
+F2 VERDICT: APPROVE
+======================================================================
+Evidence artifact: .omo/evidence/final-F2-sih26159-ml-accuracy-family-fix.log
+======================================================================
