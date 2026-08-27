@@ -191,7 +191,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `curl -s http://localhost:8000/api/flows | jq '.[0].coverage_ratio'` shows 0.897 for jittered vs 1.0 clean; `npm --prefix dashboard run build` passes; failure: `grep -q "slice(0,50)" dashboard/src/pages/Families.jsx && echo FAIL still hides jitter`.
   Commit: Y | fix(dashboard): expose jitter grouping and true coverage_ratio
 
-- [ ] 15. Update README, LEDGER, LEAKAGE_REPORT honest disclosure for n=500 proper families
+- [x] 15. Update README, LEDGER, LEAKAGE_REPORT honest disclosure for n=500 proper families
   What to do / Must NOT do: Update README Quick Start n counts to n_risk500 n_prior50 n_eff500 n_families500 proper distinct disclosure WEAK SUPERVISION verbatim `n_eff=500 p/n 0.01`; sync lab/LEDGER.md 85→500 rows with distinct taxonomy columns (TLS/cipher/KEX/cert/STARTTLS/pre_tls/MTA-STS) per docs/FAMILY_TAXONOMY.md, mark jitter vs distinct proper; update eval/LEAKAGE_REPORT.md gap honest without clamp and Brier CI non-overlap working, p/n 7/500=0.014. Must NOT keep old 45-env audit or 345M pack claim without filter-repo note; must NOT claim jitter as distinct.
   Parallelization: Wave 4 | Blocked by: 13 | Blocks: 17
   References (executor has NO interview context - be exhaustive): README.md n_risk85, lab/LEDGER.md:148 lines, eval/LEAKAGE_REPORT.md gap 0.08 perm 0.099, eval/metrics.json, docs/LARGE_FILES.md pack 345M, docs/FAMILY_TAXONOMY.md proper families

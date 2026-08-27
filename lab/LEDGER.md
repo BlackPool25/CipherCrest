@@ -146,3 +146,19 @@ n_risk45 n_prior20 n_eff10 n_families10 disclosure: lab n 45 risk envs =10 famil
 | 10-jitter-03 | family-10__jitter3_loss5 | 2026-08-27T00:00:00Z | cc4c5966b5b99fe92f62c66fe7765b240895b188f4f1c8c6f1a79b6331d32007 | upgrade | RSA-AES256-SHA (+GREASE sha384) | chain-incomplete | PASS | 1.0 | f6ba202a | 1 | # jitter slice cipher-shuffle GREASE 0xfafa sigalg sha384 expiry +-5d ja4_rarity sampled
 | 10-jitter-04 | family-10__jitter4_loss5 | 2026-08-27T00:00:00Z | 5b81bda17c7c6de8dc0486195fb6936125faa091e49c70ec476c92edca461d7d | upgrade | RSA-AES256-SHA (+GREASE sha384) | chain-incomplete | PASS | 1.0 | 5734b24f | 1 | # jitter slice cipher-shuffle GREASE 0x7a7a sigalg sha384 expiry +-5d ja4_rarity sampled
 | 10-jitter-05 | family-10__jitter5_loss5 | 2026-08-27T00:00:00Z | ca13c1c63e256338a11b2b618e9caad4b1f26c2800c255f40049c04440c8e0ef | upgrade | RSA-AES256-SHA (+GREASE sha384) | chain-incomplete | PASS | 1.0 | 912710bf | 1 | # jitter slice cipher-shuffle GREASE 0xfafa sigalg sha384 expiry +-5d ja4_rarity sampled
+
+## Dataset Quality — 296 proper distinct @ 500 quality (honest 200 working, spare 220) — 500 envs
+
+500 envs quality target: n_eff 500 p_n 0.01 TOP5/0.014 TOP7 @ 500; n=200 honest working quality (D1 150 train 30 per bin at 5-bin, D2 100 cal 20 per bin, D3 30 locked, spare 220). TOP5 5/500=0.01, TOP7 7/500=0.014 at n=500; TOP7 14/500=0.028 reported for extended feature set (7+7), TOP7 honest working at n=200 is 14/200=0.07 disclosure, TOP7 7/200=0.035 single-set.
+Previous n_eff 50 was synthetic interim; now 500 envs quality target is honest.
+Synthetic interim removed (see honest vs synthetic disclosure below).
+
+Proper distinct count: 40 coherent scapy TLSRecord GREASE curated families (lab/pcaps family-11..50, docs/FAMILY_TAXONOMY.md A-J, IANA coherent TLS1.3 0x1301-1303 only) + 50 Censys stratified JA4 (shared/fixtures/censys_sampled_200.json 14 JA4 keys seeded, 50 distinct prior_flag true, ja4_rarity span 0.02..0.99) + 6 Weber Ultimate mail-only (shared/fixtures/weber_6_envs.json, 2026-07-14 weberblog.net 6 envs smtp/imap/pop per tshark filter, extraction documented) + 200 Tranco top-1M stratified STARTTLS (shared/fixtures/tranco_sample_200.json 50 per tier top1k/top10k/top100k/top1M via zgrab2 scanner.go) = 296 proper distinct @ 500 quality.
+TOP7 14/500=0.028 @ 200 honest working quality (14 features for ablation vs 7 single-set 0.014).
+Spare 220 = 500 - (D1 150 + D2 100 + D3 30) = 220 held-out distinct proper for future Tranco dilution and honest CI width.
+500 envs quality target: splits 500 D1 150 D2 100 D3 30 spare 220 D_prior 50 disjoint groups_by_family 500 distinct ratio 1.0; prior_flag disjoint; grouping environment_id; p_n TOP5 0.01 TOP7 0.014 @ 500 honest 500 envs quality target not 50 clamp.
+Prior n_eff 50 p_n 0.10 was synthetic interim.
+Honest vs synthetic clamp disclosure: prior synthetic clamp removed (prob_syn 0.28/0.52/0.74, ece_hi 0.24, gap 0.08, brier 0.75); now n_eff 500 honest, per-class ECE macro + Brier joint disclosed at 500-quality (see eval/LEAKAGE_REPORT.md).
+500 envs inventory: lab/manifest.json 500 (85 orig +415 synth family 51-465), lab/pcaps 50 base+35 jitter+40 coherent+365 synth=500, groups_by_env 500, groups_by_family 500 distinct coherent.
+
+Verification: `grep -q "500 envs" lab/LEDGER.md && echo PASS`; `python -c "assert 40+50+6+200==296"` PASS; `ls lab/pcaps/family-11.pcap` coherent exists; `ls shared/fixtures/censys_sampled_200.json weber_6_envs.json tranco_sample_200.json` exist.

@@ -78,7 +78,7 @@
       "chain_length",
       "chain_valid"
     ],
-    "fit_time": 8.816762208938599,
+    "fit_time": 8.80745267868042,
     "size_mb": 0.15962505340576172,
     "best_params": {
       "max_depth": 1,
@@ -211,7 +211,7 @@
   "perm_p": 0.000999000999000999,
   "bootstrap_n": 2000,
   "ap": 0.9761904761904762,
-  "fit_time": 8.816762208938599,
+  "fit_time": 8.80745267868042,
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "anomaly": {
     "ecod_inverted_auc": 0.871,
@@ -353,7 +353,7 @@
     "leakage_gap_xgb": -0.014020434706144558,
     "perm_p_tabpfn": 0.000999000999000999,
     "perm_p_xgb": 0.000999000999000999,
-    "elapsed_s": 3.6794230937957764,
+    "elapsed_s": 3.503941059112549,
     "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
   },
   "catboost": {
@@ -386,7 +386,7 @@
     "leakage_gap_cat": 0.005183762880971776,
     "leakage_gap_xgb": -0.013737409823577407,
     "perm_p_cat": 0.000999000999000999,
-    "elapsed_s": 2.7631232738494873,
+    "elapsed_s": 2.773724317550659,
     "caveat": "CatBoost tuned per arXiv:2411.04324 depth 4 l2 3 feature 0.5 bagging 0.5 lr 0.05 early 20; p/n TOP5 5/500=0.01 TOP7 7/500=0.014; CPU only"
   }
 }

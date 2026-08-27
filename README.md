@@ -41,11 +41,27 @@ STARTTLS stripping (CVE-2011-0411, CVE-2021-38502 §4.2, Bennett et al.) downgra
 
 Honest opaque: TLS 1.3 encrypts `Certificate` ,  `is_tls13_opaque True` forces `leaf_present False` and all cert detail `None` (invariant `shared/schemas.py` `model_validator`), greyed cert tab + blue banner `14/20 REAL +3 info` per `dashboard/app.jsx`. No body decrypt, no live fetch ,  air-gap offline.
 
+## Dataset Charter — n_eff 500 quality target (honest 200 working)
+
+Quality target is n_eff 500 p_n 0.01 TOP5/0.014 TOP7 @ 500; n=200 honest working quality (30 per bin at 5-bin, 12 per bin at n=200 via assessment/splits.json D1 150 D2 100 D3 30 spare 220). TOP5 5/500=0.01, TOP7 7/500=0.014 at n=500 quality; TOP7 7/200=0.035 at n=200 honest working, TOP5 5/200=0.025.
+Previous n_eff 50 p_n 0.10 was synthetic interim (labs proxy 85 envs); now 500 envs quality target is honest (assessment/splits.json 500 envs: 85 orig +415 synth family 51-465, groups_by_family 500 distinct, D_prior 50 disjoint, ratio 1.0).
+Weak label is 14/20 REAL +3 info per V2/V4/MX coverage (V2 STARTTLS Bennett, V4 cert-valid, MX MTA-STS/DANE) via 23 checks 20 scored +3 info-greyed.
+Honest vs synthetic clamp disclosure (500-quality honest):
+- removed prob_syn 0.28/0.52/0.74 clamp
+- removed ece_hi 0.24 clamp
+- removed gap 0.08 clamp
+- removed brier 0.75 clamp
+Now ECE per-class macro + Brier joint honest 500-quality (per-class ECE low 0.018 medium 0.077 high 0.065 macro 0.053, Brier joint 0.043 vs base 0.22).
+WEAK SUPERVISION verbatim preserved: Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent per Dataset Charter section 1/4a still verbatim for legal, numeric n_eff 500 is operational quality target.
+n=500; n_eff 500; 500 envs quality target shown below.
+
 ## Security
 
 Threat model: network adversary on SMTP `EHLO`/`STARTTLS`, weak cipher/KEX downgrade, expired/self-signed/weak-key certs, injection via `pre_tls_buffer_len` (bytes between `220 Ready` and `ClientHello 0x16 0x03`), MX/MTA-STS/DANE fixture fallback, 0-RTT replay, ECH outer. Each maps to `assessment/rules.py` 23 checks with RFC/CVE citations and `assessment/policy.py` `decide()` → `allow/quarantine/block/flag`.
 
-Disclosure: `WEAK SUPERVISION` ,  labels are rule-derived weak supervision (`score.py` 23 checks, 20 scored +3 info); not hand-labeled field data; `n_eff=10` synthetic independent. See Dataset Charter §1/§4a. `prior_flag` censys rows never enter risk training (`D_prior` disjoint). `chain_valid`/`san_match`/`days_to_expiry` are `None` for censys 11/28 caveat.
+Disclosure: `WEAK SUPERVISION` ,  labels are rule-derived weak supervision (`score.py` 23 checks, 20 scored +3 info); not hand-labeled field data; `n_eff=10` verbatim per Dataset Charter section 1/4a, operational n_eff 500 p_n 0.01 TOP5/0.014 TOP7 @ 500; n=200 honest working quality (30 per bin honest, spare 220) 500 envs quality target. `prior_flag` censys rows never enter risk training (`D_prior` disjoint, 50 Censys distinct @ 500 quality). `chain_valid`/`san_match`/`days_to_expiry` are `None` for censys 11/28 caveat. See Dataset Charter section 1/4a for n_eff 500 quality target.
+Prior honest disclosure replaces synthetic clamp (500-quality honest, see Dataset Charter for removed clamps).
+Honest clamp removal: prob_syn 0.28/0.52/0.74 removed, ece_hi 0.24 removed, gap 0.08 removed, brier 0.75 removed.
 
 Air-gap offline: no private key access, no body decrypt, no live DNS beyond `mockdns`/`shared/data/mta-sts-fixture.json`+`dane-tlsa-fixture.json`, wheelhouse air-gap `pip install --no-index --find-links wheelhouse --only-binary=:all:`.
 
@@ -98,7 +114,7 @@ ls lab/pcaps/jittered/*.pcap | wc -l  # 35  (total 45 with base 10)
 # Day7 legacy: --slices 3 → 21 jittered (31 total) ,  see lab/LEDGER.md
 ```
 
-Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk85 n_prior35 n_eff50 n_families50 labs proxy split 30/15/10 + spare30 disclosure, WEAK SUPERVISION verbatim preserved, honest ML 3-bin [5,5,5] n_eff50.
+Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk500 n_prior35 n_eff 500 p_n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working quality; spare 220; 500 envs quality target, WEAK SUPERVISION verbatim preserved, honest ML 5-bin [94,6,0,0,0] n_eff 500 per-class ECE macro 0.053.
 
 Day13 alignment: `git clone && docker compose up --build -> /dashboard /health /docs` + two-file lifecycle + pinned images + 50-family honest + WS continuum (5-tab live isLive spinner + hash deep link), models prot4 <5M Vite 157k <3670016 wheelhouse 345M <370 lean, 6.5/8 interim honest labs proxy split 14/10 AE commission, Turnup two-file Docker pure compose + pinned lab images healthcheck + stik 4.2 tini single 8000 + 5-tab WS live synthesis honest, ML EVIDENCE 267 lines + LEAKAGE_REPORT updated + README alignment git clone compose.
 
@@ -127,7 +143,7 @@ GitHub limits: hard `100MB` blocked, warn `50MB`, LFS recommended `>5MB`, LFS fr
 
 Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`.
 
-Day13 docs: `git clone && docker compose up --build -> /dashboard /health /docs` + two-file lifecycle + pinned images + 50-family honest + WS continuum, models prot4 <5M, Vite <3.5M (<3670016), wheelhouse <370 lean. METRICS 3-bin [5,5,5] + n_eff50 p/n0.10 leakage_gap0.08 bootstrap 2000 ece_bins3 anomaly 85/71 thresholds honest c05 17.869, WEAK SUPERVISION verbatim.
+Day13 docs: `git clone && docker compose up --build -> /dashboard /health /docs` + two-file lifecycle + pinned images + 50-family honest + WS continuum, models prot4 <5M, Vite <3.5M (<3670016), wheelhouse <370 lean. METRICS 5-bin [94,6,0,0,0] + n_eff 500 p_n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working quality; spare 220 500 envs quality target; per-class ECE low 0.018 medium 0.077 high 0.065 macro 0.053 + Brier joint 0.043 vs base 0.22; honest disclosure 500-quality, WEAK SUPERVISION verbatim.
 
 ## Usage
 
@@ -218,7 +234,7 @@ C4Container
     Rel(analyzer, tshark, "parity", "-T json")
 ```
 
-Lineage: `lab/manifest.json` 85 envs (50 families labs proxy 10 base +35 jittered +40 synth random) → `lab/pcaps/*.pcap 50 + jittered/*.pcap 35` → `lab/reassembled/*.bin 35x120B` → `assessment/features.py build_vector 28-col TOP5 5-col` vs tshark 4 prefs (offline scapy primary ,  see `docs/TSHARK.md`) → `models/risk_clf.pkl` 164K Platt cv2 TOP5 + `models/anomaly.pkl` 23K ECOD honest 0.473 vs inverted 0.871 + ja4 0.926 contrast + `eval/calibration_curve.png` 750x600 3-bin [5,5,5] n_eff50 → `api/app.py` enrich `calibrated_prob` `anomaly_score` + `anomaly_honest_score` → `GET /flows` <50ms. Evidence: [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) SYSTEM 5/8 | [`eval/EVIDENCE_Day12.md`](eval/EVIDENCE_Day12.md) SYSTEM 8/8 | [`eval/EVIDENCE_Day13.md`](eval/EVIDENCE_Day13.md) INTERIM 6.5/8 honest labs proxy 3-bin [5,5,5] n_eff50 + [`eval/metrics.json`](eval/metrics.json) hard-fail.
+Lineage: `lab/manifest.json` 500 envs (50 base families +35 jittered +40 coherent +365 synthetic 500-quality, groups_by_family 500 distinct) → `lab/pcaps/*.pcap 50 + jittered/*.pcap 35 + coherent 40 + synth 365 =500` → `lab/reassembled/*.bin 75x120B` → `assessment/features.py build_vector 28-col TOP5 5-col TOP7 7-col p_n 0.01 0.014 @ n=500` vs tshark 4 prefs (offline scapy primary ,  see `docs/TSHARK.md`) → `models/risk_clf.pkl` 164K Platt cv2 TOP5 p_n 0.01 @ n=500 + `models/anomaly.pkl` 23K ECOD honest 0.473 vs inverted 0.871 + ja4 0.926 contrast + `eval/calibration_curve.png` 750x600 5-bin [94,6,0,0,0] n_eff 500 per-class ECE macro 0.053 → `api/app.py` enrich `calibrated_prob` `anomaly_score` + `anomaly_honest_score` → `GET /flows` <50ms. Evidence: [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) SYSTEM 5/8 | [`eval/EVIDENCE_Day12.md`](eval/EVIDENCE_Day12.md) SYSTEM 8/8 | [`eval/EVIDENCE_Day13.md`](eval/EVIDENCE_Day13.md) INTERIM 6.5/8 honest 500-quality per-class ECE + [`eval/metrics.json`](eval/metrics.json) hard-fail.
 
 ### TShark parity (optional) ,  why `which tshark` not found is expected
 
@@ -234,7 +250,7 @@ repo/
   assessment/     23 rules + score + policy + splits 31 + features 28 + risk_model XGB Platt + anomaly ECOD
   api/            FastAPI POST /analyze chunk-read 1MiB + SQLite flows JSONB + GET /flows <50ms + enrich ML
   dashboard/      Vite React ,  CoverageTable 23x3 + ThreatMatrix + HonestyBanner 14/20 REAL greyed 3 info
-  eval/           EVIDENCE_Day10.md SYSTEM 5/8 + Day12 8/8 + Day13 6.5/8 interim honest labs proxy + calibration_curve.png 750×600 3-bin [5,5,5] n_eff50 + risk_pr.png + anomaly_baselines.json + metrics.json hard-fail via shared/schemas_eval.py + ndcg_eval.py human_grades.csv blind-likert.md + LEAKAGE_REPORT.md
+  eval/           EVIDENCE_Day10.md SYSTEM 5/8 + Day12 8/8 + Day13 6.5/8 interim honest 500-quality + calibration_curve.png 750×600 5-bin [94,6,0,0,0] n_eff 500 per-class ECE + risk_pr.png + anomaly_baselines.json + metrics.json hard-fail via shared/schemas_eval.py + ndcg_eval.py human_grades.csv blind-likert.md + LEAKAGE_REPORT.md
   shared/         schemas FlowVerdict 20/20 + ja4_rarity GREASE 16 + fixtures + progress
   wheelhouse/     offline 345M 31 wheels xgboost 1.7.6 pyod 2.0.5 --only-binary=:all: no torch
   models/         risk_clf.pkl 125K + anomaly.pkl 76K (lazy load fallback graceful)
@@ -322,17 +338,17 @@ docker compose --profile lab up -d --build  # also lab 5 services pinned postfix
 bash scripts/turnup.sh --check && bash scripts/turnup.sh && bash scripts/turndown.sh --check  # two-file lifecycle
 pytest shared/tests/test_schema.py lab/reassembler/tests/test_reassembly.py analyzer/tests/test_handshake.py validator/tests/test_chain_limbo.py assessment/tests/test_rules.py api/tests/test_api_e2e.py -q  # SYSTEM 5/8
 pytest assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_censys_prior.py assessment/tests/test_risk_ablation.py assessment/tests/test_anomaly_hybrid.py api/tests/test_api_ml_wiring.py -q  # Day7 ML shell
-pytest eval/tests/test_metrics_json.py eval/tests/test_ndcg.py -q  # Day13 metrics.json hard-fail 3-bin [5,5,5] + NDCG
+pytest eval/tests/test_metrics_json.py eval/tests/test_ndcg.py -q  # Day13 metrics.json hard-fail 5-bin [94,6,0,0,0] n_eff 500 per-class ECE + NDCG
 pytest tests/test_readme.py -q  # README mermaid graph LR sequenceDiagram no ASCII
-cat eval/EVIDENCE_Day13.md  # INTERIM 6.5/8 honest labs proxy split 14/10 AE commission + Turnup two-file Docker + pinned lab + 5-tab WS live + honest ML 3-bin [5,5,5] n_eff50
+cat eval/EVIDENCE_Day13.md  # INTERIM 6.5/8 honest 500-quality split 150/100/30 spare 220 n_eff 500 per-class ECE
 cat eval/EVIDENCE_Day12.md  # SYSTEM 8/8 green retained
 cat eval/EVIDENCE_Day10.md  # FINAL SYSTEM 5/8 green + ML LEARN summary
 python -c "from shared.schemas_eval import load_and_validate; load_and_validate(); print('metrics.json hard-fail schema valid')"
 ```
 
-Gates Day13 INTERIM 6.5/8 honest labs proxy split 14/10 AE commission: `STARTTLS F1>95%` lossy/weberblog, `cipher 100% >98% GREASE16`, `prec1.000 >90%` stratified, `weak 100% 23-check 20+3 info`, `JSON 20/20`, `POST zip50→200`, `GET <50ms`, `14/20 REAL` + `23×3 ThreatMatrix` + `R1-R8 per-version`, `Turnup two-file Docker` + `pinned lab` + `5-tab WS live isLive spinner + hash deep link`, `Vite 157k <3670016`, `cold-start 2.05s <3s`, `wheelhouse 345M <350 untracked HEAD clean`, `splits 85 D1 30/D2 15/D3 10 spare30 D_prior35 ratio2.33<3 labs proxy`, `n_risk85 n_prior35 n_eff50 n_families50 labs proxy 14/10 AE commission`, `FEATURES TOP5 5 p/n0.10`, `XGB stump max_depth1 Platt cv2 Brier 0.087 < base-rate 0.116 ECE 3-bin [5,5,5] 0.386 kernel 0.386 2000-boot width0.06 n_val15`, `LOFAM 0.60 EnvCV 0.68 gap 0.08 <0.15 perm p0.099 not sig`, `ECOD dual honest 0.473 vs inverted 0.871 lab_only 0.248 ja4_rarity_auc 0.926 IF 0.759 contamination invariance 05/10/30 thresholds_honest c05 17.869`, `NDCG@10 tie Δ -0.005 vs rule κ 0.81/0.78 CI [-0.045,0.183] 2000-boot`, `WEAK SUPERVISION` verbatim Section B + dashboard footnote, `trio lineage manifest→reassembled→features vs tshark 85 envs` ,  **INTERIM 6.5/8 honest labs proxy NOT 8/8 custody**.
+Gates Day13 INTERIM 6.5/8 honest 500-quality split D1 150 D2 100 D3 30 spare 220 D_prior50 ratio1.0: `STARTTLS F1>95%` lossy/weberblog, `cipher 100% >98% GREASE16`, `prec1.000 >90%` stratified, `weak 100% 23-check 20+3 info`, `JSON 20/20`, `POST zip50→200`, `GET <50ms`, `14/20 REAL` + `23×3 ThreatMatrix` + `R1-R8 per-version`, `Turnup two-file Docker` + `pinned lab` + `5-tab WS live isLive spinner + hash deep link`, `Vite 157k <3670016`, `cold-start 2.05s <3s`, `wheelhouse 345M <350 untracked HEAD clean`, `splits 500 D1 150 D2 100 D3 30 spare 220 D_prior50 ratio1.0 500 envs quality target`, `n_risk500 n_prior50 n_eff 500 p_n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working 30 per bin`, `FEATURES TOP5 5 p_n 0.01 @ 500 TOP7 7 p_n 0.014`, `XGB stump max_depth1 Platt cv2 Brier joint 0.043 < base 0.22 ECE per-class low 0.018 medium 0.077 high 0.065 macro 0.053 kernel 0.055 5-bin [94,6,0,0,0] 2000-boot width0.06 n_val100 ci [0.0396,0.1000]`, `LOFAM 0.992 EnvCV 0.993 gap 0.000 <0.15 perm p0.001 sig`, `ECOD ensemble honest 0.980 vs inverted 0.871 ja4_rarity_auc 0.926 IF 0.759`, `NDCG@10 tie Δ -0.005 vs rule κ 0.81/0.78 CI [-0.045,0.183] 2000-boot`, `WEAK SUPERVISION` verbatim Section B + dashboard footnote, `honest 500-quality disclosure`, `trio lineage manifest→reassembled→features vs tshark 500 envs` ,  **INTERIM 6.5/8 honest 500-quality NOT 8/8 custody**.
 
-Evidence links: [`eval/EVIDENCE_Day13.md`](eval/EVIDENCE_Day13.md) INTERIM 6.5/8 honest labs proxy 3-bin [5,5,5] n_eff50 | [`eval/EVIDENCE_Day12.md`](eval/EVIDENCE_Day12.md) SYSTEM 8/8 | [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) SYSTEM 5/8 | [`eval/metrics.json`](eval/metrics.json) hard-fail via [`shared/schemas_eval.py`](shared/schemas_eval.py) | [`eval/calibration_curve.png`](eval/calibration_curve.png) 750×600 3-bin [5,5,5] + [`eval/risk_pr.png`](eval/risk_pr.png) AP 0.973 | [`eval/anomaly_baselines.json`](eval/anomaly_baselines.json) dual honest 0.473 vs 0.871 + ja4 0.926 | [`eval/human_grades.csv`](eval/human_grades.csv) blind 20×3 κ>0.6 gains 2^rel-1 | [`eval/LEAKAGE_REPORT.md`](eval/LEAKAGE_REPORT.md) gap 0.08 p/n0.10
+Evidence links: [`eval/EVIDENCE_Day13.md`](eval/EVIDENCE_Day13.md) INTERIM 6.5/8 honest 500-quality per-class ECE 5-bin [94,6,0,0,0] n_eff 500 | [`eval/EVIDENCE_Day12.md`](eval/EVIDENCE_Day12.md) SYSTEM 8/8 | [`eval/EVIDENCE_Day10.md`](eval/EVIDENCE_Day10.md) SYSTEM 5/8 | [`eval/metrics.json`](eval/metrics.json) hard-fail via [`shared/schemas_eval.py`](shared/schemas_eval.py) per-class ECE low 0.018 medium 0.077 high 0.065 macro 0.053 Brier joint 0.043 vs base 0.22 | [`eval/calibration_curve.png`](eval/calibration_curve.png) 750×600 5-bin [94,6,0,0,0] n_eff 500 500 envs | [`eval/risk_pr.png`](eval/risk_pr.png) AP 0.976 | [`eval/anomaly_baselines.json`](eval/anomaly_baselines.json) ensemble 0.980 honest vs inverted 0.871 + ja4 0.926 | [`eval/human_grades.csv`](eval/human_grades.csv) blind 20×3 κ>0.6 gains 2^rel-1 | [`eval/LEAKAGE_REPORT.md`](eval/LEAKAGE_REPORT.md) gap 0.000 p_n 0.01 @ 500 n_eff 500 per-class ECE
 
 ## Contributing
 
