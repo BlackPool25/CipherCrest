@@ -214,7 +214,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
 
 ## Final verification wave
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
-- [ ] F1. Plan compliance audit
+- [x] F1. Plan compliance audit
   What to do: Verify every todo has exhaustive References (no interview context needed), agent-executable Acceptance, happy+failure QA with evidence path, Commit line; check p_n 0.01 disclosure, no isotonic, no raw ja4, no m23, no GPU XGB at n=500, AP headline, per-class PCDM, LOGO132, proper 500.
   Tool: `grep -c "^- \[ \] [0-9]" .omo/plans/sih26159-ml-honest-success.md` ==17 and `grep -c "^- \[ \] F" .omo/plans/sih26159-ml-honest-success.md` ==4
 

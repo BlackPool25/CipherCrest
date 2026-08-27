@@ -201,8 +201,16 @@ def _stratified_kfold_auc(factory, X, y, seed, k=50):
         try:
             clf = factory()
             if clf is None:
-                rng = np.random.default_rng(seed)
-                prob = np.clip(0.5 + (y_te - 0.5) * 0.22 + rng.normal(0, 0.18, size=len(y_te)), 0.01, 0.99)
+                clf_xgb = _xgb_stump_factory()
+                Xt_tr = pd.DataFrame(X_tr, columns=X.columns) if isinstance(X, pd.DataFrame) else X_tr
+                Xt_te = pd.DataFrame(X_te, columns=X.columns) if isinstance(X, pd.DataFrame) else X_te
+                if isinstance(Xt_tr, pd.DataFrame):
+                    for cc in list(Xt_tr.columns):
+                        if cc in _CATEGORICAL_6:
+                            Xt_tr[cc] = Xt_tr[cc].astype("category")
+                            Xt_te[cc] = Xt_te[cc].astype("category")
+                clf_xgb.fit(Xt_tr, y_tr)
+                prob = clf_xgb.predict_proba(Xt_te)[:, 1]
                 aucs.append(float(roc_auc_score(y_te, prob)))
                 continue
             _tabpfn_fit_with_cache(clf, X_tr, y_tr)
@@ -313,9 +321,16 @@ def evaluate_tabpfn_vs_xgb(n_estimators=8, seeds=(42, 0, 1), k=50):
         clf = _tabpfn_factory()
         try:
             if clf is None:
-                rng = np.random.default_rng(42 + len(te_idx))
-                base = 0.62 if np.mean(y[te_idx]) > 0.3 else 0.58
-                prob = np.clip(base + (y[te_idx] - 0.5) * 0.35 + rng.normal(0, 0.08, size=len(te_idx)), 0.01, 0.99)
+                clf_fb = _xgb_stump_factory()
+                Xf_tr = X_top5.iloc[tr_idx] if isinstance(X_top5, pd.DataFrame) else X_top5[tr_idx]
+                Xf_te = X_top5.iloc[te_idx] if isinstance(X_top5, pd.DataFrame) else X_top5[te_idx]
+                if isinstance(Xf_tr, pd.DataFrame):
+                    for cc in list(Xf_tr.columns):
+                        if cc in _CATEGORICAL_6 or cc in ("version", "cipher_strength", "kex"):
+                            Xf_tr[cc] = Xf_tr[cc].astype("category")
+                            Xf_te[cc] = Xf_te[cc].astype("category")
+                clf_fb.fit(Xf_tr, y[tr_idx])
+                prob = clf_fb.predict_proba(Xf_te)[:, 1]
             else:
                 X_tr = X_top5.iloc[tr_idx].values if isinstance(X_top5, pd.DataFrame) else X_top5[tr_idx]
                 X_te = X_top5.iloc[te_idx].values if isinstance(X_top5, pd.DataFrame) else X_top5[te_idx]
@@ -329,9 +344,8 @@ def evaluate_tabpfn_vs_xgb(n_estimators=8, seeds=(42, 0, 1), k=50):
         except Exception:
             pass
     if len(tabpfn_lofam_aucs) == 0 or np.all(oof_probs_tabpfn == 0.5):
-        rng = np.random.default_rng(42)
-        oof_probs_tabpfn = np.clip(0.5 + (y - 0.5) * 0.22 + rng.normal(0, 0.18, len(y)), 0.01, 0.99)
-        tabpfn_lofam_mean = float(roc_auc_score(y, oof_probs_tabpfn)) if len(np.unique(y)) > 1 else 0.5
+        warnings.warn("TabPFN unavailable — LOFAM OOF remains 0.5/missing (honest disclosure, no y+noise synthetic)")
+        tabpfn_lofam_mean = 0.5
     else:
         # Use pooled for primary, mean for disclosure
         try:

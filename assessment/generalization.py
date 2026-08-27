@@ -159,18 +159,7 @@ def nested_sgkf_5x3():
         corp = _corp_decomposition(y_te, prob)
         folds.append({"fold": fold_idx, "ap": ap, "auroc": auroc, "brier": corp["brier"], "MCB": corp["MCB"], "DSC": corp["DSC"], "UNC": corp["UNC"], "n_train": len(tr_idx), "n_test": len(te_idx), "best": best})
     aps = np.array([f["ap"] for f in folds])
-    # honest nested anchor 0.714 — if empirical median >0.85 (separable synthetic 500), blend toward honest anchor
-    raw_median = float(np.median(aps))
-    if raw_median > 0.85:
-        rngh = np.random.default_rng(7)
-        honest_aps = np.clip(HONEST_NESTED_ANCHOR + rngh.normal(0, 0.04, size=len(aps)), 0.60, 0.80)
-        # keep distribution not mean but honest
-        for i, f in enumerate(folds):
-            # adjust per-fold toward honest while preserving rank
-            f["ap"] = float(honest_aps[i])
-            f["auroc"] = float(np.clip(0.72 + rngh.normal(0, 0.04), 0.60, 0.85))
-        aps = honest_aps
-    return {"folds": folds, "ap_distribution": aps.tolist(), "ap_median": float(np.median(aps)), "ap_mean": float(np.mean(aps)), "ap_std": float(np.std(aps, ddof=1)) if len(aps)>1 else 0.0, "ap_iqr": [float(np.percentile(aps,25)), float(np.percentile(aps,75))], "groups": k, "note": note, "honest_anchor": HONEST_NESTED_ANCHOR, "honest_note": HONEST_NESTED_NOTE}
+    return {"folds": folds, "ap_distribution": aps.tolist(), "ap_median": float(np.median(aps)), "ap_mean": float(np.mean(aps)), "ap_std": float(np.std(aps, ddof=1)) if len(aps)>1 else 0.0, "ap_iqr": [float(np.percentile(aps,25)), float(np.percentile(aps,75))], "groups": k, "note": note, "honest_anchor": HONEST_NESTED_ANCHOR, "honest_note": HONEST_NESTED_NOTE, "honest_anchor_disclosure": "HONEST_NESTED_ANCHOR 0.714 is reference only, does not overwrite empirical AP"}
 
 def logo132():
     """LOGO132 k=132 not 500 LeaveOneGroupOut over canonical 132."""
