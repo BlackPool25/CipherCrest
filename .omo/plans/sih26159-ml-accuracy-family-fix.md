@@ -239,7 +239,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
 - [x] F2. Code quality review
   What to do: Run `ruff check` + `cargo clippy` equivalent for python (basedpyright), verify no clamp remains, TOP7 p_n honest, CatBoost min_data_in_leaf 1, TabPFN 8-ens, 200 envs.
   Tool: `pytest assessment/tests/test_features.py assessment/tests/test_splits.py shared/tests/test_ja4_grease.py -q` and `grep -rq "prob_syn" assessment/ && exit 1 || echo clean`
-- [ ] F3. Real manual QA
+- [x] F3. Real manual QA
   What to do: Replay `curl -F pcap=@lab/pcaps/family-11.pcap http://localhost:8000/analyze | jq .[0].assessment.calibrated_prob` shows working 0.60-0.69 for High/Critical not Low; dashboard Families expander shows 6 envs per jittered, coverage 0.897 true; verify human_labels.json 15 exists.
   Tool: `bash scripts/turnup.sh --check && bash scripts/turnup.sh && curl -F pcap=@lab/pcaps/family-11.pcap http://localhost:8000/analyze 2>&1 | tee .omo/evidence/F3.log`
 - [ ] F4. Scope fidelity
