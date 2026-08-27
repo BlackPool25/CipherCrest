@@ -1,0 +1,8 @@
+40 coherent families validated
+--- appended checks ---
+grep TLS1.3.*DES count: 0
+taxonomy exists: docs/FAMILY_TAXONOMY.md
+dry-run UNKNOWN count: 0
+manifest incoherence rejected: VALIDATION FAILED — manifest 11-50 synth_random incoherence detected:
+............................                                             [100%]
+28 passed in 0.24s
