@@ -110,7 +110,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python lab/scripts/validate_families.py 2>&1 | tee .omo/evidence/task-4-sih26159-ml-accuracy-family-fix.log` shows 40 rows validated; failure: `python lab/scripts/synth_families.py --count 40 --seed 0 --dry-run 2>&1 | grep "UNKNOWN-0xc"` must be 0 after coherent fix.
   Commit: Y | docs(families): add curated 40 taxonomy with coherence validator
 
-- [ ] 5. Generate 40 curated distinct pcaps+fixtures+reassembled with coherence fix
+- [x] 5. Generate 40 curated distinct pcaps+fixtures+reassembled with coherence fix
   What to do / Must NOT do: Patch lab/scripts/synth_families.py _choose_cipher to enforce `(ver==0x0304) == (cipher in (0x1301,0x1302,0x1303))` and add ext_early_data 0x002a injection for families 36-38; keep filter_grease(). Generate `python -m lab.scripts.synth_families --count 40 --seed 0 --taxonomy docs/FAMILY_TAXONOMY.md` to overwrite family-11..50 pcaps 1.1KB + reassembled 120B + fixtures 3KB with distinct cipher/cert/starttls per table. Patch lab/docker-compose.yml to mount all lab/certs/*.crt and add entrypoint override loop for 40 families. Must NOT generate random incoherent families; must NOT use live Internet MX.
   Parallelization: Wave 2 | Blocked by: 4 | Blocks: 6,7,8
   References (executor has NO interview context - be exhaustive): lab/scripts/synth_families.py:175-184 _build_tls_client_hello, :298-366 make_fixture, :369 update_manifest, :402 update_ledger, lab/scripts/jitter_slices.py:42 jittered_hello, lab/reassembler/reassemble.py:74-100 _compute_pre_tls_buffer, :36-41 TSHARK_REQUIRED_PREFS 4, lab/docker-compose.yml:30-56, docs/FAMILY_TAXONOMY.md
