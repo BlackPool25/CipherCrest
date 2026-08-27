@@ -94,7 +94,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -c "import pickle; print(pickle.load(open('models/anomaly.pkl','rb')).threshold_)"` == 4.012 and `python -c "import json; print(json.load(open('eval/anomaly_baselines.json'))['thresholds_honest']['c10'])"` matches; failure: `grep -q "17.869" assessment/anomaly_train.py && echo FAIL hardcode remains`.
   Commit: N | fix(anomaly): align thresholds_honest with pickle honest 4.012
 
-- [ ] 3. Extend FEATURES TOP5 to TOP7 with miss indicators and add CatBoost fallback config
+- [x] 3. Extend FEATURES TOP5 to TOP7 with miss indicators and add CatBoost fallback config
   What to do / Must NOT do: In assessment/features.py keep FEATURES_TOP5 [version,cipher_strength,kex,chain_valid,days_to_expiry] p/n 0.10; ADD FEATURES_TOP7 = TOP5 + [miss_indicator_chain_valid, miss_indicator_days_to_expiry] (or miss_indicator_ja4_rarity) with p/n 7/200=0.035 at n=200; keep ALLOWED_RISK_FEATURES raw ja4 NOT in; keep _Top5List shim. Add assessment/catboost_params.py with CatBoost tuned `depth 4-6, l2_leaf_reg 1-3, min_data_in_leaf 1, feature_fraction 0.5, bagging_fraction 0.5, learning_rate 0.05, early_stopping 20` per arXiv:2411.04324. Must NOT use raw ja4; must NOT exceed p/n 0.14 at n=50; must NOT set min_data_in_leaf 20 default.
   Parallelization: Wave 1 | Blocked by: - | Blocks: 9
   References (executor has NO interview context - be exhaustive): assessment/features.py:54-121 FEATURES_28 21+7, :118-131 TOP5/TOP7 p_n_ratio, :36-49 XGB_CATEGORICAL_PARAMS, shared/ja4_rarity.py GREASE_VALUES filter_grease, arXiv:2411.04324 min_data_in_leaf 1 +290%, CatBoost #3117 n=96 symmetric trees, docs/tranco

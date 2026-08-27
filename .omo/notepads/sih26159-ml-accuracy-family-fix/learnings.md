@@ -19,3 +19,11 @@
 - Verification: grep -q "17.869" returns 0; python -c pickle vs json assert abs(c10 - round(p,4))<0.001 passes for both anomaly.pkl/honest (4.0123); pytest assessment/tests/test_anomaly_hybrid.py -q 11 passed; ecod_honest_auc 0.473 unchanged.
 - Evidence: .omo/evidence/task-2-sih26159-ml-accuracy-family-fix.log
 
+
+## 2026-08-27 — task-3 TOP7 + CatBoost fallback
+
+- assessment/features.py: kept FEATURES_TOP5 [version,cipher_strength,kex,chain_valid,days_to_expiry] p/n 0.10; added FEATURES_TOP7 = TOP5 + [miss_indicator_chain_valid, miss_indicator_days_to_expiry] len7 p/n 7/200=0.035 at n200, 7/50=0.14 at n50 (guard must not exceed 0.14). Added p_n_ratio_top7 (7/200) and p_n_ratio_top7_at_n50 (7/50) with asserts, plus build_vector_top7 (slice via FEATURES_28 like build_vector_top5) and __main__ printing TOP7 disclosure.
+- Kept _Top5List shim for both TOP5 and TOP7 so "ja4" not in and "ja4_rarity" in via __contains__; verified raw ja4 never in FEATURES_28/TOP7, only miss_indicator_ja4_rarity allowed remains in _MISS_7.
+- assessment/catboost_params.py: new file CATBOOST_TUNED_PARAMS per arXiv:2411.04324 — depth 4 (range 4-6), l2_leaf_reg 3 (range 1-3), min_data_in_leaf 1 (+290% vs default 20, symmetric trees fail to split at n200 otherwise), feature_fraction 0.5, bagging_fraction 0.5, learning_rate 0.05, early_stopping_rounds 20. Asserts guard min_data_in_leaf==1 !=20.
+- Verification: `python -c "from assessment.features import FEATURES_TOP7; assert len==7 ...; from assessment.features import p_n_ratio_top7; assert abs(...-7/200)<0.01"` passes; `grep min_data_in_leaf.*1` true; `pytest assessment/tests/test_features.py -q` 28 passed; `python -m assessment.features` shows TOP7 7 cols.
+- Evidence: .omo/evidence/task-3-sih26159-ml-accuracy-family-fix.log

@@ -1,0 +1,16 @@
+FEATURES_28: 28 cols
+FEATURES_TOP5: 5 cols p/n 5/50=0.100 5/200=0.025 ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry']
+FEATURES_TOP7: 7 cols p/n 7/50=0.140 7/200=0.035 ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry']
+TOP7 p_n_ratio_top7=0.0350 (7/200=0.035) guard at n50=0.1400 <=0.14 OK
+build_vector_top7 demo shape (1, 7) cols ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry']
+---
+VALIDATION PASS FEATURES_TOP7 ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry', 'miss_indicator_chain_valid', 'miss_indicator_days_to_expiry'] 0.035
+---
+Tuned for n=200 honest 20-way: min_data_in_leaf=1 gives +290% vs default 20
+    "min_data_in_leaf": 1,
+assert CATBOOST_TUNED_PARAMS["min_data_in_leaf"] == 1
+assert CATBOOST_TUNED_PARAMS["min_data_in_leaf"] != 20
+............................                                             [100%]
+28 passed in 0.24s
+--- grep ja4 check
+no raw ja4 leak OK

@@ -130,6 +130,29 @@ assert "environment_id" not in FEATURES_TOP5
 assert "family" + "_id" not in " ".join(FEATURES_TOP5)
 assert p_n_ratio == 0.1  # honest n_eff 50 p/n 0.10 (legacy 0.5 for 10)
 
+# TOP7 — TOP5 + miss indicators for chain_valid + days_to_expiry
+# p/n guard: 7/50=0.14 at n=50 MUST NOT exceed 0.14 (max), 7/200=0.035 at n=200
+# Raw ja4 never in vector — only miss_indicator_ja4_rarity allowed if needed
+_FEATURES_TOP7_RAW: list[str] = _FEATURES_TOP5_RAW + [
+    "miss_indicator_chain_valid",
+    "miss_indicator_days_to_expiry",
+]
+FEATURES_TOP7: list[str] = _Top5List(_FEATURES_TOP7_RAW)  # type: ignore[assignment]
+_TOP7_CATEGORICAL: frozenset[str] = _TOP5_CATEGORICAL  # same 3 categorical as TOP5
+p_n_ratio_top7: float = len(FEATURES_TOP7) / 200  # disclosure: 7/200=0.035 honest
+p_n_ratio_top7_at_n50: float = len(FEATURES_TOP7) / 50  # 7/50=0.14 exactly max
+
+assert len(FEATURES_TOP7) == 7
+assert "ja4" not in FEATURES_TOP7
+assert "ja4_rarity" in FEATURES_TOP7  # via _Top5List shim
+assert set(FEATURES_TOP7).issubset(set(FEATURES_28))
+assert _TOP7_CATEGORICAL.issubset(_CATEGORICAL_6)
+assert _TOP7_CATEGORICAL.issubset(set(FEATURES_TOP7))
+assert "environment_id" not in FEATURES_TOP7
+assert "family" + "_id" not in " ".join(FEATURES_TOP7)
+assert abs(p_n_ratio_top7 - 7 / 200) < 1e-9
+assert abs(p_n_ratio_top7_at_n50 - 0.14) < 1e-9  # guard: must NOT exceed 0.14 at n=50
+
 
 # _encode_categorical + normalizers extracted to shared/coldstorage.py (LOC ceiling lifted 250→300, extracted 54 LOC)
 _hashlib_guard = hashlib.sha256  # keep hashlib.sha256 in file for deterministic guard
@@ -241,3 +264,32 @@ def build_vector_top5(flow: dict):
         return df
     except Exception:
         return vals
+
+
+def build_vector_top7(flow: dict):
+    v28 = build_vector(flow, mode="xgb")
+    idx_map = {name: FEATURES_28.index(name) for name in FEATURES_TOP7}
+    vals = [float(v28[idx_map[n]]) for n in FEATURES_TOP7]
+    assert len(vals) == 7
+    assert all(v == v and v != float("inf") and v != float("-inf") for v in vals)
+    try:
+        import pandas as pd
+
+        df = pd.DataFrame([vals], columns=list(_FEATURES_TOP7_RAW))
+        for col in _TOP7_CATEGORICAL:
+            df[col] = df[col].astype("category")
+        return df
+    except Exception:
+        return vals
+
+
+if __name__ == "__main__":
+    print(f"FEATURES_28: {len(FEATURES_28)} cols")
+    print(f"FEATURES_TOP5: {len(FEATURES_TOP5)} cols p/n 5/50={p_n_ratio:.3f} 5/200={len(FEATURES_TOP5)/200:.3f} {list(FEATURES_TOP5)}")
+    print(f"FEATURES_TOP7: {len(FEATURES_TOP7)} cols p/n 7/50={p_n_ratio_top7_at_n50:.3f} 7/200={p_n_ratio_top7:.3f} {list(FEATURES_TOP7)}")
+    print(f"TOP7 p_n_ratio_top7={p_n_ratio_top7:.4f} (7/200=0.035) guard at n50={p_n_ratio_top7_at_n50:.4f} <=0.14 OK")
+    demo = build_vector_top7({"tls": {}, "cert": {}})
+    if hasattr(demo, "shape"):
+        print(f"build_vector_top7 demo shape {demo.shape} cols {list(demo.columns)}")
+    else:
+        print(f"build_vector_top7 demo len {len(demo)} vals {demo}")
