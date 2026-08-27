@@ -1,0 +1,31 @@
+=== Task 8: splits.json 500 distinct proper_families via TLS hash ===
+Date: 2026-08-27T16:34:22+05:30
+
+--- manifest distinct ---
+500 distinct coherent families validated (distinct 500 proper, total 535 incl jitter 35)
+
+--- splits validate ---
+splits.json validated: 500 distinct proper_families true, TLS hash disjoint, canonical 132, D1 150 D2 100 D3 30 spare 220 D_prior 50, n_eff 500 p_n 0.01, WEAK verbatim n_eff=10 preserved, grouping environment_id, !isotonic, n_groups>=5 max/min<3, p/n guards 0.01/0.014
+distinct 500 proper hash via TLS hash not env string (jitter shares TLS hash)
+canonical dedupe 500->132 via JARM+JA4 for LOGO132
+
+--- python -c asserts ---
+assert n_eff 500 len 500 proper_families true TLS hash disjoint PASS
+
+--- grep n_eff 50 fails ---
+PASS grep n_eff 50 not found
+
+--- validate --manifest distinct 500 ---
+PASS distinct 500
+
+--- pytest test_splits ---
+.............................                                            [100%]
+29 passed in 0.08s
+
+--- risk_dataset distinct check ---
+df (500, 28) envs 500 distinct 500 fallback avoided, y dist Counter({np.int64(1): 435, np.int64(0): 65})
+
+--- groups details ---
+all 500 gbe 500 gbf 500 D1 150 D2 100 D3 30 spare 220 prior 50 canonical 132 n_eff 500 p_n 0.01 proper True
+
+=== Evidence complete ===

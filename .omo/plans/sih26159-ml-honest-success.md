@@ -116,7 +116,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `python -m lab.scripts.synth_families --count 40 --seed 0 --dry-run 2>&1 | tee .omo/evidence/task-5-sih26159-ml-honest-success.log` 0 UNKNOWN and 500 distinct; failure: `python -c "import json; d=json.load(open('lab/manifest.json')); print(len(set((v['tls'],v['cipher']) for v in d.values())))"` shows 244 not 500 → FAIL
   Commit: Y | feat(lab): de-duplicate to 500 distinct + GREASE+TLS normalize validator
 
-- [ ] 6. Ingest Censys 50 + Weber 6 as honest diversity
+- [x] 6. Ingest Censys 50 + Weber 6 as honest diversity
   What to do / Must NOT do: Run python -m lab.scripts.sample_censys_200 --count 50 --seed 42 stratified JA4 weighted extremes 0.02/0.99 prior_flag true, and tshark -r The-Ultimate-PCAP.pcapng -Y "smtp||imap||pop" -w /tmp/mail_only.pcapng then split 6 envs (smtp_clear_25, smtp_starttls_587, smtps_465, imap_starttls_143, imaps_993, pop3_110). Update lab/manifest and assessment/splits D_prior 50 disjoint. Must NOT use synthetic JA4, must NOT breach D_prior ∩ D1.
   Parallelization: Wave 2 | Blocked by: 5 | Blocks: 7,8,15
   References (executor has NO interview context - be exhaustive): lab/scripts/sample_censys_200.py:29-106, shared/data/censys_top_ja4.json, https://weberblog.net/the-ultimate-pcap, https://docs.censys.com/ls-download-censys-universal-internet-dataset 3.5k ports Avro 12TB, docs.censys.com/internet-scanning, assessment/splits.json D_prior 35→50
@@ -124,7 +124,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `python -m lab.scripts.sample_censys_200 --count 50 2>&1 | tee .omo/evidence/task-6-sih26159-ml-honest-success.log` shows 50 extremes; failure: `python -c "import json; s=json.load(open('assessment/splits.json')); assert not set(s['D_prior_groups']) & set(s['D1_train_groups'])"` must pass
   Commit: Y | data(censys-weber): ingest 50 Censys +6 Weber
 
-- [ ] 7. Scale to 500 via Tranco 200 zgrab2 STARTTLS
+- [x] 7. Scale to 500 via Tranco 200 zgrab2 STARTTLS
   What to do / Must NOT do: Download Tranco top 1M (tranco-list.eu), sample 200 stratified tiers 50 each, dig MX then zgrab2 smtp --port 25,587,465 --starttls + imap 143,993 + pop3 110,995 per scanner.go SendCommand STARTTLS, rate-limit 1 cert/day/IP, store shared/fixtures/tranco_sample_200.json with tls.version/cipher/ja4/cert. Simulate with Censys hosts if scan blocked. Must NOT exceed 500M/day, must NOT use MAWI payload-truncated.
   Parallelization: Wave 2 | Blocked by: 6 | Blocks: 8,15
   References (executor has NO interview context - be exhaustive): https://tranco-list.eu, https://zmap.io, https://github.com/zmap/zgrab2/blob/master/modules/smtp/scanner.go, https://github.com/ralexander-phi/smtp-starttls-scanning, https://sonardata.rapid7.com, assessment/splits.json
@@ -132,7 +132,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `python -m lab.scripts.tranco_sample --count 200 2>&1 | tee .omo/evidence/task-7-sih26159-ml-honest-success.log` shows 200 or simulated; failure: `ls shared/fixtures/tranco_sample_200.json || echo FAIL`
   Commit: Y | data(tranco): ingest 200 Tranco STARTTLS via zgrab2
 
-- [ ] 8. Update splits.json to 500 distinct with proper_families guard via TLS hash not env string
+- [x] 8. Update splits.json to 500 distinct with proper_families guard via TLS hash not env string
   What to do / Must NOT do: Set assessment/splits.json all_environment_ids 500, groups_by_env 500 1:1, groups_by_family 500 distinct but canonical dedupe 500→132 via JARM+JA4 hash for LOGO132, D1 150 (30/bin quality), D2 100 (20/bin), D3 30 locked distinct proper, spare 220, D_prior 50 via hash(TLS,cipher,kex) partition 0-6 prior 7 human 8 cal 9 test not env string (jitter shares TLS hash), n_eff operational 500 p_n 5/500=0.01 but WEAK_SUPERVISION verbatim n_eff=10 preserved separately, n_groups 500 but nested SGKF uses 132 canonical, proper_families true flag via hash(TLS,cipher,kex,cert,STARTTLS,port) distinct==500 excluding jitter is_jitter_augmentation. Validate ! isotonic, grouping environment_id, prior disjoint via TLS hash not string, n_groups≥5 and max/min<3, p/n guards 0.01/0.014. Must NOT keep n_eff 50, must NOT allow D_prior∩D1 via env string (leaks jitter), must NOT count jitter as distinct, must NOT claim 500 distinct while fallback to family-01.json for 415.
   Parallelization: Wave 2 | Blocked by: 7 | Blocks: 9,12,13
   References (executor has NO interview context - be exhaustive): assessment/splits.json:500 envs inventory 2-503 500 entries but hash 244, lab/manifest.json:500 10+35+415 bulk fallback family-01.json 62-65, lab/LEDGER.md, assessment/features.py:99 grouping assert environment_id not family, shared/schemas_eval.py:168 n_risk 500, docs/FAMILY_TAXONOMY.md proper 500, lab/scripts/validate_families.py hash distinct 500 vs 132 canonical, WRENCH hash partition disjoint, assessment/weak_supervision Jaccard

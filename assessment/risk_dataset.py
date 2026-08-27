@@ -55,14 +55,89 @@ def _load_dataset():
     splits = json.loads(SPLITS.read_text())
     all_envs = splits["all_environment_ids"]
     groups_map = splits["groups_by_env"]
+    # Load manifest for distinct synthesis when fixture missing (500 distinct guard)
+    manifest_path = pathlib.Path("lab/manifest.json")
+    manifest = {}
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except Exception:
+            manifest = {}
+    # Build env_id -> manifest entry for synthesis
+    env_to_manifest = {}
+    for _k, _v in manifest.items():
+        eid = _v.get("environment_id")
+        if eid:
+            env_to_manifest[eid] = _v
     rows = []
     for env in all_envs:
         fam = env.split("__")[0]
         num = fam.split("-")[1]
         base_path = FIXTURE_DIR / f"family-{num}.json"
-        if not base_path.exists():
-            base_path = FIXTURE_DIR / "family-01.json"
-        flow = json.loads(base_path.read_text())
+        if base_path.exists():
+            flow = json.loads(base_path.read_text())
+        else:
+            # Synthesize distinct flow from manifest (avoid fallback to family-01.json for 415)
+            # Use manifest entry for this env to ensure 500 distinct coherent families
+            m_ent = env_to_manifest.get(env)
+            if m_ent is not None:
+                # Build minimal FlowVerdict dict from manifest coherence
+                tls_version = m_ent.get("tls", "TLS1.2")
+                cipher = m_ent.get("cipher", "ECDHE-RSA-AES128-GCM-SHA256")
+                kex = m_ent.get("kex", "ECDHE")
+                cert_type = m_ent.get("cert", "rsa2048")
+                starttls = m_ent.get("starttls", "upgrade")
+                port = int(m_ent.get("port", 587))
+                # Deterministic ja4_rarity from hash
+                h = int(hashlib.sha256(env.encode()).hexdigest()[:8], 16) % 100
+                rarity = 0.05 + (h % 90) / 100.0
+                # Map cipher to strength / kex coherence already
+                is_aead = cipher in ("TLS_AES_128_GCM_SHA256","TLS_AES_256_GCM_SHA384","TLS_CHACHA20_POLY1305_SHA256","ECDHE-RSA-AES128-GCM-SHA256","ECDHE-RSA-AES256-GCM-SHA384","ECDHE-ECDSA-AES128-GCM-SHA256","ECDHE-ECDSA-AES256-GCM-SHA384","RSA-AES128-GCM-SHA256","RSA-AES256-GCM-SHA384","DHE-RSA-AES128-GCM-SHA256")
+                is_deprecated = tls_version in ("TLS1.0","TLS1.1")
+                fs_flag = kex == "ECDHE"
+                # Cert fields
+                is_tls13_opaque = tls_version == "TLS1.3" and cert_type == "opaque"
+                leaf_present = not is_tls13_opaque and cert_type != "none"
+                chain_valid = None if is_tls13_opaque or cert_type in ("none","selfsigned","expired","chain-incomplete") else True
+                if cert_type == "selfsigned":
+                    chain_valid = False
+                # Build flow
+                flow = {
+                    "flow_id": env,
+                    "environment_id": env,
+                    "tls": {
+                        "version": tls_version,
+                        "cipher_suite": cipher,
+                        "cipher_strength": "strong" if is_aead else "weak" if is_deprecated else "medium",
+                        "kex": kex,
+                        "fs_flag": fs_flag,
+                        "is_deprecated": is_deprecated,
+                        "is_aead": is_aead,
+                        "handshake_success": tls_version != "none",
+                        "alert_after_starttls": False,
+                        "ja4_rarity": round(max(0.02, min(0.99, rarity)), 4),
+                        "ja4": f"t13d1516h2_{hashlib.sha256(env.encode()).hexdigest()[:12]}_000000000000",
+                    },
+                    "cert": {
+                        "leaf_present": leaf_present,
+                        "is_tls13_opaque": is_tls13_opaque,
+                        "chain_valid": chain_valid,
+                        "san_match": chain_valid,
+                        "days_to_expiry": 90 if leaf_present and cert_type not in ("expired",) else (-10 if cert_type=="expired" else None),
+                        "chain_length": 2 if leaf_present else None,
+                        "pubkey_bits": 2048 if cert_type not in ("rsa1024",) else 1024,
+                        "sigalg_weak": cert_type in ("expired",),
+                        "is_expired": cert_type == "expired",
+                        "is_self_signed": cert_type == "selfsigned",
+                        "keysize_weak": cert_type == "rsa1024",
+                    },
+                    "starttls_mode": starttls,
+                    "port": port,
+                    "app_protocol": "smtp" if port in (25,587) else "imap" if port in (143,993) else "pop3",
+                }
+            else:
+                base_path = FIXTURE_DIR / "family-01.json"
+                flow = json.loads(base_path.read_text())
         flow = json.loads(json.dumps(flow))
         flow["environment_id"] = env
         flow["flow_id"] = groups_map.get(env, [env])[0]

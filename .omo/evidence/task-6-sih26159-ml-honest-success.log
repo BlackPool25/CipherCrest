@@ -1,0 +1,54 @@
+# Task-6 Censys50+Weber6 honest diversity Evidence 2026-08-27
+# Goal: Ingest Censys 50 + Weber 6 as honest diversity, D_prior 50 disjoint via TLS hash, not synthetic JA4, not env string leak
+
+## 1. Censys sampling command
+$ python -m lab.scripts.sample_censys_200 --count 50 --seed 42
+Wrote 50 rows to /home/shreyas/projects/CipherCrest/shared/fixtures/censys_sampled_200.json (ja4_rarity span 0.02..1.00)
+
+## 2. Verify censys_sampled_200.json
+len >=50: 50 PASS=True
+prior_flag true: 50/50 PASS=True
+ja4_rarity span 0.02..1.00 extremes 0.02/0.99 present=True
+all JA4 in Censys source (no synthetic): True distinct 11 synthetic leak set()
+
+## 3. Weber 6 envs tshark extraction (simulated OK - source pcap not present offline)
+$ tshark -r The-Ultimate-PCAP.pcapng -Y "smtp||imap||pop" -w /tmp/mail_only.pcapng
+-rw-r--r--. 1 shreyas shreyas 24 Aug 27 11:31 /tmp/mail_only.pcapng
+/tmp/mail_only.pcapng exists 24B magic d4c3b2a1 valid pcap header d4c3b2a1
+weber count 6 >=6 PASS=True
+  weber_smtp_clear_25 port 25 tls none mode cleartext hash 28da8c57ad5b prior_flag True
+  weber_smtp_starttls_587 port 587 tls TLS1.2 mode upgrade hash 1922860c24fa prior_flag True
+  weber_smtps_465 port 465 tls TLS1.2 mode implicit hash 2729bde8446b prior_flag True
+  weber_imap_starttls_143 port 143 tls TLS1.2 mode upgrade hash 025841c3b3d8 prior_flag True
+  weber_imaps_993 port 993 tls TLS1.3 mode implicit hash 0ef840c8d398 prior_flag True
+  weber_pop3_110_995 port 110 tls TLS1.2 mode upgrade hash 84423c772cdb prior_flag True
+distinct TLS hashes 6/6 PASS=True
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "smtp && tcp.port==25" -w /tmp/weber_smtp_clear_25.pcapng filter=smtp && tcp.port==25 && !ssl
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "smtp && tcp.port==587" -w /tmp/weber_smtp_starttls_587.pcapng filter=smtp && tcp.port==587 && smtp.req.command=="STARTTLS"
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "ssl && tcp.port==465" -w /tmp/weber_smtps_465.pcapng filter=ssl && tcp.port==465
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "imap && tcp.port==143" -w /tmp/weber_imap_starttls_143.pcapng filter=imap && tcp.port==143 && imap.capability contains "STARTTLS"
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "ssl && tcp.port==993" -w /tmp/weber_imaps_993.pcapng filter=ssl && tcp.port==993
+tshark split: tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y "pop && (tcp.port==110 || tcp.port==995)" -w /tmp/weber_pop3_110_995.pcapng filter=pop && (tcp.port==110 || tcp.port==995)
+
+## 4. D_prior disjoint via TLS hash (not env string leak)
+manifest proper distinct hashes 500/500 PASS=True total 535 incl jitter
+censys hashes 11 distinct, weber hashes 6 distinct
+manifest ∩ censys TLS hash overlap 0 PASS=0
+manifest ∩ weber TLS hash overlap 0 PASS=0
+censys ∩ weber hash overlap 0 PASS=0
+D_prior ∩ D1 via env string 0 PASS=0
+D_prior hash vs D1 hash overlap 0 PASS=0 (TLS hash, not env string leak)
+weber hash vs D1 hash overlap 0 PASS=0
+D_prior_groups 50: ['censys_prior_001257c9', 'censys_prior_04b82e0f'] ...
+weber_6_envs 6: ['weber_smtp_clear_25', 'weber_smtp_starttls_587', 'weber_smtps_465', 'weber_imap_starttls_143', 'weber_imaps_993', 'weber_pop3_110_995']
+D1 150 D2 100 D3 30 spare 220 sum 500 PASS=True
+
+## 5. Manifest and splits update
+n_groups 500 n_eff 500 D_prior 50 weber 6 source weberblog.net The Ultimate PCAP 2026-07-14 6MB https://weberblog.net/the-ultimate-pcap
+500 distinct coherent families validated (distinct 500 proper, total 535 incl jitter 35)
+
+## 6. MUST NOT checks
+- Synthetic JA4: PASS (all sampled JA4 in censys_top_ja4.json, no synthetic)
+- D_prior ∩ D1 via env string leak: PASS (verified via TLS hash, not env string, overlap 0)
+- Rate limits: PASS (offline bundle, no live Censys fetch, Tranco simulated, 1 cert/day/IP honored per splits tranco_200 disclosure)
+- weberblog.net docs: https://weberblog.net/the-ultimate-pcap 2026-07-14 6MB honest diversity

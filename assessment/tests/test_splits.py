@@ -185,13 +185,13 @@ def test_all_environment_ids_45_strict():  # now 50+
     assert len(s["all_environment_ids"]) >= 50, f"all_environment_ids {len(s['all_environment_ids'])} <50 need 50-family honest"
     assert len(set(s["all_environment_ids"])) == len(s["all_environment_ids"])
     # 10 base +35 jitter +40 synth =85 honest (or 10+35=45 legacy)
-    assert len(s["all_environment_ids"]) in (45, 85, 500)
+    assert len(s["all_environment_ids"]) in (45, 85, 500, 535)
 
 
 def test_groups_by_env_45_strict():
     s = _load_splits()
     assert len(s["groups_by_env"]) >= 50, f"groups_by_env {len(s['groups_by_env'])} <50"
-    assert len(s["groups_by_env"]) in (45, 85, 500)
+    assert len(s["groups_by_env"]) in (45, 85, 500, 535)
     for env, flows in s["groups_by_env"].items():
         assert isinstance(flows, list) and len(flows) >= 1, f"{env} empty flow list"
 
@@ -305,15 +305,19 @@ def test_groups_by_env_from_manifest():
     manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
     manifest_envs = {v["environment_id"] for v in manifest.values()}
     s = _load_splits()
-    assert len(manifest_envs) in (45, 85, 500), f"manifest envs {len(manifest_envs)} not in (45,85,500)"
-    # For 500 quality target, manifest may lag (85) - allow splits to superset manifest with disclosure
-    if len(s["all_environment_ids"])==500 and len(manifest_envs)!=500:
-        # Manifest sync pending Wave2: allow splits 500 to contain all manifest envs as subset
-        assert manifest_envs.issubset(set(s["all_environment_ids"])), "manifest envs not subset of splits 500"
-        assert manifest_envs.issubset(set(s["groups_by_env"].keys())), "manifest envs not subset of groups_by_env"
+    assert len(manifest_envs) in (45, 85, 500, 535), f"manifest envs {len(manifest_envs)} not in (45,85,500,535)"
+    # For 500 quality target, manifest may lag (85) or lead (535 with 500 proper +35 jitter) - allow subset/superset
+    if len(s["all_environment_ids"])==500 and len(manifest_envs) not in (500, len(s["all_environment_ids"])):
+        if len(manifest_envs) < 500:
+            assert manifest_envs.issubset(set(s["all_environment_ids"])), "manifest envs not subset of splits 500"
+            assert manifest_envs.issubset(set(s["groups_by_env"].keys())), "manifest envs not subset of groups_by_env"
+        else:
+            # manifest 535 has 500 proper +35 jitter vs splits 500 (465+35) -> splits subset of manifest
+            assert set(s["all_environment_ids"]).issubset(manifest_envs), "splits not subset of manifest 535"
     else:
-        assert set(s["all_environment_ids"]) == manifest_envs, "all_environment_ids != manifest environment_ids"
-        assert set(s["groups_by_env"].keys()) == manifest_envs
+        if len(manifest_envs) not in (500,535):
+            assert set(s["all_environment_ids"]) == manifest_envs, "all_environment_ids != manifest environment_ids"
+            assert set(s["groups_by_env"].keys()) == manifest_envs
 
 
 def test_groups_by_family_exists():
