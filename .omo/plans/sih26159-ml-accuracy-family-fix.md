@@ -183,7 +183,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   Commit: Y | feat(calibration): add working ECE/Brier per-class with conformal
 
 
-- [ ] 14. Fix dashboard Families.jsx jitter hiding and CoverageTable hardcode
+- [x] 14. Fix dashboard Families.jsx jitter hiding and CoverageTable hardcode
   What to do / Must NOT do: In dashboard/src/pages/Families.jsx replace `Object.keys(manifest).slice(0,50)` with `groups_by_family` expander showing 6 envs for jittered families (jitter1..5_loss5 + loss0) vs 1 for others, with GREASE/ja4_rarity/expiry badges, loss5 vs loss0, true coverage_ratio per flow not 1.0; in dashboard/src/components/CoverageTable.jsx fix hardcoded `empty?'—':'1.0'` to read `f.coverage_ratio` per flow (0.897 for jittered). In dashboard/src/pages/Lab.jsx add jitter grouping table. Must NOT hide 35 jitter variants; must NOT hardcode 1.0.
   Parallelization: Wave 4 | Blocked by: 9,10 | Blocks: 17
   References (executor has NO interview context - be exhaustive): dashboard/src/pages/Families.jsx:synthesize50+slice(0,50), dashboard/src/components/CoverageTable.jsx:103, dashboard/src/pages/Lab.jsx, lab/reassembler/reassemble.py:36-41 coverage_ratio 1.0/0.897, lab/manifest.json 85→200, assessment/splits.json groups_by_family

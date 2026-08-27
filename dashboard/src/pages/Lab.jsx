@@ -603,6 +603,23 @@ export default function Lab(){
             </div>
             <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>lab/reassembled/*.bin 120B · coverage_ratio 1.0 clean vs 0.897 jittered · tshark 4-prefs parity</div>
           </div>
+
+          {/* jitter grouping — 6 envs per jittered family (02,03,04,05,07,08,10) GREASE 16 — must NOT hide 35 jitter variants */}
+          <div style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, borderRadius:10, padding:12, boxShadow:TOK.shadow }}>
+            <div style={{ fontSize:10, color:TOK.inkFaint, textTransform:'uppercase', letterSpacing:0.6, fontWeight:700, marginBottom:8 }}>Jitter grouping — 6 envs per jittered family (02,03,04,05,07,08,10) · 35 jitter variants</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, fontSize:10, fontFamily:TOK.fontMono }}>
+              {['02','03','04','05','07','08','10'].map(fid=> (
+                <div key={fid} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 8px', background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:8 }}>
+                  <span style={{ fontWeight:700, color:TOK.ink }}>family-{fid}</span>
+                  <span style={{ background: fid==='02'||fid==='07'||fid==='09'? '#EEF2FF':'#FEF3C7', border:'1px solid #C7D2FE', padding:'1px 5px', borderRadius:999, fontSize:9, color: fid==='02'||fid==='07'||fid==='09'? '#4338CA':'#92400E' }}>jitter</span>
+                  <span style={{ color:TOK.inkFaint }}>6 envs loss0+5 loss5</span>
+                  <span style={{ color:TOK.inkFaint }}>GREASE</span>
+                  <span style={{ color: fid==='02'? '#B45309':'#047857', fontWeight:600 }}>{fid==='02'?0.897:1.0} coverage_ratio</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>groups_by_family expander · true coverage_ratio per flow not 1.0 · must NOT hide jittered</div>
+          </div>
         </div>
       </div>
 

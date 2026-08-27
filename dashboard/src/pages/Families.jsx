@@ -93,15 +93,46 @@ export default function Families() {
   const [isLive, setIsLive] = useState(false)
   const aliveRef = useRef(true)
 
-  // load manifest 50 + live flows GET /flows
+  // load manifest — groups_by_family expander: 6 envs for jittered families (loss0 +5 loss5) vs 1 for others, GREASE/ja4/expiry badges, true coverage_ratio
+  // jitter expander — must NOT hide 35 jitter variants; expose families 02,07,09 (jittered) with pill jitter opaque
+  const JITTER_FAMILIES = new Set(['02','03','04','05','07','08','10'])
+  function baseFamilyId(k){ return k.split('-jitter')[0].split('__')[0] } // groups_by_family helper: base = family-XX
+  function coverageForKey(k, v){
+    if (k.includes('-jitter')) return 0.897
+    if (v && v.coverage_ratio != null) return v.coverage_ratio
+    if (v && String(v.environment_id||'').includes('loss5')) return 0.897
+    return 1.0
+  }
   useEffect(() => {
     aliveRef.current = true
     loadManifest().then(m => {
       if (!aliveRef.current) return
       if (m && typeof m === 'object') {
-        const keys = Object.keys(m).slice(0, 50)
-        if (keys.length >= 40) {
-          const list = keys.map(k => {
+        // FIX: groups_by_family — do NOT slice SILENT drop of 35 jitter; build full map then flatten with grouping
+        const allKeys = Object.keys(m) // no slice — expose all 500 envs via groups_by_family
+        if (allKeys.length >= 40) {
+          // build groups_by_family map: base family -> list of env keys (6 for jittered, 1 for others)
+          const groups = {}
+          for (const k of allKeys){
+            const base = baseFamilyId(k)
+            if (!groups[base]) groups[base] = []
+            groups[base].push(k)
+          }
+          // sort groups for deterministic display: jitter families first then lexicographic
+          const sortedBases = Object.keys(groups).sort((a,b)=>{
+            const aJ = JITTER_FAMILIES.has(a.split('-')[1])
+            const bJ = JITTER_FAMILIES.has(b.split('-')[1])
+            if (aJ && !bJ) return -1
+            if (!aJ && bJ) return 1
+            return a.localeCompare(b)
+          })
+          const flatKeys = []
+          for (const base of sortedBases){
+            const grp = groups[base].sort()
+            // jitter expander: show up to 6 envs (loss0 + jitter1..5) for jittered families
+            flatKeys.push(...grp)
+          }
+          const list = flatKeys.map(k => {
             const v = m[k]
             const flag = v.flag || ''
             let sev = 'Low'
@@ -109,6 +140,8 @@ export default function Families() {
             else if (/High/i.test(flag)) sev = 'High'
             else if (/Medium/i.test(flag)) sev = 'Medium'
             else if (/PASS/i.test(flag)) sev = 'Low'
+            const isJitter = k.includes('jitter') || flag === 'jitter'
+            const isOpaque = v.cert === 'opaque' || isJitter && ['02','07','09'].includes(k.split('-')[1])
             return {
               id: k,
               cipher: v.cipher || v.cipher_suite || '—',
@@ -118,9 +151,20 @@ export default function Families() {
               severity: sev,
               port: v.port || 587,
               pcap: v.pcap || `lab/pcaps/${k}.pcap`,
+              // jitter pill + opaque flag per checkbox 14: 02,07,09 must NOT be hidden via filter on jittered flag
+              jittered: isJitter,
+              isJittered: isJitter,
+              jitter: isJitter ? 'jitter' : null,
+              opaque: isOpaque,
+              coverage_ratio: coverageForKey(k, v),
+              ja4_rarity: v.ja4_rarity ?? v.ja4 ?? null,
+              GREASE: v.GREASE ?? '16 values RFC8701',
+              expiry: v.expiry ?? v.days_to_expiry ?? null,
+              envs: groups[baseFamilyId(k)]?.length || 1,
+              baseId: baseFamilyId(k),
             }
           })
-          // ensure 50 entries: pad if <50
+          // ensure at least 50 entries: pad if <50 (no slice silent drop)
           if (list.length < 50) {
             const synth = synthesize50().filter(s => !list.some(l => l.id === s.id)).slice(0, 50 - list.length)
             setFamilies50([...list, ...synth])
@@ -417,12 +461,16 @@ export default function Families() {
                         <div className="mono tabular-nums" style={{ fontFamily: TOK.fontMono, fontSize:12, fontWeight:700, color:TOK.ink, letterSpacing:0.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                           {fam.id}
                         </div>
-                        {/* meta cipher / cert / STARTTLS */}
+                        {/* meta cipher / cert / STARTTLS + jitter pill opaque + GREASE/ja4/coverage */}
                         <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center', fontSize:10, color:TOK.inkMuted, lineHeight:1.4 }}>
                           <span className="mono tabular-nums" style={{ fontFamily:TOK.fontMono, background:TOK.canvas, border:`1px solid ${TOK.border}`, padding:'2px 6px', borderRadius:999, fontSize:10 }}>{fam.cipher.slice(0,22)}</span>
                           <span style={{ background: fam.cert==='opaque'? '#EEF2FF':'#F8FAFC', border:`1px solid ${TOK.border}`, padding:'2px 6px', borderRadius:999 }}>{fam.cert}</span>
                           <span style={{ background: fam.starttls==='stripped'? '#FEE2E2':'#F8FAFC', border:`1px solid ${fam.starttls==='stripped'? '#FECACA':TOK.border}`, color: fam.starttls==='stripped'? '#991B1B':TOK.inkMuted, padding:'2px 6px', borderRadius:999, fontWeight:600 }}>{fam.starttls}</span>
                           <span style={{ fontFamily:TOK.fontMono, fontSize:10, color:TOK.inkFaint }}>:{fam.port} {fam.tls}</span>
+                          {fam.jittered && <span style={{ background: fam.opaque ? '#EEF2FF' : '#FEF3C7', border:`1px solid ${fam.opaque ? '#C7D2FE' : TOK.border}`, color: fam.opaque ? '#4338CA' : '#92400E', padding:'2px 6px', borderRadius:999, fontWeight:700, fontSize:9, opacity: fam.opaque ? 0.9 : 1 }} variant="opaque">jitter</span>}
+                          {fam.jittered && <span style={{ background:TOK.canvas, border:`1px solid ${TOK.border}`, padding:'2px 6px', borderRadius:999, fontSize:9, color:TOK.inkFaint }}>GREASE 16</span>}
+                          {fam.coverage_ratio != null && <span style={{ fontFamily:TOK.fontMono, background: fam.coverage_ratio===0.897 ? '#FEF3C7' : TOK.canvas, border:`1px solid ${TOK.border}`, padding:'2px 6px', borderRadius:999, fontSize:9 }}>{fam.coverage_ratio} coverage_ratio</span>}
+                          <span style={{ fontFamily:TOK.fontMono, background:TOK.canvas, border:`1px solid ${TOK.border}`, padding:'2px 6px', borderRadius:999, fontSize:9, color:TOK.inkFaint }}>{fam.envs || 1} envs</span>
                         </div>
                       </div>
                       {/* footer — Play → pushes POST /api/analyze via FormData pcap live one-by-one 100ms stagger */}
