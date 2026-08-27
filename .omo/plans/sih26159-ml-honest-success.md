@@ -204,7 +204,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `cat eval/EVIDENCE_Day14.md | grep -E "AP|PCDM|MCB"` shows AP headline max not mean; failure: `grep -q "ece<0\.40" shared/schemas_eval.py && echo FAIL lax gate` or `grep -q "clamp" eval/metrics.json && echo FAIL`
   Commit: Y | docs(evidence): honest AP+Brier joint max + gates hi<0.15/0.25
 
-- [ ] 17. Locked external 30 + sync LEDGER and LEAKAGE_REPORT honest
+- [x] 17. Locked external 30 + sync LEDGER and LEAKAGE_REPORT honest
   What to do / Must NOT do: Generate 30 locked families via lab/scripts/gen_locked_external.py --count 30 --seed 42 distinct taxonomy not jitter, .pcap+.sha256+.locked, update splits D3 10→30, groups_by_family 500 distinct, sync README Quick Start n_risk500 n_prior50 n_eff500, lab/LEDGER.md 500 rows with TLS/cipher/KEX/cert/STARTTLS/pre_tls/MTA-STS columns marking jitter vs distinct proper, eval/LEAKAGE_REPORT.md gap honest no clamp per-class disclosures p/n 7/500=0.014. Must NOT keep 10 locked at 200 scale, must NOT jitter as distinct.
   Parallelization: Wave 5+ | Blocked by: 16 | Blocks: -
   References (executor has NO interview context - be exhaustive): assessment/splits.json D3 10→30, shared/fixtures/locked_external, eval/tests/test_locked_external.py, lab/manifest.json 500, README n_risk85→500, docs/LARGE_FILES.md

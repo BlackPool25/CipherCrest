@@ -114,7 +114,9 @@ ls lab/pcaps/jittered/*.pcap | wc -l  # 35  (total 45 with base 10)
 # Day7 legacy: --slices 3 → 21 jittered (31 total) ,  see lab/LEDGER.md
 ```
 
-Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk500 n_prior35 n_eff 500 p_n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working quality; spare 220; 500 envs quality target, WEAK SUPERVISION verbatim preserved, honest ML 5-bin [94,6,0,0,0] n_eff 500 per-class ECE macro 0.053.
+Offline bundle verified: `du -m wheelhouse | tail -1` `345 <350`, `gzip -c dashboard/dist/assets/*.js | wc -c` `157567 <3670016`, `! ls wheelhouse/*.whl | grep -qi torch`. Single port 8000 via `api/app.py` `app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True))`. n_risk500 n_prior50 n_eff500 n_eff 500 p_n 0.01 TOP5 0.014 TOP7 @ 500; n=200 honest working quality; spare 220; 500 envs quality target, WEAK SUPERVISION verbatim preserved, honest ML 5-bin [94,6,0,0,0] n_eff 500 per-class ECE macro 0.053.
+
+Locked 30: `python lab/scripts/gen_locked_external.py --count 30 --seed 42` → `shared/fixtures/locked_external/*.pcap 30` + `*.sha256 30` + `*.locked` distinct taxonomy not jitter; D3_locked 30 distinct, groups_by_family 500 distinct coherent.
 
 Day13 alignment: `git clone && docker compose up --build -> /dashboard /health /docs` + two-file lifecycle + pinned images + 50-family honest + WS continuum (5-tab live isLive spinner + hash deep link), models prot4 <5M Vite 157k <3670016 wheelhouse 345M <370 lean, 6.5/8 interim honest labs proxy split 14/10 AE commission, Turnup two-file Docker pure compose + pinned lab images healthcheck + stik 4.2 tini single 8000 + 5-tab WS live synthesis honest, ML EVIDENCE 267 lines + LEAKAGE_REPORT updated + README alignment git clone compose.
 
