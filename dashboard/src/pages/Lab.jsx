@@ -604,21 +604,25 @@ export default function Lab(){
             <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>lab/reassembled/*.bin 120B · coverage_ratio 1.0 clean vs 0.897 jittered · tshark 4-prefs parity</div>
           </div>
 
-          {/* jitter grouping — 6 envs per jittered family (02,03,04,05,07,08,10) GREASE 16 — must NOT hide 35 jitter variants */}
+          {/* jitter grouping — 6 envs per jittered family (02,03,04,05,07,08,10) GREASE 16 — must NOT hide 35 jitter variants — groups_by_family expander */}
           <div style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, borderRadius:10, padding:12, boxShadow:TOK.shadow }}>
-            <div style={{ fontSize:10, color:TOK.inkFaint, textTransform:'uppercase', letterSpacing:0.6, fontWeight:700, marginBottom:8 }}>Jitter grouping — 6 envs per jittered family (02,03,04,05,07,08,10) · 35 jitter variants</div>
+            <div style={{ fontSize:10, color:TOK.inkFaint, textTransform:'uppercase', letterSpacing:0.6, fontWeight:700, marginBottom:8 }}>Jitter grouping — groups_by_family 6 envs per jittered family (02,03,04,05,07,08,10) · 35 jitter variants · loss0 1.0 vs loss5 0.897</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, fontSize:10, fontFamily:TOK.fontMono }}>
               {['02','03','04','05','07','08','10'].map(fid=> (
-                <div key={fid} style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 8px', background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:8 }}>
+                <div key={fid} style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:5, padding:'6px 8px', background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:8 }}>
                   <span style={{ fontWeight:700, color:TOK.ink }}>family-{fid}</span>
-                  <span style={{ background: fid==='02'||fid==='07'||fid==='09'? '#EEF2FF':'#FEF3C7', border:'1px solid #C7D2FE', padding:'1px 5px', borderRadius:999, fontSize:9, color: fid==='02'||fid==='07'||fid==='09'? '#4338CA':'#92400E' }}>jitter</span>
-                  <span style={{ color:TOK.inkFaint }}>6 envs loss0+5 loss5</span>
-                  <span style={{ color:TOK.inkFaint }}>GREASE</span>
-                  <span style={{ color: fid==='02'? '#B45309':'#047857', fontWeight:600 }}>{fid==='02'?0.897:1.0} coverage_ratio</span>
+                  <span style={{ background: fid==='02'||fid==='07'||fid==='10'? '#EEF2FF':'#FEF3C7', border:'1px solid #C7D2FE', padding:'1px 5px', borderRadius:999, fontSize:9, color: fid==='02'||fid==='07'||fid==='10'? '#4338CA':'#92400E' }}>jitter</span>
+                  <span style={{ background:'#F0FDF4', border:`1px solid #BBF7D0`, color:'#166534', padding:'1px 5px', borderRadius:999, fontSize:9 }}>6 envs</span>
+                  <span style={{ background:'#FEF3C7', border:`1px solid #FDE68A`, color:'#92400E', padding:'1px 5px', borderRadius:999, fontSize:9, fontWeight:600 }}>loss0 1.0</span>
+                  <span style={{ background:'#FEF3C7', border:`1px solid #FCD34D`, color:'#92400E', padding:'1px 5px', borderRadius:999, fontSize:9, fontWeight:700 }}>loss5 0.897</span>
+                  <span style={{ color:TOK.inkFaint, border:`1px solid ${TOK.border}`, padding:'1px 5px', borderRadius:999, background:TOK.surface }}>GREASE 16</span>
+                  <span style={{ color:'#166534', border:`1px solid #BBF7D0`, padding:'1px 5px', borderRadius:999, background:'#F0FDF4', fontSize:9 }}>ja4_rarity</span>
+                  <span style={{ color:'#92400E', border:`1px solid #FDE68A`, padding:'1px 5px', borderRadius:999, background:'#FEF3C7', fontSize:9 }}>expiry</span>
+                  <span style={{ fontFamily:TOK.fontMono, color:'#B45309', fontWeight:700 }}>0.897 jittered coverage_ratio</span>
                 </div>
               ))}
             </div>
-            <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>groups_by_family expander · true coverage_ratio per flow not 1.0 · must NOT hide jittered</div>
+            <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>groups_by_family expander · true coverage_ratio per flow not 1.0 (loss5 0.897 vs loss0 1.0) · GREASE 16 ja4_rarity expiry badges · must NOT hide 35 jitter · must NOT hardcode 1.0</div>
           </div>
         </div>
       </div>

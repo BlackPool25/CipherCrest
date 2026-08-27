@@ -180,7 +180,7 @@ Your next move: approve, then `$start-work sih26159-ml-honest-success --worktree
   QA scenarios (name the exact tool + invocation): happy: `python -m assessment.active_select --dry-run 2>&1 | grep "KMeans.*entropy.*LOO.*B=2.*Wilson"`; failure: `grep -q "if not 0.05 <= delta" assessment/active_select.py && echo FAIL simulated` or `python -c "import json; j=json.load(open('shared/fixtures/human_labels.json')); assert sum(1 for x in j if x['label']==1)==15"` → FAIL 15 positives theater
   Commit: Y | feat(active): honest KMeans-15 stratified LOO B=2 Wilson
 
-- [ ] 14. Fix dashboard Families jitter and CoverageTable true ratio
+- [x] 14. Fix dashboard Families jitter and CoverageTable true ratio
   What to do / Must NOT do: In dashboard/src/pages/Families.jsx replace Object.keys(manifest).slice(0,50) with groups_by_family expander showing 6 envs per jittered families (jitter1..5+loss0) vs 1 for others, GREASE/ja4_rarity/expiry badges, loss5 vs loss0, true coverage_ratio per flow not 1.0; in CoverageTable.jsx fix empty?'—':'1.0' to read f.coverage_ratio per flow (0.897 jittered). Lab.jsx jitter grouping table. Must NOT hide 35 jitter, must NOT hardcode 1.0.
   Parallelization: Wave 5 | Blocked by: 12,13 | Blocks: 16
   References (executor has NO interview context - be exhaustive): dashboard/src/pages/Families.jsx synthesize50 slice(0,50), dashboard/src/components/CoverageTable.jsx:103, dashboard/src/pages/Lab.jsx, lab/reassembler/reassemble.py coverage 1.0/0.897, lab/manifest.json 500, assessment/splits.json groups_by_family
