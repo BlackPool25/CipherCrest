@@ -30,7 +30,7 @@ def test_anomaly_pkl_exists_and_has_scores():
     m = pickle.loads(p.read_bytes())
     assert hasattr(m, "decision_scores_"), "missing decision_scores_"
     assert hasattr(m, "threshold_"), "missing threshold_"
-    assert len(m.decision_scores_) == 27
+    assert len(m.decision_scores_) == 200
     assert m.contamination == 0.10
 
 

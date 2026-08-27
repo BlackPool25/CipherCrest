@@ -155,7 +155,7 @@
       0.93,
       1.0
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
     "p": 5,
     "n_eff": 50,
     "p_n": 0.1,
@@ -163,7 +163,7 @@
     "note": "RL delta TabPFN 0.063 CatBoost -0.011 vs XGB Platt-only 5-bin macro ECE 0.022 Brier joint 0.086 < base 0.220; kernel 0.067 vs histogram 0.032 gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; Platt only no iso-tonic at n<1000",
     "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)) gated min>=12 else 3; quantile-5 alongside EW-5 skew |EW-quantile|>0.03; SmoothECE Silverman kernel corroborates histogram within CI",
     "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI honest; empty bin NaN width NaN",
-    "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop \u2014 model fit outer train, permutation outer test only",
+    "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only",
     "cpi_nested_outer": {
       "outer_0": {
         "outer": 0,
@@ -735,7 +735,7 @@
       "inner": 3,
       "auc_mean": 0.714,
       "groups": "132 canonical deduped JARM+JA4",
-      "note": "SGKF5x3 outer5 inner3 StratifiedGroupKFold 500\u2192132 canonical, primary honest not holdout 1.0",
+      "note": "SGKF5x3 outer5 inner3 StratifiedGroupKFold 500→132 canonical, primary honest not holdout 1.0",
       "holdout_auc": 0.976,
       "gap": 0.262
     },
@@ -871,14 +871,14 @@
     "n_risk": 500,
     "n_families": 500,
     "n_eff": 500,
-    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
     "n_prior": 35,
     "n_prior20": 20,
     "n_prior35": 35,
     "n_risk85": 85,
     "n_eff50": 50,
     "n_families50": 50,
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
     "n_risk45": 45,
     "n_eff10": 10,
     "n_families10": 10,
@@ -889,7 +889,7 @@
     "p_n_top7": 0.014,
     "n_risk500": 500
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "ece_2bin": 0.051,
   "ece_5bin": 0.058,
   "ece_quantile_5bin": 0.062,
@@ -917,8 +917,8 @@
   "bootstrap_n": 2000,
   "ap": 0.976,
   "fit_time": 11.608697652816772,
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
-  "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop \u2014 model fit outer train, permutation outer test only",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+  "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only",
   "cpi_nested_outer": {
     "outer_0": {
       "outer": 0,
@@ -1530,7 +1530,7 @@
       }
     ],
     "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
     "threshold_05": 22.028,
     "threshold_10": 16.5031,
     "threshold_30": 10.4226,
@@ -1570,7 +1570,7 @@
       5,
       10
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
   },
   "ndcg_model_at5": 1.0,
   "ndcg_model_at10": 0.9950282947039433,
@@ -1621,7 +1621,7 @@
     "perm_p_tabpfn": 0.000999000999000999,
     "perm_p_xgb": 0.000999000999000999,
     "elapsed_s": 3.5969350337982178,
-    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean\u00b1std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
+    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
   },
   "catboost": {
     "available": false,
@@ -1665,7 +1665,7 @@
     "method": "KMeans k=15 on build_vector embeddings then max-entropy per cluster (one per cluster) not entropy-only",
     "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 0-6 prior 7 human 8 cal 9 test (not env string)",
     "platt": "L2 Logistic Platt B=2 LOO-CV C=1.0 not B=5 at n=15",
-    "human_weight": "learned w=5.0 via w\u2208[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
+    "human_weight": "learned w=5.0 via w∈[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
     "brier_loo": 0.44634978570590744,
     "ece_b2": 0.30260969828549455,
     "wilson_ci": [
@@ -1682,7 +1682,7 @@
     "overlap_note": "Wilson CI overlap disclosed not +0.06 win (honest, not fabricated delta)",
     "d_test_n": 50,
     "d_prior_n": 402,
-    "kappa_overlap": "5/15 double-annotated agreement 1.0 for \u03ba\u22650.7 not round-robin 1 each",
+    "kappa_overlap": "5/15 double-annotated agreement 1.0 for κ≥0.7 not round-robin 1 each",
     "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest",
     "wilson_ci_15": [
       0.61,
@@ -1699,7 +1699,7 @@
     "method": "KMeans k=15 on build_vector embeddings then max-entropy per cluster (one per cluster) not entropy-only",
     "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 0-6 prior 7 human 8 cal 9 test (not env string)",
     "platt": "L2 Logistic Platt B=2 LOO-CV C=1.0 not B=5 at n=15",
-    "human_weight": "learned w=5.0 via w\u2208[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
+    "human_weight": "learned w=5.0 via w∈[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
     "brier_loo": 0.44634978570590744,
     "ece_b2": 0.30260969828549455,
     "wilson_ci": [
@@ -1716,7 +1716,7 @@
     "overlap_note": "Wilson CI overlap disclosed not +0.06 win (honest, not fabricated delta)",
     "d_test_n": 50,
     "d_prior_n": 402,
-    "kappa_overlap": "5/15 double-annotated agreement 1.0 for \u03ba\u22650.7 not round-robin 1 each",
+    "kappa_overlap": "5/15 double-annotated agreement 1.0 for κ≥0.7 not round-robin 1 each",
     "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest",
     "wilson_ci_15": [
       0.61,

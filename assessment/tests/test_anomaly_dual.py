@@ -32,12 +32,11 @@ def test_dual_pkls_both_exist_and_has_scores():
         m = pickle.loads(path.read_bytes())
         assert hasattr(m, "decision_scores_"), f"{p} missing decision_scores_"
         assert hasattr(m, "threshold_"), f"{p} missing threshold_"
-        assert len(m.decision_scores_) == 27, f"{p} len 27 got {len(m.decision_scores_)}"
+        assert len(m.decision_scores_) == 200, f"{p} len 200 honest 100c+100lab got {len(m.decision_scores_)}"
         assert m.contamination == 0.10
         assert m.n_jobs == 1
         assert path.stat().st_size < 1_000_000, f"{p} >1M"
         assert path.stat().st_size > 0
-    # inverted ablation also must exist
     inv_path = pathlib.Path("models/anomaly_inverted.pkl")
     assert inv_path.exists(), "models/anomaly_inverted.pkl ablation must exist"
     inv = pickle.loads(inv_path.read_bytes())
@@ -46,13 +45,19 @@ def test_dual_pkls_both_exist_and_has_scores():
 
 
 def test_build_matrix_dual_shapes_27x28():
-    for variant in ["inverted", "honest", "lab_only"]:
+    for variant in ["inverted", "lab_only"]:
         X, train_flows, lab = _build_training_matrix(variant=variant)
         assert X.shape == (27, 5), f"{variant} shape {X.shape} != (27,5) TOP5"
         assert len(train_flows) == 27
         assert X.shape[1] == len(FEATURES_TOP5) == 5
-        # also ensure FEATURES_28 still 28 frozen
         assert len(FEATURES_28) == 28
+    X, train_flows, lab = _build_training_matrix(variant="honest")
+    assert X.shape == (200, 5), f"honest shape {X.shape} != (200,5) TOP5 honest 100c+100lab"
+    assert len(train_flows) == 200
+    assert X.shape[1] == len(FEATURES_TOP5) == 5
+    assert len(FEATURES_28) == 28
+    X27, _, _ = _build_training_matrix(variant="honest_27")
+    assert X27.shape == (27, 5)
 
 
 def test_load_lab_flows_45_and_censys_20():
@@ -99,11 +104,11 @@ def test_dual_roc_table():
     # ECOD honest primary 0.47 < IF 0.759 but inverted > IF
     assert inv > if_auc, f"ECOD inverted {inv} must > IF {if_auc}"
     assert 0.65 <= if_auc <= 0.85, f"if_auc {if_auc} expected ~0.759"
-    # thresholds_honest must be spec values — pickle honest 4.012 after T2, not hardcode 17.869 (old fake high)
     th = baselines.get("thresholds_honest", {})
-    assert abs(th.get("c05", 0) - 4.0123) < 0.5  # pickle honest 4.012 after T2, not hardcode 17.869
-    assert abs(th.get("c10", 0) - 4.0123) < 0.5  # c05==c10 collision due to TOP5 small n
-    assert abs(th.get("c30", 0) - 2.7596) < 0.5  # honest c30 2.7596 live from ECOD
+    import pickle as _pk
+    hon_thr = float(_pk.load(open("models/anomaly_honest.pkl", "rb")).threshold_)
+    assert abs(th.get("c10", 0) - round(hon_thr, 4)) < 1e-6, f"pickle sync thresholds_honest c10 {th.get('c10')} != pickle {hon_thr}"
+    assert th.get("c05") != th.get("c30") or th.get("c10") != th.get("c30")
 
 
 def test_ja4_rarity_single_feature_neg_computed():
@@ -182,17 +187,20 @@ def test_if_corrected_max_samples_min256_27():
 
     n = X.shape[0]
     max_samples = min(256, n)
-    assert max_samples == 27 == min(256, 27)
+    assert max_samples == 200 == min(256, 200)
+    assert n == 200
     clf = IsolationForest(n_estimators=50, max_samples=max_samples, contamination=0.10, random_state=42)
     clf.fit(X)
     assert clf.n_estimators == 50
-    assert clf.max_samples == 27
+    assert clf.max_samples == 200
     assert clf.contamination == 0.10
     assert clf.random_state == 42
     txt = pathlib.Path("assessment/anomaly_model.py").read_text()
     assert "max_samples" in txt
     assert "min(256" in txt
     assert "random_state 42" in txt or "random_state=42" in txt
+    X_inv, _, _ = _build_training_matrix(variant="inverted")
+    assert min(256, X_inv.shape[0]) == 27
 
 
 def test_ecod_fit_time_under_03s_both_variants():
@@ -265,7 +273,8 @@ def test_pickle_protocol4_and_threshold_per_variant():
         assert isinstance(float(m.threshold_), float)
         assert np.isfinite(float(m.threshold_))
         assert hasattr(m, "decision_scores_")
-        assert len(m.decision_scores_) == 27
+        assert len(m.decision_scores_) == 200
     inv = pickle.loads(pathlib.Path("models/anomaly_inverted.pkl").read_bytes())
     hon = pickle.loads(pathlib.Path("models/anomaly.pkl").read_bytes())
     assert inv.threshold_ != hon.threshold_
+    assert len(inv.decision_scores_) == 27
