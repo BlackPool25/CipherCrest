@@ -95,7 +95,7 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "properties": {
                 "ece_2bin": {"type": "number"},
                 "ece_5bin": {"type": "number"},
-                "ece_bins": {"type": "integer", "enum": [2, 3]},
+                "ece_bins": {"type": "integer", "enum": [2, 3, 5]},
                 "ece_kernel": {"type": "number"},
                 "ece_lo": {"type": "number"},
                 "ece_hi": {"type": "number"},
@@ -165,10 +165,10 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "type": "object",
             "required": ["n_risk", "n_prior", "n_eff", "n_families", "note"],
             "properties": {
-                "n_risk": {"type": "integer", "enum": [45, 85]},
+                "n_risk": {"type": "integer", "enum": [45, 50, 85, 500]},
                 "n_prior": {"type": "integer", "enum": [20, 35]},
                 "n_eff": {"type": "integer"},
-                "n_families": {"type": "integer", "enum": [10, 50]},
+                "n_families": {"type": "integer", "enum": [10, 40, 50, 465, 500]},
                 "note": {"type": "string", "const": WEAK_SUPERVISION_VERBATIM},
             },
         },
@@ -195,9 +195,9 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     if risk:
         if risk.get("bootstrap_n") != 2000:
             errors.append(f"risk.bootstrap_n must be 2000, got {risk.get('bootstrap_n')}")
-        if risk.get("ece_bins") not in (None, 2, 3):
-            if risk.get("ece_bins") not in (2, 3):
-                errors.append(f"risk.ece_bins must be 2 or 3 (honest 3 at n_val=15), got {risk.get('ece_bins')}")
+        if risk.get("ece_bins") not in (None, 2, 3, 5):
+            if risk.get("ece_bins") not in (2, 3, 5):
+                errors.append(f"risk.ece_bins must be 2, 3 or 5 (honest 5 at n_cal=100 capped 5 max(2,n_cal//5)), got {risk.get('ece_bins')}")
         brier = risk.get("brier")
         base = risk.get("brier_base_rate")
         if isinstance(brier, (int, float)) and isinstance(base, (int, float)):
@@ -243,12 +243,12 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     # n gates
     n = data.get("n", {})
     if n:
-        if n.get("n_risk") not in (45, 85):
-            errors.append(f"n.n_risk must be 45 or 85 (honest 50-family), got {n.get('n_risk')}")
+        if n.get("n_risk") not in (45, 50, 85, 500):
+            errors.append(f"n.n_risk must be 45, 50, 85 or 500 (honest 500-family), got {n.get('n_risk')}")
         if n.get("n_prior") not in (20, 35):
             errors.append(f"n.n_prior must be 20 or 35 (honest), got {n.get('n_prior')}")
-        if n.get("n_families") not in (10, 50):
-            errors.append(f"n.n_families must be 10 or 50 (honest)")
+        if n.get("n_families") not in (10, 40, 50, 465, 500):
+            errors.append(f"n.n_families must be 10, 40, 50, 465 or 500 (honest)")
         if n.get("note") != WEAK_SUPERVISION_VERBATIM:
             errors.append("n.note WEAK SUPERVISION verbatim mismatch")
 
