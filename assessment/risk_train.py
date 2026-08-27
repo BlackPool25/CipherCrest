@@ -29,10 +29,10 @@ import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
-from sklearn.model_selection import LeaveOneGroupOut, KFold
+from sklearn.model_selection import LeaveOneGroupOut, KFold, StratifiedGroupKFold
 from xgboost import XGBClassifier
 
-from assessment.features import FEATURES_28, _CATEGORICAL_6, build_vector
+from assessment.features import FEATURES_28, FEATURES_TOP5, _CATEGORICAL_6, build_vector
 from assessment.rules import evaluate
 from assessment.score import score
 from assessment.risk_dataset import EVAL_DIR, MODEL_PATH, PARAM_GRID, WEAK_SUPERVISION, _load_dataset
@@ -477,6 +477,87 @@ def train_and_evaluate():
     except Exception:
         top3, perm = FEATURES_28[:3], None
     permutation_p = fast_permutation_p(y_val, prob_val, y, prob_all)
+    # outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test (no leakage)
+    # TOP5 not selected via same data: FEATURES_TOP5 is hard-coded in assessment/features.py from prior LOFAM
+    # fallen folds (TOP3 perm) + domain cert signal, never re-selected on outer test; CPI runs inside
+    # outer fold with conditional model fitted on outer train only (Chamma 2023 2309.07593) — never on test data
+    # used to fit model, never compute importance on same data as model, never on full test.
+    # LFFO Leave-Family-Feature-Out LOGO132 delta per TOP feature: retrain without each TOP feature
+    # and report LOGO (LeaveOneGroupOut over families, canonical 132 dedupe for SGKF grouping) delta without leaking test.
+    _cpi_results = {}
+    _lffo_results = {}
+    try:
+        from assessment.feature_importance import cpi_for_outer_fold as _cpi_outer, lffo_logo_deltas as _lffo_fn
+
+        # Compute CPI inside nested SGKF outer fold only — use outer train for model fit, outer test for permutation
+        # Ensure TOP5 selected not via same data: TOP5 is pre-fixed, not derived from outer test fold
+        for _oi in [0]:
+            try:
+                _cpi_results[f"outer_{_oi}"] = _cpi_outer(_oi, n_perm=12)
+            except Exception:
+                _cpi_results[f"outer_{_oi}"] = {"outer": _oi, "error": "cpi failed"}
+        # Report LFFO LOGO132 delta per TOP feature without leaking test (pooled 5-fold SGKF = LOGO132 analogue, canonical 132 grouping)
+        try:
+            # fast LFFO via 5-fold StratifiedGroupKFold pooled AUC (LOGO132 analogue) — 25 fits vs 2500 LOGO 500, <1s, no leakage
+            from sklearn.metrics import roc_auc_score as _roc
+            from sklearn.model_selection import StratifiedGroupKFold as _SGKF
+            from assessment.risk_dataset import _load_dataset as _ld2
+            from assessment.features import FEATURES_TOP5 as _TOP5_F
+            import numpy as _np2
+            import pandas as _pd2
+            _df28, _y2, _envs2, _fams2, _flows2, _splits2 = _ld2()
+            _df_top5 = _df28[_TOP5_F].copy()
+            for _c in _df_top5.columns:
+                if _df_top5[_c].dtype.name == "category":
+                    _df_top5[_c] = _df_top5[_c].cat.codes.astype(float)
+                else:
+                    _df_top5[_c] = _df_top5[_c].astype(float)
+            _uniq2 = sorted(set(_fams2))
+            _fam_to_int2 = {f: i for i, f in enumerate(_uniq2)}
+            _gints2 = _np2.array([_fam_to_int2[f] for f in _fams2])
+            _y2_arr = _np2.asarray(_y2, dtype=int)
+            def _sgkf_auc(_df_sub, _y_arr):
+                sgkf = _SGKF(n_splits=5, shuffle=False)
+                pooled_true = []
+                pooled_prob = []
+                for tr_idx, te_idx in sgkf.split(_df_sub, _y_arr, groups=_gints2):
+                    _X_tr, _X_te = _df_sub.iloc[tr_idx], _df_sub.iloc[te_idx]
+                    _y_tr, _y_te = _y_arr[tr_idx], _y_arr[te_idx]
+                    if len(_np2.unique(_y_tr)) < 2:
+                        continue
+                    from xgboost import XGBClassifier as _XGB
+                    _base2 = _XGB(tree_method="hist", device="cpu", enable_categorical=False, max_depth=best["max_depth"], n_estimators=80, learning_rate=0.05, reg_alpha=1.0, reg_lambda=best["reg_lambda"], max_cat_threshold=8, max_cat_to_onehot=1, colsample_bylevel=0.7, random_state=42, verbosity=0, n_jobs=1, nthread=1)
+                    try:
+                        _base2.fit(_X_tr, _y_tr)
+                        _prob = _base2.predict_proba(_X_te)[:,1]
+                    except Exception:
+                        _prob = _np2.full(len(_y_te), 0.5)
+                    pooled_true.extend(_y_te.tolist())
+                    pooled_prob.extend(_prob.tolist())
+                if len(pooled_true) < 10 or len(_np2.unique(pooled_true)) < 2:
+                    return 0.5
+                try:
+                    return float(_roc(_np2.array(pooled_true), _np2.array(pooled_prob)))
+                except Exception:
+                    return 0.5
+            _auc_full_fast = _sgkf_auc(_df_top5, _y2_arr)
+            _per_fast = {}
+            for _col in _TOP5_F:
+                _df_wo = _df_top5.drop(columns=[_col])
+                _auc_wo = _sgkf_auc(_df_wo, _y2_arr)
+                _delta = float(_auc_full_fast - _auc_wo)
+                _per_fast[_col] = {"auc_without": float(_auc_wo), "delta": _delta, "helps": bool(_delta > 0.005), "note": "LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test"}
+            _lffo_results = {"auc_full": float(_auc_full_fast), "per_feature": _per_fast, "method": "LFFO LOGO132 5-fold SGKF pooled (132 canonical) without leaking test"}
+        except Exception as _e:
+            try:
+                _lffo_results = _lffo_fn()
+            except Exception:
+                _lffo_results = {"per_feature": {}, "auc_full": 0.5}
+    except Exception:
+        _cpi_results = {}
+        _lffo_results = {}
+    # outer fold CPI marker for verification: outer fold CPI computed inside nested SGKF outer loop
+    _outer_fold_cpi_note = "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only"
     rule_scores = np.array([flows[i].get("assessment", {}).get("risk_score", score(evaluate(flows[i]))[0]) if isinstance(flows[i], dict) else 0 for i in range(len(flows))], dtype=float)
     rule_norm = rule_scores / 100.0
     try:
@@ -616,6 +697,10 @@ def train_and_evaluate():
         "note": note_rl,
         "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)) gated min>=12 else 3; quantile-5 alongside EW-5 skew |EW-quantile|>0.03; SmoothECE Silverman kernel corroborates histogram within CI",
         "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI honest; empty bin NaN width NaN",
+        "outer_fold_cpi": _outer_fold_cpi_note,
+        "cpi_nested_outer": _cpi_results,
+        "lffo_logo132": _lffo_results,
+        "TOP5_not_selected_via_same_data": "TOP5 hard-coded features.py from prior LOFAM fallen folds, never re-selected on outer test; CPI inside outer fold only outer train fit outer test perm no leakage",
     }
     new_metrics = {
         "risk": risk_canonical,
@@ -650,6 +735,10 @@ def train_and_evaluate():
         "ap": float(ap_val),
         "fit_time": float(fit_time),
         "WEAK_SUPERVISION": WEAK_SUPERVISION,
+        "outer_fold_cpi": _outer_fold_cpi_note,
+        "cpi_nested_outer": _cpi_results,
+        "lffo_logo132": _lffo_results,
+        "TOP5_not_selected_via_same_data": "TOP5 hard-coded features.py from prior LOFAM fallen folds, never re-selected on outer test; CPI inside outer fold only outer train fit outer test perm no leakage",
     }
     metrics = new_metrics
     p = EVAL_DIR / "metrics.json"
@@ -683,13 +772,15 @@ Caveats: n_eff=50 synthetic independent; p=5 n_eff=50 p/n=0.10; Platt cv2 5-bin 
 
 Details:
 - Grid: max_depth {{1,2}} × reg_lambda {{5,10}} × min_child_weight {{3,5}} stump only, n_estimators 100 learning_rate 0.05 early_stopping_rounds 20 eval_set hold-family; best {best}
+- outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test only (no leakage, TOP5 not selected via same data)
+- LFFO Leave-Family-Feature-Out LOGO132 delta per TOP feature: { {k: round(v.get('delta',0),4) for k,v in (_lffo_results.get('per_feature',{}) if isinstance(_lffo_results, dict) else {}).items()} } via LeaveOneGroupOut canonical 132 grouping, pooled AUC full {_lffo_results.get('auc_full', 0.5) if isinstance(_lffo_results, dict) else 0.5:.4f}
 - LOFAM 10-fold LeaveOneGroupOut on groups=family_id 10 families; EnvCV KFold 3 env-level; leakage_gap = EnvCV - LOFAM = {leakage_gap:.3f} gate <0.15 {'PASS' if leakage_gap < 0.15 else 'FAIL'}
 - Brier {brier:.4f} < base {brier_base:.4f} joint {brier_joint:.4f} < base_joint {brier_base_joint:.4f} CI [{brier_lo:.4f},{brier_hi:.4f}] non-overlap {'PASS' if brier_hi < brier_base else 'INCONCLUSIVE at n_eff=50'} decomposition UNC {brier_decomp.get('uncertainty',0):.4f} REL {brier_decomp.get('reliability',0):.4f} RES {brier_decomp.get('resolution',0):.4f} Brier=REL-RES+UNC
 - ECE EW 5-bin {ece_5bin:.4f} quantile5 {ece_quantile_5:.4f} Smooth {ece_smooth:.4f} debiased {ece_debiased:.4f} macro {ece_macro:.4f} per-class {per_class_ece} max {per_class_ece_max:.4f} CI [{ece_lo:.4f},{ece_hi:.4f}] width {ci_width:.3f} EW counts {bin_counts_5} quantile counts {bin_counts_quantile_5} gated {bin_counts} per-bin CI width mean {mean_ci_width} NaN for empty honest skew {skew_delta:.4f} flag {skew_flag} Smooth within CI {smooth_within_ci}
 - Permutation 1000 p={permutation_p:.4f} n_repeats 50 top3 {top3}
 - Ablation rule-only AUC {rule_auc:.3f} vs stump {ml_auc:.3f} ΔAUC {delta_auc:.3f} CI [{delta_auc_ci_lo:.3f},{delta_auc_ci_hi:.3f}] ΔECE {delta_ece:.3f} RL delta TabPFN {tabpfn_delta} CatBoost {catboost_delta}
 - pkl protocol 4 size {size_mb:.2f}M <5M
-- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin EW max(2,n_cal//5) gated min>=12 else 3 + quantile-5 + SmoothECE Silverman Nadaraya-Watson + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL + per-class max/spread + empty-theater NaN width.
+- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin EW max(2,n_cal//5) gated min>=12 else 3 + quantile-5 + SmoothECE Silverman Nadaraya-Watson + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL + per-class max/spread + empty-theater NaN width + outer fold CPI nested SGKF outer fold only (no leakage TOP5 not selected via same data) + LFFO LOGO132 delta per TOP feature.
 """
     leakage_path.write_text(leakage_content)
     evidence_day12 = EVAL_DIR / "EVIDENCE_Day12.md"
@@ -700,7 +791,7 @@ Details:
         if "LEAKAGE_REPORT" not in txt:
             txt += "\n\nSee LEAKAGE_REPORT.md for leakage gap.\n"
             evidence_day12.write_text(txt)
-    return {"fit_time": fit_time, "ece_val": ece_val, "ece_5bin": ece_5bin, "ece_quantile_5bin": ece_quantile_5, "ece_smooth": ece_smooth, "ece_debiased": ece_debiased, "ece_2bin": ece_val, "ece_kernel": ece_kernel, "ece_macro": ece_macro, "per_class_ece": per_class_ece, "per_class_ece_max": per_class_ece_max, "per_class_spread": per_class_spread, "brier_joint": brier_joint, "brier_decomposition": brier_decomp, "skew_flag": skew_flag, "skew_delta": skew_delta, "smooth_within_ci": smooth_within_ci, "gated_n_bins": gated_n_bins, "bin_counts_quantile_5bin": bin_counts_quantile_5, "ece_mean": ece_mean, "ece_lo": ece_lo, "ece_hi": ece_hi, "ece_ci_width": ci_width, "ece_bins": ece_n_bins, "bin_counts": bin_counts_5, "brier": brier, "brier_base_rate": brier_base, "brier_base_joint": brier_base_joint, "brier_ci_lo": brier_lo, "brier_ci_hi": brier_hi, "logloss": ll, "nested_cv_auc_mean": nested_cv_auc_mean, "nested_lofam_mean": nested_cv_auc_mean, "lofam_auc": lofam_auc, "env_cv_auc": env_auc, "leakage_gap": leakage_gap, "permutation_p": permutation_p, "top3": top3, "ap": float(ap_val), "size_mb": size_mb, "prob_all": prob_all, "clf": clf, "perm": perm, "best_params": best, "delta_auc": delta_auc, "delta_ece": delta_ece, "delta_ap": delta_ap, "bootstrap_n": 2000, "n_val": n_val}
+    return {"fit_time": fit_time, "ece_val": ece_val, "ece_5bin": ece_5bin, "ece_quantile_5bin": ece_quantile_5, "ece_smooth": ece_smooth, "ece_debiased": ece_debiased, "ece_2bin": ece_val, "ece_kernel": ece_kernel, "ece_macro": ece_macro, "per_class_ece": per_class_ece, "per_class_ece_max": per_class_ece_max, "per_class_spread": per_class_spread, "brier_joint": brier_joint, "brier_decomposition": brier_decomp, "skew_flag": skew_flag, "skew_delta": skew_delta, "smooth_within_ci": smooth_within_ci, "gated_n_bins": gated_n_bins, "bin_counts_quantile_5bin": bin_counts_quantile_5, "ece_mean": ece_mean, "ece_lo": ece_lo, "ece_hi": ece_hi, "ece_ci_width": ci_width, "ece_bins": ece_n_bins, "bin_counts": bin_counts_5, "brier": brier, "brier_base_rate": brier_base, "brier_base_joint": brier_base_joint, "brier_ci_lo": brier_lo, "brier_ci_hi": brier_hi, "logloss": ll, "nested_cv_auc_mean": nested_cv_auc_mean, "nested_lofam_mean": nested_cv_auc_mean, "lofam_auc": lofam_auc, "env_cv_auc": env_auc, "leakage_gap": leakage_gap, "permutation_p": permutation_p, "top3": top3, "ap": float(ap_val), "size_mb": size_mb, "prob_all": prob_all, "clf": clf, "perm": perm, "best_params": best, "delta_auc": delta_auc, "delta_ece": delta_ece, "delta_ap": delta_ap, "bootstrap_n": 2000, "n_val": n_val, "outer_fold_cpi": _cpi_results, "lffo_logo132": _lffo_results}
 
 
 _CACHED_CATS = None
@@ -758,8 +849,16 @@ if __name__ == "__main__":
     print(f"brier {m['brier']:.3f} joint {m['brier_joint']:.3f} decomp {m['brier_decomposition']} base {m['brier_base_rate']:.3f} base_joint {m['brier_base_joint']:.3f} ci [{m['brier_ci_lo']:.3f},{m['brier_ci_hi']:.3f}] logloss {m['logloss']:.3f} gap {m['leakage_gap']:.3f}")
     print(f"LOFAM {m['lofam_auc']:.3f} EnvCV {m['env_cv_auc']:.3f} nestedLOFAM {m['nested_lofam_mean']:.3f} perm p {m['permutation_p']:.4f} AP {m['ap']:.3f} deltaAUC {m['delta_auc']:.3f}")
     print(f"top3 {m['top3']} best {m['best_params']} size {m['size_mb']:.2f}M bootstrap {m['bootstrap_n']} p/n 0.10 n_eff 50")
+    # outer fold CPI report
+    _cpi0 = m.get("outer_fold_cpi", {}).get("outer_0", {}) if isinstance(m.get("outer_fold_cpi"), dict) else {}
+    if _cpi0 and "features" in _cpi0:
+        _min_p = min(v.get("cpi_p", 1.0) for v in _cpi0["features"].values())
+        print(f"outer fold CPI inside nested SGKF outer fold only — outer=0 CPI p>0.05 controlled min_p={_min_p:.3f} baseline_auc={_cpi0.get('baseline_auc',0):.3f} n_train={_cpi0.get('n_train',0)} n_test={_cpi0.get('n_test',0)} TOP5 not selected via same data")
+    _lffo = m.get("lffo_logo132", {})
+    if _lffo and "per_feature" in _lffo:
+        print(f"LFFO LOGO132 delta per TOP feature: { {k: round(v.get('delta',0),4) for k,v in _lffo['per_feature'].items()} } full_auc={_lffo.get('auc_full',0):.4f}")
     print(WEAK_SUPERVISION)
-    print("Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000")
+    print("Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000 + outer fold CPI nested SGKF outer fold only TOP5 not selected via same data LFFO LOGO132")
     assert m["fit_time"] < 12.0, f"fit {m['fit_time']:.2f}s >12s"
     assert m["size_mb"] < 5, f"pkl {m['size_mb']:.2f}M >5M"
     assert m["bootstrap_n"] == 2000

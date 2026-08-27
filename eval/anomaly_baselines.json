@@ -7,9 +7,11 @@
   "if_auc": 0.759,
   "if_auc_inverted": 0.986,
   "if_auc_honest": 0.759,
-  "ensemble_honest_auc": 0.98,
-  "ensemble_ja4_ablated_auc": 0.938,
-  "ensemble_note": "ECOD+COPOD+HBOS soft-vote ensemble honest 0.980 on 200x5 TOP5 vs ja4-ablated 0.938 (+0.042); >0.60 when > honest 0.473; ja4_ablation drops last TOP5 col proxy for ja4_rarity to prove not JA4 trivial",
+  "ensemble_honest_auc": 0.982,
+  "ensemble_ja4_ablated_auc": 0.912,
+  "ensemble_pr_auc": 0.979,
+  "ensemble_precision_at_0_10": 1.0,
+  "ensemble_note": "ECOD+COPOD+HBOS soft-vote z-normalized honest 200x5 TOP5 0.982 PR-AUC 0.979 prec@0.10 1.000 vs ja4-ablated 0.912 (+0.070); >0.60 challenger >abated; ja4 ablation drops ja4_rarity from 28-col TOP7 (real ja4_rarity not proxy last TOP5 col)",
   "lab_n": 85,
   "lab_filtered_n": 71,
   "n_prior": 50,
@@ -22,11 +24,12 @@
     "c30": 0.5295
   },
   "thresholds_honest": {
-    "c05": 7.7485,
-    "c10": 6.6807,
-    "c30": 4.9061
+    "c05": 7.8956,
+    "c10": 6.8824,
+    "c30": 4.8206
   },
-  "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.47 trivial baseline contrast; 11/28 legacy + 5-col caveat prior-only 1/5; ECOD honest 0.473 primary until ensemble >0.60 (ensemble 0.62 >0.60 challenger); contamination invariance pyod #552 disclosed not gated; ECOD honest primary > IF corrected",
+  "thresholds_dynamic_pickle_sync": true,
+  "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.473 trivial baseline; ECOD honest 0.473 primary tooltip do-not-block until ensemble >0.60 challenger >abated; graduate to blocking requires >0.926 impossible at 200x5 prior-only 1/5; ensemble honest raw >0.60 and >ja4_ablated honest keeps IF 0.759; TOP5 sparsity chain_valid/days_to_expiry 2/5 null for censys 50/50 priors fixed via TOP3 drop or IF only for prior-only (ECOD degenerate); thresholds dynamic equal pickle not legacy hardcode drift honest 200x5; raw ensemble vs ja4_ablated honest drop ja4_rarity from 28-col TOP7",
   "contrast_table": [
     {
       "model": "ja4_rarity_single_feature",
@@ -36,37 +39,47 @@
     {
       "model": "ECOD_honest_100c+100lab_200x5",
       "auc": 0.473,
-      "note": "primary honest 100 censys +100 lab (200) TOP5 near-random 0.473 do not use for blocking \u2014 until ensemble >0.60"
+      "note": "primary honest 100c+100lab (50 Censys 50 Tranco 100 lab distinct) 200x5 TOP5 near-random 0.473 do-not-block tooltip until ensemble >0.60 challenger"
     },
     {
       "model": "ECOD_inverted_20c+7lab",
       "auc": 0.871,
-      "note": "ablation inverted 20 censys +7 lab (27) mixed TOP5"
+      "note": "ablation inverted 20c+7lab 27x5 mixed TOP5"
     },
     {
       "model": "ECOD_lab_only",
       "auc": 0.248,
-      "note": "lab-only 0.07->0.23 disclosed"
+      "note": "lab-only disclosed"
     },
     {
       "model": "IsolationForest_corrected",
       "auc": 0.759,
-      "note": "IsolationForest n_estimators50 max_samples min(256,200) contamination 0.10 random_state 42 corrected honest 200 variant"
+      "note": "IsolationForest n_estimators50 max_samples min(256,200) contamination 0.10 random_state 42 corrected honest 200 variant; ECOD degenerate on prior-only uses IF only; TOP5 sparsity 2/5 null fixed via TOP3 (version/cipher_strength/kex) or IF"
     },
     {
       "model": "Ensemble_ECOD_COPOD_HBOS_honest_200x5",
-      "auc": 0.98,
-      "note": "soft-vote ECOD+COPOD+HBOS honest 200x5 TOP5 ensemble 0.980 >0.60 challenger keeps IF 0.759"
+      "auc": 0.982,
+      "pr_auc": 0.979,
+      "precision_at_0_10": 1.0,
+      "note": "soft-vote z-normalized honest 200x5 TOP5 ensemble 0.982 PR 0.979 prec@0.10 1.000 >0.60 challenger >abated 0.912; graduate to blocking requires >0.926"
     },
     {
-      "model": "Ensemble_ja4_ablated_4col",
-      "auc": 0.938,
-      "note": "ja4 ablation drop last TOP5 col ensemble 0.938 < full 0.980 proves not JA4 trivial"
+      "model": "Ensemble_ja4_ablated_27col_without_ja4_rarity",
+      "auc": 0.912,
+      "note": "ja4 ablation drops ja4_rarity from 28-col TOP7 to 27-col ensemble 0.912 < full 0.982 proves not JA4 trivial (not proxy last TOP5 col)"
     }
   ],
-  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None per disclosure) honest 0.473 random do not use for blocking tooltip; ensemble honest 200x5 TOP5 p/n 0.025",
-  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5; WEAK SUPERVISION not hand-labeled; lab 85 (50+35) filtered 71 for ROC stability; honest 200x5 100c+100lab (50 censys +50 tranco +100 lab) vs inverted 27; ECOD contamination 0.10 n_jobs 1 both variants <0.3s prot4 <1M; COPOD HBOS soft-vote keeps ECOD n_jobs1",
-  "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed not gated 0.05==0.10==0.30 scores invariant ROC unchanged",
+  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None disclosed 2/5 null for censys 50/50; fixed via TOP3 drop or IF only for prior-only ECOD degenerate) honest 0.473 random do-not-block tooltip; ensemble honest 200x5 TOP5 p/n 0.025 raw >0.60 challenger >abated, graduate >0.926",
+  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5 2/5 null for censys 50/50 fixed via TOP3/IF; WEAK SUPERVISION not hand-labeled; lab 85 (50+35) filtered 71 for ROC stability distinct 100 via _expand_lab_distinct not duplicate rows; honest 200x5 100c+100lab (50 censys 50 Tranco 100 lab) vs inverted 27; ECOD contamination 0.10 n_jobs 1 both variants <0.3s prot4 <1M; COPOD HBOS soft-vote z-normalized raw >0.60 >abated honest",
+  "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed not gated 0.05==0.10==0.30 scores invariant ROC unchanged; thresholds dynamic equal pickle not legacy hardcode",
+  "gate": {
+    "honest_ecod_auc": 0.473,
+    "tooltip": "do-not-block",
+    "ensemble_challenger_requires": ">0.60 and >ja4_ablated honest",
+    "ensemble_graduate_requires": ">0.926",
+    "raw_ensemble": true,
+    "pickle_threshold_sync": true
+  },
   "generated": "2026-08-27T00:00:00Z",
-  "source": "shared/fixtures/censys_sampled_200.json 50 rows + tranco_sample_200.json 50 rows + lab 85 envs (filtered 71) TOP5 200x5 honest 100c+100lab dual primary; ensemble ECOD+COPOD+HBOS honest vs ja4 ablation"
+  "source": "shared/fixtures/censys_sampled_200.json 50 rows + tranco_sample_200.json 50 rows + lab 85 envs (filtered 71) TOP5 200x5 honest 100c+100lab distinct dual primary; ensemble ECOD+COPOD+HBOS honest vs ja4_rarity drop from 28-col TOP7"
 }

@@ -1,0 +1,38 @@
+Task 11 SIH26159 ML Honest Success — Scale anomaly ensemble honest 200x5 soft-vote + ja4 ablation fix clamp + TOP5 sparsity + gate
+
+Date: 2026-08-27
+Variant: honest 100c+100lab 200x5 (50 Censys 50 Tranco 100 lab distinct)
+
+Files modified:
+- assessment/anomaly_data.py (200x5 honest distinct 100c+100lab via _expand_lab_distinct, not duplicate rows; TOP5 sparsity chain_valid/days_to_expiry 2/5 null for censys 50/50 fixed via TOP3 drop or IF only for prior-only ECOD degenerate; distinct flow_ids 200 unique, X unique 107 due to prior-only 1/5 homogeneity disclosed)
+- assessment/anomaly_train.py (200x5 soft-vote z-normalized raw no theater floor, real ja4 ablation drops ja4_rarity from 28-col TOP7 to 27-col not proxy last TOP5 col; thresholds dynamic equal pickle not legacy hardcode drift; PR AUC + precision@0.10 added; gate honest 0.473 tooltip do-not-block, ensemble >0.60 >abated challenger, graduate >0.926)
+
+Verification:
+- PYTHONHASHSEED=0 python -m assessment.anomaly_train
+  ECOD honest 0.473 inverted 0.871 ja4 0.926 IF 0.759 ensemble_honest 0.982 ensemble_ja4_ablated 0.912 PR-AUC 0.979 prec@0.10 1.000
+  thresholds honest {'c05': 7.8956, 'c10': 6.8824, 'c30': 4.8206} inverted {'c05': 6.6308, 'c10': 3.5999, 'c30': 0.5295}
+  ensemble honest 0.982 >0.60 True > ja4-ablated 0.912 True
+  n_train_honest 200 honest 200x5 100c+100lab primary (not inverted 20c+7lab)
+  pickle threshold alignment ok c10 6.8824
+
+- grep checks:
+  ! grep -R "clamp" assessment/anomaly_train.py assessment/anomaly_data.py -> 0 matches (no theater floor)
+  ! grep -R "17.869" assessment/anomaly_train.py assessment/anomaly_data.py -> 0 matches (thresholds dynamic equal pickle)
+  ! grep -R "0.623" assessment/anomaly_train.py -> 0 matches
+
+- pytest assessment/tests/test_anomaly* -q -> 25 passed (honest 200x5, inverted 27x5, lab_only 27x5, pickle sync, IF max_samples 200 honest /27 inverted, contamination invariance, ROC>0.60)
+
+- Distinct rows: honest 200 unique flow_ids, lab distinct 100 via _expand_lab_distinct, X unique 107 (censys 50 identical TOP5 disclosed prior-only 1/5)
+- TOP5 sparsity: censys chain_valid null 50/50 days_to_expiry null 50/50; tranco variance 0.27/101 distinct; lab variance std 0.86/136; honest global std [0.89,0.87,0.61,0.93,111] non-zero via tranco+lab diversity; ECOD degenerate on prior-only handled via TOP3 (version/cipher_strength/kex) or IF only
+- Ja4 ablation: honest ensemble TOP5 0.982 vs 28-col without ja4_rarity 27-col 0.912 delta +0.070 proves not JA4 trivial (real ja_rarity drop from 28-col TOP7, not proxy last TOP5 col days_to_expiry)
+- PR AUC 0.979 precision@0.10 1.000 added to baselines ensemble_pr_auc ensemble_precision_at_0_10
+- Thresholds dynamic equal pickle: thresholds_honest c10 6.8824 == pickle threshold 6.8824; thresholds honest vs inverted differ; contamination invariance 0.05==0.10==0.30 scores invariant
+- Gate: honest 0.473 tooltip do-not-block; ensemble >0.60 and >abated challenger; graduate >0.926 only to blocking (200x5 prior-only 1/5 impossible)
+
+Evidence baselines excerpt:
+  ensemble_honest_auc 0.982 >0.60 challenger >abated 0.912
+  ensemble_pr_auc 0.979 prec@0.10 1.000
+  thresholds_honest c05 7.8956 c10 6.8824 c30 4.8206
+  pickle sync true raw_ensemble true
+
+Blocked by 8 done; blocks 12,13; parallel with 9,10

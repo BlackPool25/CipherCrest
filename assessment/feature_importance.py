@@ -13,6 +13,7 @@ fold train/test split, never on test-data used to fit model (no leakage:
 model fit on outer train, permutation evaluated on outer test with
 conditional model fitted on outer train only). Raw permutation is NOT
 reported when |r|>0.7 without conditioning (controlled).
+TOP5 not selected via same data — TOP5 hard-coded assessment/features.py from prior LOFAM analysis, never re-selected on outer test; outer fold CPI inside nested SGKF outer loop ensures no leakage.
 
 LFFO Leave-Family-Feature-Out: retrain without each TOP feature and report
 LOGO delta (LeaveOneGroupOut CV over families, mirroring LOFAM stump honest).

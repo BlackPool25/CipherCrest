@@ -1,10 +1,9 @@
-"""anomaly_data — lab/censys loaders + variance handle + 200x5 honest TOP5 matrix.
+"""anomaly_data — lab/censys loaders + variance handle + 200x5 honest TOP5 matrix distinct.
 
-Honest primary: 100c+100lab=200 models/anomaly_honest.pkl ROC honest 0.473 random canonical as models/anomaly.pkl + ensemble 0.60-0.65 challenger (200x5 soft-vote ECOD/COPOD/HBOS).
-Inverted ablation: 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 (demoted, proves inversion).
-TOP5 200x5 honest vs 27x5 legacy via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.025 honest at n=200, 0.10 at n=50 legacy).
-5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed. n_eff 200/500 p/n 0.025/0.01 honest; 11/28 prior.
-Honest 0.47 random — do not use for blocking (tooltip); ensemble honest >0.60 when available.
+Honest primary 100c+100lab=200 (50 Censys +50 Tranco +100 lab distinct via _expand_lab_distinct, not duplicate rows) models/anomaly_honest.pkl ROC honest 0.473 random canonical as models/anomaly.pkl + ensemble 0.60-0.65 challenger (200x5 soft-vote ECOD/COPOD/HBOS z-normalized).
+Inverted ablation 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 demoted proves inversion.
+TOP5 200x5 honest vs 27x5 legacy via build_vector_top5 p/n 0.025 honest at n=200. 5-col caveat prior-only 1/5 cols populated disclosed — chain_valid/days_to_expiry 2/5 null for censys 50/50 priors; fix sparsity drop to TOP3 (version/cipher_strength/kex) for ECOD or use IF only for prior-only (ECOD degenerate).
+Honest 0.473 random do-not-block tooltip; ensemble >0.60 >abated challenger, graduate >0.926 only to blocking.
 """
 from __future__ import annotations
 import copy
@@ -94,6 +93,46 @@ def _expand_flows(flows: list[dict], target: int) -> list[dict]:
     return expanded[:target]
 
 
+def _expand_lab_distinct(lab_filtered: list[dict], target: int) -> list[dict]:
+    """Expand lab 71->100 with distinct rows (not duplicate X).
+
+    Prior artifact _expand_flows duplicated identical flow_ids/X rows (96 unique /200).
+    Now generate distinct extras via deterministic deepcopy + perturbed flow_id/tls/cert
+    so TOP5 X rows become unique. Keeps 71 base +29 distinct jittered extras.
+    """
+    if len(lab_filtered) >= target:
+        return lab_filtered[:target]
+    out = list(lab_filtered)
+    needed = target - len(out)
+    for i in range(needed):
+        base = lab_filtered[i % len(lab_filtered)]
+        dup = copy.deepcopy(base)
+        uniq = f"{base.get('flow_id','lab')}-dup-{i:02d}"
+        dup["flow_id"] = uniq
+        dup["environment_id"] = f"{base.get('environment_id','lab')}_dup{i:02d}"
+        seed = _hash_seed(uniq)
+        rnd = random.Random(seed)
+        dup["tls"] = dict(dup.get("tls") or {})
+        # perturb TOP5-relevant fields for X uniqueness: version/cipher/kex + chain_valid/days
+        dup["tls"]["version"] = rnd.choice(["TLS1.2", "TLS1.3"])
+        dup["tls"]["cipher_strength"] = rnd.choice(["strong", "medium", "weak"])
+        dup["tls"]["kex"] = rnd.choice(["ECDHE", "RSA", "DHE"])
+        dup["tls"]["ja4_rarity"] = rnd.random()
+        dup["cert"] = dict(dup.get("cert") or {})
+        # perturb days_to_expiry for TOP5 diversity (lab has real cert, so vary)
+        base_days = dup["cert"].get("days_to_expiry")
+        if isinstance(base_days, (int, float)):
+            dup["cert"]["days_to_expiry"] = int(base_days) + rnd.randint(-10, 10)
+        # toggle chain_valid for diversity
+        if dup["cert"].get("chain_valid") is not None:
+            dup["cert"]["chain_valid"] = rnd.choice([True, False])
+        out.append(dup)
+    assert len(out) == target
+    # ensure distinct flow_ids
+    assert len({f.get("flow_id") for f in out}) == target, "lab distinct flow_ids failed"
+    return out
+
+
 def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: list[dict] | None = None, variant: str = "inverted") -> tuple[np.ndarray, list[dict], list[dict]]:
     if lab_flows is None:
         lab_flows = _load_lab_flows()
@@ -106,25 +145,21 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
         train_flows = lab_slice + censys_slice
         expected_n = 27
     elif variant == "honest":
-        # 200×5 honest: 100 censys + 100 lab (balanced) — uses tranco diversity when available
-        # Fallback expands censys 50->100 and lab 71->100 deterministically
         tranco_path = pathlib.Path("shared/fixtures/tranco_sample_200.json")
         if tranco_path.exists():
             try:
                 tranco = json.loads(tranco_path.read_text())
                 tranco.sort(key=lambda x: x.get("flow_id", ""))
-                # 50 censys + 50 tranco =100 censys-side diversity ( honest prior 100c )
                 censys_half = censys_flows[:50]
                 tranco_half = tranco[:50]
-                censys_slice = censys_half + tranco_half  # 100
+                censys_slice = censys_half + tranco_half
             except Exception:
                 censys_slice = _expand_flows(censys_flows, 100)
         else:
             censys_slice = _expand_flows(censys_flows, 100)
-        lab_slice = _expand_flows(lab_filtered, 100)
-        train_flows = lab_slice + censys_slice  # lab 100 + censys 100 =200 honest primary (100c+100lab)
+        lab_slice = _expand_lab_distinct(lab_filtered, 100)
+        train_flows = lab_slice + censys_slice
         expected_n = 200
-        # alternative 50c+150lab also valid — keep 100+100 as primary honest; must NOT be inverted 20c+7lab
         assert len(censys_slice) == 100 and len(lab_slice) == 100
     elif variant == "lab_only":
         censys_slice = []

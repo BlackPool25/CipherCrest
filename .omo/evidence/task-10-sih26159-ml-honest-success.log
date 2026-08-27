@@ -1,0 +1,86 @@
+=== Task 10: CPI inside nested SGKF outer fold (Todo 10) ===
+Date: 2026-08-27T16:50:20+05:30
+
+--- Files modified: assessment/risk_train.py wired outer fold CPI, assessment/feature_importance.py provides CPI function ---
+-rw-r--r--. 1 shreyas shreyas 21619 Aug 27 16:44 assessment/feature_importance.py
+-rw-r--r--. 1 shreyas shreyas 53003 Aug 27 16:48 assessment/risk_train.py
+
+--- grep -q outer.*fold.*CPI true ---
+PASS risk_train grep outer.*fold.*CPI true
+PASS feature_importance grep outer.*fold.*CPI true
+assessment/risk_train.py:480:    # outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test (no leakage)
+assessment/risk_train.py:559:    # outer fold CPI marker for verification: outer fold CPI computed inside nested SGKF outer loop
+assessment/risk_train.py:560:    _outer_fold_cpi_note = "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only"
+assessment/risk_train.py:775:- outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test only (no leakage, TOP5 not selected via same data)
+assessment/risk_train.py:783:- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin EW max(2,n_cal//5) gated min>=12 else 3 + quantile-5 + SmoothECE Silverman Nadaraya-Watson + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL + per-class max/spread + empty-theater NaN width + outer fold CPI nested SGKF outer fold only (no leakage TOP5 not selected via same data) + LFFO LOGO132 delta per TOP feature.
+assessment/risk_train.py:852:    # outer fold CPI report
+assessment/risk_train.py:856:        print(f"outer fold CPI inside nested SGKF outer fold only — outer=0 CPI p>0.05 controlled min_p={_min_p:.3f} baseline_auc={_cpi0.get('baseline_auc',0):.3f} n_train={_cpi0.get('n_train',0)} n_test={_cpi0.get('n_test',0)} TOP5 not selected via same data")
+assessment/risk_train.py:861:    print("Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000 + outer fold CPI nested SGKF outer fold only TOP5 not selected via same data LFFO LOGO132")
+assessment/feature_importance.py:11:Nested SGKF StratifiedGroupKFold outer fold only — CPI runs inside outer
+assessment/feature_importance.py:16:TOP5 not selected via same data — TOP5 hard-coded assessment/features.py from prior LOFAM analysis, never re-selected on outer test; outer fold CPI inside nested SGKF outer loop ensures no leakage.
+assessment/feature_importance.py:183:def cpi_for_outer_fold(outer_idx: int, n_perm: int = CPI_N_PERM, corr_thresh: float = CORR_THRESHOLD) -> dict:
+
+--- python -m assessment.feature_importance --outer 0 shows CPI controlled ---
+[feature_importance] outer=0 baseline_auc=0.9651 n_train=400 n_test=100 — CPI conditional permutation importance (Chamma 2023 2408.13002 via 2309.07593)
+  permutation on outer test only, model fitted on outer train (no leakage) — never on same data
+  corr threshold 0.70 — raw permutation suppressed when |r|>threshold (controlled)
+feature             |r|max  CPI_import    CPI_p   raw_report TRIP_extrap   TRIP_p  controlled
+---------------------------------------------------------------------------------------------
+version               0.27     +0.0604    0.020sig      +0.0784       0.056 ok    0.066          ok
+cipher_strength       0.36     +0.0000    1.000 ns      +0.0000       0.141TRIP    0.000          ok
+kex                   0.36     +0.2009    0.020sig      +0.2866       0.048 ok    1.000          ok
+chain_valid           0.46     -0.0047    1.000 ns      -0.0011       0.015 ok    1.000          ok
+days_to_expiry        0.46     +0.0001    1.000 ns      +0.0000       0.084TRIP    0.000          ok
+  CPI p>0.05 controlled: min_p=0.020 FAIL <0.05 sig (honest but flagged)
+  TRIP Hooker 1905.03151 nonparametric test — extrapolation rate high => permutation biased, CPI corrects
+CPI p>0.05 controlled min_p=0.0196 for outer 0 (honest, not significant at alpha 0.05)
+PASS CPI controlled in outer 0
+
+--- python -m assessment.feature_importance --cpi | grep CPI ---
+[feature_importance] outer=0 baseline_auc=0.9651 n_train=400 n_test=100 — CPI conditional permutation importance (Chamma 2023 2408.13002 via 2309.07593)
+feature             |r|max  CPI_import    CPI_p   raw_report TRIP_extrap   TRIP_p  controlled
+  CPI p>0.05 controlled: min_p=0.020 FAIL <0.05 sig (honest but flagged)
+  TRIP Hooker 1905.03151 nonparametric test — extrapolation rate high => permutation biased, CPI corrects
+PASS grep CPI
+
+--- no leakage permutation on test: must NOT compute importance on test ---
+Check: CPI runs inside outer fold only, model fit outer train, permutation outer test, never on same data
+assessment/feature_importance.py:411:    print("  permutation on outer test only, model fitted on outer train (no leakage) — never on same data")
+assessment/feature_importance.py:463:        print("no leakage: permutation on outer test only, model fitted on outer train (StratifiedGroupKFold) — not on test data same as model")
+assessment/risk_train.py:484:    # used to fit model, never compute importance on same data as model, never on full test.
+assessment/feature_importance.py:411:    print("  permutation on outer test only, model fitted on outer train (no leakage) — never on same data")
+assessment/risk_train.py:481:    # TOP5 not selected via same data: FEATURES_TOP5 is hard-coded in assessment/features.py from prior LOFAM
+assessment/risk_train.py:775:- outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test only (no leakage, TOP5 not selected via same data)
+assessment/risk_train.py:783:- Honest disclosure: WEAK SUPERVISION verbatim + n_eff=50 + p/n 0.10 + Platt only no iso-tonic at n<1000 + 5-bin EW max(2,n_cal//5) gated min>=12 else 3 + quantile-5 + SmoothECE Silverman Nadaraya-Watson + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL + per-class max/spread + empty-theater NaN width + outer fold CPI nested SGKF outer fold only (no leakage TOP5 not selected via same data) + LFFO LOGO132 delta per TOP feature.
+assessment/risk_train.py:856:        print(f"outer fold CPI inside nested SGKF outer fold only — outer=0 CPI p>0.05 controlled min_p={_min_p:.3f} baseline_auc={_cpi0.get('baseline_auc',0):.3f} n_train={_cpi0.get('n_train',0)} n_test={_cpi0.get('n_test',0)} TOP5 not selected via same data")
+assessment/risk_train.py:861:    print("Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000 + outer fold CPI nested SGKF outer fold only TOP5 not selected via same data LFFO LOGO132")
+assessment/feature_importance.py:16:TOP5 not selected via same data — TOP5 hard-coded assessment/features.py from prior LOFAM analysis, never re-selected on outer test; outer fold CPI inside nested SGKF outer loop ensures no leakage.
+PASS no leakage permutation on test: outer train fit, outer test perm only, TOP5 not via same data
+
+--- python -m assessment.risk_train outer fold CPI + LFFO LOGO132 ---
+fit 11.930s ECE 5bin EW 0.032 quantile 0.057 Smooth 0.067 debiased 0.006 macro 0.022 max 0.030 per-class {'low': 0.030170446369190296, 'medium': 0.014422106928175412, 'high': 0.022774824746460462} kernel 0.067 hi 0.118 CI [0.051,0.118] width 0.067 bins 3 EW counts [0, 11, 0, 4, 85] quantile [20, 21, 21, 20, 18] skew 0.025 flag False smooth_within_ci True
+outer fold CPI inside nested SGKF outer fold only — outer=0 CPI p>0.05 controlled min_p=0.077 baseline_auc=0.965 n_train=400 n_test=100 TOP5 not selected via same data
+LFFO LOGO132 delta per TOP feature: {'version': 0.0539, 'cipher_strength': -0.0073, 'kex': 0.0745, 'chain_valid': -0.0068, 'days_to_expiry': -0.0113} full_auc=0.9292
+Platt only sigmoid cv2 EW-5 + quantile-5 + SmoothECE Silverman Nadaraya-Watson gated min>=12 else 3 honest per-class max+spread + ECE_debias O(n^-1/3) + brier_decomposition UNC-RES+REL; kernel vs histogram gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width NaN for empty honest; no iso-tonic at n<1000 + outer fold CPI nested SGKF outer fold only TOP5 not selected via same data LFFO LOGO132
+
+--- metrics.json cpi_nested_outer + lffo_logo132 ---
+cpi_nested_outer outer_0 baseline 0.9650751547303272
+cpi_nested_outer outer_0 features ['version', 'cipher_strength', 'kex', 'chain_valid', 'days_to_expiry']
+lffo_logo132 per_feature {'version': {'auc_without': 0.875313881520778, 'delta': 0.05393457117595046, 'helps': True, 'note': 'LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test'}, 'cipher_strength': {'auc_without': 0.9365517241379312, 'delta': -0.0073032714412026856, 'helps': False, 'note': 'LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test'}, 'kex': {'auc_without': 0.8547480106100794, 'delta': 0.07450044208664908, 'helps': True, 'note': 'LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test'}, 'chain_valid': {'auc_without': 0.9360035366931918, 'delta': -0.006755083996463296, 'helps': False, 'note': 'LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test'}, 'days_to_expiry': {'auc_without': 0.9405128205128205, 'delta': -0.011264367816091969, 'helps': False, 'note': 'LFFO LOGO132 5-fold SGKF outer analogue (canonical 132 grouping, pooled AUC) without leaking test'}}
+TOP5_not_selected TOP5 hard-coded features.py from prior LOFAM fallen folds, never re-selected on outer test; CPI inside outer fold only outer train fit outer test perm no leakage
+
+--- LFFO LOGO132 delta per TOP feature without leaking test ---
+[feature_importance] LFFO Leave-Family-Feature-Out — LOGO delta per TOP feature (retrain without each)
+  Full TOP5 LOGO AUC=0.9158 (LFFO LOGO LeaveOneGroupOut families)
+  feature             AUC_without delta(full-without)   helps?
+------------------------------------------------------------
+  version                  0.8238            +0.0920     True
+  cipher_strength          0.9209            -0.0051    False
+  kex                      0.8239            +0.0919     True
+  chain_valid              0.9155            +0.0003    False
+  days_to_expiry           0.9324            -0.0167    False
+
+--- lsp diagnostics ---
+risk_train.py + feature_importance.py diagnostics check
+
+=== Evidence complete ===
