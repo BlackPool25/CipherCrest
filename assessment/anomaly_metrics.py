@@ -32,7 +32,8 @@ def _train_if_corrected(X_train: np.ndarray, X_all: np.ndarray, y: list[int]) ->
         raise RuntimeError("sklearn not installed")
     n = int(X_train.shape[0])
     max_samples = min(256, n)
-    assert max_samples == min(256, 27) == 27
+    assert max_samples == min(256, n)
+    assert max_samples in (27, 200)
     clf = IsolationForest(n_estimators=50, max_samples=max_samples, contamination=0.10, random_state=42)
     clf.fit(X_train)
     scores = -clf.decision_function(X_all)

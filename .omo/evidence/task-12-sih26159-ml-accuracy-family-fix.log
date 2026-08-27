@@ -1,0 +1,6 @@
+ECOD honest 0.473 inverted 0.871 ja4 0.926 IF 0.759 ensemble_honest 0.980 ensemble_ja4_ablated 0.938
+thresholds honest {'c05': 7.7485, 'c10': 6.6807, 'c30': 4.9061} inverted {'c05': 6.6308, 'c10': 3.5999, 'c30': 0.5295}
+contamination invariance True n_train honest 200 inverted 27
+ensemble honest 0.980 >0.60 True > ja4-ablated 0.938 True
+n_train_honest 200 honest 200x5 100c+100lab primary (not inverted 20c+7lab)
+pickle threshold alignment ok c10 6.6807

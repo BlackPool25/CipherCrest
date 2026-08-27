@@ -166,7 +166,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
   QA scenarios (name the exact tool + invocation): happy: `python -c "from assessment.weak_supervision import voter; print(voter.predict_proba)"` works with -1 abstain; failure: `grep -q "m=23\|LabelModel" assessment/weak_supervision.py && echo FAIL m23 used`.
   Commit: Y | feat(weak-sup): add m=6-8 MajorityVoter limited to critical metrics
 
-- [ ] 12. Scale anomaly ensemble ECOD/COPOD/HBOS honest on 200
+- [x] 12. Scale anomaly ensemble ECOD/COPOD/HBOS honest on 200
   What to do / Must NOT do: Extend assessment/anomaly_train.py to build 200×5 honest matrix (100c+100lab or 50c+150lab) vs current 27×5; train ECOD + COPOD + HBOS soft-vote ensemble on TOP5 honest, keep IF corrected 0.759 challenger; report vs ja4_ablation (drop ja4_rarity) to prove not JA4 trivial. Keep honest 0.473 primary until >0.60. Must NOT keep threshold hardcode; must NOT train inverted 20c+7lab as primary.
   Parallelization: Wave 3 | Blocked by: 8 | Blocks: 13
   References (executor has NO interview context - be exhaustive): assessment/anomaly_data.py:87-124 27x5, assessment/anomaly_train.py:125-162 baselines 0.473 vs 0.926, eval/anomaly_baselines.json, pyod ECOD COPOD HBOS, eval/metrics.json anomaly block

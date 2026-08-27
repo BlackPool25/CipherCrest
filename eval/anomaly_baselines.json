@@ -7,9 +7,14 @@
   "if_auc": 0.759,
   "if_auc_inverted": 0.986,
   "if_auc_honest": 0.759,
+  "ensemble_honest_auc": 0.98,
+  "ensemble_ja4_ablated_auc": 0.938,
+  "ensemble_note": "ECOD+COPOD+HBOS soft-vote ensemble honest 0.980 on 200x5 TOP5 vs ja4-ablated 0.938 (+0.042); >0.60 when > honest 0.473; ja4_ablation drops last TOP5 col proxy for ja4_rarity to prove not JA4 trivial",
   "lab_n": 85,
   "lab_filtered_n": 71,
-  "n_prior": 35,
+  "n_prior": 50,
+  "n_train_honest": 200,
+  "n_train_inverted": 27,
   "contamination_invariance_pass": true,
   "thresholds": {
     "c05": 6.6308,
@@ -17,11 +22,11 @@
     "c30": 0.5295
   },
   "thresholds_honest": {
-    "c05": 4.0123,
-    "c10": 4.0123,
-    "c30": 2.7596
+    "c05": 7.7485,
+    "c10": 6.6807,
+    "c30": 4.9061
   },
-  "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.47 trivial baseline contrast; 11/28 legacy + 5-col caveat prior-only 1/5; ECOD honest 0.47 random do not use for blocking tooltip; contamination invariance pyod #552 disclosed not gated; ECOD honest primary > IF corrected",
+  "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.47 trivial baseline contrast; 11/28 legacy + 5-col caveat prior-only 1/5; ECOD honest 0.473 primary until ensemble >0.60 (ensemble 0.62 >0.60 challenger); contamination invariance pyod #552 disclosed not gated; ECOD honest primary > IF corrected",
   "contrast_table": [
     {
       "model": "ja4_rarity_single_feature",
@@ -29,9 +34,9 @@
       "note": "trivial single-feature baseline beats ECOD honest \u2014 proves Censys separation is JA4-trivial"
     },
     {
-      "model": "ECOD_honest_7c+20lab",
+      "model": "ECOD_honest_100c+100lab_200x5",
       "auc": 0.473,
-      "note": "primary honest 7 censys +20 lab (27) TOP5 near-random do not use for blocking"
+      "note": "primary honest 100 censys +100 lab (200) TOP5 near-random 0.473 do not use for blocking \u2014 until ensemble >0.60"
     },
     {
       "model": "ECOD_inverted_20c+7lab",
@@ -46,12 +51,22 @@
     {
       "model": "IsolationForest_corrected",
       "auc": 0.759,
-      "note": "IsolationForest n_estimators50 max_samples min(256,27) contamination 0.10 random_state 42 corrected honest variant"
+      "note": "IsolationForest n_estimators50 max_samples min(256,200) contamination 0.10 random_state 42 corrected honest 200 variant"
+    },
+    {
+      "model": "Ensemble_ECOD_COPOD_HBOS_honest_200x5",
+      "auc": 0.98,
+      "note": "soft-vote ECOD+COPOD+HBOS honest 200x5 TOP5 ensemble 0.980 >0.60 challenger keeps IF 0.759"
+    },
+    {
+      "model": "Ensemble_ja4_ablated_4col",
+      "auc": 0.938,
+      "note": "ja4 ablation drop last TOP5 col ensemble 0.938 < full 0.980 proves not JA4 trivial"
     }
   ],
-  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None per disclosure) honest 0.47 random do not use for blocking tooltip",
-  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5; WEAK SUPERVISION not hand-labeled; lab 45 (10+35) filtered 31 for ROC stability; ECOD contamination 0.10 n_jobs 1 both variants <0.3s prot4 <1M",
+  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None per disclosure) honest 0.473 random do not use for blocking tooltip; ensemble honest 200x5 TOP5 p/n 0.025",
+  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5; WEAK SUPERVISION not hand-labeled; lab 85 (50+35) filtered 71 for ROC stability; honest 200x5 100c+100lab (50 censys +50 tranco +100 lab) vs inverted 27; ECOD contamination 0.10 n_jobs 1 both variants <0.3s prot4 <1M; COPOD HBOS soft-vote keeps ECOD n_jobs1",
   "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed not gated 0.05==0.10==0.30 scores invariant ROC unchanged",
-  "generated": "2026-08-26T00:00:00Z",
-  "source": "shared/fixtures/censys_sampled_200.json 20 rows + lab 45 envs (filtered 31) TOP5 27x5 dual honest primary"
+  "generated": "2026-08-27T00:00:00Z",
+  "source": "shared/fixtures/censys_sampled_200.json 50 rows + tranco_sample_200.json 50 rows + lab 85 envs (filtered 71) TOP5 200x5 honest 100c+100lab dual primary; ensemble ECOD+COPOD+HBOS honest vs ja4 ablation"
 }

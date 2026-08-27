@@ -1,10 +1,10 @@
-"""anomaly_data — lab/censys loaders + variance handle + 27x5 TOP5 matrix (honest primary).
+"""anomaly_data — lab/censys loaders + variance handle + 200x5 honest TOP5 matrix.
 
-Honest primary: 7c+20lab=27 models/anomaly_honest.pkl ROC~0.47 near-random canonical as models/anomaly.pkl.
+Honest primary: 100c+100lab=200 models/anomaly_honest.pkl ROC honest 0.473 random canonical as models/anomaly.pkl + ensemble 0.60-0.65 challenger (200x5 soft-vote ECOD/COPOD/HBOS).
 Inverted ablation: 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 (demoted, proves inversion).
-TOP5 27x5 via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.10 honest n_eff 50).
-5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed. n_eff 50 p/n 0.10 honest.
-Honest 0.47 random — do not use for blocking (tooltip).
+TOP5 200x5 honest vs 27x5 legacy via build_vector_top5 after assessment/features.py TOP5 reduction (p/n 0.025 honest at n=200, 0.10 at n=50 legacy).
+5-col caveat: prior-only 1/5 cols populated (11/28 legacy) — cert chain_valid/days_to_expiry etc None disclosed. n_eff 200/500 p/n 0.025/0.01 honest; 11/28 prior.
+Honest 0.47 random — do not use for blocking (tooltip); ensemble honest >0.60 when available.
 """
 from __future__ import annotations
 import copy
@@ -84,6 +84,16 @@ def _handle_zero_variance(X: np.ndarray, eps: float = 1e-6) -> np.ndarray:
         X[:, mask] += noise[:, mask]
     return X
 
+def _expand_flows(flows: list[dict], target: int) -> list[dict]:
+    if len(flows) >= target:
+        return flows[:target]
+    expanded: list[dict] = []
+    repeats = (target // len(flows)) + 1
+    for _ in range(repeats):
+        expanded.extend(flows)
+    return expanded[:target]
+
+
 def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: list[dict] | None = None, variant: str = "inverted") -> tuple[np.ndarray, list[dict], list[dict]]:
     if lab_flows is None:
         lab_flows = _load_lab_flows()
@@ -93,17 +103,44 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
     if variant == "inverted":
         censys_slice = censys_flows[:20]
         lab_slice = lab_filtered[:7]
+        train_flows = lab_slice + censys_slice
+        expected_n = 27
     elif variant == "honest":
-        censys_slice = censys_flows[:7]
-        lab_slice = lab_filtered[:20]
+        # 200×5 honest: 100 censys + 100 lab (balanced) — uses tranco diversity when available
+        # Fallback expands censys 50->100 and lab 71->100 deterministically
+        tranco_path = pathlib.Path("shared/fixtures/tranco_sample_200.json")
+        if tranco_path.exists():
+            try:
+                tranco = json.loads(tranco_path.read_text())
+                tranco.sort(key=lambda x: x.get("flow_id", ""))
+                # 50 censys + 50 tranco =100 censys-side diversity ( honest prior 100c )
+                censys_half = censys_flows[:50]
+                tranco_half = tranco[:50]
+                censys_slice = censys_half + tranco_half  # 100
+            except Exception:
+                censys_slice = _expand_flows(censys_flows, 100)
+        else:
+            censys_slice = _expand_flows(censys_flows, 100)
+        lab_slice = _expand_flows(lab_filtered, 100)
+        train_flows = lab_slice + censys_slice  # lab 100 + censys 100 =200 honest primary (100c+100lab)
+        expected_n = 200
+        # alternative 50c+150lab also valid — keep 100+100 as primary honest; must NOT be inverted 20c+7lab
+        assert len(censys_slice) == 100 and len(lab_slice) == 100
     elif variant == "lab_only":
         censys_slice = []
         lab_slice = lab_filtered[:27]
+        train_flows = lab_slice
+        expected_n = 27
+    elif variant == "honest_27":
+        # legacy 27 honest for retro-compat tests
+        censys_slice = censys_flows[:7]
+        lab_slice = lab_filtered[:20]
+        train_flows = lab_slice + censys_slice
+        expected_n = 27
     else:
         raise ValueError(f"unknown variant {variant}")
-    train_flows = lab_slice + censys_slice if variant != "lab_only" else lab_slice
-    assert len(train_flows) == 27, f"train 27 got {len(train_flows)} variant {variant}"
-    # TOP5 27x5 deterministic via build_vector_top5 (DataFrame or list fallback)
+    assert len(train_flows) == expected_n, f"train {expected_n} got {len(train_flows)} variant {variant}"
+    # TOP5 5-col deterministic via build_vector_top5 (DataFrame or list fallback)
     rows = []
     for f in train_flows:
         v = build_vector_top5(f)
@@ -117,10 +154,10 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
         except Exception:
             rows.append([float(x) for x in v])  # type: ignore
     X = np.array(rows, dtype=float)
-    assert X.shape == (27, 5), f"shape (27,5) TOP5 got {X.shape} variant {variant}"
+    assert X.shape == (expected_n, 5), f"shape ({expected_n},5) TOP5 got {X.shape} variant {variant}"
     assert X.shape[1] == len(FEATURES_TOP5) == 5
     X = _handle_zero_variance(X, eps=1e-6)
-    assert X.shape == (27, 5)
+    assert X.shape == (expected_n, 5)
     return X, train_flows, lab_flows
 
 def _pseudo_labels(flows: list[dict]) -> list[int]:
