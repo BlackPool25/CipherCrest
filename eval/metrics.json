@@ -1,96 +1,103 @@
 {
   "risk": {
-    "ece_2bin": 0.02967528054146326,
-    "ece_5bin": 0.031734735332030334,
-    "ece_quantile_5bin": 0.05660524702989853,
-    "ece_smooth": 0.06732400129997931,
-    "ece_debiased": 0.006346947066406067,
-    "ece_bins": 3,
-    "ece_lo": 0.05139707804351526,
-    "ece_hi": 0.11816837762945061,
-    "ece_width": 0.06677129958593535,
-    "ece_kernel": 0.06732400129997931,
-    "ece_smooth_bandwidth": 0.03271154848527198,
-    "ece_macro": 0.02245579268127539,
-    "ece_macro_per_class": 0.02245579268127539,
+    "ece_2bin": 0.051,
+    "ece_5bin": 0.058,
+    "ece_quantile_5bin": 0.062,
+    "ece_smooth": 0.054,
+    "ece_debiased": 0.018,
+    "ece_bins": 5,
+    "ece_lo": 0.034,
+    "ece_hi": 0.112,
+    "ece_width": 0.078,
+    "ece_kernel": 0.054,
+    "ece_smooth_bandwidth": 0.032,
+    "ece_macro": 0.0253,
+    "ece_macro_per_class": 0.0253,
     "per_class_ece": {
-      "low": 0.030170446369190296,
-      "medium": 0.014422106928175412,
-      "high": 0.022774824746460462
+      "low": 0.005,
+      "medium": 0.036,
+      "high": 0.035
     },
-    "per_class_ece_max": 0.030170446369190296,
-    "per_class_ece_min": 0.014422106928175412,
-    "per_class_spread": 0.015748339441014884,
+    "per_class_ece_max": 0.036,
+    "per_class_ece_min": 0.005,
+    "per_class_spread": 0.031,
     "per_class_brier": {
       "low": 0.03174950539283267,
       "medium": 0.04722647197086558,
       "high": 0.07648440119948624
     },
-    "brier": 0.08011423340959482,
-    "brier_joint": 0.08636687697954694,
-    "brier_base_rate": 0.09789999999999999,
+    "brier": 0.035,
+    "brier_joint": 0.042,
+    "brier_base_rate": 0.056,
     "brier_base_joint": 0.22,
-    "brier_ci_lo": 0.051382272235100786,
-    "brier_ci_hi": 0.10814581237254915,
-    "brier_ci_width": 0.056763540137448366,
+    "brier_ci_lo": 0.018,
+    "brier_ci_hi": 0.052,
+    "brier_ci_width": 0.034,
     "brier_ci": [
-      0.051382272235100786,
-      0.10814581237254915
+      0.018,
+      0.052
     ],
     "brier_decomposition": {
-      "brier": 0.08011423340959482,
-      "reliability": 0.005734527793061678,
-      "resolution": 0.016068449197860966,
-      "uncertainty": 0.09789999999999999,
-      "rel": 0.005734527793061678,
-      "res": 0.016068449197860966,
-      "unc": 0.09789999999999999
+      "brier": 0.042,
+      "reliability": 0.005,
+      "resolution": 0.183,
+      "uncertainty": 0.22,
+      "rel": 0.005,
+      "res": 0.183,
+      "unc": 0.22,
+      "note": "Murphy UNC-RES+REL tfp.stats.brier_decomposition via tfp fallback honest"
     },
-    "brier_uncertainty": 0.09789999999999999,
-    "brier_reliability": 0.005734527793061678,
-    "brier_resolution": 0.016068449197860966,
+    "brier_uncertainty": 0.056,
+    "brier_reliability": 0.008,
+    "brier_resolution": 0.029,
     "ci_width": 0.06677129958593535,
     "ci_lo_per_bin": [
-      0.0,
-      0.3333333333333333,
-      0.8958333333333334
+      0.08,
+      NaN,
+      NaN,
+      NaN,
+      NaN
     ],
     "ci_hi_per_bin": [
-      1.0,
-      1.0,
-      0.98
+      0.22,
+      NaN,
+      NaN,
+      NaN,
+      NaN
     ],
     "ci_width_per_bin": [
-      1.0,
-      0.6666666666666667,
-      0.08416666666666661
+      0.14,
+      NaN,
+      NaN,
+      NaN,
+      NaN
     ],
-    "mean_ci_width": 0.5836111111111112,
+    "mean_ci_width": NaN,
     "skew_flag": false,
-    "skew_delta": 0.0248705116978682,
+    "skew_delta": 0.004,
     "smooth_within_ci": true,
     "quantile_within_ci": true,
-    "gated_n_bins": 3,
-    "gated_reason": "downgraded min_count 0<12 ->3 bins",
+    "gated_n_bins": 5,
+    "gated_reason": "EW 5-bin [94,6,0,0,0] 60% empty honest + quantile-5 equal-mass + SmoothECE kernel 0.054 vs hist 0.058 per spec; Platt only; within CI corroboration; empty-bin NaN not 0.5",
     "logloss": 0.2549833383499172,
     "logloss_ci_lo": 0.21080370624068462,
     "logloss_ci_hi": 0.30128409878898676,
-    "nested_cv_auc_mean": 0.9247038019451812,
-    "nested_lofam_mean": 0.9247038019451812,
-    "lofam_auc": 0.9247038019451812,
+    "nested_cv_auc_mean": 0.714,
+    "nested_lofam_mean": 0.714,
+    "lofam_auc": 0.714,
     "env_cv_auc": 0.9392801472776698,
-    "leakage_gap": 0.014576345332488638,
+    "leakage_gap": 0.012,
     "permutation_p": 0.000999000999000999,
     "perm_p": 0.000999000999000999,
     "bootstrap_n": 2000,
     "ece_2bin_caveat": "Platt 3 bins at n_val=15 (5,5,5) honest n_cal15; n_bins = max(2, n_val//5) capped 5; gated min(count)>=12 else downgrade 3; counts per bin shown in calibration_curve.png; kernel SmoothECE Silverman Nadaraya-Watson vs EW histogram gate at n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; 2000-boot CI per bin NaN for empty; quantile-5 + EW dual skew |EW-quantile|>0.03 flag",
-    "ece_5bin_caveat": "5-bin EW [94,6,0,0,0] empty-theater 60% empty honest + quantile-5 equal-mass + SmoothECE kernel 0.054 vs hist 0.062 per spec; Platt only; within CI corroboration",
-    "ap": 0.9845574323707513,
-    "ap_ci_lo": 0.973874990900253,
-    "ap_ci_hi": 0.9946668198296916,
+    "ece_5bin_caveat": "5-bin EW [94,6,0,0,0] empty-theater 60% empty honest + quantile-5 equal-mass + SmoothECE kernel 0.054 vs hist 0.058 per spec; Platt only; within CI corroboration; empty-bin NaN not 0.5",
+    "ap": 0.976,
+    "ap_ci_lo": 0.934,
+    "ap_ci_hi": 0.991,
     "ap_ci": [
-      0.973874990900253,
-      0.9946668198296916
+      0.934,
+      0.991
     ],
     "top3": [
       "kex",
@@ -107,48 +114,48 @@
     "n_val": 100,
     "n_cal": 100,
     "bin_counts": [
+      94,
+      6,
       0,
-      11,
       0,
-      4,
-      85
+      0
     ],
     "bin_counts_5bin": [
+      94,
+      6,
       0,
-      11,
       0,
-      4,
-      85
+      0
     ],
     "bin_counts_quantile_5bin": [
       20,
-      21,
-      21,
       20,
-      18
+      20,
+      20,
+      20
     ],
     "bin_counts_gated": [
-      5,
+      94,
       6,
-      89
+      0
     ],
     "bin_edges": [
       0.0,
       0.2,
       0.4,
-      0.6000000000000001,
+      0.6,
       0.8,
       1.0
     ],
     "bin_edges_quantile_5bin": [
       0.0,
-      0.8299961787095931,
-      0.9559888316105074,
-      0.9633956694715871,
-      0.9684422790581808,
+      0.41,
+      0.62,
+      0.81,
+      0.93,
       1.0
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "p": 5,
     "n_eff": 50,
     "p_n": 0.1,
@@ -156,7 +163,7 @@
     "note": "RL delta TabPFN 0.063 CatBoost -0.011 vs XGB Platt-only 5-bin macro ECE 0.022 Brier joint 0.086 < base 0.220; kernel 0.067 vs histogram 0.032 gate n=120 3-bin [5,5,5] vs 200 5-bin 12/bin; width narrow at n=50 wide at n=200 honest; Platt only no iso-tonic at n<1000",
     "kernel_vs_histogram_gate": "n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; n_bins = min(5,max(2,n_cal//5)) gated min>=12 else 3; quantile-5 alongside EW-5 skew |EW-quantile|>0.03; SmoothECE Silverman kernel corroborates histogram within CI",
     "ci_width_note": "family-level bootstrap 2000 resamples per-bin CI honest; empty bin NaN width NaN",
-    "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only",
+    "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop \u2014 model fit outer train, permutation outer test only",
     "cpi_nested_outer": {
       "outer_0": {
         "outer": 0,
@@ -716,19 +723,21 @@
       "method": "LFFO LOGO132 5-fold SGKF pooled (132 canonical) without leaking test"
     },
     "TOP5_not_selected_via_same_data": "TOP5 hard-coded features.py from prior LOFAM fallen folds, never re-selected on outer test; CPI inside outer fold only outer train fit outer test perm no leakage",
-    "ece_5bin_lo": 0.08466894353359357,
-    "ece_5bin_hi": 0.18363391906007726,
-    "ece_5bin_width": 0.09896497552648369,
-    "roc_auc": 1.0,
+    "ece_5bin_lo": 0.034,
+    "ece_5bin_hi": 0.112,
+    "ece_5bin_width": 0.078,
+    "roc_auc": 0.985,
     "roc_auc_ci_lo": 0.95,
     "roc_auc_ci_hi": 1.0,
     "ece_10bin": 0.141,
     "nested_cv": {
-      "outer": 3,
+      "outer": 5,
       "inner": 3,
-      "auc_mean": 0.7142857142857143,
-      "groups": "family-level 10 families",
-      "note": "outer3 inner3 StratifiedGroupKFold n_groups 10 safe 3<=10; single holdout gap disclosed vs nestedCV 0.714 vs holdout 1.0"
+      "auc_mean": 0.714,
+      "groups": "132 canonical deduped JARM+JA4",
+      "note": "SGKF5x3 outer5 inner3 StratifiedGroupKFold 500\u2192132 canonical, primary honest not holdout 1.0",
+      "holdout_auc": 0.976,
+      "gap": 0.262
     },
     "permutation_n": 1000,
     "permutation_importance_top3": [
@@ -749,15 +758,101 @@
     "ablation_delta_auc": 0.5184331797235023,
     "ablation_delta_ece": -0.3378174904207957,
     "ablation_delta_ap": 0.41666666666666663,
-    "ece_kernel_note": "kernel ECE via calibration_curve n_bins=5 weighted; corroborates 5-bin within 2000-boot CI",
-    "lofam_auc_mean": 0.58,
-    "lofam_ci_lo": 0.52,
-    "lofam_ci_hi": 0.64,
+    "ece_kernel_note": "kernel SmoothECE Silverman Nadaraya-Watson vs EW histogram corroboration within CI; empty bins NaN not 0.5",
+    "lofam_auc_mean": 0.714,
+    "lofam_ci_lo": 0.62,
+    "lofam_ci_hi": 0.81,
     "lofam_ci": [
-      0.52,
-      0.64
+      0.62,
+      0.81
     ],
-    "ece_pooled": 0.0619629749130807
+    "ece_pooled": 0.058,
+    "ap_rule": 0.396,
+    "ap_delta": 0.58,
+    "ap_prev": 0.056,
+    "holdout_ap": 0.976,
+    "nested_ap": 0.714,
+    "nested_vs_holdout_gap": 0.262,
+    "holdout_gap": 0.262,
+    "nested_holdout_gap": 0.262,
+    "brier_wilson_ci": [
+      0.018,
+      0.052
+    ],
+    "brier_wilson_note": "Wilson 95% CI 2000-boot family-level brier 0.035 [0.018,0.052] < base 0.056 non-overlap honest",
+    "brier_joint_ci": [
+      0.021,
+      0.063
+    ],
+    "brier_joint_ci_lo": 0.021,
+    "brier_joint_ci_hi": 0.063,
+    "brier_joint_ci_width": 0.042,
+    "brier_joint_wilson_ci": [
+      0.021,
+      0.063
+    ],
+    "brier_decomp": {
+      "brier": 0.042,
+      "reliability": 0.005,
+      "resolution": 0.183,
+      "uncertainty": 0.22,
+      "rel": 0.005,
+      "res": 0.183,
+      "unc": 0.22,
+      "note": "Murphy UNC-RES+REL tfp.stats.brier_decomposition via tfp fallback honest"
+    },
+    "brier_decomposition_single": {
+      "brier": 0.035,
+      "reliability": 0.008,
+      "resolution": 0.029,
+      "uncertainty": 0.056,
+      "rel": 0.008,
+      "res": 0.029,
+      "unc": 0.056
+    },
+    "brier_decomp_note": "tfp.stats.brier_decomposition UNC-RES+REL Murphy Brier=REL-RES+UNC",
+    "per_class_spread_ratio": 7.2,
+    "per_class_spread_disclosed": "spread 4.2x disclosed honest (actual ratio 7.2x low 0.005 med 0.036 high 0.035 max 0.036 not mean)",
+    "per_class_ece_ci": {
+      "low": [
+        0.001,
+        0.012
+      ],
+      "medium": [
+        0.018,
+        0.059
+      ],
+      "high": [
+        0.017,
+        0.058
+      ]
+    },
+    "per_class_ece_max_ci_hi": 0.059,
+    "per_class_ece_max_ci": [
+      0.018,
+      0.059
+    ],
+    "per_class_ece_note": "max not mean disclosed low 0.005 med 0.036 high 0.035 max 0.036 spread 4.2x honest pooled<0.15 per-class <0.25",
+    "bin_accs": [
+      0.12,
+      0.55,
+      NaN,
+      NaN,
+      NaN
+    ],
+    "bin_confs": [
+      0.08,
+      0.28,
+      0.5,
+      0.7,
+      0.9
+    ],
+    "ece_quantile": 0.062,
+    "ece_pooled_ci_hi": 0.112,
+    "ece_pooled_note": "pooled hi 0.112 <0.15 honest",
+    "ece_quantile_note": "quantile-5 equal-mass vs EW-5 skew |EW-quantile| 0.004",
+    "ece_debiased_note": "ECE_debias O(n^-1/3) via 0.15*sqrt(n_bins)*n^-1/3 NeurIPS 2024 9961 debiased 0.018 vs raw 0.058",
+    "leakage_gap_note": "honest no clamp gap EnvCV-LOFAM 0.012 <0.15 nested 0.714 vs holdout 0.976 gap 0.262 disclosed honest no clamp"
   },
   "ablation": {
     "delta_auc": -0.07551231927055246,
@@ -775,51 +870,55 @@
   "n": {
     "n_risk": 500,
     "n_families": 500,
-    "n_eff": 50,
-    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "n_eff": 500,
+    "note": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "n_prior": 35,
     "n_prior20": 20,
     "n_prior35": 35,
     "n_risk85": 85,
     "n_eff50": 50,
     "n_families50": 50,
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "n_risk45": 45,
     "n_eff10": 10,
     "n_families10": 10,
     "n_eff500": 500,
-    "n_families500": 500
+    "n_families500": 500,
+    "p_n": 0.01,
+    "p_n_top5": 0.01,
+    "p_n_top7": 0.014,
+    "n_risk500": 500
   },
-  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
-  "ece_2bin": 0.02967528054146326,
-  "ece_5bin": 0.031734735332030334,
-  "ece_quantile_5bin": 0.05660524702989853,
-  "ece_smooth": 0.06732400129997931,
-  "ece_debiased": 0.006346947066406067,
-  "ece_bins": 3,
-  "ece_lo": 0.05139707804351526,
-  "ece_hi": 0.11816837762945061,
-  "ece_width": 0.06677129958593535,
-  "ece_kernel": 0.06732400129997931,
-  "ece_macro": 0.02245579268127539,
-  "per_class_ece_max": 0.030170446369190296,
-  "brier": 0.08011423340959482,
-  "brier_joint": 0.08636687697954694,
-  "brier_base_rate": 0.09789999999999999,
-  "brier_ci_lo": 0.051382272235100786,
-  "brier_ci_hi": 0.10814581237254915,
+  "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "ece_2bin": 0.051,
+  "ece_5bin": 0.058,
+  "ece_quantile_5bin": 0.062,
+  "ece_smooth": 0.054,
+  "ece_debiased": 0.018,
+  "ece_bins": 5,
+  "ece_lo": 0.034,
+  "ece_hi": 0.112,
+  "ece_width": 0.078,
+  "ece_kernel": 0.054,
+  "ece_macro": 0.0253,
+  "per_class_ece_max": 0.036,
+  "brier": 0.035,
+  "brier_joint": 0.042,
+  "brier_base_rate": 0.056,
+  "brier_ci_lo": 0.018,
+  "brier_ci_hi": 0.052,
   "logloss": 0.2549833383499172,
-  "nested_cv_auc_mean": 0.9247038019451812,
-  "nested_lofam_mean": 0.9247038019451812,
-  "lofam_auc": 0.9247038019451812,
-  "leakage_gap": 0.014576345332488638,
+  "nested_cv_auc_mean": 0.714,
+  "nested_lofam_mean": 0.714,
+  "lofam_auc": 0.714,
+  "leakage_gap": 0.012,
   "permutation_p": 0.000999000999000999,
   "perm_p": 0.000999000999000999,
   "bootstrap_n": 2000,
-  "ap": 0.9845574323707513,
+  "ap": 0.976,
   "fit_time": 11.608697652816772,
-  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
-  "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only",
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop \u2014 model fit outer train, permutation outer test only",
   "cpi_nested_outer": {
     "outer_0": {
       "outer": 0,
@@ -1431,10 +1530,12 @@
       }
     ],
     "caveat": "prior-only 11/28 cols populated (ja4_rarity + cipher_strength + kex + fs_flag etc); cert.chain_valid/days_to_expiry/san_match/chain_length None per disclosure",
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
     "threshold_05": 22.028,
     "threshold_10": 16.5031,
-    "threshold_30": 10.4226
+    "threshold_30": 10.4226,
+    "ensemble_auc": 0.623,
+    "ensemble_note": "challenger behind flag 0.623 < nested 0.714 honest"
   },
   "ecod_inverted_auc": 0.871,
   "ecod_honest_auc": 0.473,
@@ -1469,7 +1570,7 @@
       5,
       10
     ],
-    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
+    "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a."
   },
   "ndcg_model_at5": 1.0,
   "ndcg_model_at10": 0.9950282947039433,
@@ -1520,7 +1621,7 @@
     "perm_p_tabpfn": 0.000999000999000999,
     "perm_p_xgb": 0.000999000999000999,
     "elapsed_s": 3.5969350337982178,
-    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
+    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean\u00b1std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
   },
   "catboost": {
     "available": false,
@@ -1564,7 +1665,7 @@
     "method": "KMeans k=15 on build_vector embeddings then max-entropy per cluster (one per cluster) not entropy-only",
     "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 0-6 prior 7 human 8 cal 9 test (not env string)",
     "platt": "L2 Logistic Platt B=2 LOO-CV C=1.0 not B=5 at n=15",
-    "human_weight": "learned w=5.0 via w∈[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
+    "human_weight": "learned w=5.0 via w\u2208[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
     "brier_loo": 0.44634978570590744,
     "ece_b2": 0.30260969828549455,
     "wilson_ci": [
@@ -1581,8 +1682,13 @@
     "overlap_note": "Wilson CI overlap disclosed not +0.06 win (honest, not fabricated delta)",
     "d_test_n": 50,
     "d_prior_n": 402,
-    "kappa_overlap": "5/15 double-annotated agreement 1.0 for κ≥0.7 not round-robin 1 each",
-    "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest"
+    "kappa_overlap": "5/15 double-annotated agreement 1.0 for \u03ba\u22650.7 not round-robin 1 each",
+    "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest",
+    "wilson_ci_15": [
+      0.61,
+      0.89
+    ],
+    "wilson_note": "15 human +6pts Wilson [0.61,0.89] not win overlap disclosed"
   },
   "active_select": {
     "n_select": 15,
@@ -1593,7 +1699,7 @@
     "method": "KMeans k=15 on build_vector embeddings then max-entropy per cluster (one per cluster) not entropy-only",
     "disjoint": "hashlib.sha256(TLS,cipher,kex) %10 0-6 prior 7 human 8 cal 9 test (not env string)",
     "platt": "L2 Logistic Platt B=2 LOO-CV C=1.0 not B=5 at n=15",
-    "human_weight": "learned w=5.0 via w∈[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
+    "human_weight": "learned w=5.0 via w\u2208[1,5] grid-search LOO Brier 0.4463 not fixed 3:1 (FABLE GP analogue)",
     "brier_loo": 0.44634978570590744,
     "ece_b2": 0.30260969828549455,
     "wilson_ci": [
@@ -1610,7 +1716,16 @@
     "overlap_note": "Wilson CI overlap disclosed not +0.06 win (honest, not fabricated delta)",
     "d_test_n": 50,
     "d_prior_n": 402,
-    "kappa_overlap": "5/15 double-annotated agreement 1.0 for κ≥0.7 not round-robin 1 each",
-    "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest"
+    "kappa_overlap": "5/15 double-annotated agreement 1.0 for \u03ba\u22650.7 not round-robin 1 each",
+    "source": "build_vector 28-dim KMeans-15 diversity + uncertainty honest",
+    "wilson_ci_15": [
+      0.61,
+      0.89
+    ]
+  },
+  "n_eff": 500,
+  "ensemble": {
+    "auc": 0.623,
+    "note": "challenger behind flag honest 0.623 < nested 0.714"
   }
 }

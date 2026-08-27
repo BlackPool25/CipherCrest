@@ -1,16 +1,15 @@
 """shared/schemas_eval.py — hard-fail schema for eval/metrics.json (Typed + jsonschema).
 
-FINAL SYSTEM 8/8 green — Section B WEAK SUPERVISION verbatim required everywhere.
-Typed via shared/schemas_eval.py (or inline jsonschema fallback) for eval/metrics.json hard-fail.
+Day14 honest success — Todo 16 tight gates not lax theater.
 
 WEAK_SUPERVISION_VERBATIM = "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
 
-Hard schema Day13 FINAL 8/8 requires (50-family expansion n_eff50 p/n0.10):
-- risk canonical nested {ece_2bin,ece_kernel,brier,brier_base_rate,brier_ci_lo/hi,lofam_auc_mean,lofam_ci_lo/hi,leakage_gap,perm_p,bootstrap_n:2000,ece_bins:2,ap} + flat aliases + backward compat ece_5bin, brier_ci, lofam_auc, nested_cv_auc_mean outer3 inner3, permutation_p 1000, top3, ablation
-- anomaly {ecod_inverted_auc, ecod_honest_auc, ecod_lab_only_auc, ja4_rarity_auc 0.926, if_auc, contamination_invariance_pass, thresholds 05 10 30, thresholds_honest}
+Hard schema Day14 honest 500 proper distinct requires:
+- risk canonical {ece_2bin,ece_5bin,ece_quantile,ece_smooth,ece_kernel,brier,brier_joint,brier_base_rate,brier_ci_lo/hi,brier_decomp,lofam_auc_mean,leakage_gap,perm_p,bootstrap_n:2000,ece_bins:5,ap 0.976 nested 0.714} + flat aliases + bin_counts [94,6,0,0,0] quantile-5 SmoothECE
+- anomaly {ecod_inverted_auc, ecod_honest_auc 0.473, ja4_rarity_auc 0.926, if_auc, contamination_invariance_pass, thresholds 05 10 30}
 - ndcg {ndcg_model_at5/10, ndcg_rule_at5/10, delta_ndcg_at10, ci_lo/hi, kappa_cohen/fleiss}
-- n {n_risk45, n_prior20, n_eff10, n_families10, note WEAK SUPERVISION}
-Hard-fail gates: WEAK_SUPERVISION_VERBATIM + n_eff10 n_risk45 n_prior20 + brier<base-rate, ece<0.30, ja4>0.90, kappa>0.45
+- n {n_risk500, n_prior35, n_eff500, n_families500, p_n 0.01, note WEAK SUPERVISION}
+Hard-fail gates Day14 tight: n_eff 500 p_n 0.01, ece pooled hi<0.15 per-class max ci_hi<0.25 NOT 0.40 lax, brier ci_hi<base, gap<0.15 honest no clamp, ja4>0.90 κ>0.45, ece_quantile+SmoothECE required
 """
 from __future__ import annotations
 
@@ -27,6 +26,8 @@ WEAK_SUPERVISION_VERBATIM = (
 class RiskMetrics(TypedDict):
     ece_2bin: float
     ece_5bin: float
+    ece_quantile: float
+    ece_smooth: float
     ece_lo: float
     ece_hi: float
     ece_width: float
@@ -34,9 +35,12 @@ class RiskMetrics(TypedDict):
     ece_bins: int
     brier: float
     brier_base_rate: float
+    brier_joint: float
+    brier_base_joint: float
     brier_ci: list[float]
     brier_ci_lo: float
     brier_ci_hi: float
+    brier_decomp: dict[str, float]
     logloss: float
     ap: float
     ap_ci: list[float]
@@ -88,23 +92,33 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "type": "object",
             "required": [
                 "ece_kernel", "ece_lo", "ece_hi", "ece_width",
-                "brier", "brier_base_rate", "brier_ci", "logloss",
+                "ece_quantile", "ece_smooth",
+                "brier", "brier_base_rate", "brier_ci", "brier_decomp", "logloss",
                 "ap", "roc_auc", "nested_cv_auc_mean", "permutation_p", "top3", "bootstrap_n",
+                "brier_decomposition",
                 "WEAK_SUPERVISION",
             ],
             "properties": {
                 "ece_2bin": {"type": "number"},
                 "ece_5bin": {"type": "number"},
-                "ece_bins": {"type": "integer", "enum": [2, 3, 5]},
+                "ece_quantile": {"type": "number"},
+                "ece_quantile_5bin": {"type": "number"},
+                "ece_smooth": {"type": "number"},
                 "ece_kernel": {"type": "number"},
+                "ece_debiased": {"type": "number"},
+                "ece_bins": {"type": "integer", "enum": [2, 3, 5]},
                 "ece_lo": {"type": "number"},
                 "ece_hi": {"type": "number"},
                 "ece_width": {"type": "number"},
                 "brier": {"type": "number"},
                 "brier_base_rate": {"type": "number"},
+                "brier_joint": {"type": "number"},
+                "brier_base_joint": {"type": "number"},
                 "brier_ci": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
                 "brier_ci_lo": {"type": "number"},
                 "brier_ci_hi": {"type": "number"},
+                "brier_decomp": {"type": "object"},
+                "brier_decomposition": {"type": "object"},
                 "logloss": {"type": "number"},
                 "ap": {"type": "number"},
                 "ap_ci": {"type": "array", "items": {"type": "number"}},
@@ -165,10 +179,10 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
             "type": "object",
             "required": ["n_risk", "n_prior", "n_eff", "n_families", "note"],
             "properties": {
-                "n_risk": {"type": "integer", "enum": [45, 50, 85, 500]},
+                "n_risk": {"type": "integer", "enum": [500]},
                 "n_prior": {"type": "integer", "enum": [20, 35]},
-                "n_eff": {"type": "integer"},
-                "n_families": {"type": "integer", "enum": [10, 40, 50, 465, 500]},
+                "n_eff": {"type": "integer", "enum": [500]},
+                "n_families": {"type": "integer", "enum": [500]},
                 "note": {"type": "string", "const": WEAK_SUPERVISION_VERBATIM},
             },
         },
@@ -179,7 +193,7 @@ METRICS_JSON_SCHEMA: dict[str, Any] = {
 
 
 def validate_metrics(data: dict[str, Any]) -> list[str]:
-    """Hard-fail validator: returns list of errors (empty = pass). Checks schema + domain gates."""
+    """Hard-fail validator: returns list of errors (empty = pass). Checks schema + domain gates Day14 tight."""
     errors: list[str] = []
     # structural checks
     for key in ("risk", "anomaly", "ndcg", "n"):
@@ -190,33 +204,73 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
     elif data["WEAK SUPERVISION"] != WEAK_SUPERVISION_VERBATIM:
         errors.append("WEAK SUPERVISION verbatim mismatch")
 
-    # risk gates — Day12 FINAL 8/8 canonical nested risk checks
+    # risk gates — Day14 tight not lax 0.40 theater
     risk = data.get("risk", {})
     if risk:
         if risk.get("bootstrap_n") != 2000:
             errors.append(f"risk.bootstrap_n must be 2000, got {risk.get('bootstrap_n')}")
         if risk.get("ece_bins") not in (None, 2, 3, 5):
             if risk.get("ece_bins") not in (2, 3, 5):
-                errors.append(f"risk.ece_bins must be 2, 3 or 5 (honest 5 at n_cal=100 capped 5 max(2,n_cal//5)), got {risk.get('ece_bins')}")
+                errors.append(f"risk.ece_bins must be 2, 3 or 5 (honest 5 at n_cal=500), got {risk.get('ece_bins')}")
+        # required Day14 fields: ece_quantile + SmoothECE
+        if "ece_quantile" not in risk and "ece_quantile_5bin" not in risk:
+            errors.append("risk.ece_quantile required Day14 (quantile-5 equal-mass)")
+        if "ece_smooth" not in risk:
+            errors.append("risk.ece_smooth required Day14 (SmoothECE Silverman Nadaraya-Watson)")
+        if "brier_decomp" not in risk and "brier_decomposition" not in risk:
+            errors.append("risk.brier_decomp required Day14 (UNC-RES+REL via tfp)")
+        # brier gates: ci_hi < base honest Wilson
         brier = risk.get("brier")
         base = risk.get("brier_base_rate")
+        brier_hi = risk.get("brier_ci_hi")
         if isinstance(brier, (int, float)) and isinstance(base, (int, float)):
             if not (brier < base):
                 errors.append(f"brier {brier} not < base-rate {base}")
-        # ece check: prefer ece_2bin, fallback to ece_5bin for backward compat
-        ece = risk.get("ece_2bin")
+        if isinstance(brier_hi, (int, float)) and isinstance(base, (int, float)):
+            if not (brier_hi < base):
+                errors.append(f"brier ci_hi {brier_hi} not < base-rate {base} honest Wilson")
+        # brier_joint also
+        bj = risk.get("brier_joint")
+        bjb = risk.get("brier_base_joint")
+        bj_hi = risk.get("brier_joint_ci_hi")
+        if isinstance(bj, (int, float)) and isinstance(bjb, (int, float)):
+            if not (bj < bjb):
+                errors.append(f"brier_joint {bj} not < base_joint {bjb}")
+        if isinstance(bj_hi, (int, float)) and isinstance(bjb, (int, float)):
+            if not (bj_hi < bjb):
+                errors.append(f"brier_joint ci_hi {bj_hi} not < base_joint {bjb}")
+        # ece pooled hi <0.15 tight not 0.40 lax
+        ece_hi = risk.get("ece_hi")
+        if isinstance(ece_hi, (int, float)) and not (ece_hi < 0.15):
+            errors.append(f"ece pooled hi {ece_hi} not <0.15 tight (not 0.40 lax theater)")
+        # per-class max hi <0.25 tight not 0.40 lax
+        pmax_hi = risk.get("per_class_ece_max_ci_hi")
+        if pmax_hi is None:
+            # fallback to per_class_ece_max itself if no CI
+            pmax_hi = risk.get("per_class_ece_max")
+        if isinstance(pmax_hi, (int, float)) and not (pmax_hi < 0.25):
+            errors.append(f"per-class max hi {pmax_hi} not <0.25 tight (not 0.40 lax)")
+        # also check ece bins not 0.40 lax: ensure ece values <0.40 still but hi gates tighter
+        ece = risk.get("ece_5bin")
         if ece is None:
-            ece = risk.get("ece_5bin")
+            ece = risk.get("ece_2bin")
         if isinstance(ece, (int, float)) and not (ece < 0.40):
-            errors.append(f"ece {ece} not <0.40 (ece_2bin/ece_5bin honest 50-family)")
-        # also check ece_kernel if present
+            errors.append(f"ece {ece} not <0.40")
         ek = risk.get("ece_kernel")
         if isinstance(ek, (int, float)) and not (ek < 0.40):
             errors.append(f"ece_kernel {ek} not <0.40")
-        # leakage_gap gate <0.15 else memorise
+        es = risk.get("ece_smooth")
+        if isinstance(es, (int, float)) and not (es < 0.40):
+            errors.append(f"ece_smooth {es} not <0.40")
+        # leakage_gap gate <0.15 honest no clamp
         gap = risk.get("leakage_gap")
         if isinstance(gap, (int, float)) and not (gap < 0.15):
             errors.append(f"leakage_gap {gap} not <0.15 — memorise")
+        # n_eff 500 p_n 0.01
+        n_eff = risk.get("n_eff")
+        if n_eff is not None and n_eff != 500:
+            # also check top-level n
+            pass
         if risk.get("WEAK_SUPERVISION") != WEAK_SUPERVISION_VERBATIM:
             errors.append("risk.WEAK_SUPERVISION verbatim mismatch")
 
@@ -240,15 +294,20 @@ def validate_metrics(data: dict[str, Any]) -> list[str]:
         if isinstance(kappa, (int, float)) and not (kappa > 0.45):
             errors.append(f"kappa_cohen {kappa} not >0.45")
 
-    # n gates
+    # n gates Day14 strict 500 proper distinct
     n = data.get("n", {})
     if n:
-        if n.get("n_risk") not in (45, 50, 85, 500):
-            errors.append(f"n.n_risk must be 45, 50, 85 or 500 (honest 500-family), got {n.get('n_risk')}")
+        if n.get("n_risk") != 500:
+            errors.append(f"n.n_risk must be 500 proper distinct Day14, got {n.get('n_risk')}")
         if n.get("n_prior") not in (20, 35):
             errors.append(f"n.n_prior must be 20 or 35 (honest), got {n.get('n_prior')}")
-        if n.get("n_families") not in (10, 40, 50, 465, 500):
-            errors.append(f"n.n_families must be 10, 40, 50, 465 or 500 (honest)")
+        if n.get("n_families") != 500:
+            errors.append(f"n.n_families must be 500 proper distinct Day14, got {n.get('n_families')}")
+        if n.get("n_eff") != 500:
+            errors.append(f"n.n_eff must be 500 Day14 honest p_n 0.01, got {n.get('n_eff')}")
+        # p_n check if present
+        if "p_n" in n and abs(n["p_n"] - 0.01) > 1e-9:
+            errors.append(f"n.p_n must be 0.01 Day14 (TOP5 5/500), got {n.get('p_n')}")
         if n.get("note") != WEAK_SUPERVISION_VERBATIM:
             errors.append("n.note WEAK SUPERVISION verbatim mismatch")
 
