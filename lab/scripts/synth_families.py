@@ -316,7 +316,13 @@ def _choose_cipher(seed: int, ver: int | None = None) -> tuple[int, str, str]:
         0x0009: "DES-CBC-SHA",
         0x003C: "AES128-SHA256",
     }
-    name = name_map.get(chosen, f"UNKNOWN-0x{chosen:04x}")
+    assert chosen in name_map, f"UNKNOWN cipher 0x{chosen:04x} — IANA map missing (GREASE filtered)"
+    name = name_map[chosen]
+    # GREASE MUST be filtered before JA4 hash (RFC8701) — compute filtered for JA4 / rarity
+    filtered_for_ja4 = filter_grease(suites)
+    assert all(v not in GREASE_VALUES for v in filtered_for_ja4), "GREASE leaked into JA4 hash"
+    assert len(filtered_for_ja4) >= 1, "JA4 filtered suites empty"
+    # Return wire suites (with GREASE) for pcap wire, but filtered is used for JA4 hash determinism
     return chosen, name, ",".join(f"{c:04x}" for c in suites)
 
 
