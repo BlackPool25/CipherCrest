@@ -1,0 +1,13 @@
+[tabpfn] device=cpu torch_available=False cuda=False cache_dir=/models token_present=False n_estimators=8 precision=autocast
+[tabpfn] torch not available (No module named 'torch') — CPU fallback
+tabpfn import fallback (not installed): No module named 'tabpfn' — using CPU dummy for CI
+[tabpfn] n=500 k_eff=50 (requested 50) seeds [42, 0, 1]
+[tabpfn] TOP5 stratified 0.957±0.034 seeds [0.9191666666666667, 0.9706944444444445, 0.9822222222222223]
+[tabpfn] TOP7 stratified 0.957±0.034 seeds [0.9191666666666667, 0.9706944444444445, 0.9822222222222223]
+[tabpfn] TOP7 ablation delta (TOP7-TOP5) 0.000
+[tabpfn] LOFAM TabPFN 0.989 vs XGB stump 0.993 delta -0.003 CI [-0.012,0.008]
+[tabpfn] EnvCV TabPFN 0.957 XGB 0.979 gap TabPFN -0.032 XGB -0.014
+[tabpfn] permutation p TabPFN 0.0010 XGB 0.0010 (1000)
+[tabpfn] LOFAM vs XGB delta CI reported — PASS
+[tabpfn] p/n TOP5 0.0100 TOP7 0.0140 — wheelhouse not exceeded (ckpt via Releases)
+[tabpfn] wrote eval/metrics.json tabpfn section

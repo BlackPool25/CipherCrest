@@ -298,5 +298,44 @@
   "ndcg_ci_hi": 0.1827160065461816,
   "lofam_auc_mean": 0.58,
   "lofam_ci_lo": 0.52,
-  "lofam_ci_hi": 0.64
+  "lofam_ci_hi": 0.64,
+  "tabpfn": {
+    "device": "cpu",
+    "n_estimators": 8,
+    "inference_precision": "autocast",
+    "n": 500,
+    "k": 50,
+    "k_requested": 50,
+    "seeds": [
+      42,
+      0,
+      1
+    ],
+    "top5_stratified_mean": 0.9573611111111111,
+    "top5_stratified_std": 0.033575796415547234,
+    "top5_seed_aucs": [
+      0.9191666666666667,
+      0.9706944444444445,
+      0.9822222222222223
+    ],
+    "top7_stratified_mean": 0.9573611111111111,
+    "top7_stratified_std": 0.033575796415547234,
+    "top7_seed_aucs": [
+      0.9191666666666667,
+      0.9706944444444445,
+      0.9822222222222223
+    ],
+    "ablation_delta_top7_minus_top5": 0.0,
+    "tabpfn_lofam_mean": 0.98910319276452,
+    "xgb_lofam_mean": 0.9925720097344811,
+    "delta": -0.0034688169699611526,
+    "delta_ci_lo": -0.012328001857875715,
+    "delta_ci_hi": 0.008467299375065221,
+    "leakage_gap_tabpfn": -0.03174208165340886,
+    "leakage_gap_xgb": -0.014020434706144558,
+    "perm_p_tabpfn": 0.000999000999000999,
+    "perm_p_xgb": 0.000999000999000999,
+    "elapsed_s": 3.6794230937957764,
+    "caveat": "TabPFN-v3 ROCm 8-ens on TOP5/TOP7 n=500 k=50 seeds 42,0,1 mean±std TOP7 ablation; XGB stump cpu LOFAM LeaveOneGroupOut + EnvCV + perm 1000 delta CI; WEAK SUPERVISION verbatim preserved"
+  }
 }
