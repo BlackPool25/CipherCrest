@@ -97,7 +97,7 @@
       "version",
       "is_deprecated"
     ],
-    "fit_time": 12.504742622375488,
+    "fit_time": 13.9674973487854,
     "size_mb": 0.16065120697021484,
     "best_params": {
       "max_depth": 1,
@@ -817,7 +817,7 @@
   "perm_p": 0.000999000999000999,
   "bootstrap_n": 2000,
   "ap": 0.9845574323707513,
-  "fit_time": 12.504742622375488,
+  "fit_time": 13.9674973487854,
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a.",
   "outer_fold_cpi": "outer fold CPI inside nested SGKF outer loop — model fit outer train, permutation outer test only",
   "cpi_nested_outer": {
