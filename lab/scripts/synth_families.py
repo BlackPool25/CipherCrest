@@ -684,11 +684,15 @@ def make_fixture(family_num: int, seed: int, taxonomy_path: pathlib.Path | None 
     if spec is not None:
         port = spec["port"]
         tls_version = spec["tls"]
+        if tls_version == "none":
+            tls_version = "unknown"
         cipher_name = spec["cipher"]
         cert = spec["cert"]
         if cert == "md5-weak":
             cert = "selfsigned"
         starttls_mode = spec["starttls"]
+        if starttls_mode == "cleartext":
+            starttls_mode = "stripped"
         kex = spec["kex"]
         # Map cert
         # Derive other fields from known values
@@ -706,8 +710,9 @@ def make_fixture(family_num: int, seed: int, taxonomy_path: pathlib.Path | None 
         fs_flag = kex == "ECDHE" or (kex == "DHE")
         if kex == "unknown":
             fs_flag = False
-        # Ensure coherence: tls none => cipher none
-        if tls_version == "none":
+        # Ensure coherence: tls none => cipher none (schema uses "unknown" for cleartext)
+        if tls_version in ("none", "unknown") and cipher_name == "none":
+            tls_version = "unknown"
             cipher_name = "none"
             kex = "unknown"
             cipher_strength = "unknown"
@@ -730,11 +735,11 @@ def make_fixture(family_num: int, seed: int, taxonomy_path: pathlib.Path | None 
             if tls_version == "TLS1.3":
                 _, cipher_name, _ = _choose_cipher(h, ver=0x0304)
         if cert == "none":
-            tls_version = "none"
+            tls_version = "unknown"
             cipher_name = "none"
         starttls_mode = "upgrade" if port in (25, 587, 143, 110) else "implicit"
-        if tls_version == "none":
-            starttls_mode = "cleartext" if rnd.random() > 0.5 else "none"
+        if tls_version == "unknown" and cipher_name == "none":
+            starttls_mode = "stripped" if rnd.random() > 0.5 else "none"
         rarity = round(0.05 + (h % 90) / 100.0, 4)
         kex = rnd.choice(["ECDHE", "RSA", "DHE"])
         if cipher_name in strong_tls13 or "ECDHE" in cipher_name:
@@ -752,7 +757,6 @@ def make_fixture(family_num: int, seed: int, taxonomy_path: pathlib.Path | None 
         "flow_id": f"family-{family_num:02d}",
         "app_protocol": "smtp" if port in (25, 587) else ("imap" if port == 143 or port == 993 else "pop3"),
         "starttls_mode": starttls_mode,
-        "port": port,
         "tls": {
             "version": tls_version,
             "is_deprecated": tls_version in ("TLS1.0", "TLS1.1"),
@@ -794,13 +798,6 @@ def make_fixture(family_num: int, seed: int, taxonomy_path: pathlib.Path | None 
     if cert == "expired":
         flow["tls"]["is_deprecated"] = True
         flow["cert"]["sigalg_weak"] = True
-    # Ensure fixture file size ~3KB by adding notes
-    # Pad with extra fields to reach ~3KB if needed
-    current_size = len(json.dumps(flow).encode())
-    if current_size < 2800:
-        # Add deterministic filler to reach 3KB
-        filler_len = 3000 - current_size
-        flow["_filler"] = "x" * max(0, filler_len - 20)
     return flow
 
 
