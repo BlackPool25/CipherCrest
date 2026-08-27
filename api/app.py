@@ -5,6 +5,7 @@ import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from api.db import query_all, query_history, query_all_history, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
@@ -21,8 +22,26 @@ from shared.schemas import FlowVerdict
 
 app = FastAPI(title="SecureMailScope Day1", version="0.1.0")
 _dist = pathlib.Path(__file__).resolve().parent.parent / "dashboard" / "dist"
+
+# Mount static asset folders directly so /assets/..., /fonts/..., /dashboard resolve cleanly
 if _dist.exists():
+    if (_dist / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(_dist / "assets")), name="assets")
+    if (_dist / "fonts").exists():
+        app.mount("/fonts", StaticFiles(directory=str(_dist / "fonts")), name="fonts")
     app.mount("/dashboard", StaticFiles(directory=str(_dist), html=True), name="dashboard")
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/families", include_in_schema=False)
+@app.get("/lab", include_in_schema=False)
+@app.get("/live", include_in_schema=False)
+@app.get("/reports", include_in_schema=False)
+def serve_spa() -> Any:
+    index_file = _dist / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return RedirectResponse(url="/docs")
 _last_result: list[FlowVerdict] | None = None
 _last_summary: dict[str, Any] | None = None
 _connected_ws: set[WebSocket] = set()
