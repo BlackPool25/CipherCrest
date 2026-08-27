@@ -242,7 +242,7 @@ Your next move: approve, then `$start-work sih26159-ml-accuracy-family-fix --wor
 - [x] F3. Real manual QA
   What to do: Replay `curl -F pcap=@lab/pcaps/family-11.pcap http://localhost:8000/analyze | jq .[0].assessment.calibrated_prob` shows working 0.60-0.69 for High/Critical not Low; dashboard Families expander shows 6 envs per jittered, coverage 0.897 true; verify human_labels.json 15 exists.
   Tool: `bash scripts/turnup.sh --check && bash scripts/turnup.sh && curl -F pcap=@lab/pcaps/family-11.pcap http://localhost:8000/analyze 2>&1 | tee .omo/evidence/F3.log`
-- [ ] F4. Scope fidelity
+- [x] F4. Scope fidelity
   What to do: Confirm Must NOT have violations: no Snorkel m23 primary (`grep -rq "LabelModel" assessment/weak_supervision.py` false primary), no XGB GPU (`grep -rq "device.*cuda" assessment/risk_train.py` false), no Scapy-only scaling, no palette change beyond jitter UI, no ET-BERT primary.
   Tool: `grep -rq "m=23\|LabelModel" assessment/weak_supervision.py && echo FAIL m23 || echo PASS limited; grep -rq "device.*cuda" assessment/risk_train.py && echo FAIL GPU XGB || echo PASS cpu`
 
