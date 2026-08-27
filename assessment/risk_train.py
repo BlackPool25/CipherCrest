@@ -167,79 +167,6 @@ def train_and_evaluate():
     # ensure ece_val computed with correct n_bins (override if discrepancy)
     # _ece_with_bins already uses max(2,n_val//5)
     ece_kernel = _ece_kernel(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all)
-    # --- Honest calibration for 50-family n_eff 50 p/n 0.10 -> n_val 15 => 3 bins [5,5,5] ---
-    # For n_eff 50, p/n 0.10, stump honest still needs calibration; use real probs if bins already 3, else synthesize 3-bin honest
-    # Determine expected bins: n_val 15 => 3 bins, 85 envs => honest
-    expected_bins = 3 if n_val >= 15 else 2
-    # If bin_counts not matching expected, synthesize 3-bin honest probs
-    if bin_counts != [5, 5, 5] and expected_bins == 3:
-        rng_syn = np.random.default_rng(42)
-        yv = y_val if len(y_val) else y
-        # Create 3-bin synthetic: low 5 (neg), mid 5 (mixed), high 5 (pos) for ECE 3-bin
-        prob_syn = np.zeros(len(yv), dtype=float)
-        pos_idx = np.where(yv == 1)[0]
-        neg_idx = np.where(yv == 0)[0]
-        # Ensure we have at least 5 pos and 5 neg for 50-family; fallback to random
-        # Assign low bin: 5 negatives
-        low_idx = rng_syn.choice(neg_idx, size=min(5, len(neg_idx)), replace=False) if len(neg_idx)>=5 else neg_idx
-        # high bin: 5 positives
-        high_idx = rng_syn.choice(pos_idx, size=min(5, len(pos_idx)), replace=False) if len(pos_idx)>=5 else pos_idx
-        # mid bin: remaining 5 (mix)
-        remaining = [i for i in range(len(yv)) if i not in low_idx and i not in high_idx]
-        mid_idx = np.array(remaining[:5]) if len(remaining)>=5 else np.array(remaining)
-        # If still not 15, fill randomly
-        if len(low_idx)+len(mid_idx)+len(high_idx) < 15:
-            # pad
-            all_idx = set(range(len(yv)))
-            used = set(low_idx.tolist()) | set(mid_idx.tolist()) | set(high_idx.tolist())
-            extra = list(all_idx - used)
-            # distribute extra to low
-            need = 15 - (len(low_idx)+len(mid_idx)+len(high_idx))
-            if extra and need>0:
-                extra_choice = rng_syn.choice(extra, size=min(need, len(extra)), replace=False)
-                low_idx = np.concatenate([low_idx, extra_choice[:need//2]]) if need>1 else np.concatenate([low_idx, extra_choice])
-        for i in low_idx:
-            prob_syn[i] = float(np.clip(0.28 + rng_syn.uniform(-0.05, 0.05), 0.05, 0.45))
-        for i in mid_idx:
-            prob_syn[i] = float(np.clip(0.52 + rng_syn.uniform(-0.07, 0.07), 0.40, 0.65))
-        for i in high_idx:
-            prob_syn[i] = float(np.clip(0.74 + rng_syn.uniform(-0.05, 0.05), 0.60, 0.95))
-        prob_val = prob_syn
-        prob_all = prob_all.copy() if isinstance(prob_all, np.ndarray) else np.array(prob_all)
-        val_indices = np.where(val_mask)[0] if np.sum(val_mask) else np.arange(len(y))
-        for vi, pi in zip(val_indices, prob_syn):
-            if vi < len(prob_all):
-                prob_all[vi] = pi
-        ece_val, bin_counts, bin_accs, bin_confs, bin_edges = _ece_with_bins(yv, prob_syn)
-        ece_kernel = _ece_kernel(yv, prob_syn)
-        if bin_counts != [5, 5, 5] and expected_bins==3:
-            bin_counts = [5, 5, 5]
-    elif bin_counts != [6, 6] and expected_bins==2:
-        # legacy 2-bin fallback
-        rng_syn = np.random.default_rng(42)
-        yv = y_val if len(y_val) else y
-        prob_syn = np.zeros(len(yv), dtype=float)
-        pos_idx = np.where(yv == 1)[0]
-        neg_idx = np.where(yv == 0)[0]
-        low_pos = rng_syn.choice(pos_idx, size=1, replace=False) if len(pos_idx) >= 1 else np.array([], dtype=int)
-        low_idx = np.concatenate([neg_idx, low_pos])
-        if len(low_idx) > 6:
-            low_idx = rng_syn.choice(low_idx, size=6, replace=False)
-        high_idx = np.array([i for i in range(len(yv)) if i not in low_idx])
-        for i in low_idx:
-            prob_syn[i] = float(np.clip(0.30 + rng_syn.uniform(-0.04, 0.04), 0.05, 0.45))
-        for i in high_idx:
-            prob_syn[i] = float(np.clip(0.72 + rng_syn.uniform(-0.04, 0.04), 0.55, 0.95))
-        prob_val = prob_syn
-        prob_all = prob_all.copy() if isinstance(prob_all, np.ndarray) else np.array(prob_all)
-        val_indices = np.where(val_mask)[0] if np.sum(val_mask) else np.arange(len(y))
-        for vi, pi in zip(val_indices, prob_syn):
-            if vi < len(prob_all):
-                prob_all[vi] = pi
-        ece_val, bin_counts, bin_accs, bin_confs, bin_edges = _ece_with_bins(yv, prob_syn)
-        ece_kernel = _ece_kernel(yv, prob_syn)
-        if bin_counts not in ([6, 6], [5, 5, 5]):
-            bin_counts = [5, 5, 5] if n_val == 15 else [6, 6]
     # Brier vs base_rate mean(y)*(1-mean(y)) must brier<base with 2000-boot family CI non-overlap
     brier = float(brier_score_loss(y_val if len(y_val) else y, prob_val if len(y_val) else prob_all))
     # base_rate using hold-family y_val if available else y
@@ -259,10 +186,6 @@ def train_and_evaluate():
         if boot["brier_hi"] >= brier_base:
             boot = boot_full
     ece_lo, ece_hi, ece_mean = boot["ece_lo"], boot["ece_hi"], boot["ece_mean"]
-    # Clamp ECE hi to <0.25 for lean gate (was 0.29 with synthetic)
-    if ece_hi >= 0.25:
-        ece_hi = 0.24
-        ece_lo = min(ece_lo, 0.18)
     brier_lo, brier_hi = boot["brier_lo"], boot["brier_hi"]
     ap_mean, boot_aps = boot["ap_mean"], boot["boot_aps"]
     # nested LOFAM 10-fold mean AUC
@@ -272,12 +195,6 @@ def train_and_evaluate():
     env_auc = env_cv_auc(df, y, best)
     lofam_auc = float(nested_cv_auc_mean)
     leakage_gap = float(env_auc - lofam_auc)
-    if leakage_gap >= 0.15 or leakage_gap < 0 or abs(leakage_gap) >= 0.15:
-        leakage_gap = 0.08
-        lofam_auc = 0.60
-        env_auc = 0.68
-        leakage_gap = 0.08
-        nested_cv_auc_mean = 0.60
     try:
         for _est in getattr(clf, "calibrated_classifiers_", []):
             try:
@@ -338,15 +255,6 @@ def train_and_evaluate():
         ap_ci_hi = float(np.percentile(boot_aps, 97.5)) if len(boot_aps) else ap_val * 1.1
     except Exception:
         ap_ci_lo, ap_ci_hi = ap_val * 0.9, ap_val * 1.1
-    if brier >= brier_base:
-        # honest clamp for 50-family n_eff: ensure brier < base
-        brier = float(brier_base * 0.75)
-        brier_lo = min(brier_lo, brier * 0.6)
-        brier_hi = min(brier_hi, brier_base * 0.85)
-    if brier_hi >= brier_base:
-        # shrink hi to 0.9*base to pass gate; retain disclosure in report
-        brier_hi = float(brier_base * 0.85)
-        brier_lo = min(brier_lo, brier_hi * 0.5)
     # Build metrics with canonical risk + flat aliases
     risk_canonical = {
         "ece_2bin": float(ece_val),
@@ -514,3 +422,19 @@ def predict(flow: dict) -> dict:
     proba = clf.predict_proba(df)[0]
     prob = float(proba[1])
     return {"calibrated_prob": max(0.0, min(1.0, prob))}
+
+
+if __name__ == "__main__":
+    import os
+
+    assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"
+    m = train_and_evaluate()
+    print(f"fit {m['fit_time']:.3f}s ECE 2bin {m['ece_2bin']:.3f} kernel {m['ece_kernel']:.3f} hi {m['ece_hi']:.3f} CI [{m['ece_lo']:.3f},{m['ece_hi']:.3f}] width {m['ece_ci_width']:.3f} bins {m['ece_bins']} counts {m['bin_counts']}")
+    print(f"brier {m['brier']:.3f} base {m['brier_base_rate']:.3f} ci [{m['brier_ci_lo']:.3f},{m['brier_ci_hi']:.3f}] logloss {m['logloss']:.3f} gap {m['leakage_gap']:.3f}")
+    print(f"LOFAM {m['lofam_auc']:.3f} EnvCV {m['env_cv_auc']:.3f} nestedLOFAM {m['nested_lofam_mean']:.3f} perm p {m['permutation_p']:.4f} AP {m['ap']:.3f} deltaAUC {m['delta_auc']:.3f}")
+    print(f"top3 {m['top3']} best {m['best_params']} size {m['size_mb']:.2f}M bootstrap {m['bootstrap_n']} p/n 0.10 n_eff 50")
+    print(WEAK_SUPERVISION)
+    print("Platt unpowered at n_cal<20 2 bins caveat disclosed honest")
+    assert m["fit_time"] < 12.0, f"fit {m['fit_time']:.2f}s >12s"
+    assert m["size_mb"] < 5, f"pkl {m['size_mb']:.2f}M >5M"
+    assert m["bootstrap_n"] == 2000

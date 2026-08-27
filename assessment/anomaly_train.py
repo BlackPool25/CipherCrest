@@ -143,7 +143,7 @@ def train_dual() -> dict:
         "n_prior": len(censys_flows),
         "contamination_invariance_pass": True,
         "thresholds": {"c05": round(float(clf_inv_05.threshold_), 4), "c10": round(float(clf_inv_10.threshold_), 4), "c30": round(float(clf_inv_30.threshold_), 4)},
-        "thresholds_honest": {"c05": 17.869, "c10": 14.974, "c30": 12.965},
+        "thresholds_honest": {"c05": round(float(clf_hon_05.threshold_), 4), "c10": round(float(clf_hon_10.threshold_), 4), "c30": round(float(clf_hon_30.threshold_), 4)},
         "note": "ja4_rarity single-feature ROC 0.926 > ECOD honest 0.47 trivial baseline contrast; 11/28 legacy + 5-col caveat prior-only 1/5; ECOD honest 0.47 random do not use for blocking tooltip; contamination invariance pyod #552 disclosed not gated; ECOD honest primary > IF corrected",
         "contrast_table": [
             {"model": "ja4_rarity_single_feature", "auc": round(float(_spec_ja4), 3), "note": "trivial single-feature baseline beats ECOD honest — proves Censys separation is JA4-trivial"},
@@ -219,3 +219,20 @@ def score_flow(flow: dict) -> float:
     vec = _vec_top5_matrix([flow])
     s = float(clf.decision_function(vec)[0])
     return s
+
+
+if __name__ == "__main__":
+    import os
+
+    assert os.environ.get("PYTHONHASHSEED") == "0", "need PYTHONHASHSEED=0"
+    out = train_dual()
+    bas = out["baselines"]
+    print(f"ECOD honest {bas['ecod_honest_auc']:.3f} inverted {bas['ecod_inverted_auc']:.3f} ja4 {bas['ja4_rarity_auc']:.3f} IF {bas['if_auc']:.3f}")
+    print(f"thresholds honest {bas['thresholds_honest']} inverted {bas['thresholds']}")
+    print(f"contamination invariance {bas['contamination_invariance_pass']} n_train honest {out['honest']['n_train']}")
+    import pickle as _pk
+
+    for pth in [MODEL_PATH, HONEST_MODEL_PATH]:
+        thr = float(_pk.load(open(pth, "rb")).threshold_)
+        assert abs(bas["thresholds_honest"]["c10"] - round(thr, 4)) < 1e-6, f"pickle {pth} {thr} != json c10 {bas['thresholds_honest']['c10']}"
+    print("pickle threshold alignment ok c10", round(float(_pk.load(open(HONEST_MODEL_PATH, "rb")).threshold_), 4))

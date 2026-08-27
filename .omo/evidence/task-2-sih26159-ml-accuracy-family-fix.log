@@ -1,0 +1,4 @@
+ECOD honest 0.473 inverted 0.871 ja4 0.926 IF 0.759
+thresholds honest {'c05': 4.0123, 'c10': 4.0123, 'c30': 2.7596} inverted {'c05': 6.6308, 'c10': 3.5999, 'c30': 0.5295}
+contamination invariance True n_train honest 27
+pickle threshold alignment ok c10 4.0123
