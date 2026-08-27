@@ -175,12 +175,14 @@ jobs:
             echo "tshark $(tshark -v 2>&1 | head -1) — parity 4 prefs"
             python -c "from lab.reassembler.reassemble import get_tshark_prefs, build_tshark_cmd; prefs=get_tshark_prefs(); assert len(prefs)==4; assert 'tcp.desegment_tcp_streams:TRUE' in prefs; assert 'tcp.reassemble_out_of_order:TRUE' in prefs; print(prefs); print(build_tshark_cmd('lab/pcaps/family-01.pcap'))"
             python lab/reassembler/reassemble.py --verify-prefs
-            bash scripts/turnup.sh --check | grep -q "tshark" && echo "turnup.sh tshark check OK"
+            bash scripts/turnup.sh --check > /tmp/turnup_check.log 2>&1
+            grep -q "tshark" /tmp/turnup_check.log && echo "turnup.sh tshark check OK"
           else
             echo "tshark not found — offline scapy fallback (parity 4 prefs stub)"
             python -c "from lab.reassembler.reassemble import get_tshark_prefs, build_tshark_cmd; prefs=get_tshark_prefs(); assert len(prefs)==4; print('stub prefs', prefs)"
             python lab/reassembler/reassemble.py --verify-prefs
-            bash scripts/turnup.sh --check | grep -q "tshark not found" && echo "turnup.sh optional warning OK (not fatal)"
+            bash scripts/turnup.sh --check > /tmp/turnup_check.log 2>&1
+            grep -q "tshark" /tmp/turnup_check.log && echo "turnup.sh optional warning OK (not fatal)"
             echo "parity skipped gracefully — pytest lab/reassembler/tests still passes via mock (see docs/TSHARK.md)"
           fi
           pytest lab/reassembler/tests -q
