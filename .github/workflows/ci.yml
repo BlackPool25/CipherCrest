@@ -294,6 +294,7 @@ jobs:
             echo "dig skip — mockdns not running or dig not installed — soft pass"
             # verify mockdns command still wires correct addrs from compose file
             grep -q "$MAIL_IP" lab/docker-compose.yml && echo "compose mockdns mail A $MAIL_IP wired"
+          fi
       - name: "T13 — pytest all"
         run: |
           pytest -q
