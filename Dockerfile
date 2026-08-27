@@ -8,6 +8,7 @@ COPY dashboard/package.json dashboard/package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY dashboard/ ./
 COPY shared/ /app/shared/
+COPY lab/ /app/lab/
 RUN npm run build
 
 # ── Stage 2: builder ─────────────────────────────────────────────────────────

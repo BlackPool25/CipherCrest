@@ -6,6 +6,7 @@ wheelhouse/
 .venv
 *.egg-info/
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 node_modules/
@@ -14,6 +15,11 @@ node_modules/
 # local tooling & generated artifacts (not for repo)
 .codegraph
 .momo/
+.agents/
+skills-lock.json
+.tmp/
+*.pid
+
 # .omo/plans are tracked for provenance; ignore ephemeral session state
 .omo/run-continuation/
 .omo/evidence/ulw/
@@ -22,5 +28,16 @@ evidence-day2.zip
 dashboard/dist/
 dashboard/node_modules/
 flows.db
+api/flows.db
+*.db
+*.sqlite
+*.sqlite3
 .opencode/skills
-logs
+logs/
+
+# Ignore loose/temp capture files by default, but preserve essential lab datasets
+*.pcap
+*.bin
+!lab/pcaps/**
+!lab/reassembled/**
+!lab/adversarial/**

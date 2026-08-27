@@ -295,7 +295,7 @@ export default function Graphs({ flows = [] }) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>ja4_rarity_single AUC <span className="tabular-nums" style={{ fontWeight:700, color:TOK.ink }}>0.926</span> > ECOD honest 0.473 — proves Censys separation JA4-trivial — tabular-nums</div>
+          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>ja4_rarity_single AUC <span className="tabular-nums" style={{ fontWeight:700, color:TOK.ink }}>0.926</span> &gt; ECOD honest 0.473 — proves Censys separation JA4-trivial — tabular-nums</div>
         </Card>
       </div>
 
