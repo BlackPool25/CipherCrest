@@ -265,7 +265,7 @@ def test_d_prior_not_in_d1_strict():
     d2 = set(s["D2_val_groups"])
     d3 = set(s["D3_locked_groups"])
     d_prior = set(s["D_prior_groups"])
-    assert len(d_prior) in (20, 35), f"D_prior {len(d_prior)} not in (20,35)"
+    assert len(d_prior) in (20, 35, 50), f"D_prior {len(d_prior)} not in (20,35,50)"
     assert not d_prior & d1, f"D_prior ∩ D1 non-empty {d_prior & d1}"
     assert not d_prior & d2, f"D_prior ∩ D2 non-empty {d_prior & d2}"
     assert not d_prior & d3, f"D_prior ∩ D3 non-empty {d_prior & d3}"
@@ -369,7 +369,7 @@ def test_d_prior_20_censys_disjoint_from_risk():
     s = _load_splits()
     risk = set(s["D1_train_groups"]) | set(s["D2_val_groups"]) | set(s["D3_locked_groups"]) | set(s.get("spare_groups", []))
     prior = set(s["D_prior_groups"])
-    assert len(prior) in (20, 35)
+    assert len(prior) in (20, 35, 50)
     assert not risk & prior, f"prior intersects risk {risk & prior}"
     all_envs = set(s["all_environment_ids"])
     assert not prior & all_envs, f"prior should not be in all_environment_ids {prior & all_envs}"

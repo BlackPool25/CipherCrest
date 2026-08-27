@@ -1,0 +1,11 @@
+Wrote 50 rows to shared/fixtures/censys_sampled_200.json (ja4_rarity span 0.02..1.00)
+weber 6 envs: smtp_clear_25, smtp_starttls_587, smtps_465, imap_starttls_143, imaps_993, pop3_110/995 via tshark filters (weberblog.net 2026-07-14 6MB, /tmp/mail_only.pcapng simulated)
+weber_6_envs 6 ['weber_smtp_clear_25', 'weber_smtp_starttls_587', 'weber_smtps_465', 'weber_imap_starttls_143', 'weber_imaps_993', 'weber_pop3_110_995']
+File name:           /tmp/mail_only.pcapng
+File type:           Wireshark/tcpdump/... - pcap
+File encapsulation:  Ethernet
+File timestamp precision:  microseconds (6)
+...........                                                              [100%]
+11 passed in 0.02s
+disjoint D_prior ∩ D1 True 50
+censys 50 span 0.02 0.9985 prior_flag True

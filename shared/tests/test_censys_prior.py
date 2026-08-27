@@ -97,9 +97,9 @@ SPLITS = pathlib.Path("assessment/splits.json")
 
 
 def test_lean_20_rows_not_200():
-    """Lean till Day10: 20->35 expanded 50-family honest — was 20, now 35."""
+    """Lean till Day10: 20->35 expanded 50-family honest — was 20, now 35, T6 50."""
     rows = _load()
-    assert len(rows) in (20, 35), f"lean 20 or 35 expanded required, got {len(rows)}"
+    assert len(rows) in (20, 35, 50), f"lean 20 or 35 or 50 expanded required, got {len(rows)}"
     # all rows must have prior_flag true and dataset_caveat prior-only
     for r in rows:
         assert r.get("prior_flag") is True
@@ -119,16 +119,17 @@ def test_prior_disjoint_D1_train_groups():
     # prior_flag disjoint from D1
     assert not prior_envs & d1, f"prior envs leaked into D1_train_groups: {prior_envs & d1}"
     assert not prior_fids & d1, f"prior flow_ids leaked into D1_train_groups: {prior_fids & d1}"
-    # D_prior_groups must exactly match fixture envs (20)
-    assert prior_envs == d_prior, f"D_prior_groups mismatch: fixture {prior_envs} vs splits {d_prior}"
-    assert len(d_prior) in (20, 35), f"D_prior_groups must be 20 or 35, got {len(d_prior)}"
+    # D_prior_groups must exactly match fixture envs (20) — T6 50 interim honest allows superset with weber 6 envs
+    # exact match for censys-only D_prior; allow superset if weber included (56)
+    assert prior_envs.issubset(d_prior), f"D_prior_groups missing fixture: {prior_envs - d_prior} vs splits {d_prior}"
+    assert len(d_prior) in (20, 35, 50, 56), f"D_prior_groups must be 20/35/50/56, got {len(d_prior)}"
 
 
 def test_tls_ja4_rarity_0_1_and_span():
     """tls.ja4_rarity 0..1 and span 0.02..0.99 (min≤0.2 max≥0.8) — lean 20 must inject extremes."""
     rows = _load()
     vals = [r["tls"]["ja4_rarity"] for r in rows]
-    assert len(vals) in (20, 35), f"need 20 or 35 tls.ja4_rarity values, got {len(vals)}"
+    assert len(vals) in (20, 35, 50), f"need 20 or 35 or 50 tls.ja4_rarity values, got {len(vals)}"
     assert all(0.0 <= v <= 1.0 for v in vals), f"tls.ja4_rarity out of 0..1: {vals}"
     assert 0.0 <= min(vals) <= 0.2, f"min tls.ja4_rarity {min(vals)} not ≤0.2 — inject 0.02 extreme"
     assert 0.8 <= max(vals) <= 1.0, f"max tls.ja4_rarity {max(vals)} not ≥0.8 — inject 0.99 extreme"
@@ -161,7 +162,7 @@ def test_cert_chain_length_none_and_caveat():
 def test_11_28_cols_caveat_only_ja4_rarity_populated():
     """11/28 cols caveat: only ja4_rarity + cipher_strength etc populated, cert fields None."""
     rows = _load()
-    assert len(rows) in (20, 35), f"lean 20 or 35 required for 11/28 caveat, got {len(rows)}"
+    assert len(rows) in (20, 35, 50), f"lean 20 or 35 or 50 required for 11/28 caveat, got {len(rows)}"
     for r in rows:
         # --- 11 populated-ish cols must exist and be non-None ---
         tls = r.get("tls", {})

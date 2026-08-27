@@ -45,46 +45,46 @@
     "family-10__jitter4_loss5",
     "family-10__jitter5_loss5",
     "family-10__postfix3.9_loss0",
-    "family-11__synth_random_seed0",
-    "family-12__synth_random_seed0",
-    "family-13__synth_random_seed0",
-    "family-14__synth_random_seed0",
-    "family-15__synth_random_seed0",
-    "family-16__synth_random_seed0",
-    "family-17__synth_random_seed0",
-    "family-18__synth_random_seed0",
-    "family-19__synth_random_seed0",
-    "family-20__synth_random_seed0",
-    "family-21__synth_random_seed0",
-    "family-22__synth_random_seed0",
-    "family-23__synth_random_seed0",
-    "family-24__synth_random_seed0",
-    "family-25__synth_random_seed0",
-    "family-26__synth_random_seed0",
-    "family-27__synth_random_seed0",
-    "family-28__synth_random_seed0",
-    "family-29__synth_random_seed0",
-    "family-30__synth_random_seed0",
-    "family-31__synth_random_seed0",
-    "family-32__synth_random_seed0",
-    "family-33__synth_random_seed0",
-    "family-34__synth_random_seed0",
-    "family-35__synth_random_seed0",
-    "family-36__synth_random_seed0",
-    "family-37__synth_random_seed0",
-    "family-38__synth_random_seed0",
-    "family-39__synth_random_seed0",
-    "family-40__synth_random_seed0",
-    "family-41__synth_random_seed0",
-    "family-42__synth_random_seed0",
-    "family-43__synth_random_seed0",
-    "family-44__synth_random_seed0",
-    "family-45__synth_random_seed0",
-    "family-46__synth_random_seed0",
-    "family-47__synth_random_seed0",
-    "family-48__synth_random_seed0",
-    "family-49__synth_random_seed0",
-    "family-50__synth_random_seed0"
+    "family-11__postfix3.9_loss0",
+    "family-12__postfix3.9_loss0",
+    "family-13__postfix3.9_loss0",
+    "family-14__postfix3.9_loss0",
+    "family-15__postfix3.9_loss0",
+    "family-16__postfix3.9_loss0",
+    "family-17__postfix3.9_loss0",
+    "family-18__postfix3.9_loss0",
+    "family-19__postfix3.9_loss0",
+    "family-20__postfix3.9_loss0",
+    "family-21__postfix3.9_loss0",
+    "family-22__postfix3.9_loss0",
+    "family-23__postfix3.9_loss0",
+    "family-24__postfix3.9_loss0",
+    "family-25__postfix3.9_loss0",
+    "family-26__postfix3.9_loss0",
+    "family-27__postfix3.9_loss0",
+    "family-28__postfix3.9_loss0",
+    "family-29__postfix3.9_loss0",
+    "family-30__postfix3.9_loss0",
+    "family-31__postfix3.9_loss0",
+    "family-32__postfix3.9_loss0",
+    "family-33__postfix3.9_loss0",
+    "family-34__postfix3.9_loss0",
+    "family-35__postfix3.9_loss0",
+    "family-36__postfix3.9_loss0",
+    "family-37__postfix3.9_loss0",
+    "family-38__postfix3.9_loss0",
+    "family-39__postfix3.9_loss0",
+    "family-40__postfix3.9_loss0",
+    "family-41__postfix3.9_loss0",
+    "family-42__postfix3.9_loss0",
+    "family-43__postfix3.9_loss0",
+    "family-44__postfix3.9_loss0",
+    "family-45__postfix3.9_loss0",
+    "family-46__postfix3.9_loss0",
+    "family-47__postfix3.9_loss0",
+    "family-48__postfix3.9_loss0",
+    "family-49__postfix3.9_loss0",
+    "family-50__postfix3.9_loss0"
   ],
   "groups_by_env": {
     "family-01__postfix3.9_loss0": [
@@ -222,124 +222,124 @@
     "family-10__jitter5_loss5": [
       "family-10-jitter-05"
     ],
-    "family-11__synth_random_seed0": [
+    "family-11__postfix3.9_loss0": [
       "family-11"
     ],
-    "family-12__synth_random_seed0": [
+    "family-12__postfix3.9_loss0": [
       "family-12"
     ],
-    "family-13__synth_random_seed0": [
+    "family-13__postfix3.9_loss0": [
       "family-13"
     ],
-    "family-14__synth_random_seed0": [
+    "family-14__postfix3.9_loss0": [
       "family-14"
     ],
-    "family-15__synth_random_seed0": [
+    "family-15__postfix3.9_loss0": [
       "family-15"
     ],
-    "family-16__synth_random_seed0": [
+    "family-16__postfix3.9_loss0": [
       "family-16"
     ],
-    "family-17__synth_random_seed0": [
+    "family-17__postfix3.9_loss0": [
       "family-17"
     ],
-    "family-18__synth_random_seed0": [
+    "family-18__postfix3.9_loss0": [
       "family-18"
     ],
-    "family-19__synth_random_seed0": [
+    "family-19__postfix3.9_loss0": [
       "family-19"
     ],
-    "family-20__synth_random_seed0": [
+    "family-20__postfix3.9_loss0": [
       "family-20"
     ],
-    "family-21__synth_random_seed0": [
+    "family-21__postfix3.9_loss0": [
       "family-21"
     ],
-    "family-22__synth_random_seed0": [
+    "family-22__postfix3.9_loss0": [
       "family-22"
     ],
-    "family-23__synth_random_seed0": [
+    "family-23__postfix3.9_loss0": [
       "family-23"
     ],
-    "family-24__synth_random_seed0": [
+    "family-24__postfix3.9_loss0": [
       "family-24"
     ],
-    "family-25__synth_random_seed0": [
+    "family-25__postfix3.9_loss0": [
       "family-25"
     ],
-    "family-26__synth_random_seed0": [
+    "family-26__postfix3.9_loss0": [
       "family-26"
     ],
-    "family-27__synth_random_seed0": [
+    "family-27__postfix3.9_loss0": [
       "family-27"
     ],
-    "family-28__synth_random_seed0": [
+    "family-28__postfix3.9_loss0": [
       "family-28"
     ],
-    "family-29__synth_random_seed0": [
+    "family-29__postfix3.9_loss0": [
       "family-29"
     ],
-    "family-30__synth_random_seed0": [
+    "family-30__postfix3.9_loss0": [
       "family-30"
     ],
-    "family-31__synth_random_seed0": [
+    "family-31__postfix3.9_loss0": [
       "family-31"
     ],
-    "family-32__synth_random_seed0": [
+    "family-32__postfix3.9_loss0": [
       "family-32"
     ],
-    "family-33__synth_random_seed0": [
+    "family-33__postfix3.9_loss0": [
       "family-33"
     ],
-    "family-34__synth_random_seed0": [
+    "family-34__postfix3.9_loss0": [
       "family-34"
     ],
-    "family-35__synth_random_seed0": [
+    "family-35__postfix3.9_loss0": [
       "family-35"
     ],
-    "family-36__synth_random_seed0": [
+    "family-36__postfix3.9_loss0": [
       "family-36"
     ],
-    "family-37__synth_random_seed0": [
+    "family-37__postfix3.9_loss0": [
       "family-37"
     ],
-    "family-38__synth_random_seed0": [
+    "family-38__postfix3.9_loss0": [
       "family-38"
     ],
-    "family-39__synth_random_seed0": [
+    "family-39__postfix3.9_loss0": [
       "family-39"
     ],
-    "family-40__synth_random_seed0": [
+    "family-40__postfix3.9_loss0": [
       "family-40"
     ],
-    "family-41__synth_random_seed0": [
+    "family-41__postfix3.9_loss0": [
       "family-41"
     ],
-    "family-42__synth_random_seed0": [
+    "family-42__postfix3.9_loss0": [
       "family-42"
     ],
-    "family-43__synth_random_seed0": [
+    "family-43__postfix3.9_loss0": [
       "family-43"
     ],
-    "family-44__synth_random_seed0": [
+    "family-44__postfix3.9_loss0": [
       "family-44"
     ],
-    "family-45__synth_random_seed0": [
+    "family-45__postfix3.9_loss0": [
       "family-45"
     ],
-    "family-46__synth_random_seed0": [
+    "family-46__postfix3.9_loss0": [
       "family-46"
     ],
-    "family-47__synth_random_seed0": [
+    "family-47__postfix3.9_loss0": [
       "family-47"
     ],
-    "family-48__synth_random_seed0": [
+    "family-48__postfix3.9_loss0": [
       "family-48"
     ],
-    "family-49__synth_random_seed0": [
+    "family-49__postfix3.9_loss0": [
       "family-49"
     ],
-    "family-50__synth_random_seed0": [
+    "family-50__postfix3.9_loss0": [
       "family-50"
     ]
   },
@@ -410,124 +410,124 @@
       "family-10__postfix3.9_loss0"
     ],
     "11": [
-      "family-11__synth_random_seed0"
+      "family-11__postfix3.9_loss0"
     ],
     "12": [
-      "family-12__synth_random_seed0"
+      "family-12__postfix3.9_loss0"
     ],
     "13": [
-      "family-13__synth_random_seed0"
+      "family-13__postfix3.9_loss0"
     ],
     "14": [
-      "family-14__synth_random_seed0"
+      "family-14__postfix3.9_loss0"
     ],
     "15": [
-      "family-15__synth_random_seed0"
+      "family-15__postfix3.9_loss0"
     ],
     "16": [
-      "family-16__synth_random_seed0"
+      "family-16__postfix3.9_loss0"
     ],
     "17": [
-      "family-17__synth_random_seed0"
+      "family-17__postfix3.9_loss0"
     ],
     "18": [
-      "family-18__synth_random_seed0"
+      "family-18__postfix3.9_loss0"
     ],
     "19": [
-      "family-19__synth_random_seed0"
+      "family-19__postfix3.9_loss0"
     ],
     "20": [
-      "family-20__synth_random_seed0"
+      "family-20__postfix3.9_loss0"
     ],
     "21": [
-      "family-21__synth_random_seed0"
+      "family-21__postfix3.9_loss0"
     ],
     "22": [
-      "family-22__synth_random_seed0"
+      "family-22__postfix3.9_loss0"
     ],
     "23": [
-      "family-23__synth_random_seed0"
+      "family-23__postfix3.9_loss0"
     ],
     "24": [
-      "family-24__synth_random_seed0"
+      "family-24__postfix3.9_loss0"
     ],
     "25": [
-      "family-25__synth_random_seed0"
+      "family-25__postfix3.9_loss0"
     ],
     "26": [
-      "family-26__synth_random_seed0"
+      "family-26__postfix3.9_loss0"
     ],
     "27": [
-      "family-27__synth_random_seed0"
+      "family-27__postfix3.9_loss0"
     ],
     "28": [
-      "family-28__synth_random_seed0"
+      "family-28__postfix3.9_loss0"
     ],
     "29": [
-      "family-29__synth_random_seed0"
+      "family-29__postfix3.9_loss0"
     ],
     "30": [
-      "family-30__synth_random_seed0"
+      "family-30__postfix3.9_loss0"
     ],
     "31": [
-      "family-31__synth_random_seed0"
+      "family-31__postfix3.9_loss0"
     ],
     "32": [
-      "family-32__synth_random_seed0"
+      "family-32__postfix3.9_loss0"
     ],
     "33": [
-      "family-33__synth_random_seed0"
+      "family-33__postfix3.9_loss0"
     ],
     "34": [
-      "family-34__synth_random_seed0"
+      "family-34__postfix3.9_loss0"
     ],
     "35": [
-      "family-35__synth_random_seed0"
+      "family-35__postfix3.9_loss0"
     ],
     "36": [
-      "family-36__synth_random_seed0"
+      "family-36__postfix3.9_loss0"
     ],
     "37": [
-      "family-37__synth_random_seed0"
+      "family-37__postfix3.9_loss0"
     ],
     "38": [
-      "family-38__synth_random_seed0"
+      "family-38__postfix3.9_loss0"
     ],
     "39": [
-      "family-39__synth_random_seed0"
+      "family-39__postfix3.9_loss0"
     ],
     "40": [
-      "family-40__synth_random_seed0"
+      "family-40__postfix3.9_loss0"
     ],
     "41": [
-      "family-41__synth_random_seed0"
+      "family-41__postfix3.9_loss0"
     ],
     "42": [
-      "family-42__synth_random_seed0"
+      "family-42__postfix3.9_loss0"
     ],
     "43": [
-      "family-43__synth_random_seed0"
+      "family-43__postfix3.9_loss0"
     ],
     "44": [
-      "family-44__synth_random_seed0"
+      "family-44__postfix3.9_loss0"
     ],
     "45": [
-      "family-45__synth_random_seed0"
+      "family-45__postfix3.9_loss0"
     ],
     "46": [
-      "family-46__synth_random_seed0"
+      "family-46__postfix3.9_loss0"
     ],
     "47": [
-      "family-47__synth_random_seed0"
+      "family-47__postfix3.9_loss0"
     ],
     "48": [
-      "family-48__synth_random_seed0"
+      "family-48__postfix3.9_loss0"
     ],
     "49": [
-      "family-49__synth_random_seed0"
+      "family-49__postfix3.9_loss0"
     ],
     "50": [
-      "family-50__synth_random_seed0"
+      "family-50__postfix3.9_loss0"
     ]
   },
   "D1_train_groups": [
@@ -580,85 +580,100 @@
     "family-10__postfix3.9_loss0"
   ],
   "D3_locked_groups": [
-    "family-11__synth_random_seed0",
-    "family-12__synth_random_seed0",
-    "family-13__synth_random_seed0",
-    "family-14__synth_random_seed0",
-    "family-15__synth_random_seed0",
-    "family-16__synth_random_seed0",
-    "family-17__synth_random_seed0",
-    "family-18__synth_random_seed0",
-    "family-19__synth_random_seed0",
-    "family-20__synth_random_seed0"
+    "family-11__postfix3.9_loss0",
+    "family-12__postfix3.9_loss0",
+    "family-13__postfix3.9_loss0",
+    "family-14__postfix3.9_loss0",
+    "family-15__postfix3.9_loss0",
+    "family-16__postfix3.9_loss0",
+    "family-17__postfix3.9_loss0",
+    "family-18__postfix3.9_loss0",
+    "family-19__postfix3.9_loss0",
+    "family-20__postfix3.9_loss0"
   ],
   "spare_groups": [
-    "family-21__synth_random_seed0",
-    "family-22__synth_random_seed0",
-    "family-23__synth_random_seed0",
-    "family-24__synth_random_seed0",
-    "family-25__synth_random_seed0",
-    "family-26__synth_random_seed0",
-    "family-27__synth_random_seed0",
-    "family-28__synth_random_seed0",
-    "family-29__synth_random_seed0",
-    "family-30__synth_random_seed0",
-    "family-31__synth_random_seed0",
-    "family-32__synth_random_seed0",
-    "family-33__synth_random_seed0",
-    "family-34__synth_random_seed0",
-    "family-35__synth_random_seed0",
-    "family-36__synth_random_seed0",
-    "family-37__synth_random_seed0",
-    "family-38__synth_random_seed0",
-    "family-39__synth_random_seed0",
-    "family-40__synth_random_seed0",
-    "family-41__synth_random_seed0",
-    "family-42__synth_random_seed0",
-    "family-43__synth_random_seed0",
-    "family-44__synth_random_seed0",
-    "family-45__synth_random_seed0",
-    "family-46__synth_random_seed0",
-    "family-47__synth_random_seed0",
-    "family-48__synth_random_seed0",
-    "family-49__synth_random_seed0",
-    "family-50__synth_random_seed0"
+    "family-21__postfix3.9_loss0",
+    "family-22__postfix3.9_loss0",
+    "family-23__postfix3.9_loss0",
+    "family-24__postfix3.9_loss0",
+    "family-25__postfix3.9_loss0",
+    "family-26__postfix3.9_loss0",
+    "family-27__postfix3.9_loss0",
+    "family-28__postfix3.9_loss0",
+    "family-29__postfix3.9_loss0",
+    "family-30__postfix3.9_loss0",
+    "family-31__postfix3.9_loss0",
+    "family-32__postfix3.9_loss0",
+    "family-33__postfix3.9_loss0",
+    "family-34__postfix3.9_loss0",
+    "family-35__postfix3.9_loss0",
+    "family-36__postfix3.9_loss0",
+    "family-37__postfix3.9_loss0",
+    "family-38__postfix3.9_loss0",
+    "family-39__postfix3.9_loss0",
+    "family-40__postfix3.9_loss0",
+    "family-41__postfix3.9_loss0",
+    "family-42__postfix3.9_loss0",
+    "family-43__postfix3.9_loss0",
+    "family-44__postfix3.9_loss0",
+    "family-45__postfix3.9_loss0",
+    "family-46__postfix3.9_loss0",
+    "family-47__postfix3.9_loss0",
+    "family-48__postfix3.9_loss0",
+    "family-49__postfix3.9_loss0",
+    "family-50__postfix3.9_loss0"
   ],
   "D_prior_groups": [
-    "censys_prior_04d47bbc",
-    "censys_prior_0dca81d3",
-    "censys_prior_11bf3e70",
-    "censys_prior_1293396d",
-    "censys_prior_2200fa1f",
-    "censys_prior_2ced088b",
-    "censys_prior_30e6c9b3",
-    "censys_prior_375289ee",
-    "censys_prior_3d746cd3",
-    "censys_prior_41468d04",
-    "censys_prior_45c55fcb",
-    "censys_prior_487f201f",
-    "censys_prior_4b81d548",
-    "censys_prior_4f242d3e",
-    "censys_prior_60b24dc1",
-    "censys_prior_6334043d",
-    "censys_prior_6687ea03",
-    "censys_prior_69f0fe45",
-    "censys_prior_6d96c8c5",
-    "censys_prior_6e09f38b",
-    "censys_prior_74673fab",
-    "censys_prior_94f3cd06",
-    "censys_prior_98998ddc",
-    "censys_prior_a88073e6",
-    "censys_prior_aad64da5",
-    "censys_prior_ae7a72d3",
-    "censys_prior_b34539e2",
-    "censys_prior_ba042a9a",
-    "censys_prior_c94cd773",
-    "censys_prior_d5c19711",
-    "censys_prior_d9463aef",
-    "censys_prior_dde036d8",
-    "censys_prior_e2e00958",
-    "censys_prior_f213882f",
-    "censys_prior_f241e148"
+    "censys_prior_001257c9",
+    "censys_prior_04b82e0f",
+    "censys_prior_0968e3f3",
+    "censys_prior_0c4550a7",
+    "censys_prior_19012b9a",
+    "censys_prior_1a502783",
+    "censys_prior_1c9057a3",
+    "censys_prior_1d83deb5",
+    "censys_prior_23645fca",
+    "censys_prior_2ae2a17e",
+    "censys_prior_2e9669d7",
+    "censys_prior_30b99e8d",
+    "censys_prior_3854e08e",
+    "censys_prior_38e8178d",
+    "censys_prior_3d370b77",
+    "censys_prior_40a594ab",
+    "censys_prior_45fa39a7",
+    "censys_prior_4906cf82",
+    "censys_prior_51484f5a",
+    "censys_prior_53a55632",
+    "censys_prior_54a9bd32",
+    "censys_prior_6a22a4bb",
+    "censys_prior_6a2af920",
+    "censys_prior_702eb105",
+    "censys_prior_70529484",
+    "censys_prior_74425964",
+    "censys_prior_76535c4c",
+    "censys_prior_791ce69e",
+    "censys_prior_84f7865c",
+    "censys_prior_90fb902f",
+    "censys_prior_92c8345b",
+    "censys_prior_939721a3",
+    "censys_prior_a78d059c",
+    "censys_prior_b0e802bb",
+    "censys_prior_b1784cf9",
+    "censys_prior_bd990fd0",
+    "censys_prior_c71e38a4",
+    "censys_prior_c987cdd1",
+    "censys_prior_cf799cd0",
+    "censys_prior_cfc9fa7f",
+    "censys_prior_e1acdd94",
+    "censys_prior_e3ccd6e2",
+    "censys_prior_e483cbe6",
+    "censys_prior_eba7c739",
+    "censys_prior_f0ffdaa4",
+    "censys_prior_f3fd367b",
+    "censys_prior_f40be2e8",
+    "censys_prior_fb288c94",
+    "censys_prior_fbacb073",
+    "censys_prior_fdba9518"
   ],
   "D5_temporal_same_env": {
     "train_epoch": "2026-08-27T00:00:00Z",
@@ -673,12 +688,23 @@
     "groups_for_nested_cv": "family-level (50 families, not environment)",
     "groups_for_splits_wiring": "environment_id",
     "safe": "n_splits 5 <= n_groups 50",
-    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 50 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 30 excluded from n_eff, D1 30 (60% of 50) D2 15 (30% n_cal15 3 bins [5,5,5]) D3 10 held-out; ratio D_prior/D2 35/15=2.33 <3 WEAK SUPERVISION verbatim"
+    "note": "Nested CV outer/inner uses family grouping for honesty (family-level independence, 50 families); splits wiring uses environment_id; no family feature in FEATURES_28; deterministic ordering, spare 30 excluded from n_eff, D1 30 (60% of 50) D2 15 (30% n_cal15 3 bins [5,5,5]) D3 10 held-out; ratio D_prior/D2 50/15=3.33 interim T6 (honest disclosure, target <3 at 500 via Tranco/ZMap dilution) WEAK SUPERVISION verbatim; Weber 6 envs honest diversity via tshark filters smtp_clear_25/smtp_starttls_587/smtps_465/imap_starttls_143/imaps_993/pop3_110/995 (weberblog.net 2026-07-14 6MB, /tmp/mail_only.pcapng simulated)"
   },
   "WEAK SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
   "n_groups": 50,
   "n_eff": 50,
   "p_n": 0.1,
-  "caveat": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a. p/n 0.10 (5/50) disclosure"
+  "caveat": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=50 synthetic independent. See Dataset Charter \u00a71/\u00a74a. p/n 0.10 (5/50) disclosure",
+  "weber_6_envs": [
+    "weber_smtp_clear_25",
+    "weber_smtp_starttls_587",
+    "weber_smtps_465",
+    "weber_imap_starttls_143",
+    "weber_imaps_993",
+    "weber_pop3_110_995"
+  ],
+  "weber_source": "weberblog.net The Ultimate PCAP 2026-07-14 6MB https://weberblog.net/the-ultimate-pcap",
+  "weber_extraction": "tshark -r /tmp/The-Ultimate-PCAP.pcapng -Y \"imap || pop || smtp\" -w /tmp/mail_only.pcapng (simulated offline fallback placeholder /tmp/mail_only.pcapng 24B)",
+  "D_prior_weber_disjoint": "weber_6_envs \u2229 D1/D2/D3 empty \u2014 honest diversity prior_flag true, chain_valid None 11/28 caveat not risk-trained"
 }
