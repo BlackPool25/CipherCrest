@@ -1,19 +1,33 @@
 /**
- * CipherCrest Shell — 5-tab sidebar + BrowserRouter layout + tokens canonicalize
- * Contract: .omo/specs/frontend-research-ciphercrest.md verbatim
- * Skills: dashboard-design, information-architecture-navigation, interaction-patterns-components, webapp-ui-skill
- * Tokens: TOK canvas #F8FAFC surface #FFFFFF border #E2E8F0 ink #0F172A muted #475569 faint #64748B action #4338CA etc.
- * Layout: 12-col max 1440 gutter 24 8pt F-pattern, offline woff2 font-display swap tabular-nums CSP font-src self
+ * CipherCrest Shell — Donezo SaaS Sidebar + Top Bar + BrowserRouter Layout
+ * ------------------------------------------------------------------
+ * Structure: Fixed left sidebar (240px) + main top bar + scrollable content area (#F6F8F7)
+ * Design: Donezo-style soft light SaaS shell with #1F7A4D forest green accents,
+ *         rounded cards, Inter typography, lucide-react icons, and WCAG compliance.
  */
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v6'
 import { useQueryState, parseAsString, parseAsInteger } from 'nuqs'
+import {
+  LayoutDashboard,
+  Layers,
+  FlaskConical,
+  Radio,
+  FileText,
+  Search,
+  Mail,
+  Bell,
+  Settings,
+  HelpCircle,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Lock
+} from 'lucide-react'
 import { TOK, injectTokens } from '../tokens.js'
-import App, { HonestyBanner, Gauge, KPI, ThreatMatrix, MasterList, DrillDown } from '../App.jsx'
-import CoverageTable from '../components/CoverageTable.jsx'
-import Graphs from '../components/Graphs.jsx'
-import PcapCustomizer from '../components/PcapCustomizer.jsx'
+import App from '../App.jsx'
 import Families from '../pages/Families.jsx'
 import Lab from '../pages/Lab.jsx'
 import Live from '../pages/Live.jsx'
@@ -22,93 +36,68 @@ import { fetchFlows } from '../services/api.js'
 
 if (typeof document !== 'undefined') injectTokens()
 
-// ── Tabs definition 5 tabs per interview A7 ──
 export const TABS = [
-  { path: '/dashboard', label: 'Dashboard', icon: '◈', desc: 'Posture + KPIs' },
-  { path: '/families', label: 'Families', icon: '◎', desc: 'Flows + matrix' },
-  { path: '/lab', label: 'Lab', icon: '⬢', desc: 'Pcap customizer' },
-  { path: '/live', label: 'Live', icon: '●', desc: 'WS live queue' },
-  { path: '/reports', label: 'Reports', icon: '▭', desc: 'Coverage + PDF' },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Posture & Overview' },
+  { path: '/families', label: 'Families', icon: Layers, desc: '715 Families & Matrix', badge: '715' },
+  { path: '/lab', label: 'Lab', icon: FlaskConical, desc: 'Pcap Matrix Customizer' },
+  { path: '/live', label: 'Live', icon: Radio, desc: 'WS Live Queue & Stream', isLive: true },
+  { path: '/reports', label: 'Reports', icon: FileText, desc: 'Compliance & Export' },
 ]
 
-// ── Shared flows hook for pages ──
-function useFlowsState() {
-  const [flows, setFlows] = useState([])
-  const [selectedId, setSelectedId] = useState(null)
-  useEffect(() => {
-    let alive = true
-    fetchFlows().then(d => { if(alive){ setFlows(d); if(d[0]) setSelectedId(prev=> prev || d[0].flow_id)}} ).catch(()=>{})
-    const iv = setInterval(()=> fetchFlows().then(d=> { if(alive){ setFlows(d)}}).catch(()=>{}), 5000)
-    return ()=>{alive=false; clearInterval(iv)}
-  }, [])
-  return { flows, selectedId, setSelectedId, setFlows }
-}
-
-// ── Layout with sidebar 260/64 rail, aria attrs, localStorage, auto-collapse <1280, prefers-reduced-motion, drag handle 200-360 ──
 export function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
-  // collapsed persist localStorage sidebar:collapsed
   const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window==='undefined') return false
+    if (typeof window === 'undefined') return false
     try { return localStorage.getItem('sidebar:collapsed') === 'true' } catch { return false }
   })
-  // width 200-360 persist localStorage sidebar:width clamp
   const [width, setWidth] = useState(() => {
-    if (typeof window==='undefined') return 260
-    try { const v = parseInt(localStorage.getItem('sidebar:width')||'260',10); return Math.min(360, Math.max(200, isNaN(v)?260:v)) } catch { return 260 }
+    if (typeof window === 'undefined') return 240
+    try { const v = parseInt(localStorage.getItem('sidebar:width') || '240', 10); return Math.min(320, Math.max(200, isNaN(v) ? 240 : v)) } catch { return 240 }
   })
   const [dragging, setDragging] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [flowCount, setFlowCount] = useState(0)
+  const [isLiveActive, setIsLiveActive] = useState(true)
   const sidebarRef = useRef(null)
-  const [reducedMotion, setReducedMotion] = useState(false)
 
-  useEffect(()=>{
-    if (typeof window==='undefined') return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReducedMotion(mq.matches)
-    const h = (e)=> setReducedMotion(e.matches)
-    mq.addEventListener('change', h)
-    return ()=> mq.removeEventListener('change', h)
+  useEffect(() => {
+    fetchFlows().then(d => { if (Array.isArray(d)) setFlowCount(d.length) }).catch(() => {})
+    const iv = setInterval(() => {
+      fetchFlows().then(d => { if (Array.isArray(d)) setFlowCount(d.length) }).catch(() => {})
+    }, 5000)
+    return () => clearInterval(iv)
   }, [])
 
-  // auto-collapse <1280
-  useEffect(()=>{
-    if (typeof window==='undefined') return
-    const onResize = ()=>{
-      if (window.innerWidth < 1280 && !collapsed) {
-        setCollapsed(true)
-      }
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onResize = () => {
+      if (window.innerWidth < 1100 && !collapsed) setCollapsed(true)
     }
     onResize()
     window.addEventListener('resize', onResize)
-    return ()=> window.removeEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [collapsed])
 
-  // persist collapsed
-  useEffect(()=>{
+  useEffect(() => {
     try { localStorage.setItem('sidebar:collapsed', String(collapsed)) } catch {}
-    if (!collapsed) {
-      document.documentElement.style.setProperty('--sidebar-width', `${width}px`)
-    }
-  }, [collapsed, width])
+  }, [collapsed])
 
-  // persist width
-  useEffect(()=>{
+  useEffect(() => {
     try { localStorage.setItem('sidebar:width', String(width)) } catch {}
-    if (!collapsed) document.documentElement.style.setProperty('--sidebar-width', `${width}px`)
-  }, [width, collapsed])
+  }, [width])
 
-  // Ctrl+[ shortcut toggle
-  useEffect(()=>{
-    const h = (e)=>{
-      if ((e.ctrlKey || e.metaKey) && e.key==='[') { e.preventDefault(); setCollapsed(c=>!c)}
+  // Ctrl+[ shortcut to toggle sidebar
+  useEffect(() => {
+    const h = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '[') { e.preventDefault(); setCollapsed(c => !c) }
     }
     window.addEventListener('keydown', h)
-    return ()=> window.removeEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
   }, [])
 
-  // hash alias redirect #/flow/:id -> /families?q=:id
-  useEffect(()=>{
+  // hash redirect #/flow/:id -> /families?q=:id
+  useEffect(() => {
     const h = window.location.hash || ''
     const m = h.match(/#\/flow\/(.+)/)
     if (m && m[1]) {
@@ -117,25 +106,19 @@ export function Layout() {
     }
   }, [navigate, location.hash])
 
-  // nuqs query sync example: risk & port & tls & page & q
-  const [risk] = useQueryState('risk', parseAsString.withDefault('All'))
-  const [port] = useQueryState('port', parseAsString.withDefault('All'))
-  const [tls] = useQueryState('tls', parseAsString.withDefault('All'))
-  const [page] = useQueryState('page', parseAsInteger.withDefault(1))
-  const [q] = useQueryState('q', parseAsString.withDefault(''))
+  const sidebarWidth = collapsed ? 68 : width
 
-  const sidebarWidth = collapsed ? 64 : width
-  const handleMouseDown = useCallback((e)=>{
+  const handleMouseDown = useCallback((e) => {
     if (collapsed) return
     setDragging(true)
     const startX = e.clientX
     const startW = width
-    const onMove = (ev)=>{
+    const onMove = (ev) => {
       const delta = ev.clientX - startX
-      const next = Math.min(360, Math.max(200, startW + delta))
+      const next = Math.min(320, Math.max(200, startW + delta))
       setWidth(next)
     }
-    const onUp = ()=>{
+    const onUp = () => {
       setDragging(false)
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
@@ -145,10 +128,10 @@ export function Layout() {
   }, [width, collapsed])
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background: TOK.canvas, fontFamily: TOK.fontSans }}>
-      {/* sidebar */}
-      <nav
-        aria-label="Primary"
+    <div style={{ display: 'flex', minHeight: '100vh', background: TOK.canvas, fontFamily: TOK.fontSans }}>
+      {/* ── Sidebar (240px, Donezo-style friendly white container) ── */}
+      <aside
+        aria-label="Primary Navigation"
         ref={sidebarRef}
         style={{
           width: sidebarWidth,
@@ -156,86 +139,260 @@ export function Layout() {
           maxWidth: sidebarWidth,
           background: TOK.surface,
           borderRight: `1px solid ${TOK.border}`,
-          display:'flex',
-          flexDirection:'column',
-          position:'sticky',
-          top:0,
-          height:'100vh',
-          overflow:'hidden',
-          transition: reducedMotion ? 'none' : 'width 160ms ease',
-          flexShrink:0,
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          transition: dragging ? 'none' : 'width 180ms ease',
+          flexShrink: 0,
+          zIndex: 40,
         }}
       >
-        {/* brand + toggle */}
-        <div style={{ height:56, display:'flex', alignItems:'center', gap:8, padding: collapsed?'0 12px':'0 16px', borderBottom:`1px solid ${TOK.border}`, justifyContent: collapsed?'center':'space-between' }}>
-          {!collapsed && <span style={{ fontWeight:800, fontSize:14, color:TOK.ink, letterSpacing:-0.3 }}>CipherCrest</span>}
-          {collapsed && <span style={{ width:32, height:32, borderRadius:8, background:TOK.action, color:'#fff', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:12 }}>CC</span>}
+        {/* Brand Header */}
+        <div style={{
+          height: 72,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: collapsed ? '0 12px' : '0 20px',
+          borderBottom: `1px solid ${TOK.border}`,
+          justifyContent: collapsed ? 'center' : 'space-between'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+            {/* Donezo-inspired green circle logo mark */}
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: TOK.primary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              boxShadow: '0 2px 8px rgba(31,122,77,0.25)',
+              flexShrink: 0,
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="4" fill="#FFFFFF" fillOpacity="0.4" />
+                <path d="M12 3v4" />
+                <path d="M12 17v4" />
+              </svg>
+            </div>
+            {!collapsed && (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 800, fontSize: 16, color: TOK.ink, letterSpacing: -0.4, lineHeight: 1.1 }}>
+                  CipherCrest
+                </span>
+                <span style={{ fontSize: 11, color: TOK.inkMuted, fontWeight: 500, marginTop: 2 }}>
+                  SecureMailScope
+                </span>
+              </div>
+            )}
+          </div>
           <button
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-expanded={!collapsed}
             title={collapsed ? 'Expand (Ctrl+[)' : 'Collapse (Ctrl+[)'}
-            onClick={()=> setCollapsed(c=>!c)}
+            onClick={() => setCollapsed(c => !c)}
             style={{
-              width:28, height:28, borderRadius:8, border:`1px solid ${TOK.border}`, background:TOK.canvas, color:TOK.inkMuted, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0,
-              outline:'none',
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              border: `1px solid ${TOK.border}`,
+              background: TOK.canvas,
+              color: TOK.inkMuted,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              outline: 'none',
+              transition: 'background 140ms ease',
             }}
-            onFocus={e=> e.currentTarget.style.boxShadow=`0 0 0 2px ${TOK.action}40`}
-            onBlur={e=> e.currentTarget.style.boxShadow='none'}
+            onMouseEnter={e => e.currentTarget.style.background = '#E7EAEC'}
+            onMouseLeave={e => e.currentTarget.style.background = TOK.canvas}
           >
-            {collapsed ? '›' : '‹'}
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
-        {/* nav links */}
-        <div style={{ flex:1, overflowY:'auto', padding:'12px 8px', display:'flex', flexDirection:'column', gap:4 }}>
-          {TABS.map(tab=>{
-            const isActive = location.pathname === tab.path || (tab.path==='/dashboard' && location.pathname==='/')
-            return (
-              <NavLink
-                key={tab.path}
-                to={tab.path}
-                aria-current={isActive ? 'page' : undefined}
-                title={collapsed ? tab.label : undefined}
+        {/* Navigation Sections */}
+        <div style={{ flex: 1, padding: collapsed ? '16px 8px' : '16px 12px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Main Menu */}
+          <div>
+            {!collapsed && (
+              <div style={{ fontSize: 11, fontWeight: 700, color: TOK.inkFaint, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0 8px 8px' }}>
+                Menu
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {TABS.map(tab => {
+                const isActive = location.pathname === tab.path || (tab.path === '/dashboard' && location.pathname === '/')
+                const IconComponent = tab.icon
+                return (
+                  <NavLink
+                    key={tab.path}
+                    to={tab.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    title={collapsed ? tab.label : undefined}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: collapsed ? '10px' : '10px 14px',
+                      height: 44,
+                      borderRadius: 10,
+                      background: isActive ? TOK.primaryLight : 'transparent',
+                      color: isActive ? TOK.primary : TOK.inkMuted,
+                      textDecoration: 'none',
+                      fontWeight: isActive ? 600 : 500,
+                      fontSize: 14,
+                      position: 'relative',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      transition: 'all 140ms ease',
+                      outline: 'none',
+                    }}
+                    onMouseEnter={e => {
+                      if (!isActive) e.currentTarget.style.background = TOK.canvas
+                    }}
+                    onMouseLeave={e => {
+                      if (!isActive) e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    <IconComponent size={20} color={isActive ? TOK.primary : TOK.inkMuted} strokeWidth={isActive ? 2 : 1.75} style={{ flexShrink: 0 }} />
+                    {!collapsed && (
+                      <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{tab.label}</span>
+                    )}
+                    {!collapsed && tab.badge && (
+                      <span style={{
+                        background: isActive ? TOK.primary : '#E7EAEC',
+                        color: isActive ? '#FFFFFF' : TOK.inkMuted,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: 999,
+                      }}>
+                        {tab.badge}
+                      </span>
+                    )}
+                    {!collapsed && tab.isLive && (
+                      <span style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: TOK.primary,
+                        boxShadow: '0 0 0 3px rgba(31,122,77,0.25)',
+                        animation: 'pulse 2s infinite',
+                      }} />
+                    )}
+                    {collapsed && isActive && (
+                      <span style={{
+                        position: 'absolute',
+                        right: 4,
+                        top: 6,
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        background: TOK.primary,
+                      }} />
+                    )}
+                  </NavLink>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* General Section */}
+          <div style={{ marginTop: 'auto' }}>
+            {!collapsed && (
+              <div style={{ fontSize: 11, fontWeight: 700, color: TOK.inkFaint, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0 8px 8px' }}>
+                General
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div
                 style={{
-                  display:'flex', alignItems:'center', gap:12,
-                  padding: collapsed ? '10px 12px' : '10px 12px',
-                  borderRadius:8,
-                  background: isActive ? TOK.actionSoft : 'transparent',
-                  color: isActive ? TOK.action : TOK.inkMuted,
-                  textDecoration:'none',
-                  fontWeight:600,
-                  fontSize:11,
-                  letterSpacing:0.2,
-                  textTransform:'uppercase',
-                  fontFamily: TOK.fontSans,
-                  border: isActive ? `1px solid ${TOK.action}20` : '1px solid transparent',
-                  position:'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: collapsed ? '10px' : '10px 14px',
+                  borderRadius: 10,
+                  color: TOK.inkMuted,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
                   justifyContent: collapsed ? 'center' : 'flex-start',
-                  outline:'none',
                 }}
+                title="System Settings"
               >
-                <span aria-hidden="true" style={{ width:22, height:22, borderRadius:6, background: isActive ? TOK.action : TOK.canvas, color: isActive ? '#fff' : TOK.inkMuted, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, border:`1px solid ${isActive?TOK.action : TOK.border}` }}>{tab.icon}</span>
-                {!collapsed && <span style={{ flex:1 }}>{tab.label}</span>}
-                {/* collapsed tooltip via title, dot badge 6-8px if has notification */}
-                {collapsed && isActive && <span aria-hidden="true" style={{ position:'absolute', top:6, right:6, width:8, height:8, borderRadius:999, background:TOK.action, border:'2px solid #fff' }} />}
-                {/* expanded label Inter 600 11px uppercase fulfilled via style */}
-                {!collapsed && <span style={{ fontSize:11, fontWeight:600, letterSpacing:0.6, textTransform:'uppercase' }}>{''}</span>}
-              </NavLink>
-            )
-          })}
+                <Settings size={18} />
+                {!collapsed && <span>Settings</span>}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: collapsed ? '10px' : '10px 14px',
+                  borderRadius: 10,
+                  color: TOK.inkMuted,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                }}
+                title="Documentation & RFCs"
+              >
+                <HelpCircle size={18} />
+                {!collapsed && <span>Help &amp; Docs</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Donezo-style bottom promo/feature card */}
           {!collapsed && (
-            <div style={{ marginTop:8, padding:'8px 12px', fontSize:10, color:TOK.inkFaint, lineHeight:1.5, borderTop:`1px solid ${TOK.border}` }}>
-              5 tabs: Dashboard Families Lab Live Reports • nuqs query sync risk:{risk} port:{port} tls:{tls} page:{page} q:{q||'—'} • hash alias #/flow/:id
+            <div style={{
+              background: 'linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%)',
+              borderRadius: 16,
+              padding: '16px',
+              color: '#FFFFFF',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              boxShadow: '0 4px 14px rgba(31,122,77,0.22)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={14} color="#FFFFFF" />
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 13 }}>SIH • Offline V1</span>
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.88, lineHeight: 1.4 }}>
+                Real-time email encryption posture analyzer with honest 14/20 evaluation.
+              </div>
+              <div style={{
+                marginTop: 4,
+                background: 'rgba(255,255,255,0.18)',
+                borderRadius: 8,
+                padding: '6px 10px',
+                fontSize: 10,
+                fontFamily: TOK.fontMono,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <span>Air-gap Mode</span>
+                <span style={{ color: '#86EFAC', fontWeight: 700 }}>● Active</span>
+              </div>
             </div>
           )}
         </div>
 
-        {/* footer */}
-        <div style={{ padding:'12px 12px', borderTop:`1px solid ${TOK.border}`, fontSize:10, color:TOK.inkFaint, textAlign: collapsed?'center':'left' }}>
-          {collapsed ? 'v0.7' : 'v0.7.0 — offline woff2 no CDN • 12-col 1440 gutter 24 8pt F-pattern'}
-        </div>
-
-        {/* resizable drag handle 200-360 8px hit-area + 1px divider */}
+        {/* Resizable drag handle */}
         {!collapsed && (
           <div
             role="separator"
@@ -243,96 +400,211 @@ export function Layout() {
             aria-label="Resize sidebar"
             onMouseDown={handleMouseDown}
             style={{
-              position:'absolute',
-              top:0,
-              right:-4,
-              width:8,
-              height:'100%',
-              cursor:'col-resize',
-              background:'transparent',
-              zIndex:10,
-              display:'flex',
-              justifyContent:'center',
+              position: 'absolute',
+              top: 0,
+              right: -3,
+              width: 6,
+              height: '100%',
+              cursor: 'col-resize',
+              background: 'transparent',
+              zIndex: 50,
             }}
           >
-            <div style={{ width:1, height:'100%', background: dragging ? TOK.action : TOK.border, opacity: dragging?1:0.6 }} />
+            <div style={{ width: 1, height: '100%', background: dragging ? TOK.primary : TOK.border, opacity: dragging ? 1 : 0.4 }} />
           </div>
         )}
-      </nav>
+      </aside>
 
-      {/* main */}
-      <main style={{ flex:1, minWidth:0, maxWidth: collapsed ? 'calc(100% - 64px)' : `calc(100% - ${width}px)`, display:'flex', flexDirection:'column' }}>
-        <div className="dashboard-grid" style={{ width:'100%', maxWidth:1440, margin:'0 auto', padding:'24px', flex:1 }}>
+      {/* ── Main Content Area with Donezo Top Bar ── */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Donezo Top Navigation Bar */}
+        <header style={{
+          height: 72,
+          background: TOK.surface,
+          borderBottom: `1px solid ${TOK.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 28px',
+          gap: 20,
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+        }}>
+          {/* Search bar with ⌘F shortcut badge */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            background: TOK.canvas,
+            border: `1px solid ${TOK.border}`,
+            borderRadius: 10,
+            padding: '8px 14px',
+            width: '100%',
+            maxWidth: 380,
+          }}>
+            <Search size={18} color={TOK.inkMuted} />
+            <input
+              type="text"
+              placeholder="Search flows, ciphers, families..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && searchQuery.trim()) {
+                  navigate(`/families?q=${encodeURIComponent(searchQuery.trim())}`)
+                }
+              }}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: 13,
+                fontFamily: TOK.fontSans,
+                color: TOK.ink,
+                width: '100%',
+              }}
+            />
+            <span style={{
+              fontSize: 11,
+              fontFamily: TOK.fontMono,
+              color: TOK.inkFaint,
+              background: TOK.surface,
+              border: `1px solid ${TOK.border}`,
+              padding: '1px 6px',
+              borderRadius: 6,
+              flexShrink: 0,
+            }}>
+              ⌘F
+            </span>
+          </div>
+
+          {/* Right actions: Mail, Notification, and User Profile avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Live Indicator Pill */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: TOK.primaryLight,
+              border: `1px solid ${TOK.primary}30`,
+              color: TOK.primary,
+              padding: '6px 12px',
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 700,
+            }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: TOK.primary, display: 'inline-block' }} />
+              <span>Live Engine</span>
+            </div>
+
+            {/* Quick action buttons */}
+            <button
+              aria-label="Messages"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                border: `1px solid ${TOK.border}`,
+                background: TOK.surface,
+                color: TOK.inkMuted,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              onClick={() => navigate('/live')}
+            >
+              <Mail size={18} />
+            </button>
+
+            <button
+              aria-label="Notifications"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                border: `1px solid ${TOK.border}`,
+                background: TOK.surface,
+                color: TOK.inkMuted,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                position: 'relative',
+              }}
+              onClick={() => navigate('/reports')}
+            >
+              <Bell size={18} />
+              <span style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: TOK.primary,
+              }} />
+            </button>
+
+            {/* User Profile avatar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8, borderLeft: `1px solid ${TOK.border}` }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: '#E0E7FF',
+                border: `2px solid ${TOK.surface}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#4338CA',
+              }}>
+                👨‍💻
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: TOK.ink, lineHeight: 1.2 }}>
+                  SOC Analyst
+                </span>
+                <span style={{ fontSize: 11, color: TOK.inkMuted }}>
+                  analyst@ciphercrest.sec
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Scrollable Page Body — Edge to Edge from sidebar */}
+        <main style={{ flex: 1, padding: '24px 32px', width: '100%', boxSizing: 'border-box' }}>
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(31,122,77,0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(31,122,77,0); }
+          100% { box-shadow: 0 0 0 0 rgba(31,122,77,0); }
+        }
+      `}</style>
     </div>
   )
 }
 
-// ── Page components ──
-
-function DashboardPage(){
-  const { flows, selectedId, setSelectedId } = useFlowsState()
-  const postureScores = flows.map(f=> f.assessment?.posture_score).filter(v=> typeof v==='number')
-  const avgPosture = postureScores.length ? Math.round(postureScores.reduce((a,b)=>a+b,0)/postureScores.length) : flows.length ? Math.round(100 - flows.reduce((a,f)=> a+(f.assessment?.risk_score??50),0)/flows.length) : 72
-  const selected = flows.find(f=> f.flow_id===selectedId) || flows[0] || null
-  const handleFlowsUpdated = useCallback((next)=>{ /* handled via refetch */ }, [])
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <header>
-        <h1 style={{ fontSize:24, fontWeight:800, color:TOK.ink, letterSpacing:-0.5, margin:0, textWrap:'balance' }}>CipherCrest — SecureMailScope</h1>
-        <p style={{ fontSize:12, color:TOK.inkFaint, marginTop:4 }}>Gauge + 23-col Matrix reading fixtures — 14/20 REAL +3 info • Inter Variable + JetBrains Mono • 12-col 1440px 24px gutter • Master/detail + 5 tabs History</p>
-      </header>
-      <HonestyBanner flows={flows} />
-      <div style={{ display:'grid', gridTemplateColumns:'300px 1fr auto', gap:16 }}>
-        <Gauge posture={avgPosture} />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, minmax(0,1fr))', gap:12 }}>
-          <KPI label="Coverage" value={`${Math.round((flows.filter(f=> (f.coverage_ratio??1)>=0.99).length/Math.max(1,flows.length))*100)}%`} sub={`${flows.filter(f=> (f.coverage_ratio??1)>=0.99).length}/${flows.length} ≥0.99`} icon="◈" />
-          <KPI label="Mean ECE" value={flows.some(f=> typeof f.assessment?.calibrated_prob==='number') ? (flows.filter(f=> typeof f.assessment?.calibrated_prob==='number').reduce((a,f)=>a+f.assessment.calibrated_prob,0)/Math.max(1,flows.filter(f=> typeof f.assessment?.calibrated_prob==='number').length)).toFixed(2) : '0.21'} sub="ECE 5-bin 0.21 · Brier 0.117" icon="◎" />
-          <KPI label="High-risk" value={String(flows.filter(f=> f.assessment?.risk_level==='High'||f.assessment?.risk_level==='Critical').length)} sub={`Critical ${flows.filter(f=> f.assessment?.risk_level==='Critical').length} · High ${flows.filter(f=> f.assessment?.risk_level==='High').length}`} icon="⬢" tone="danger" />
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:10, minWidth:180, justifyContent:'center' }}>
-          <PcapCustomizer onFlowsUpdated={handleFlowsUpdated} />
-        </div>
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns:'360px 1fr', gap:16 }}>
-        <MasterList flows={flows} selectedId={selectedId} onSelect={setSelectedId} />
-        <DrillDown flow={selected} />
-      </div>
-      <ThreatMatrix flows={flows} onSelect={setSelectedId} selectedId={selectedId} />
-      <Graphs flows={flows} />
-      <CoverageTable flows={flows} />
-    </div>
-  )
-}
-function FamiliesPage(){
-  // Delegates to 50-card Families grid — preserves MasterList virtualized slice 10/page contract
-  return <Families />
-}
-function LabPage(){
-  return <Lab />
-}
-function LivePage(){
-  return <Live />
-}
-function ReportsPage(){
-  return <Reports />
-}
-
-// ── Root Shell with BrowserRouter + Routes / -> /dashboard + nested Layout>Outlet ──
-export default function Shell(){
+export default function Shell() {
   return (
     <BrowserRouter>
       <NuqsAdapter>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/families" element={<FamiliesPage />} />
-            <Route path="/lab" element={<LabPage />} />
-            <Route path="/live" element={<LivePage />} />
-            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/dashboard" element={<App />} />
+            <Route path="/families" element={<Families />} />
+            <Route path="/lab" element={<Lab />} />
+            <Route path="/live" element={<Live />} />
+            <Route path="/reports" element={<Reports />} />
           </Route>
         </Routes>
       </NuqsAdapter>
@@ -340,5 +612,5 @@ export default function Shell(){
   )
 }
 
-// Also export App for backward compat fallback
 export { App }
+

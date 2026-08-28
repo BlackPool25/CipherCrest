@@ -94,42 +94,205 @@ function Segmented({ value, options, onChange, ariaLabel, disabled }){
   )
 }
 
-// client-side pcap synthesis fallback — mimics scapy TLSRecord/TLSHandshakes bytes, real backend is lab/scripts/synth_families.py --synth-one via scapy
-function synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData }){
-  // pcap global header LE microsec (d4 c3 b2 a1) + one packet with Ethernet/IP/TCP + TLS ClientHello via TLSRecord structure
-  const header = new Uint8Array(24)
-  const view = new DataView(header.buffer)
-  view.setUint32(0, 0xa1b2c3d4, true) // magic LE
-  view.setUint16(4, 2, true); view.setUint16(6, 4, true)
-  view.setUint32(8, 0, true); view.setUint32(12, 0, true)
-  view.setUint32(16, 65535, true); view.setUint32(20, 1, true) // DLT_EN10MB
-  // payload: fake Ethernet 14 + IP 20 + TCP 20 + TLS ClientHello ~ 120B reassembled proof
-  const tlsPayload = new TextEncoder().encode(`TLSRecord/TLSHandshakes scapy synth cipher=${cipher} tls=${tlsVersion} kex=${kex} cert=${certType} starttls=${starttlsMode} early=${earlyData} GREASE 0x0a0a filtered reassembled 120B manifest vs parsed lineage`)
-  const packetLen = 14+20+20+tlsPayload.length
-  const pktHeader = new Uint8Array(16)
-  const pv = new DataView(pktHeader.buffer)
-  const now = Math.floor(Date.now()/1000)
-  pv.setUint32(0, now, true); pv.setUint32(4, 0, true)
-  pv.setUint32(8, packetLen, true); pv.setUint32(12, packetLen, true)
-  const eth = new Uint8Array(14); eth[12]=0x08; eth[13]=0x00
-  const ip = new Uint8Array(20); ip[0]=0x45; ip[9]=6; ip[16]=127; ip[17]=0; ip[18]=0; ip[19]=1; ip[12]=10; ip[13]=0; ip[14]=0; ip[15]=11
-  // sport 54330 dport port
-  const tcp = new Uint8Array(20); tcp[0]=0xD4; tcp[1]=0x3A; tcp[2]= (port>>8)&0xff; tcp[3]= port&0xff; tcp[12]=0x50; tcp[13]=0x18
-  const combined = new Uint8Array(header.length + pktHeader.length + eth.length + ip.length + tcp.length + tlsPayload.length)
-  let off=0
-  combined.set(header, off); off+=header.length
-  combined.set(pktHeader, off); off+=pktHeader.length
-  combined.set(eth, off); off+=eth.length
-  combined.set(ip, off); off+=ip.length
-  combined.set(tcp, off); off+=tcp.length
-  combined.set(tlsPayload, off)
-  // pad to ensure reassembled 120B side-by-side proof length
-  if(combined.length < 300){
-    const padded = new Uint8Array(320)
-    padded.set(combined, 0)
-    return new Blob([padded], { type: 'application/vnd.tcpdump.pcap' })
+// Client-side valid binary pcap synthesis — produces valid Ethernet/IP/TCP + TLS ClientHello packets for all ports, TLS versions, ciphers, and STARTTLS modes
+function synthesizePcapBlob({ port = 587, tlsVersion = 'TLS1.2', cipher = 'ECDHE-RSA-AES128-GCM-SHA256', kex = 'ECDHE', certType = 'rsa2048', starttlsMode = 'upgrade', earlyData = false }){
+  const cipherMap = {
+    'ECDHE-RSA-AES128-GCM-SHA256': 0xC02F,
+    'ECDHE-RSA-AES256-GCM-SHA384': 0xC030,
+    'TLS_AES_128_GCM_SHA256': 0x1301,
+    'TLS_AES_256_GCM_SHA384': 0x1302,
+    'TLS_CHACHA20_POLY1305_SHA256': 0x1303,
+    'AES128-SHA256': 0x003C,
+    'AES128-SHA': 0x002F,
+    'DES-CBC3-SHA': 0x000A,
+    'RC4-SHA': 0x0005,
+    'DES-CBC-SHA': 0x0009,
+    'none': 0x0000,
   }
-  return new Blob([combined], { type: 'application/vnd.tcpdump.pcap' })
+  const cipherCode = cipherMap[cipher] || 0xC02F
+
+  // Build TLS ClientHello
+  let tlsRecord = new Uint8Array(0)
+  if (starttlsMode !== 'stripped' && starttlsMode !== 'cleartext' && cipher !== 'none' && tlsVersion !== 'none') {
+    let legacyVer = 0x0303
+    if (tlsVersion === 'TLS1.0') legacyVer = 0x0301
+    else if (tlsVersion === 'TLS1.1') legacyVer = 0x0302
+    else if (tlsVersion === 'TLS1.2' || tlsVersion === 'TLS1.3') legacyVer = 0x0303
+
+    const exts = []
+    if (tlsVersion === 'TLS1.3') {
+      exts.push(new Uint8Array([0x00, 0x2b, 0x00, 0x03, 0x02, 0x03, 0x04]))
+      const ks = new Uint8Array(38)
+      const dvKs = new DataView(ks.buffer)
+      dvKs.setUint16(0, 0x0033)
+      dvKs.setUint16(2, 34)
+      dvKs.setUint16(4, 32)
+      dvKs.setUint16(6, 0x001d)
+      dvKs.setUint16(8, 32)
+      ks.fill(0xbb, 10)
+      exts.push(ks)
+      if (earlyData) {
+        exts.push(new Uint8Array([0x00, 0x2a, 0x00, 0x00]))
+      }
+    } else if (tlsVersion === 'TLS1.2') {
+      exts.push(new Uint8Array([0x00, 0x2b, 0x00, 0x03, 0x02, 0x03, 0x03]))
+      exts.push(new Uint8Array([0x00, 0x0a, 0x00, 0x04, 0x00, 0x02, 0x00, 0x17]))
+      exts.push(new Uint8Array([0x00, 0x0d, 0x00, 0x04, 0x00, 0x02, 0x04, 0x01]))
+    }
+
+    const sniHost = new TextEncoder().encode('mail.lab.local')
+    const sni = new Uint8Array(9 + sniHost.length)
+    const dvSni = new DataView(sni.buffer)
+    dvSni.setUint16(0, 0x0000)
+    dvSni.setUint16(2, 5 + sniHost.length)
+    dvSni.setUint16(4, 3 + sniHost.length)
+    dvSni.setUint8(6, 0x00)
+    dvSni.setUint16(7, sniHost.length)
+    sni.set(sniHost, 9)
+    exts.push(sni)
+
+    const totalExtLen = exts.reduce((a, b) => a + b.length, 0)
+    const extBlock = new Uint8Array(totalExtLen)
+    let extOff = 0
+    for (const e of exts) {
+      extBlock.set(e, extOff)
+      extOff += e.length
+    }
+
+    const chBody = new Uint8Array(2 + 32 + 1 + 4 + 2 + 2 + extBlock.length)
+    const dvCh = new DataView(chBody.buffer)
+    dvCh.setUint16(0, legacyVer)
+    chBody.fill(0xaa, 2, 34)
+    dvCh.setUint8(34, 0)
+    dvCh.setUint16(35, 2)
+    dvCh.setUint16(37, cipherCode)
+    dvCh.setUint8(39, 1)
+    dvCh.setUint8(40, 0)
+    dvCh.setUint16(41, extBlock.length)
+    chBody.set(extBlock, 43)
+
+    const handshake = new Uint8Array(4 + chBody.length)
+    const dvHs = new DataView(handshake.buffer)
+    dvHs.setUint8(0, 0x01)
+    dvHs.setUint8(1, (chBody.length >> 16) & 0xff)
+    dvHs.setUint16(2, chBody.length & 0xffff)
+    handshake.set(chBody, 4)
+
+    tlsRecord = new Uint8Array(5 + handshake.length)
+    const dvRec = new DataView(tlsRecord.buffer)
+    dvRec.setUint8(0, 0x16)
+    dvRec.setUint16(1, 0x0301)
+    dvRec.setUint16(3, handshake.length)
+    tlsRecord.set(handshake, 5)
+  }
+
+  function makePacket(srcIp, dstIp, srcPort, dstPort, seq, ack, flags, payload) {
+    const eth = new Uint8Array([0,0,0,0,0,2, 0,0,0,0,0,1, 0x08, 0x00])
+    const ip = new Uint8Array(20)
+    const dvIp = new DataView(ip.buffer)
+    dvIp.setUint8(0, 0x45)
+    dvIp.setUint16(2, 20 + 20 + payload.length)
+    dvIp.setUint16(4, 0x1234)
+    dvIp.setUint8(8, 64)
+    dvIp.setUint8(9, 6)
+    const sParts = srcIp.split('.').map(Number)
+    const dParts = dstIp.split('.').map(Number)
+    for (let i = 0; i < 4; i++) {
+      ip[12 + i] = sParts[i]
+      ip[16 + i] = dParts[i]
+    }
+
+    const tcp = new Uint8Array(20)
+    const dvTcp = new DataView(tcp.buffer)
+    dvTcp.setUint16(0, srcPort)
+    dvTcp.setUint16(2, dstPort)
+    dvTcp.setUint32(4, seq)
+    dvTcp.setUint32(8, ack)
+    dvTcp.setUint8(12, 0x50)
+    dvTcp.setUint8(13, flags)
+    dvTcp.setUint16(14, 64240)
+
+    const combined = new Uint8Array(eth.length + ip.length + tcp.length + payload.length)
+    combined.set(eth, 0)
+    combined.set(ip, eth.length)
+    combined.set(tcp, eth.length + ip.length)
+    combined.set(payload, eth.length + ip.length + tcp.length)
+
+    const pktHdr = new Uint8Array(16)
+    const dvPkt = new DataView(pktHdr.buffer)
+    const now = Math.floor(Date.now() / 1000)
+    dvPkt.setUint32(0, now, true)
+    dvPkt.setUint32(4, 0, true)
+    dvPkt.setUint32(8, combined.length, true)
+    dvPkt.setUint32(12, combined.length, true)
+
+    const res = new Uint8Array(pktHdr.length + combined.length)
+    res.set(pktHdr, 0)
+    res.set(combined, pktHdr.length)
+    return res
+  }
+
+  const srvIp = '127.0.0.1'
+  const cliIp = '127.0.0.11'
+  const clientPort = 54321
+  const enc = new TextEncoder()
+  const packets = []
+
+  if (starttlsMode === 'upgrade') {
+    if (port === 110) {
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 100, 1, 0x18, enc.encode('+OK POP3 server ready\r\n')))
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 25, 0x18, enc.encode('STLS\r\n')))
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 25, 7, 0x18, enc.encode('+OK Begin TLS negotiation\r\n')))
+      if (tlsRecord.length > 0) {
+        packets.push(makePacket(cliIp, srvIp, clientPort, port, 7, 35, 0x18, tlsRecord))
+      }
+    } else if (port === 143) {
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 100, 1, 0x18, enc.encode('* OK IMAP4rev1 server ready\r\n')))
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 30, 0x18, enc.encode('a001 STARTTLS\r\n')))
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 30, 16, 0x18, enc.encode('a001 OK Begin TLS negotiation now\r\n')))
+      if (tlsRecord.length > 0) {
+        packets.push(makePacket(cliIp, srvIp, clientPort, port, 16, 65, 0x18, tlsRecord))
+      }
+    } else {
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 100, 1, 0x18, enc.encode('220 mail.lab.local ESMTP Postfix\r\n')))
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 135, 0x18, enc.encode('EHLO client.lab.local\r\n')))
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 135, 25, 0x18, enc.encode('250-STARTTLS\r\n250 DSN\r\n')))
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, 25, 160, 0x18, enc.encode('STARTTLS\r\n')))
+      packets.push(makePacket(srvIp, cliIp, port, clientPort, 160, 35, 0x18, enc.encode('220 2.0.0 Ready to start TLS\r\n')))
+      if (tlsRecord.length > 0) {
+        packets.push(makePacket(cliIp, srvIp, clientPort, port, 35, 190, 0x18, tlsRecord))
+      }
+    }
+  } else if (starttlsMode === 'stripped') {
+    packets.push(makePacket(srvIp, cliIp, port, clientPort, 100, 1, 0x18, enc.encode('220 mail.lab.local ESMTP Postfix\r\n')))
+    packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 135, 0x18, enc.encode('EHLO client.lab.local\r\n')))
+    packets.push(makePacket(srvIp, cliIp, port, clientPort, 135, 25, 0x18, enc.encode('250 DSN\r\n')))
+    packets.push(makePacket(cliIp, srvIp, clientPort, port, 25, 150, 0x18, enc.encode('MAIL FROM:<sender@lab.local>\r\n')))
+  } else {
+    // implicit TLS
+    if (tlsRecord.length > 0) {
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 1, 0x18, tlsRecord))
+    }
+  }
+
+  const globHdr = new Uint8Array(24)
+  const dvGlob = new DataView(globHdr.buffer)
+  dvGlob.setUint32(0, 0xa1b2c3d4, true)
+  dvGlob.setUint16(4, 2, true)
+  dvGlob.setUint16(6, 4, true)
+  dvGlob.setUint32(16, 65535, true)
+  dvGlob.setUint32(20, 1, true)
+
+  const totalBytes = 24 + packets.reduce((a, b) => a + b.length, 0)
+  const pcapBytes = new Uint8Array(totalBytes)
+  pcapBytes.set(globHdr, 0)
+  let pOff = 24
+  for (const pkt of packets) {
+    pcapBytes.set(pkt, pOff)
+    pOff += pkt.length
+  }
+
+  return new Blob([pcapBytes], { type: 'application/vnd.tcpdump.pcap' })
 }
 
 export default function Lab(){
@@ -291,7 +454,7 @@ export default function Lab(){
   }, [manifestInfo])
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:16, width: '100%' }}>
       <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
       {/* header — dynamic lineage + progress liveQueue */}
       <header style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>

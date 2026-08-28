@@ -221,7 +221,7 @@ export default function Reports() {
   }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:16, width: '100%' }}>
       <style>{`
         @media print {
           nav[aria-label="Primary"], aside { display:none !important; }
