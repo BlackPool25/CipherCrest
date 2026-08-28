@@ -288,3 +288,48 @@ def query_all_history(limit: int = 100, offset: int = 0) -> list[dict]:
             con.close()
         except Exception:
             pass
+
+
+# ---------------------------------------------------------------------------
+# Postgres async shim — primary path (api/db_pg.py) re-exported as sync
+# wrappers via asyncio.run for legacy api/tests/test_db.py compatibility.
+# Primary app code should import from api.db_pg directly (async). The sqlite
+# path above is retained ONLY as legacy shim; postgres is primary.
+# ---------------------------------------------------------------------------
+try:
+    import asyncio as _asyncio
+
+    from api import db_pg as _db_pg  # type: ignore
+
+    def init_db_sync(*args, **kwargs):
+        return _asyncio.run(_db_pg.init_db(*args, **kwargs))
+
+    def upsert_flows_sync(flows: list[FlowVerdict], *args, **kwargs):
+        return _asyncio.run(_db_pg.upsert_flows(flows, *args, **kwargs))
+
+    def query_all_sync(order: str = "updated_at DESC", limit=None, offset: int = 0, *args, **kwargs):
+        return _asyncio.run(_db_pg.query_all(order=order, limit=limit, offset=offset, *args, **kwargs))
+
+    def query_by_flow_id_sync(flow_id: str, *args, **kwargs):
+        return _asyncio.run(_db_pg.query_by_flow_id(flow_id, *args, **kwargs))
+
+    def query_history_sync(flow_id: str, limit: int = 50, offset: int = 0, *args, **kwargs):
+        return _asyncio.run(_db_pg.query_history(flow_id, limit=limit, offset=offset, *args, **kwargs))
+
+    def query_all_history_sync(limit: int = 50, offset: int = 0, *args, **kwargs):
+        return _asyncio.run(_db_pg.query_all_history(limit=limit, offset=offset, *args, **kwargs))
+
+    def query_families_sync(status=None, limit: int = 60, offset: int = 0, q=None, *args, **kwargs):
+        return _asyncio.run(_db_pg.query_families(status=status, limit=limit, offset=offset, q=q, *args, **kwargs))
+
+    # Re-export async symbols for convenience when imported from api.db
+    init_db_pg = _db_pg.init_db
+    upsert_flows_pg = _db_pg.upsert_flows
+    query_all_pg = _db_pg.query_all
+    query_by_flow_id_pg = _db_pg.query_by_flow_id
+    query_history_pg = _db_pg.query_history
+    query_all_history_pg = _db_pg.query_all_history
+    query_families_pg = _db_pg.query_families
+except Exception:
+    # pool/psycopg not available in minimal test env — shim silently disabled, sqlite remains
+    pass
