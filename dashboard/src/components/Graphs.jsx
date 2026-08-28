@@ -329,25 +329,36 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     return buckets
   }, [ranFlows])
 
-  // 5. Posture Trend Evolution
-  const trendData = useMemo(() => {
-    if (ranFlows.length === 0) {
+  // 5. Fleet Posture Health Distribution (Tiers: 90-100 Optimal, 75-89 Good, 50-74 Moderate, 25-49 Degraded, 0-24 Critical)
+  const postureDistData = useMemo(() => {
+    const buckets = [
+      { name: 'Optimal (90–100)', count: 0, fill: '#1F7A4D', range: 'Strong TLS 1.3 / AEAD' },
+      { name: 'Good (75–89)', count: 0, fill: '#3B82F6', range: 'Standard TLS 1.2' },
+      { name: 'Moderate (50–74)', count: 0, fill: '#CA8A04', range: 'Minor Issues / Expiring' },
+      { name: 'Degraded (25–49)', count: 0, fill: '#EA580C', range: 'Legacy Ciphers / Stripped' },
+      { name: 'Critical (0–24)', count: 0, fill: '#DC2626', range: 'Severe / Expired / Cleartext' },
+    ]
+
+    ranFlows.forEach(f => {
+      const score = f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50))
+      if (score >= 90) buckets[0].count++
+      else if (score >= 75) buckets[1].count++
+      else if (score >= 50) buckets[2].count++
+      else if (score >= 25) buckets[3].count++
+      else buckets[4].count++
+    })
+
+    const total = buckets.reduce((a, b) => a + b.count, 0)
+    if (total === 0) {
       return [
-        { time: 'F-01', posture: 90, flow: 'family-01' },
-        { time: 'F-02', posture: 85, flow: 'family-02' },
-        { time: 'F-03', posture: 40, flow: 'family-03' },
-        { time: 'F-04', posture: 70, flow: 'family-04' },
-        { time: 'F-05', posture: 95, flow: 'family-05' },
+        { name: 'Optimal (90–100)', count: 5, fill: '#1F7A4D', range: 'Strong TLS 1.3 / AEAD' },
+        { name: 'Good (75–89)', count: 3, fill: '#3B82F6', range: 'Standard TLS 1.2' },
+        { name: 'Moderate (50–74)', count: 2, fill: '#CA8A04', range: 'Minor Issues / Expiring' },
+        { name: 'Degraded (25–49)', count: 1, fill: '#EA580C', range: 'Legacy Ciphers / Stripped' },
+        { name: 'Critical (0–24)', count: 1, fill: '#DC2626', range: 'Severe / Expired / Cleartext' },
       ]
     }
-    return ranFlows.map((f, i) => {
-      const timeLabel = f.flow_id ? f.flow_id.replace('family-', 'F-') : `#${i + 1}`
-      return {
-        time: timeLabel,
-        flow: f.flow_id,
-        posture: f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50)),
-      }
-    })
+    return buckets
   }, [ranFlows])
 
   // 6. Policy Disposition & Gateway Action (Filter out 'none')
@@ -582,29 +593,27 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           </ResponsiveContainer>
         </Card>
 
-        {/* 5. Posture Trend Evolution */}
+        {/* 5. Fleet Security Posture Distribution */}
         <Card
-          title="Fleet Encryption Posture Trend"
-          subtitle="Historical posture evolution with 80 (Healthy) and 50 (Moderate) benchmarks"
-          icon={TrendingUp}
+          title="Fleet Security Posture Distribution"
+          subtitle="Flow count binned by cryptographic posture score health tiers (0–100)"
+          icon={Layers}
         >
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={trendData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-              <XAxis dataKey="time" tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Line
-                type="monotone"
-                dataKey="posture"
-                stroke={TOK.primary}
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: TOK.primary, stroke: '#FFFFFF', strokeWidth: 1.5 }}
-                activeDot={{ r: 6 }}
+            <BarChart data={postureDistData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 9.5, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(val, name, item) => [`${val} flows`, item?.payload?.range || name]}
               />
-              <ReferenceLine y={80} stroke="#16A34A" strokeDasharray="4 4" label={{ value: 'Healthy (80)', position: 'right', fill: '#16A34A', fontSize: 10 }} />
-              <ReferenceLine y={50} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Warning (50)', position: 'right', fill: '#CA8A04', fontSize: 10 }} />
-            </LineChart>
+              <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={28}>
+                {postureDistData.map((e, i) => (
+                  <Cell key={i} fill={e.fill} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </Card>
 
