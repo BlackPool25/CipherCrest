@@ -65,10 +65,10 @@ async def listen_refresh():
         conn = None
         try:
             try:
-                conn = await _psycopg.AsyncConnection.connect(dsn, autocommit=True)
+                conn = await _psycopg.AsyncConnection.connect(dsn, autocommit=True, connect_timeout=2)
             except TypeError:
                 # older psycopg without autocommit kw — set after connect
-                conn = await _psycopg.AsyncConnection.connect(dsn)
+                conn = await _psycopg.AsyncConnection.connect(dsn, connect_timeout=2)
                 try:
                     await conn.set_autocommit(True)
                 except Exception:
@@ -159,24 +159,19 @@ async def listen_refresh():
                     await conn.close()
                 except Exception:
                     pass
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
             continue
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _broadcaster_task, _listen_refresh_task
-    # pg_isready retry 5×500ms exponential before seed
+    # seed_all handles its own pg_isready exponential retry
     dsn = POSTGRES_DSN
-    for attempt in range(5):
-        try:
-            await seed_all(dsn, with_dashboard_run=True)
-            break
-        except Exception as e:
-            if attempt == 4:
-                print(f"[lifespan] seed_all failed after 5 retries: {e}")
-            else:
-                await asyncio.sleep(0.5)
+    try:
+        await seed_all(dsn, with_dashboard_run=True)
+    except Exception as e:
+        print(f"[lifespan] seed_all skipped/failed: {e}")
     if _broadcaster_task is None or _broadcaster_task.done():
         _broadcaster_task = asyncio.create_task(_broadcaster())
     if _listen_refresh_task is None or _listen_refresh_task.done():
@@ -186,13 +181,13 @@ async def lifespan(app: FastAPI):
         _listen_refresh_task.cancel()
         try:
             await _listen_refresh_task
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, Exception):
             pass
     if _broadcaster_task and not _broadcaster_task.done():
         _broadcaster_task.cancel()
         try:
             await _broadcaster_task
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, Exception):
             pass
 
 

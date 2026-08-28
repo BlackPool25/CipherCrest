@@ -199,14 +199,14 @@ async def _wait_for_pg(dsn: str, retries: int = 5, base_delay: float = 0.5) -> N
         delay = base_delay * (2 ** attempt)
         try:
             if HAS_PSYCOPG and AsyncConnection is not None:
-                conn = await AsyncConnection.connect(dsn, connect_timeout=2)
+                conn = await AsyncConnection.connect(dsn, connect_timeout=1)
                 await conn.close()
                 if attempt > 0:
                     print(f"[seed] pg_isready retry {attempt}/{retries} succeeded after {delay/2:.1f}s backoff")
                 return
             else:
                 import psycopg as _pg  # type: ignore
-                c = _pg.connect(dsn, connect_timeout=2)
+                c = _pg.connect(dsn, connect_timeout=1)
                 c.close()
                 return
         except Exception as e:
@@ -977,18 +977,18 @@ async def seed_all(dsn: str | None = None, with_dashboard_run: bool = False, ups
 
     Returns dict with counts diffs.
     """
-    # allow upsert_families to imply full for backward compat
     if upsert_families:
         full = True
     dsn = dsn or DEFAULT_DSN
+    use_async = HAS_PSYCOPG and AsyncConnection is not None
     try:
-        await _wait_for_pg(dsn, retries=5, base_delay=0.5)
-    except Exception:
-        try:
+        if use_async:
+            await _wait_for_pg(dsn, retries=5, base_delay=0.5)
+        else:
             _sync_wait_for_pg(dsn, retries=5, base_delay=0.5)
-        except Exception as e:
-            print(f"[seed] pg_isready final failure: {e}")
-            raise
+    except Exception as e:
+        print(f"[seed] pg_isready final failure: {e}")
+        raise
 
     families = _get_manifest_families(upsert_families=upsert_families, full=full)
     # add locked families when full
@@ -1010,7 +1010,6 @@ async def seed_all(dsn: str | None = None, with_dashboard_run: bool = False, ups
     locked_cnt = len([p for fid, p in pcap_paths if fid.startswith("family-locked-")])
     print(f"[seed] seeding {len(families)} families ordered lpad(substring(family_id from 8)::int) — {[f[0] for f in families[:3]]} ... {[f[0] for f in families[-2:]]} (base {base_cnt} jitter {jitter_cnt} (excluded) locked {locked_cnt} pcap_files {len(pcap_paths)})")
 
-    use_async = HAS_PSYCOPG and AsyncConnection is not None
     try:
         if use_async:
             return await _seed_all_async(dsn, families, pcap_paths, with_dashboard_run, full)

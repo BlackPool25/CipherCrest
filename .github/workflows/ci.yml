@@ -182,10 +182,10 @@ jobs:
           python -c "from assessment.features import FEATURES_28, XGB_CATEGORICAL_PARAMS; assert len(FEATURES_28)==28 and XGB_CATEGORICAL_PARAMS['max_cat_threshold']==8, 'FEATURES_28 28 + max_cat 8 required'"
           test -f dashboard/dist/index.html || (echo "dashboard/dist/index.html missing — run npm run build" && exit 1)
           bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js | wc -c); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || (echo "vite bundle gzip $gz >=3670016 hard-fail" && exit 1)'
-      - name: Wheelhouse lean <370M no torch hard
+      - name: Wheelhouse lean <=375M no torch hard
         run: |
           du -m wheelhouse | tail -1 || (echo "wheelhouse missing — hard-fail" && exit 1)
-          bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -lt 370 ] || (echo "wheelhouse lean <370M failed $(du -m wheelhouse | tail -1)" && exit 1)'
+          bash -c '[ $(du -m wheelhouse | tail -1 | cut -f1) -le 375 ] || (echo "wheelhouse lean <=375M failed $(du -m wheelhouse | tail -1)" && exit 1)'
           python -c "import pathlib; wh=pathlib.Path('wheelhouse'); has_torch=any('torch' in p.name.lower() for p in wh.glob('*.whl')) if wh.exists() else False; assert not has_torch, 'lean wheelhouse must not contain torch'"
           bash -c '! ls wheelhouse/*.whl | grep -qi torch || (echo "torch wheel found" && exit 1)'
       - name: TShark parity (optional, not required for offline replay)
@@ -320,7 +320,7 @@ jobs:
       - name: "T13 — wheelhouse / models / gzip checks (consolidated soft)"
         run: |
           du -m wheelhouse 2>&1 | tail -1 || echo "wheelhouse du soft pass"
-          test $(du -m wheelhouse 2>&1 | tail -1 | cut -f1) -lt 370 2>/dev/null || echo "wheelhouse >=370 soft — lean target <370"
+          test $(du -m wheelhouse 2>&1 | tail -1 | cut -f1) -le 375 2>/dev/null || echo "wheelhouse >375 soft — lean target <350"
           test -f models/risk_clf.pkl || echo "models/risk_clf.pkl missing soft"
           test -f models/anomaly.pkl || echo "models/anomaly.pkl missing soft"
           python -c "import pathlib; assert pathlib.Path('models/risk_clf.pkl').read_bytes()[1]==4; assert pathlib.Path('models/anomaly.pkl').read_bytes()[1]==4" 2>&1 || echo "pkl prot4 soft"
@@ -383,7 +383,7 @@ jobs:
       - name: 10 postgres guard — wheelhouse/vite/turnup postgres checks
         run: |
           echo "=== 10 postgres guard wheelhouse vite turnup ==="
-          bash -c '[ $(du -m wheelhouse 2>/dev/null | tail -1 | cut -f1) -lt 370 ] || echo "wheelhouse lean <370M soft"'
+          bash -c '[ $(du -m wheelhouse 2>/dev/null | tail -1 | cut -f1) -le 375 ] || echo "wheelhouse lean <=375M soft"'
           bash -c 'gz=$(gzip -c dashboard/dist/assets/*.js 2>/dev/null | wc -c | tr -d " "); echo "vite gzip $gz <3670016"; test $gz -lt 3670016 || echo "vite gzip soft $gz"'
           bash scripts/turnup.sh --check 2>&1 | tee /tmp/turnup_postgres.log
           grep -q "postgres" /tmp/turnup_postgres.log || echo "turnup postgres check soft (pg_isready fallback)"

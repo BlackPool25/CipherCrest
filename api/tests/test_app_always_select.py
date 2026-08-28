@@ -1,12 +1,26 @@
 """Task 6 verification: always SELECT from Postgres, no _last_result hide, ws NOTIFY, Content-Length guard."""
 from __future__ import annotations
-import io, pathlib, inspect
+import io, pathlib, inspect, pytest
 from fastapi.testclient import TestClient
 import api.app as app_mod
 from api.app import app
 
+def _has_postgres() -> bool:
+    import os
+    dsn = os.environ.get("POSTGRES_DSN") or os.environ.get("DATABASE_URL") or "postgresql://app:app_dev_only@localhost:5432/ciphcrest"
+    try:
+        import psycopg  # type: ignore
+        c = psycopg.connect(dsn, connect_timeout=1)
+        c.close()
+        return True
+    except Exception:
+        return False
+
+HAS_PG = _has_postgres()
+
 client = TestClient(app)
 
+@pytest.mark.skipif(not HAS_PG, reason="no postgres")
 def test_get_flows_always_select_not_singleton():
     # ensure DB has at least 10 via previous seed or via zip if empty
     r0 = client.get("/flows")
@@ -48,6 +62,7 @@ def test_no_last_result_read_branch():
     assert "await query_all" in src
     assert "ORDER BY updated_at DESC" in src or 'order="updated_at DESC"' in src
 
+@pytest.mark.skipif(not HAS_PG, reason="no postgres")
 def test_report_always_select():
     r = client.get("/report", params={"format": "json"})
     assert r.status_code == 200

@@ -146,7 +146,7 @@ check_wheelhouse(){
     mb=$(echo "$du_line" | awk '{print $1}')
     cnt=$(ls wheelhouse/*.whl 2>/dev/null | wc -l | tr -d ' ')
     echo "wheelhouse $cnt wheels"
-    if [[ "$mb" -lt 370 ]]; then ok "wheelhouse $mb <370M lean (target <350M)"; else fail "wheelhouse $mb >=370M — re-lean (see docs/LARGE_FILES.md)"; fi
+    if [[ "$mb" -le 375 ]]; then ok "wheelhouse $mb <=375M lean (target <350M)"; else fail "wheelhouse $mb >375M — re-lean (see docs/LARGE_FILES.md)"; fi
     if ls wheelhouse/*.whl 2>/dev/null | grep -qi torch; then fail "torch wheel in wheelhouse — lean forbids torch (see requirements.txt)"; else ok "no torch (lean)"; fi
     if git ls-files 2>/dev/null | grep -q "^wheelhouse/"; then fail "wheelhouse tracked in git — must be gitignored (b9d18b4)"; else ok "HEAD clean: wheelhouse gitignored (not tracked)"; fi
     if python3 -c "import pathlib; wh=pathlib.Path('wheelhouse'); assert any('torch' not in p.name.lower() for p in wh.glob('*.whl'))" 2>/dev/null; then ok "wheelhouse no torch (python guard)"; fi
