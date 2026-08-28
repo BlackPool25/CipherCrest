@@ -678,7 +678,7 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
   const paged = filtered.slice((safePage - 1) * 6, safePage * 6)
 
   return (
-    <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, boxShadow: TOK.shadow, display: 'flex', flexDirection: 'column', minHeight: 480, overflow: 'hidden' }}>
+    <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, boxShadow: TOK.shadow, display: 'flex', flexDirection: 'column', height: 620, maxHeight: 620, overflow: 'hidden' }}>
       <div style={{ padding: '20px 20px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
@@ -1111,7 +1111,18 @@ export function DrillDown({ flow, onDeselect }) {
   const tabs = ['Handshake', 'Cert', 'AI', 'Recommendations', 'Coverage', 'History']
 
   return (
-    <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, padding: '24px', boxShadow: TOK.shadow }}>
+    <div style={{
+      background: TOK.surface,
+      border: `1px solid ${TOK.border}`,
+      borderRadius: TOK.radiusCard,
+      padding: '24px',
+      boxShadow: TOK.shadow,
+      display: 'flex',
+      flexDirection: 'column',
+      height: 620,
+      maxHeight: 620,
+      overflow: 'hidden',
+    }}>
       {/* Header with badges & deselect button */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <div>
@@ -1203,100 +1214,103 @@ export function DrillDown({ flow, onDeselect }) {
         })}
       </div>
 
-      {tab === 'Handshake' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13, color: TOK.ink }}>
-          <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>TLS Version</div>
-            <div style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.tls?.version || 'unknown'}</div>
-          </div>
-          <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Cipher Suite</div>
-            <div className="mono" style={{ fontFamily: TOK.fontMono, fontWeight: 700, marginTop: 4, fontSize: 12 }}>{flow.tls?.cipher_suite || 'none'}</div>
-          </div>
-          <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>KEX &amp; Forward Secrecy</div>
-            <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.tls?.kex || 'RSA'} (FS: {String(flow.tls?.fs_flag)})</div>
-          </div>
-          <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>STARTTLS Mode</div>
-            <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.starttls_mode}</div>
-          </div>
-          <div style={{ gridColumn: '1 / -1', background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>JA4 / JA4S Fingerprint</div>
-            <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12, marginTop: 4, color: TOK.primary, fontWeight: 700 }}>
-              {flow.tls?.ja4 || 't13d0300_000000000000_000000000000'}
+      {/* Scrollable Tab Content Container */}
+      <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4, overscrollBehavior: 'contain' }}>
+        {tab === 'Handshake' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13, color: TOK.ink }}>
+            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>TLS Version</div>
+              <div style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.tls?.version || 'unknown'}</div>
+            </div>
+            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Cipher Suite</div>
+              <div className="mono" style={{ fontFamily: TOK.fontMono, fontWeight: 700, marginTop: 4, fontSize: 12 }}>{flow.tls?.cipher_suite || 'none'}</div>
+            </div>
+            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>KEX &amp; Forward Secrecy</div>
+              <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.tls?.kex || 'RSA'} (FS: {String(flow.tls?.fs_flag)})</div>
+            </div>
+            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>STARTTLS Mode</div>
+              <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.starttls_mode}</div>
+            </div>
+            <div style={{ gridColumn: '1 / -1', background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>JA4 / JA4S Fingerprint</div>
+              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12, marginTop: 4, color: TOK.primary, fontWeight: 700 }}>
+                {flow.tls?.ja4 || 't13d0300_000000000000_000000000000'}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {tab === 'Cert' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13, color: TOK.ink }}>
-          {isOpaque ? (
-            <div style={{ gridColumn: '1 / -1', padding: 16, background: '#F1F2F4', borderRadius: 10, textAlign: 'center', color: TOK.inkMuted }}>
-              TLS 1.3 encrypted handshake — certificate records are opaque to passive sniffers (RFC 8446).
-            </div>
-          ) : (
-            <>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>SAN Hostname Match</div>
-                <div style={{ fontWeight: 700, marginTop: 4 }}>{String(flow.cert?.san_match)}</div>
+        {tab === 'Cert' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13, color: TOK.ink }}>
+            {isOpaque ? (
+              <div style={{ gridColumn: '1 / -1', padding: 16, background: '#F1F2F4', borderRadius: 10, textAlign: 'center', color: TOK.inkMuted }}>
+                TLS 1.3 encrypted handshake — certificate records are opaque to passive sniffers (RFC 8446).
               </div>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Certificate Chain</div>
-                <div style={{ fontWeight: 700, marginTop: 4 }}>{flow.cert?.chain_valid ? 'Valid Chain' : 'Invalid / Incomplete'} (Len: {flow.cert?.chain_length ?? 1})</div>
-              </div>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Public Key</div>
-                <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.cert?.pubkey_algo} {flow.cert?.pubkey_bits} bits</div>
-              </div>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Days to Expiry</div>
-                <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, color: flow.cert?.days_to_expiry < 30 ? TOK.danger : TOK.success }}>
-                  {flow.cert?.days_to_expiry ?? '120'} days
+            ) : (
+              <>
+                <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                  <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>SAN Hostname Match</div>
+                  <div style={{ fontWeight: 700, marginTop: 4 }}>{String(flow.cert?.san_match)}</div>
                 </div>
+                <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                  <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Certificate Chain</div>
+                  <div style={{ fontWeight: 700, marginTop: 4 }}>{flow.cert?.chain_valid ? 'Valid Chain' : 'Invalid / Incomplete'} (Len: {flow.cert?.chain_length ?? 1})</div>
+                </div>
+                <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                  <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Public Key</div>
+                  <div style={{ fontWeight: 600, marginTop: 4 }}>{flow.cert?.pubkey_algo} {flow.cert?.pubkey_bits} bits</div>
+                </div>
+                <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                  <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Days to Expiry</div>
+                  <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, color: flow.cert?.days_to_expiry < 30 ? TOK.danger : TOK.success }}>
+                    {flow.cert?.days_to_expiry ?? '120'} days
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === 'AI' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: TOK.ink }}>
+            <div style={{ background: TOK.primaryLight, padding: 14, borderRadius: 10, border: `1px solid ${TOK.primary}30` }}>
+              <div style={{ fontWeight: 700, color: TOK.primary }}>Machine Learning Assessment</div>
+              <div style={{ fontSize: 12, color: TOK.ink, marginTop: 4 }}>
+                Risk Level: <b>{flow.assessment?.risk_level || 'Low'}</b> • Posture Score: <b>{flow.assessment?.posture_score ?? 85}/100</b>
               </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {tab === 'AI' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: TOK.ink }}>
-          <div style={{ background: TOK.primaryLight, padding: 14, borderRadius: 10, border: `1px solid ${TOK.primary}30` }}>
-            <div style={{ fontWeight: 700, color: TOK.primary }}>Machine Learning Assessment</div>
-            <div style={{ fontSize: 12, color: TOK.ink, marginTop: 4 }}>
-              Risk Level: <b>{flow.assessment?.risk_level || 'Low'}</b> • Posture Score: <b>{flow.assessment?.posture_score ?? 85}/100</b>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Calibrated Probability</div>
+                <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.calibrated_prob ?? '0.12'}</div>
+              </div>
+              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Anomaly Score (ECOD)</div>
+                <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.anomaly_score ?? '4.2'}</div>
+              </div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        )}
+
+        {tab === 'Recommendations' && (
+          <PolicyRecommendationsView flow={flow} />
+        )}
+
+        {tab === 'Coverage' && <CoverageTable flows={[flow]} />}
+
+        {tab === 'History' && (
+          <div style={{ fontSize: 13, color: TOK.ink }}>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Timeline &amp; Version History</div>
             <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Calibrated Probability</div>
-              <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.calibrated_prob ?? '0.12'}</div>
-            </div>
-            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Anomaly Score (ECOD)</div>
-              <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.anomaly_score ?? '4.2'}</div>
+              <div style={{ fontSize: 12, color: TOK.inkMuted }}>Version 1 • Initial Baseline Scan</div>
+              <div style={{ fontSize: 11, color: TOK.inkFaint, marginTop: 2 }}>5-tuple matched traffic • Reassembled payload 120B</div>
             </div>
           </div>
-        </div>
-      )}
-
-      {tab === 'Recommendations' && (
-        <PolicyRecommendationsView flow={flow} />
-      )}
-
-      {tab === 'Coverage' && <CoverageTable flows={[flow]} />}
-
-      {tab === 'History' && (
-        <div style={{ fontSize: 13, color: TOK.ink }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Timeline &amp; Version History</div>
-          <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-            <div style={{ fontSize: 12, color: TOK.inkMuted }}>Version 1 • Initial Baseline Scan</div>
-            <div style={{ fontSize: 11, color: TOK.inkFaint, marginTop: 2 }}>5-tuple matched traffic • Reassembled payload 120B</div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
@@ -1729,7 +1743,7 @@ export default function App() {
       </div>
 
       {/* Monitored Flows & Flow Inspector 2-Column Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: 16, alignItems: 'start' }}>
         <MasterList
           flows={flows}
           selectedId={selectedFlowId}
