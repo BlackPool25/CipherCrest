@@ -29,6 +29,7 @@ _last_summary: dict[str, Any] | None = None
 _connected_ws: set[WebSocket] = set()
 _broadcast_queue: asyncio.Queue = asyncio.Queue()
 _broadcaster_task: asyncio.Task | None = None
+_listen_refresh_task: asyncio.Task | None = None
 
 
 async def _broadcaster():
@@ -49,9 +50,122 @@ async def _broadcaster():
             await asyncio.sleep(0.1)
 
 
+async def listen_refresh():
+    """Debounced LISTEN/NOTIFY refresh for matviews — outside trigger transaction (no deadlock).
+
+    LISTEN flows_upsert via psycopg.AsyncConnection + debounce 5s coalescing
+    multiple NOTIFYs into single REFRESH MATERIALIZED VIEW CONCURRENTLY
+    mv_dashboard_metrics, mv_protocol_stats (requires UNIQUE indexes already
+    created in task 2, do not attempt without). NOTIFY is sent outside trigger
+    transaction after COMMIT via pg_notify; never refresh inside trigger tx.
+    """
+    import psycopg as _psycopg  # local import for psycopg.AsyncConnection
+    dsn = POSTGRES_DSN
+    while True:
+        conn = None
+        try:
+            try:
+                conn = await _psycopg.AsyncConnection.connect(dsn, autocommit=True)
+            except TypeError:
+                # older psycopg without autocommit kw — set after connect
+                conn = await _psycopg.AsyncConnection.connect(dsn)
+                try:
+                    await conn.set_autocommit(True)
+                except Exception:
+                    pass
+                # fallback attribute
+                try:
+                    conn.autocommit = True  # type: ignore
+                except Exception:
+                    pass
+            # ensure autocommit for LISTEN
+            try:
+                if not getattr(conn, "autocommit", False):
+                    await conn.set_autocommit(True)  # type: ignore
+            except Exception:
+                try:
+                    conn.autocommit = True  # type: ignore
+                except Exception:
+                    pass
+            await conn.execute("LISTEN flows_upsert")
+            while True:
+                try:
+                    # psycopg3 AsyncConnection.notifies is async generator; psycopg2 style is queue.get()
+                    if hasattr(conn, "notifies") and callable(getattr(conn, "notifies")):
+                        # try queue-style first for compat
+                        notifies_attr = getattr(conn, "notifies")
+                        # if it has get attribute, it's queue-like
+                        if hasattr(notifies_attr, "get") or hasattr(conn.notifies, "get"):
+                            # queue path — await conn.notifies.get() with debounce
+                            try:
+                                await conn.notifies.get()  # type: ignore
+                            except Exception:
+                                # fallback to generator
+                                async for _ in conn.notifies():  # type: ignore
+                                    break
+                        else:
+                            # generator path — wait for one NOTIFY
+                            async for _ in conn.notifies():  # type: ignore
+                                break
+                    else:
+                        async for _ in conn.notifies():  # type: ignore
+                            break
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    # if wait failed, sleep and retry outer
+                    await asyncio.sleep(0.5)
+                    continue
+                # debounce 5s coalescing multiple NOTIFYs into single refresh
+                await asyncio.sleep(5)
+                # drain any coalesced NOTIFYs that arrived during debounce
+                try:
+                    # psycopg3 drain via timeout=0 poll
+                    async for _ in conn.notifies(timeout=0):  # type: ignore
+                        pass
+                except Exception:
+                    # queue-style drain fallback
+                    try:
+                        while not conn.notifies.empty():  # type: ignore
+                            try:
+                                conn.notifies.get_nowait()  # type: ignore
+                            except Exception:
+                                break
+                    except Exception:
+                        try:
+                            while True:
+                                conn.notifies.get_nowait()  # type: ignore
+                        except Exception:
+                            pass
+                # REFRESH MATERIALIZED VIEW CONCURRENTLY — requires UNIQUE indexes
+                try:
+                    await conn.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_metrics")
+                except Exception:
+                    pass
+                try:
+                    await conn.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_protocol_stats")
+                except Exception:
+                    pass
+        except asyncio.CancelledError:
+            if conn is not None:
+                try:
+                    await conn.close()
+                except Exception:
+                    pass
+            break
+        except Exception:
+            if conn is not None:
+                try:
+                    await conn.close()
+                except Exception:
+                    pass
+            await asyncio.sleep(1)
+            continue
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _broadcaster_task
+    global _broadcaster_task, _listen_refresh_task
     # pg_isready retry 5×500ms exponential before seed
     dsn = POSTGRES_DSN
     for attempt in range(5):
@@ -65,7 +179,15 @@ async def lifespan(app: FastAPI):
                 await asyncio.sleep(0.5)
     if _broadcaster_task is None or _broadcaster_task.done():
         _broadcaster_task = asyncio.create_task(_broadcaster())
+    if _listen_refresh_task is None or _listen_refresh_task.done():
+        _listen_refresh_task = asyncio.create_task(listen_refresh())
     yield
+    if _listen_refresh_task and not _listen_refresh_task.done():
+        _listen_refresh_task.cancel()
+        try:
+            await _listen_refresh_task
+        except asyncio.CancelledError:
+            pass
     if _broadcaster_task and not _broadcaster_task.done():
         _broadcaster_task.cancel()
         try:

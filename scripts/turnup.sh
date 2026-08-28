@@ -227,6 +227,16 @@ check_pcap(){
   fi
 }
 
+wait_for_postgres(){
+  for i in $(seq 1 20); do
+    if pg_isready -h postgres -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
+    if docker exec ciphercrest-postgres-1 pg_isready -h 127.0.0.1 -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
+    if pg_isready -h 127.0.0.1 -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
+    sleep 1
+  done
+  return 1
+}
+
 wait_for(){
   url="$1"; tries="${2:-30}"; sleep_s="${3:-0.5}"
   for i in $(seq 1 "$tries"); do
@@ -296,6 +306,9 @@ do_full(){
   else
     info "WITH_LAB=0 — skip lab (use --with-lab or WITH_LAB=1 to bring lab profile)"
   fi
+  echo ""
+  echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+  if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check (postgres may still be starting)"; fi
   echo ""
   echo "--- wait_for health 30 0.5 ---"
   if wait_for "http://localhost:${API_PORT}/health" 30 0.5; then ok "health up http://localhost:${API_PORT}/health (wait_for 30 0.5)"; else
@@ -406,6 +419,11 @@ do_host(){
     info "WITH_LAB=0 — skip lab (use --with-lab or WITH_LAB=1 to bring lab profile)"
   fi
   echo ""
+  if command -v pg_isready >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
+    echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+    if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check"; fi
+    echo ""
+  fi
 
   echo "--- wait_for health 30 0.5 ---"
   if wait_for "http://localhost:${API_PORT}/health" 30 0.5; then
