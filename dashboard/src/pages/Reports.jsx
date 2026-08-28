@@ -47,6 +47,7 @@ import { TOK } from '../tokens.js'
 import { fetchFlows, fetchFamilies } from '../services/api.js'
 import { getRemediationForCheck } from '../App.jsx'
 import CoverageTable from '../components/CoverageTable.jsx'
+import Graphs from '../components/Graphs.jsx'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
@@ -89,6 +90,7 @@ export default function Reports() {
   const [flowParam, setFlowParam] = useQueryState('flow', parseAsString.withDefault(null))
   const [selectedFlowId, setSelectedFlowId] = useState(flowParam || 'family-01')
   const [timeframe, setTimeframe] = useState('daily') // 'daily' | 'weekly' | 'monthly' | 'all'
+  const [includeCharts, setIncludeCharts] = useState(true)
 
   const [flows, setFlows] = useState([])
   const [reportsRows, setReportsRows] = useState([])
@@ -569,6 +571,17 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
             </select>
           </div>
 
+          {/* Toggle Visual Analytics Graphs */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: TOK.ink, cursor: 'pointer', background: TOK.canvas, padding: '5px 10px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
+            <input
+              type="checkbox"
+              checked={includeCharts}
+              onChange={e => setIncludeCharts(e.target.checked)}
+              style={{ cursor: 'pointer', accentColor: TOK.primary }}
+            />
+            <span>Visual Analytics Charts</span>
+          </label>
+
           {/* Forensic Specific: Family Selector */}
           {reportType === 'forensic' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -829,12 +842,22 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
           </div>
         )}
 
-        {/* ── SECTION 3: PRIORITY VULNERABILITIES & SOC ACTION PLAN (Actionable) ── */}
+        {/* ── SECTION: VISUAL CRYPTOGRAPHIC & TRANSPORT ANALYTICS (Domain-Accurate Graphs) ── */}
+        {includeCharts && (reportType === 'executive' || reportType === 'compliance') && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
+              {reportType === 'compliance' ? '2. Cryptographic Telemetry & Transport Distribution' : '3. Cryptographic Posture & Transport Telemetry Graphs'}
+            </div>
+            <Graphs flows={flows} />
+          </div>
+        )}
+
+        {/* ── SECTION 4: PRIORITY VULNERABILITIES & SOC ACTION PLAN (Actionable) ── */}
         {(reportType === 'executive' || reportType === 'triage') && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {reportType === 'triage' ? '1. Urgent Incident & Vulnerability Action Plan' : '3. Priority Vulnerabilities & Remediation Steps'}
+                {reportType === 'triage' ? '1. Urgent Incident & Vulnerability Action Plan' : '4. Priority Vulnerabilities & Remediation Steps'}
               </div>
               <span style={{ fontSize: 11, color: TOK.inkMuted, fontWeight: 600 }}>
                 {prioritizedVulnerabilities.length} Actionable Items (Ranked by Severity)

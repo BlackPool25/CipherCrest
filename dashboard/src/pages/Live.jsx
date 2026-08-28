@@ -76,9 +76,21 @@ export default function Live() {
   const navigate = useNavigate()
 
   // Real-time Queue & Pipeline States
+  // Real-time Queue & Pipeline States — default to paused unless explicitly started, remember preference
+  const [isStreaming, setIsStreaming] = useState(() => {
+    try {
+      return sessionStorage.getItem('ciphercrest_live_streaming') === 'true'
+    } catch {
+      return false
+    }
+  })
+  const isStreamingRef = useRef(isStreaming)
+  useEffect(() => {
+    isStreamingRef.current = isStreaming
+  }, [isStreaming])
+
   const [packetsQueue, setPacketsQueue] = useState([])
   const [activePipelineItem, setActivePipelineItem] = useState(null)
-  const [isStreaming, setIsStreaming] = useState(true)
   const [speedMs, setSpeedMs] = useState(1800)
   const [selectedFrame, setSelectedFrame] = useState(null)
   const [hoveredByte, setHoveredByte] = useState(null)
@@ -89,31 +101,9 @@ export default function Live() {
   const wsRef = useRef(null)
   const [wsConnected, setWsConnected] = useState(false)
 
-  // Establish WebSocket same-origin — Postgres NOTIFY via ws, no hardcoded :8000
-  useEffect(() => {
-    let ws = null
-    try {
-      ws = new WebSocket(`${location.protocol==="https:" ? "wss:" : "ws:"}//${location.host}/ws/flows`)
-
-      ws.onopen = () => setWsConnected(true)
-      ws.onclose = () => setWsConnected(false)
-      ws.onerror = () => setWsConnected(false)
-      ws.onmessage = (evt) => {
-        try {
-          const flow = JSON.parse(evt.data)
-          handleNewPacketArrival(flow)
-        } catch {}
-      }
-      wsRef.current = ws
-    } catch {}
-
-    return () => {
-      if (ws) ws.close()
-    }
-  }, [])
-
   // Push new arriving packet to queue and animate through 5 pipeline stages
-  const handleNewPacketArrival = useCallback((flowData) => {
+  const handleNewPacketArrival = useCallback((flowData, force = false) => {
+    if (!force && !isStreamingRef.current) return
     const raw = flowData || SAMPLE_FLOWS[Math.floor(Math.random() * SAMPLE_FLOWS.length)]
     const packetId = `pkt-${Date.now().toString().slice(-5)}-${Math.floor(Math.random() * 900 + 100)}`
     const newPacket = {
@@ -138,48 +128,68 @@ export default function Live() {
     setTotalIngested(c => c + 1)
   }, [])
 
-  // isStreaming gated off when wsConnected — don't push SAMPLE_FLOWS locally when WS live
+  // Establish WebSocket same-origin — Postgres NOTIFY via ws, no hardcoded :8000
+  useEffect(() => {
+    let ws = null
+    try {
+      ws = new WebSocket(`${location.protocol==="https:" ? "wss:" : "ws:"}//${location.host}/ws/flows`)
+
+      ws.onopen = () => setWsConnected(true)
+      ws.onclose = () => setWsConnected(false)
+      ws.onerror = () => setWsConnected(false)
+      ws.onmessage = (evt) => {
+        if (!isStreamingRef.current) return
+        try {
+          const flow = JSON.parse(evt.data)
+          handleNewPacketArrival(flow)
+        } catch {}
+      }
+      wsRef.current = ws
+    } catch {}
+
+    return () => {
+      if (ws) ws.close()
+    }
+  }, [handleNewPacketArrival])
+
+  // isStreaming synthetic timer when ws disconnected
   useEffect(() => {
     if (!isStreaming || wsConnected) return
     const iv = setInterval(() => {
-      handleNewPacketArrival()
+      if (isStreamingRef.current && !wsConnected) {
+        handleNewPacketArrival()
+      }
     }, speedMs)
     return () => clearInterval(iv)
   }, [isStreaming, wsConnected, speedMs, handleNewPacketArrival])
 
   // poll fallback GET /api/live_captures or GET /api/flows?source=live when WS disconnected every 2s
-  // ensure TRUNCATE live_captures trigger matches future poll empty
   useEffect(() => {
-    if (wsConnected) return
+    if (wsConnected || !isStreaming) return
     let alive = true
     async function pollLive(){
-      try{
-        // try primary: GET /api/live_captures
+      if (!isStreamingRef.current) return
+      try {
         let res = await fetch('/api/live_captures', { cache:'no-store', headers:{'Cache-Control':'no-cache'} })
         let data = null
         if(res.ok){
           data = await res.json()
         } else {
-          // fallback: GET /api/flows?source=live
           res = await fetch('/api/flows?source=live', { cache:'no-store', headers:{'Cache-Control':'no-cache'} })
           if(res.ok) data = await res.json()
         }
-        if(!alive || !data) return
+        if(!alive || !data || !isStreamingRef.current) return
         const list = Array.isArray(data) ? data : (data.flows || data.live_captures || [])
-        if(list.length>0){
-          // ingest newest via handleNewPacketArrival without local SAMPLE simulation
+        if(list.length > 0){
           const latest = list[0]
           handleNewPacketArrival(latest)
         }
-        if(list.length===0){
-          // TRUNCATE live_captures → poll empty, matches future empty state
-        }
-      }catch{}
+      } catch {}
     }
     pollLive()
     const iv = setInterval(pollLive, 2000)
-    return ()=>{ alive=false; clearInterval(iv) }
-  }, [wsConnected, handleNewPacketArrival])
+    return () => { alive=false; clearInterval(iv) }
+  }, [wsConnected, isStreaming, handleNewPacketArrival])
 
   // Advance stages of the active packet in pipeline
   useEffect(() => {
@@ -291,7 +301,16 @@ export default function Live() {
 
           {/* Pause / Resume button */}
           <button
-            onClick={() => setIsStreaming(s => !s)}
+            onClick={() => {
+              setIsStreaming(prev => {
+                const next = !prev
+                isStreamingRef.current = next
+                try {
+                  sessionStorage.setItem('ciphercrest_live_streaming', String(next))
+                } catch {}
+                return next
+              })
+            }}
             style={{
               padding: '8px 16px',
               borderRadius: 10,
@@ -313,7 +332,7 @@ export default function Live() {
 
           {/* Trigger packet now */}
           <button
-            onClick={() => handleNewPacketArrival()}
+            onClick={() => handleNewPacketArrival(null, true)}
             style={{
               padding: '8px 16px',
               borderRadius: 10,
