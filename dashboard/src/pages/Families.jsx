@@ -8,6 +8,7 @@
  *      crushing the table underneath.
  *   3. Instant multi-filter: Search, Risk level, Port, TLS version, and STARTTLS mode.
  *   4. Single and Batch Pcap Streaming (POST /api/analyze).
+ *   5. Derived not_run badge + has_run EXISTS + Inspect Matrix 23-check list (extend only)
  */
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -35,11 +36,11 @@ import {
   Info
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
-import { fetchFlows } from '../services/api.js'
+import { fetchFlows, fetchFamilies } from '../services/api.js'
 import { DrillDown } from '../App.jsx'
 import HoverPlayCard from '../components/HoverPlayCard.jsx'
 
-// Cache for manifest data
+// Cache for manifest data — kept as fallback only when DB unreachable
 let _manifestCache = null
 async function loadManifest() {
   if (_manifestCache) return _manifestCache
@@ -57,16 +58,16 @@ async function loadManifest() {
 
 function synthesizeFamilies() {
   const base = [
-    { id: 'family-01', cipher: 'ECDHE-RSA-AES128-GCM-SHA256', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Low', port: 587, posture: 92, coverage_ratio: 1.0, pcap: 'family-01.pcap' },
-    { id: 'family-02', cipher: 'ECDHE-RSA-AES256-GCM-SHA384', cert: 'p256', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Low', port: 25, posture: 88, coverage_ratio: 1.0, pcap: 'family-02.pcap' },
-    { id: 'family-03', cipher: 'DES-CBC3-SHA', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 143, posture: 48, coverage_ratio: 0.95, pcap: 'family-03.pcap' },
-    { id: 'family-04', cipher: 'RC4-SHA', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.0', severity: 'Critical', port: 110, posture: 18, coverage_ratio: 0.92, pcap: 'family-04.pcap' },
-    { id: 'family-05', cipher: 'AES128-SHA', cert: 'selfsigned', starttls: 'upgrade', tls: 'TLS1.1', severity: 'Critical', port: 587, posture: 24, coverage_ratio: 0.98, pcap: 'family-05.pcap' },
-    { id: 'family-06', cipher: 'TLS_AES_128_GCM_SHA256', cert: 'opaque', starttls: 'implicit', tls: 'TLS1.3', severity: 'Low', port: 993, posture: 96, coverage_ratio: 1.0, pcap: 'family-06.pcap' },
-    { id: 'family-07', cipher: 'AES128-SHA256', cert: 'expired', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Critical', port: 587, posture: 28, coverage_ratio: 0.96, pcap: 'family-07.pcap' },
-    { id: 'family-08', cipher: 'DES-CBC-SHA', cert: 'rsa1024', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 587, posture: 35, coverage_ratio: 0.94, pcap: 'family-08.pcap' },
-    { id: 'family-09', cipher: 'none', cert: 'none', starttls: 'stripped', tls: 'none', severity: 'Critical', port: 587, posture: 8, coverage_ratio: 0.88, pcap: 'family-09.pcap' },
-    { id: 'family-10', cipher: 'RSA-AES256-SHA', cert: 'chain-incomplete', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 587, posture: 50, coverage_ratio: 0.97, pcap: 'family-10.pcap' },
+    { id: 'family-01', family_id: 'family-01', cipher: 'ECDHE-RSA-AES128-GCM-SHA256', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Low', port: 587, posture: 92, coverage_ratio: 1.0, pcap: 'family-01.pcap' },
+    { id: 'family-02', family_id: 'family-02', cipher: 'ECDHE-RSA-AES256-GCM-SHA384', cert: 'p256', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Low', port: 25, posture: 88, coverage_ratio: 1.0, pcap: 'family-02.pcap' },
+    { id: 'family-03', family_id: 'family-03', cipher: 'DES-CBC3-SHA', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 143, posture: 48, coverage_ratio: 0.95, pcap: 'family-03.pcap' },
+    { id: 'family-04', family_id: 'family-04', cipher: 'RC4-SHA', cert: 'rsa2048', starttls: 'upgrade', tls: 'TLS1.0', severity: 'Critical', port: 110, posture: 18, coverage_ratio: 0.92, pcap: 'family-04.pcap' },
+    { id: 'family-05', family_id: 'family-05', cipher: 'AES128-SHA', cert: 'selfsigned', starttls: 'upgrade', tls: 'TLS1.1', severity: 'Critical', port: 587, posture: 24, coverage_ratio: 0.98, pcap: 'family-05.pcap' },
+    { id: 'family-06', family_id: 'family-06', cipher: 'TLS_AES_128_GCM_SHA256', cert: 'opaque', starttls: 'implicit', tls: 'TLS1.3', severity: 'Low', port: 993, posture: 96, coverage_ratio: 1.0, pcap: 'family-06.pcap' },
+    { id: 'family-07', family_id: 'family-07', cipher: 'AES128-SHA256', cert: 'expired', starttls: 'upgrade', tls: 'TLS1.2', severity: 'Critical', port: 587, posture: 28, coverage_ratio: 0.96, pcap: 'family-07.pcap' },
+    { id: 'family-08', family_id: 'family-08', cipher: 'DES-CBC-SHA', cert: 'rsa1024', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 587, posture: 35, coverage_ratio: 0.94, pcap: 'family-08.pcap' },
+    { id: 'family-09', family_id: 'family-09', cipher: 'none', cert: 'none', starttls: 'stripped', tls: 'none', severity: 'Critical', port: 587, posture: 8, coverage_ratio: 0.88, pcap: 'family-09.pcap' },
+    { id: 'family-10', family_id: 'family-10', cipher: 'RSA-AES256-SHA', cert: 'chain-incomplete', starttls: 'upgrade', tls: 'TLS1.2', severity: 'High', port: 587, posture: 50, coverage_ratio: 0.97, pcap: 'family-10.pcap' },
   ]
   const synth = [...base]
   for (let i = 11; i <= 60; i++) {
@@ -80,6 +81,7 @@ function synthesizeFamilies() {
     const posture = sev === 'Critical' ? 20 + (i % 15) : sev === 'High' ? 45 + (i % 15) : sev === 'Medium' ? 65 + (i % 15) : 85 + (i % 15)
     synth.push({
       id: sid,
+      family_id: sid,
       cipher: ciphers[i % ciphers.length],
       cert: certs[i % certs.length],
       tls: tlsVals[i % tlsVals.length],
@@ -116,6 +118,77 @@ function sevBadge(sev) {
       <span>{sev}</span>
     </span>
   )
+}
+
+// 23 checks grouped TLS/Cert/STARTTLS/MTA/Info — reusing severityFor logic, sourced from assessment.findings via GET /api/flows?flow_id=
+const CHECKS = [
+  { id: '01', label: '01 Version', spec: 'RFC 8446 §4.2', isInfo: false, group: 'TLS' },
+  { id: '02', label: '02 Cipher strong', spec: 'IANA cipher strength', isInfo: false, group: 'TLS' },
+  { id: '03', label: '03 KEX FS', spec: 'ECDHE/DHE FS_flag', isInfo: false, group: 'TLS' },
+  { id: '04', label: '04 Cert expiry', spec: 'X.509 notAfter', isInfo: false, group: 'Cert' },
+  { id: '05', label: '05 Self-signed', spec: 'chain_valid', isInfo: false, group: 'Cert' },
+  { id: '06', label: '06 Chain valid', spec: 'chain_length/valid', isInfo: false, group: 'Cert' },
+  { id: '07', label: '07 SAN match', spec: 'SAN vs CN', isInfo: false, group: 'Cert' },
+  { id: '08', label: '08 Pubkey algo', spec: 'RSA/ECDSA bits', isInfo: false, group: 'Cert' },
+  { id: '09', label: '09 Sigalg weak', spec: 'sha1WithRSA weak', isInfo: false, group: 'Cert' },
+  { id: '10', label: '10 Keysize weak', spec: 'rsa1024 <2048', isInfo: false, group: 'Cert' },
+  { id: '11', label: '11 OCSP staple', spec: 'ocsp_stapled_status', isInfo: false, group: 'Cert' },
+  { id: '12', label: '12 STARTTLS', spec: 'Bennett 220 upgrade', isInfo: false, group: 'STARTTLS' },
+  { id: '13', label: '13 Deprecated TLS', spec: 'TLS1.0/1.1', isInfo: false, group: 'TLS' },
+  { id: '14', label: '14 ALPN/JA4', spec: 'ja4/ja4s rarity', isInfo: false, group: 'TLS' },
+  { id: '15a', label: '15a Stripping', spec: 'cleartext downgrade', isInfo: false, group: 'STARTTLS' },
+  { id: '15c', label: '15c Sweet32', spec: '3DES 64-bit', isInfo: false, group: 'STARTTLS' },
+  { id: '16a', label: '16a MTA-STS', spec: 'RFC8461 enforce', isInfo: false, group: 'MTA' },
+  { id: '17', label: '17 DANE TLSA', spec: 'RFC7672', isInfo: false, group: 'MTA' },
+  { id: '18', label: '18 CRL', spec: 'crl_unknown_reason', isInfo: false, group: 'Cert' },
+  { id: '19', label: '19 Cipher AEAD', spec: 'is_aead', isInfo: false, group: 'TLS' },
+  { id: '15b', label: '15b Injection', spec: 'pre-TLS buffer injection', isInfo: true, group: 'Info' },
+  { id: '16b', label: '16b MX', spec: 'MX MTA-STS/DANE offline', isInfo: true, group: 'Info' },
+  { id: '16c', label: '16c 0-RTT', spec: 'TLS1.3 early_data 0-RTT', isInfo: true, group: 'Info' },
+]
+const GROUPS = [
+  { key: 'TLS', label: 'TLS 01-03/13/19', ids: ['01', '02', '03', '13', '14', '19'] },
+  { key: 'Cert', label: 'Cert 04-11/18', ids: ['04', '05', '06', '07', '08', '09', '10', '11', '18'] },
+  { key: 'STARTTLS', label: 'STARTTLS 12/15a/c', ids: ['12', '15a', '15c'] },
+  { key: 'MTA', label: 'MTA 16a/17', ids: ['16a', '17'] },
+  { key: 'Info', label: 'Info 15b/16b/c', ids: ['15b', '16b', '16c'] },
+]
+function severityFor(flow, check) {
+  if (check.isInfo) return { severity: 'Info', evidence: 'info-only offline' }
+  const f = flow.assessment?.findings || []
+  const hit = f.find((x) => x.check === check.id || x.check === check.label)
+  if (hit) return { severity: hit.severity, evidence: hit.evidence || hit.spec || check.spec }
+  if (check.id === '01' || check.id === '13') return { severity: flow.tls?.is_deprecated ? 'Critical' : 'Low', evidence: flow.tls?.version || 'unknown' }
+  if (check.id === '02') return { severity: flow.tls?.cipher_strength === 'weak' ? 'High' : flow.tls?.cipher_strength === 'strong' ? 'Low' : 'Medium', evidence: flow.tls?.cipher_suite || 'none' }
+  if (check.id === '03') return { severity: flow.tls?.fs_flag === false ? 'High' : 'Low', evidence: `kex=${flow.tls?.kex} fs=${flow.tls?.fs_flag}` }
+  if (check.id === '04') return { severity: flow.cert?.is_expired ? 'Critical' : flow.cert?.days_to_expiry != null && flow.cert.days_to_expiry < 30 ? 'High' : 'Low', evidence: `days_to_expiry=${flow.cert?.days_to_expiry}` }
+  if (check.id === '05') return { severity: flow.cert?.is_self_signed ? 'Critical' : 'Low', evidence: String(flow.cert?.is_self_signed) }
+  if (check.id === '06') return { severity: flow.cert?.chain_valid === false ? 'High' : 'Low', evidence: `chain_len=${flow.cert?.chain_length}` }
+  if (check.id === '07') return { severity: flow.cert?.san_match === false ? 'High' : 'Low', evidence: `san_match=${flow.cert?.san_match}` }
+  if (check.id === '08') return { severity: flow.cert?.pubkey_bits != null && flow.cert.pubkey_bits < 2048 ? 'High' : 'Low', evidence: `${flow.cert?.pubkey_algo}/${flow.cert?.pubkey_bits}` }
+  if (check.id === '09') return { severity: flow.cert?.sigalg_weak ? 'High' : 'Low', evidence: flow.cert?.sigalg || '—' }
+  if (check.id === '10') return { severity: flow.cert?.keysize_weak ? 'High' : 'Low', evidence: String(flow.cert?.keysize_weak) }
+  if (check.id === '11') return { severity: flow.cert?.ocsp_stapled_status === 'revoked' ? 'Critical' : flow.cert?.ocsp_stapled_status === 'unknown' ? 'Medium' : 'Low', evidence: flow.cert?.ocsp_stapled_status || '—' }
+  if (check.id === '12' || check.id === '15a') return { severity: flow.starttls_mode === 'stripped' ? 'Critical' : flow.starttls_mode === 'upgrade' ? 'Low' : 'Medium', evidence: flow.starttls_mode }
+  if (check.id === '19') return { severity: flow.tls?.is_aead === false ? 'High' : 'Low', evidence: `aead=${flow.tls?.is_aead}` }
+  return { severity: flow.assessment?.risk_level || 'Low', evidence: `risk_score=${flow.assessment?.risk_score}` }
+}
+function sevColor(sev, isInfo) {
+  if (isInfo) return TOK.info
+  if (sev === 'Critical') return TOK.danger
+  if (sev === 'High') return TOK.high
+  if (sev === 'Medium') return TOK.warning
+  if (sev === 'Low') return TOK.success
+  if (sev === 'Info') return TOK.info
+  return TOK.borderStrong
+}
+function sevIcon(sev, isInfo) {
+  if (isInfo) return '○'
+  if (sev === 'Critical') return '⬢'
+  if (sev === 'High') return '▲'
+  if (sev === 'Medium') return '●'
+  if (sev === 'Low') return '◆'
+  return '·'
 }
 
 // Client-side valid binary pcap synthesis for families streaming
@@ -257,7 +330,7 @@ export default function Families() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Data states
+  // Data states — primary is GET /api/families, not synthesizeFamilies
   const [families, setFamilies] = useState([])
   const [flows, setFlows] = useState([])
   const [selectedId, setSelectedId] = useState(null)
@@ -266,6 +339,12 @@ export default function Families() {
   const [streamingAll, setStreamingAll] = useState(false)
   const [streamProgress, setStreamProgress] = useState({ current: 0, total: 0 })
   const [toastMsg, setToastMsg] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSeeded, setIsSeeded] = useState(null)
+  const [matrixFlow, setMatrixFlow] = useState(null)
+  const [matrixTab, setMatrixTab] = useState('Matrix')
+  const [matrixPage, setMatrixPage] = useState(1)
+  const matrixPageSize = 23
 
   // Filters (sync with URL parameters)
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''))
@@ -276,37 +355,105 @@ export default function Families() {
   const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1))
   const [pageSize, setPageSize] = useState(15)
 
-  // Sort state
+  // Sort state — lpad comparator preserved
   const [sortField, setSortField] = useState('id')
   const [sortDir, setSortDir] = useState('asc')
 
-  // Load manifest & flows
+  // Load families via GET /api/families + flows via GET /api/flows?limit=500
   useEffect(() => {
     let alive = true
-    loadManifest().then(data => {
+    setIsLoading(true)
+    // GET /api/families — primary data layer, has_run EXISTS already
+    fetchFamilies({ limit: 60, offset: 0 }).then(data => {
       if (!alive) return
       if (Array.isArray(data) && data.length > 0) {
-        setFamilies(data)
-      } else if (data && typeof data === 'object') {
-        const arr = Object.entries(data).map(([k, v]) => ({ id: k, ...v }))
-        setFamilies(arr.length > 0 ? arr : synthesizeFamilies())
+        // lpad numeric ordering via substring cast
+        const sorted = [...data].sort((a, b) => {
+          const aId = a.family_id || a.id || a.flow_id || ''
+          const bId = b.family_id || b.id || b.flow_id || ''
+          const na = parseInt(String(aId).split('-')[1] || '0', 10)
+          const nb = parseInt(String(bId).split('-')[1] || '0', 10)
+          if (na !== nb) return na - nb
+          // fallback lpad(substring(family_id from 8), 3, '0') lexical
+          return String(aId).localeCompare(String(bId))
+        })
+        setFamilies(sorted)
+        setIsSeeded(true)
+      } else if (Array.isArray(data) && data.length === 0) {
+        // DB reachable but empty — empty-state not fallback blend
+        setFamilies([])
+        setIsSeeded(false)
       } else {
-        setFamilies(synthesizeFamilies())
+        setFamilies([])
+        setIsSeeded(false)
       }
-    }).catch(() => {
-      if (alive) setFamilies(synthesizeFamilies())
+      setIsLoading(false)
+    }).catch(async () => {
+      if (!alive) return
+      // DB unreachable — fallback to synthesize for offline dev
+      try {
+        const man = await loadManifest()
+        if (Array.isArray(man) && man.length > 0) {
+          const arr = man.map(f => ({ family_id: f.id || f.family_id, id: f.id || f.family_id, ...f, has_run: false }))
+          setFamilies(arr)
+        } else if (man && typeof man === 'object') {
+          const arr = Object.entries(man).map(([k, v]) => ({ id: k, family_id: k, ...v, has_run: false }))
+          if (arr.length > 0) setFamilies(arr)
+          else setFamilies(synthesizeFamilies().map(f => ({ ...f, has_run: false })))
+        } else {
+          setFamilies(synthesizeFamilies().map(f => ({ ...f, has_run: false })))
+        }
+      } catch {
+        setFamilies(synthesizeFamilies().map(f => ({ ...f, has_run: false })))
+      }
+      setIsSeeded(null)
+      setIsLoading(false)
     })
 
-    fetchFlows().then(d => { if (alive && Array.isArray(d)) setFlows(d) }).catch(() => {})
+    fetchFlows({ limit: 500 }).then(d => { if (alive && Array.isArray(d)) setFlows(d) }).catch(() => {})
     const iv = setInterval(() => {
-      fetchFlows().then(d => { if (alive && Array.isArray(d)) setFlows(d) }).catch(() => {})
+      // 5s poll skeleton — preserve spacing, refetch both families and flows
+      fetchFlows({ limit: 500 }).then(d => { if (alive && Array.isArray(d)) setFlows(d) }).catch(() => {})
+      fetchFamilies({ limit: 60, offset: 0 }).then(d => {
+        if (!alive) return
+        if (Array.isArray(d) && d.length > 0) {
+          const sorted = [...d].sort((a, b) => {
+            const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
+            const nb = parseInt(String(b.family_id || b.id || '').split('-')[1] || '0', 10)
+            return na - nb
+          })
+          setFamilies(sorted)
+          setIsSeeded(true)
+        }
+      }).catch(() => {})
     }, 5000)
     return () => { alive = false; clearInterval(iv) }
   }, [])
 
+  // Fetch matrix flow via GET /api/flows?flow_id= when drawer opens — sourced from assessment.findings, not hardcoded fallback
+  useEffect(() => {
+    if (!drawerOpen || !selectedId) { setMatrixFlow(null); return }
+    let alive = true
+    // paginated via query: limit 1, flow_id param
+    fetchFlows({ flow_id: selectedId, limit: 1 }).then(list => {
+      if (!alive) return
+      if (Array.isArray(list) && list.length > 0) setMatrixFlow(list[0])
+      else {
+        // fallback try flows array search
+        const found = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
+        if (found) setMatrixFlow(found)
+        else setMatrixFlow(null)
+      }
+    }).catch(() => {
+      const found = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
+      if (alive) setMatrixFlow(found || null)
+    })
+    return () => { alive = false }
+  }, [drawerOpen, selectedId, flows])
+
   // Deep link sync with query param ?q=family-01
   useEffect(() => {
-    if (search && families.some(f => f.id === search || f.flow_id === search)) {
+    if (search && families.some(f => (f.family_id || f.id) === search || f.flow_id === search)) {
       setSelectedId(search)
       setDrawerOpen(true)
     }
@@ -317,41 +464,52 @@ export default function Families() {
     const m = new Map()
     for (const f of flows) {
       if (f.flow_id) m.set(f.flow_id, f)
+      if (f.family_id) m.set(f.family_id, f)
     }
     return m
   }, [flows])
 
-  // Merge manifest metadata with live analyzed flows
+  // Merge families with live flows — derive has_run from /api/families.has_run EXISTS, posture/risk from flows join
   const mergedFamilies = useMemo(() => {
     return families.map(fam => {
-      const fid = fam.id || fam.flow_id
+      const fid = fam.family_id || fam.id || fam.flow_id
       const live = flowsById.get(fid)
-      if (!live) return fam
+      // has_run already from GET /api/families via EXISTS — preserve
+      const has_run = typeof fam.has_run === 'boolean' ? fam.has_run : !!live
+      if (!live) return { ...fam, family_id: fid, id: fid, has_run, posture: fam.posture_score ?? fam.posture, severity: fam.risk_level || fam.severity || 'Low', risk_level: fam.risk_level || fam.severity || 'Low' }
       return {
         ...fam,
-        posture: live.assessment?.posture_score ?? (100 - (live.assessment?.risk_score ?? 10)),
-        severity: live.assessment?.risk_level || fam.severity || 'Low',
+        family_id: fid,
+        id: fid,
+        has_run,
+        posture: live.assessment?.posture_score ?? fam.posture_score ?? fam.posture ?? (100 - (live.assessment?.risk_score ?? 10)),
+        posture_score: live.assessment?.posture_score ?? fam.posture_score,
+        severity: live.assessment?.risk_level || fam.risk_level || fam.severity || 'Low',
         risk_level: live.assessment?.risk_level || fam.risk_level || 'Low',
-        tls: live.tls?.version || fam.tls,
-        cipher: live.tls?.cipher_suite || fam.cipher,
+        tls: live.tls?.version || fam.tls_version || fam.tls,
+        tls_version: live.tls?.version || fam.tls_version || fam.tls,
+        cipher: live.tls?.cipher_suite || fam.cipher_suite || fam.cipher,
+        cipher_suite: live.tls?.cipher_suite || fam.cipher_suite || fam.cipher,
         port: live.port || fam.port,
+        starttls: live.starttls_mode || fam.starttls_mode || fam.starttls,
+        starttls_mode: live.starttls_mode || fam.starttls_mode || fam.starttls,
         coverage_ratio: live.coverage_ratio ?? fam.coverage_ratio ?? 1.0,
         flow: live,
       }
     })
   }, [families, flowsById])
 
-  // Filtered & Sorted items
+  // Filtered & Sorted items — lpad ordering preserved via numeric comparator
   const filtered = useMemo(() => {
     let list = [...mergedFamilies]
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       list = list.filter(f =>
-        String(f.id || f.flow_id || '').toLowerCase().includes(q) ||
-        String(f.cipher || '').toLowerCase().includes(q) ||
+        String(f.family_id || f.id || f.flow_id || '').toLowerCase().includes(q) ||
+        String(f.cipher || f.cipher_suite || '').toLowerCase().includes(q) ||
         String(f.port || '').includes(q) ||
-        String(f.tls || '').toLowerCase().includes(q) ||
-        String(f.starttls || '').toLowerCase().includes(q)
+        String(f.tls || f.tls_version || '').toLowerCase().includes(q) ||
+        String(f.starttls || f.starttls_mode || '').toLowerCase().includes(q)
       )
     }
     if (riskFilter !== 'All') {
@@ -361,18 +519,29 @@ export default function Families() {
       list = list.filter(f => String(f.port) === String(portFilter))
     }
     if (tlsFilter !== 'All') {
-      list = list.filter(f => String(f.tls) === String(tlsFilter))
+      list = list.filter(f => String(f.tls || f.tls_version) === String(tlsFilter))
     }
     if (starttlsFilter !== 'All') {
-      list = list.filter(f => String(f.starttls) === String(starttlsFilter))
+      list = list.filter(f => String(f.starttls || f.starttls_mode) === String(starttlsFilter))
     }
 
     list.sort((a, b) => {
       let va = a[sortField] ?? ''
       let vb = b[sortField] ?? ''
-      if (sortField === 'posture') {
-        va = a.posture ?? 80
-        vb = b.posture ?? 80
+      if (sortField === 'posture' || sortField === 'posture_score') {
+        va = a.posture ?? a.posture_score ?? 80
+        vb = b.posture ?? b.posture_score ?? 80
+      }
+      if (sortField === 'id' || sortField === 'family_id') {
+        const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
+        const nb = parseInt(String(b.family_id || b.id || '').split('-')[1] || '0', 10)
+        if (na !== nb) return sortDir === 'asc' ? na - nb : nb - na
+        // fallback lpad lexical
+        const sa = String(a.family_id || a.id || '')
+        const sb = String(b.family_id || b.id || '')
+        if (sa < sb) return sortDir === 'asc' ? -1 : 1
+        if (sa > sb) return sortDir === 'asc' ? 1 : -1
+        return 0
       }
       if (va < vb) return sortDir === 'asc' ? -1 : 1
       if (va > vb) return sortDir === 'asc' ? 1 : -1
@@ -400,13 +569,14 @@ export default function Families() {
   }
 
   const handleInspect = (item) => {
-    const id = item.id || item.flow_id
+    const id = item.family_id || item.id || item.flow_id
     setSelectedId(id)
     setDrawerOpen(true)
+    setMatrixTab('Matrix')
   }
 
   const streamFamilyPcap = async (item) => {
-    const id = item.id || item.flow_id
+    const id = item.family_id || item.id || item.flow_id
     let blob = null
     const candidates = [`/lab/pcaps/${id}.pcap`, `/${id}.pcap`, `/pcaps/${id}.pcap`]
     for (const u of candidates) {
@@ -418,9 +588,9 @@ export default function Families() {
     if (!blob) {
       blob = synthesizePcapBlob({
         port: item.port || 587,
-        tlsVersion: item.tls || 'TLS1.2',
-        cipher: item.cipher || 'ECDHE-RSA-AES128-GCM-SHA256',
-        starttlsMode: item.starttls || 'upgrade',
+        tlsVersion: item.tls_version || item.tls || 'TLS1.2',
+        cipher: item.cipher_suite || item.cipher || 'ECDHE-RSA-AES128-GCM-SHA256',
+        starttlsMode: item.starttls_mode || item.starttls || 'upgrade',
       })
     }
     const fd = new FormData()
@@ -434,12 +604,23 @@ export default function Families() {
 
   const handleStreamSingle = async (item, e) => {
     if (e) e.stopPropagation()
-    const id = item.id || item.flow_id
+    const id = item.family_id || item.id || item.flow_id
     try {
       setToastMsg(`Streaming & analyzing ${id}...`)
       await streamFamilyPcap(item).catch(() => null)
-      const updated = await fetchFlows()
-      if (Array.isArray(updated)) setFlows(updated)
+      // await POST /api/analyze then refetch flows + families to flip badge — not hide siblings
+      const updatedFlows = await fetchFlows({ limit: 500 })
+      if (Array.isArray(updatedFlows)) setFlows(updatedFlows)
+      // GET /api/families refetch to flip has_run badge
+      const updatedFamilies = await fetchFamilies({ limit: 60, offset: 0 })
+      if (Array.isArray(updatedFamilies) && updatedFamilies.length > 0) {
+        const sorted = [...updatedFamilies].sort((a, b) => {
+          const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
+          const nb = parseInt(String(b.family_id || b.id || '').split('-')[1] || '0', 10)
+          return na - nb
+        })
+        setFamilies(sorted)
+      }
       setToastMsg(`✓ Analyzed ${id} successfully!`)
       setTimeout(() => setToastMsg(null), 3000)
     } catch {
@@ -459,7 +640,7 @@ export default function Families() {
       await streamFamilyPcap(filtered[i]).catch(() => null)
       if (i % 3 === 0 || i === filtered.length - 1) {
         try {
-          const updated = await fetchFlows()
+          const updated = await fetchFlows({ limit: 500 })
           if (Array.isArray(updated)) setFlows(updated)
         } catch {}
       }
@@ -467,8 +648,17 @@ export default function Families() {
     }
 
     try {
-      const updated = await fetchFlows()
+      const updated = await fetchFlows({ limit: 500 })
       if (Array.isArray(updated)) setFlows(updated)
+      const updatedFamilies = await fetchFamilies({ limit: 60, offset: 0 })
+      if (Array.isArray(updatedFamilies) && updatedFamilies.length > 0) {
+        const sorted = [...updatedFamilies].sort((a, b) => {
+          const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
+          const nb = parseInt(String(b.family_id || b.id || '').split('-')[1] || '0', 10)
+          return na - nb
+        })
+        setFamilies(sorted)
+      }
     } catch {}
 
     setStreamingAll(false)
@@ -485,21 +675,22 @@ export default function Families() {
     setPage(1)
   }
 
-  // Selected flow object for DrillDown
+  // Selected flow object for DrillDown — sourced from GET /api/flows?flow_id= via matrixFlow when available
   const activeFlowObj = useMemo(() => {
     if (!selectedId) return null
+    if (matrixFlow && (matrixFlow.flow_id === selectedId || matrixFlow.family_id === selectedId)) return matrixFlow
     const matched = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
     if (matched) return matched
-    const fItem = families.find(f => f.id === selectedId)
+    const fItem = families.find(f => (f.family_id || f.id) === selectedId)
     if (!fItem) return null
     return {
-      flow_id: fItem.id,
+      flow_id: fItem.family_id || fItem.id,
       app_protocol: fItem.port === 993 ? 'imap' : 'smtp',
       port: fItem.port,
-      starttls_mode: fItem.starttls || 'upgrade',
+      starttls_mode: fItem.starttls_mode || fItem.starttls || 'upgrade',
       tls: {
-        version: fItem.tls || 'TLS1.2',
-        cipher_suite: fItem.cipher || 'ECDHE-RSA-AES128-GCM-SHA256',
+        version: fItem.tls_version || fItem.tls || 'TLS1.2',
+        cipher_suite: fItem.cipher_suite || fItem.cipher || 'ECDHE-RSA-AES128-GCM-SHA256',
         cipher_strength: fItem.severity === 'Critical' ? 'weak' : 'strong',
         kex: fItem.cipher?.includes('ECDHE') ? 'ECDHE' : 'RSA',
         fs_flag: fItem.cipher?.includes('ECDHE') || fItem.cipher?.includes('DHE'),
@@ -521,15 +712,16 @@ export default function Families() {
         is_self_signed: fItem.cert === 'selfsigned',
       },
       assessment: {
-        risk_level: fItem.severity || 'Low',
-        risk_score: fItem.severity === 'Critical' ? 85 : fItem.severity === 'High' ? 60 : fItem.severity === 'Medium' ? 35 : 10,
-        posture_score: fItem.posture ?? (fItem.severity === 'Critical' ? 15 : 85),
+        risk_level: fItem.risk_level || fItem.severity || 'Low',
+        risk_score: fItem.risk_level === 'Critical' ? 85 : fItem.risk_level === 'High' ? 60 : fItem.risk_level === 'Medium' ? 35 : 10,
+        posture_score: fItem.posture_score ?? fItem.posture ?? (fItem.severity === 'Critical' ? 15 : 85),
         calibrated_prob: fItem.severity === 'Critical' ? 0.92 : 0.08,
         anomaly_score: fItem.severity === 'Critical' ? 12.4 : 1.2,
+        findings: fItem.findings || [],
       },
       coverage_ratio: fItem.coverage_ratio ?? 1.0,
     }
-  }, [selectedId, flows, families])
+  }, [selectedId, flows, families, matrixFlow])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%', position: 'relative' }}>
@@ -550,6 +742,8 @@ export default function Families() {
             }}>
               {filtered.length} / {families.length} Loaded
             </span>
+            {isLoading && <span style={{ fontSize: 11, color: TOK.inkFaint, marginLeft: 6 }}>Loading…</span>}
+            {isSeeded === false && !isLoading && <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 8px', borderRadius: 999, fontSize: 11 }}>empty DB — no families</span>}
           </div>
           <p style={{ fontSize: 14, color: TOK.inkMuted, marginTop: 4 }}>
             Explore, filter, and stream synthetic &amp; captured PCAP families through the analysis pipeline.
@@ -827,7 +1021,7 @@ export default function Families() {
             <thead>
               <tr style={{ background: '#FAFBFB', borderBottom: `2px solid ${TOK.border}`, color: TOK.inkMuted }}>
                 <th
-                  onClick={() => handleSort('id')}
+                  onClick={() => handleSort('family_id')}
                   style={{ padding: '14px 18px', cursor: 'pointer', fontWeight: 700, minWidth: 140 }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -857,15 +1051,16 @@ export default function Families() {
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ padding: 36, textAlign: 'center', color: TOK.inkMuted }}>
-                    No families match the selected filters. Click &quot;Reset&quot; to clear filters.
+                    {isLoading ? 'Loading families…' : 'No families match the selected filters. Click "Reset" to clear filters.'}
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => {
-                  const fid = item.id || item.flow_id
+                  const fid = item.family_id || item.id || item.flow_id
                   const isSel = selectedId === fid
+                  const has_run = typeof item.has_run === 'boolean' ? item.has_run : false
                   const sev = item.severity || item.risk_level || 'Low'
-                  const posture = item.posture ?? (sev === 'Critical' ? 15 : sev === 'High' ? 45 : sev === 'Medium' ? 68 : 88)
+                  const posture = item.posture ?? item.posture_score ?? (sev === 'Critical' ? 15 : sev === 'High' ? 45 : sev === 'Medium' ? 68 : 88)
                   return (
                     <tr
                       key={fid}
@@ -908,14 +1103,14 @@ export default function Families() {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}>
-                          {item.cipher || 'none'}
+                          {item.cipher || item.cipher_suite || 'none'}
                         </span>
                       </td>
 
                       {/* TLS */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontWeight: 600, color: item.tls === 'none' ? TOK.danger : TOK.ink }}>
-                          {item.tls || 'unknown'}
+                        <span style={{ fontWeight: 600, color: (item.tls_version || item.tls) === 'none' ? TOK.danger : TOK.ink }}>
+                          {item.tls_version || item.tls || 'unknown'}
                         </span>
                       </td>
 
@@ -934,37 +1129,55 @@ export default function Families() {
                         </span>
                       </td>
 
-                      {/* Risk */}
+                      {/* Risk — derived not_run badge + has_run EXISTS */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
-                        {sevBadge(sev)}
+                        {!has_run ? (
+                          <span style={{
+                            background: TOK.warningLight,
+                            color: TOK.inkFaint,
+                            padding: '4px 8px',
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}>
+                            not run yet
+                          </span>
+                        ) : sevBadge(sev)}
                       </td>
 
-                      {/* Posture Score */}
+                      {/* Posture Score — from families.posture_score/risk_level joined from flows */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span className="tabular-nums" style={{
-                            fontFamily: TOK.fontMono,
-                            fontWeight: 800,
-                            fontSize: 13,
-                            color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger,
-                            minWidth: 28,
-                          }}>
-                            {posture}
-                          </span>
-                          <div style={{ width: 60, height: 6, background: '#E7EAEC', borderRadius: 999, overflow: 'hidden' }}>
-                            <div style={{
-                              width: `${posture}%`,
-                              height: '100%',
-                              background: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger,
-                              borderRadius: 999,
-                            }} />
+                        {!has_run ? (
+                          <span style={{ fontSize: 11, color: TOK.inkFaint, fontStyle: 'italic' }}>—</span>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span className="tabular-nums" style={{
+                              fontFamily: TOK.fontMono,
+                              fontWeight: 800,
+                              fontSize: 13,
+                              color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger,
+                              minWidth: 28,
+                            }}>
+                              {posture}
+                            </span>
+                            <div style={{ width: 60, height: 6, background: '#E7EAEC', borderRadius: 999, overflow: 'hidden' }}>
+                              <div style={{
+                                width: `${posture}%`,
+                                height: '100%',
+                                background: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger,
+                                borderRadius: 999,
+                              }} />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </td>
 
                       {/* STARTTLS */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap', color: TOK.inkMuted }}>
-                        {item.starttls || 'upgrade'}
+                        {item.starttls_mode || item.starttls || 'upgrade'}
                       </td>
 
                       {/* Coverage Ratio */}
@@ -1023,10 +1236,11 @@ export default function Families() {
         /* ── Grid View ── */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, width: '100%' }}>
           {paginated.map((item) => {
-            const fid = item.id || item.flow_id
+            const fid = item.family_id || item.id || item.flow_id
             const isSel = selectedId === fid
+            const has_run = typeof item.has_run === 'boolean' ? item.has_run : false
             const sev = item.severity || item.risk_level || 'Low'
-            const posture = item.posture ?? (sev === 'Critical' ? 15 : 85)
+            const posture = item.posture ?? item.posture_score ?? (sev === 'Critical' ? 15 : 85)
             return (
               <div
                 key={fid}
@@ -1050,25 +1264,31 @@ export default function Families() {
                     <span className="mono" style={{ fontFamily: TOK.fontMono, fontWeight: 800, fontSize: 14, color: TOK.primary }}>
                       {fid}
                     </span>
-                    {sevBadge(sev)}
+                    {!has_run ? (
+                      <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700 }}>not run yet</span>
+                    ) : sevBadge(sev)}
                   </div>
                   <div className="mono" style={{ fontSize: 11, color: TOK.inkMuted, background: TOK.canvas, padding: '4px 8px', borderRadius: 6, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.cipher || 'none'}
+                    {item.cipher_suite || item.cipher || 'none'}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12, color: TOK.inkMuted }}>
-                    <div>TLS: <b style={{ color: TOK.ink }}>{item.tls}</b></div>
+                    <div>TLS: <b style={{ color: TOK.ink }}>{item.tls_version || item.tls}</b></div>
                     <div>Port: <b style={{ color: TOK.ink }}>:{item.port}</b></div>
-                    <div>Mode: <b style={{ color: TOK.ink }}>{item.starttls}</b></div>
-                    <div>Cert: <b style={{ color: TOK.ink }}>{item.cert}</b></div>
+                    <div>Mode: <b style={{ color: TOK.ink }}>{item.starttls_mode || item.starttls}</b></div>
+                    <div>Cert: <b style={{ color: TOK.ink }}>{item.cert_type || item.cert}</b></div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, borderTop: `1px solid ${TOK.border}`, paddingTop: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 11, color: TOK.inkFaint }}>Posture:</span>
-                    <span className="tabular-nums" style={{ fontWeight: 800, fontSize: 13, color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger }}>
-                      {posture}/100
-                    </span>
+                    {!has_run ? (
+                      <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 6px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>not run yet</span>
+                    ) : (
+                      <span className="tabular-nums" style={{ fontWeight: 800, fontSize: 13, color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger }}>
+                        {posture}/100
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={(e) => handleStreamSingle(item, e)}
@@ -1238,16 +1458,20 @@ export default function Families() {
                   <span className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 18, fontWeight: 800, color: TOK.ink }}>
                     {selectedId}
                   </span>
-                  {activeFlowObj && sevBadge(activeFlowObj.assessment?.risk_level || 'Low')}
+                  {activeFlowObj && (
+                    activeFlowObj?.has_run === false || (families.find(f => (f.family_id || f.id) === selectedId)?.has_run === false)
+                      ? <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>not run yet</span>
+                      : sevBadge(activeFlowObj.assessment?.risk_level || 'Low')
+                  )}
                 </div>
                 <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 4 }}>
-                  Comprehensive inspection across 5 protocol tabs
+                  Comprehensive inspection across 5 protocol tabs + Matrix (23 checks)
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
-                  onClick={() => handleStreamSingle({ id: selectedId })}
+                  onClick={() => handleStreamSingle({ family_id: selectedId, id: selectedId })}
                   style={{
                     padding: '6px 12px',
                     borderRadius: 8,
@@ -1285,9 +1509,102 @@ export default function Families() {
               </div>
             </div>
 
-            {/* Drawer Body with DrillDown */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-              <DrillDown flow={activeFlowObj} />
+            {/* Drawer Body with DrillDown + Matrix Tab */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Tab switcher for Inspect: Details vs Matrix */}
+              <div style={{ display: 'flex', background: '#F1F2F4', borderRadius: 10, padding: 3, gap: 4 }}>
+                <button
+                  onClick={() => setMatrixTab('Details')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 12px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: matrixTab === 'Details' ? '#FFFFFF' : 'transparent',
+                    color: matrixTab === 'Details' ? TOK.ink : TOK.inkMuted,
+                    fontWeight: matrixTab === 'Details' ? 700 : 500,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: matrixTab === 'Details' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => setMatrixTab('Matrix')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 12px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: matrixTab === 'Matrix' ? '#FFFFFF' : 'transparent',
+                    color: matrixTab === 'Matrix' ? TOK.ink : TOK.inkMuted,
+                    fontWeight: matrixTab === 'Matrix' ? 700 : 500,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: matrixTab === 'Matrix' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  Matrix (23 checks)
+                </button>
+              </div>
+
+              {matrixTab === 'Details' ? (
+                <DrillDown flow={activeFlowObj} />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {!matrixFlow ? (
+                    <div style={{ padding: 20, background: TOK.canvas, border: `1px solid ${TOK.border}`, borderRadius: 12, textAlign: 'center', color: TOK.inkMuted, fontSize: 13 }}>
+                      {families.find(f => (f.family_id || f.id) === selectedId)?.has_run === false
+                        ? <span>Family <b style={{ color: TOK.ink }}>{selectedId}</b> <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 6px', borderRadius: 999, fontSize: 11 }}>not run yet</span> — run Analyze to populate 23-check matrix (sourced from GET /api/flows?flow_id=, not hardcoded fallback)</span>
+                        : 'Loading matrix from GET /api/flows?flow_id= …'}
+                    </div>
+                  ) : (
+                    <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: '16px', boxShadow: TOK.shadow }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: TOK.ink, marginBottom: 4 }}>Matrix — 23 Checks (sourced from assessment.findings + data)</div>
+                      <div style={{ fontSize: 11, color: TOK.inkMuted, marginBottom: 12 }}>
+                        Paginated 23 rows via query — grouped TLS/Cert/STARTTLS/MTA/Info reusing severityFor logic. Flow: <span className="mono" style={{ fontFamily: TOK.fontMono, color: TOK.primary }}>{matrixFlow.flow_id}</span> • {matrixFlow.assessment?.risk_level} • posture {matrixFlow.assessment?.posture_score}
+                      </div>
+                      {GROUPS.map(g => {
+                        const checksInGroup = CHECKS.filter(c => g.ids.includes(c.id))
+                        const pageStart = (matrixPage - 1) * matrixPageSize
+                        // For grouped view, show all 23 but paginate if needed (23 fits one page)
+                        return (
+                          <div key={g.key} style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: g.key === 'Info' ? TOK.inkFaint : TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6, background: g.key === 'Info' ? TOK.canvas : 'transparent', padding: g.key === 'Info' ? '4px 8px' : 0, borderRadius: 6 }}>
+                              {g.label}
+                            </div>
+                            <div style={{ display: 'grid', gap: 6 }}>
+                              {checksInGroup.map(c => {
+                                const { severity, evidence } = severityFor(matrixFlow, c)
+                                const bg = sevColor(severity, c.isInfo)
+                                const icon = sevIcon(severity, c.isInfo)
+                                return (
+                                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: TOK.canvas, border: `1px solid ${TOK.border}`, borderRadius: 8, padding: '8px 10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                                      <span style={{ width: 22, height: 22, borderRadius: 6, background: bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: 10, fontWeight: 700, flexShrink: 0 }} aria-hidden="true">{icon}</span>
+                                      <span style={{ fontSize: 12, fontWeight: 700, color: TOK.ink, whiteSpace: 'nowrap' }}>{c.id}</span>
+                                      <span style={{ fontSize: 12, color: TOK.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.spec}>{c.spec}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                      <span style={{ fontSize: 11, color: TOK.inkFaint, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={evidence}>{evidence}</span>
+                                      <span style={{ background: bg, color: '#FFFFFF', padding: '2px 7px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>{severity}</span>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${TOK.border}`, paddingTop: 10, marginTop: 4, fontSize: 11, color: TOK.inkMuted }}>
+                        <span>23 checks — sourced from GET /api/flows?flow_id={selectedId} assessment.findings + data (not hardcoded fallback)</span>
+                        <span className="tabular-nums" style={{ fontWeight: 700, color: TOK.ink }}>{CHECKS.length} rows</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

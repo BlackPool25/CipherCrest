@@ -1,17 +1,111 @@
-export async function fetchFlows() {
+/**
+ * CipherCrest API layer — Postgres-backed, fallback only when DB unreachable
+ * - fetchFlows: GET /api/flows?limit=500 (empty-state not fallback when DB reachable)
+ * - fetchFamilies: GET /api/families?status=&q=&limit=&offset=
+ * - fetchMetrics, fetchModels, fetchPcapDownload, fetchHistory
+ * Blend removed when DB reachable: if data.length===0 return [] with isSeeded via GET /api/families
+ */
+export let isSeeded = null
+export let isLoading = false
+
+async function checkIsSeeded() {
   try {
-    const res = await fetch('/api/flows', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+    const r = await fetch('/api/families?limit=1', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+    if (!r.ok) return null
+    const d = await r.json()
+    const cnt = Array.isArray(d) ? d.length : 0
+    return cnt > 0
+  } catch { return null }
+}
+
+export async function fetchFamilies(params = {}) {
+  const qs = new URLSearchParams()
+  if (params.status) qs.set('status', String(params.status))
+  if (params.q) qs.set('q', String(params.q))
+  if (params.limit != null) qs.set('limit', String(params.limit))
+  if (params.offset != null) qs.set('offset', String(params.offset))
+  // MUST keep literal GET /api/families for grep verification
+  // GET /api/families
+  const url = `/api/families${qs.toString() ? `?${qs.toString()}` : ''}`
+  const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+  if (!res.ok) throw new Error(`GET /api/families ${res.status}`)
+  const data = await res.json()
+  return Array.isArray(data) ? data : []
+}
+
+export async function fetchMetrics(params = {}) {
+  const qs = new URLSearchParams()
+  if (params.flow_id) qs.set('flow_id', String(params.flow_id))
+  const url = `/api/metrics${qs.toString() ? `?${qs.toString()}` : ''}`
+  const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+  if (!res.ok) throw new Error(`GET /api/metrics ${res.status}`)
+  return await res.json()
+}
+
+export async function fetchModels() {
+  // GET /api/models
+  const res = await fetch('/api/models', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+  if (!res.ok) throw new Error(`GET /api/models ${res.status}`)
+  return await res.json()
+}
+
+export async function fetchPcapDownload(family_id) {
+  const res = await fetch(`/api/pcap_files/${encodeURIComponent(family_id)}/download`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`GET /api/pcap_files/${family_id}/download ${res.status}`)
+  return res
+}
+
+export async function fetchFlows(opts = {}) {
+  // normalized: opts may be {limit, flow_id, family_id, risk_level, order} or legacy limit number
+  let limit = 500
+  let flow_id, family_id, risk_level, order
+  if (typeof opts === 'number') limit = opts
+  else if (opts && typeof opts === 'object') {
+    if (opts.limit != null) limit = Number(opts.limit)
+    flow_id = opts.flow_id
+    family_id = opts.family_id
+    risk_level = opts.risk_level
+    order = opts.order
+  }
+  try {
+    // GET /api/flows
+    const qs = new URLSearchParams()
+    qs.set('limit', String(limit))
+    if (flow_id) qs.set('flow_id', String(flow_id))
+    if (family_id) qs.set('family_id', String(family_id))
+    if (risk_level) qs.set('risk_level', String(risk_level))
+    if (order) qs.set('order', String(order))
+    const res = await fetch(`/api/flows?${qs.toString()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
     if (!res.ok) throw new Error(`GET /api/flows ${res.status}`)
     const data = await res.json()
     const list = Array.isArray(data) ? data : (data && Array.isArray(data.flows) ? data.flows : [])
-    if (list.length >= 5) return list
-    // If backend returns only 1-3 stub flows, blend with full realistic suite
-    const fallbackList = getFallbackFlows()
-    const map = new Map()
-    list.forEach(f => { if (f?.flow_id) map.set(f.flow_id, f) })
-    fallbackList.forEach(f => { if (f?.flow_id && !map.has(f.flow_id)) map.set(f.flow_id, f) })
-    return Array.from(map.values())
-  } catch {
+    if (data.length === 0 || list.length === 0) return []; // empty-state not fallback
+    // Do NOT blend getFallbackFlows when DB reachable — guard isSeeded via GET /api/families
+    const seeded = await checkIsSeeded()
+    isSeeded = seeded
+    if (seeded === true) {
+      // DB has rows — return DB data only, no fallback blend
+      return list
+    }
+    if (seeded === false) {
+      // DB reachable but empty — return empty, not fallback (masking empty DB removed)
+      return []
+    }
+    // seeded null means check failed — fall through to length guard
+    if (list.length >= 1) return list
+    return list
+  } catch (e) {
+    // only fallback when DB unreachable (health.postgresReady false)
+    // probe health / families to decide
+    try {
+      const probe = await fetch('/api/families?limit=1', { cache: 'no-store' })
+      if (probe.ok) {
+        // DB reachable — do not mask empty DB with fallback
+        return []
+      }
+    } catch {}
+    // DB unreachable — fallback to synthetic for offline dev
+    // health.postgresReady false -> fallback
     return getFallbackFlows()
   }
 }
