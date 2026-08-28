@@ -374,8 +374,8 @@ export default function Lab(){
         // Real backend synth: python -m lab.scripts.synth_families --synth-one --port <v> --tls <v> --cipher <v> --kex <v> --cert <v> --starttls <v> --early <v> --out /tmp/synth.pcap
         // scapy TLSRecord / TLSHandshakes wrapping + GREASE 16 filter + wrpcap
         const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData })
-        // hidden synthesis marker for lineage: scapy synth
-        toSend = [{ blob: synthBlob, name: `synth_${port}_${tlsVersion}_${cipher.slice(0,12)}.pcap` }]
+        // synthesis marker with full metadata
+        toSend = [{ blob: synthBlob, name: `synth_${port}_${tlsVersion}_${cipher}_${certType}.pcap` }]
       }
 
       let completed=0

@@ -30,14 +30,24 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             except Exception: pass
             cert = dict(cert_stub)
             try:
-                manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
+                manifest = json.loads(pathlib.Path("lab/manifest.json").read_text()) if pathlib.Path("lab/manifest.json").exists() else {}
                 fam = None
                 for k, v in manifest.items():
                     if k in hint_name: fam = v; break
-                if fam and fam.get("cert_file") and pathlib.Path(fam["cert_file"]).exists() and not cert.get("is_tls13_opaque") and real_validate:
-                    vc = real_validate(fam["cert_file"])
+                cert_file = fam.get("cert_file") if (fam and fam.get("cert_file")) else None
+                if not cert_file:
+                    for ct in ["rsa2048", "p256", "rsa1024", "expired", "selfsigned", "chain-incomplete"]:
+                        if ct in hint_name.lower():
+                            cert_file = f"lab/certs/{ct}.crt"
+                            break
+                if cert_file and pathlib.Path(cert_file).exists() and not cert.get("is_tls13_opaque") and real_validate:
+                    vc = real_validate(cert_file)
                     for ck in ["chain_valid","chain_length","san_match","pubkey_bits","pubkey_algo","sigalg","sigalg_weak","keysize_weak","days_to_expiry","is_expired","is_self_signed","ocsp_stapled_status"]:
                         if ck in vc and vc[ck] is not None: cert[ck] = vc[ck]
+                    cert["leaf_present"] = True
+                elif "none" in hint_name.lower() or (fam and fam.get("cert") == "none"):
+                    cert["leaf_present"] = False
+                    cert["chain_valid"] = False
             except Exception: pass
             cert.setdefault("leaf_present", cert.get("leaf_present", False)); cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False)); cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
             _fam_proto = None
