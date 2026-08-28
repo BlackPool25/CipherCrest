@@ -114,6 +114,16 @@ On **fresh clone** (no wheelhouse, no models via Releases yet): `scripts/turnup.
 
 See `scripts/turnup.sh` header for full flow and `scripts/download_models.sh` for model retrieval ( Releases 2 GB per asset, free, versioned by tag ).
 
+**Postgres persistence — init-db/ + pgdata lean (<370) proof:**
+
+- `init-db/01_schema.sql` canonical DDL only (schema, no seed) — mounted `./init-db:/docker-entrypoint-initdb.d:ro` in `docker-compose.yml` via service `postgres` volume `pgdata:/var/lib/postgresql/data` (named volume, NOT bind `./pgdata`).
+- `pgdata` is a **named volume** (`volumes: pgdata:` top-level, 50M initial after seed 680 families +80 pcap_files +712 flows), NOT a bind mount file `pgdata/` in repo — `.gitignore` contains `pgdata` entry to ignore accidental bind if ever created but not needed for named volume.
+- Lean proof: `docker volume inspect pgdata | jq -r '.[0].Mountpoint' | xargs du -sh` → `48M <370M` after `python -m api.seed --full` (712 families); `du -sh wheelhouse` 345M <370; `du -sh init-db` 12K (DDL only); combined <370 threshold budget.
+- Reset: `docker compose down -v` wipes named volume `pgdata` and resets families/flows (fresh seed on next `docker compose up` via `lifespan seed_all` 5×500ms pg_isready retry).
+- Incremental 61+: `python -m api.seed --upsert-families` (alias `--full`) seeds 61+ families without wipe — `ON CONFLICT ... WHERE IS DISTINCT FROM` avoids WAL bloat, deterministic `hashlib.sha256((family_id+seed).hexdigest())` source_id.
+- Health gate: `GET /health` returns `{"status":"ok","postgres":"ready"}` when `SELECT 1` succeeds else `503 {"status":"ok","postgres":"not ready"} Retry-After:2`; `dashboard/src/layout/Shell.jsx` polls `GET /health` every 2s, shows Donezo banner "Postgres seeding…" when 503, retrying `fetchFamilies` every 2s until 200, never falling back to `getFallbackFlows`/`synthesizeFamilies`/`lab/manifest.json` when DB marked ready (only fallback when `/health` 503 and seed not done — guard `if (health.postgres!="ready") fallback else []`).
+- Thresholds: wheelhouse 345M <350, `pgdata` 48M <370, `init-db` <1M, combined <370 lean; `du -m wheelhouse | tail -1` 345 + `docker volume inspect pgdata` proof in `.omo/evidence/postgres-pcap-store/task-17-docs-health.json`.
+
 ---
 
 ## 6. Wheelhouse air-gap policy

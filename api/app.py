@@ -6,7 +6,7 @@ import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from api.db_pg import query_all, query_history, query_all_history, upsert_flows, query_families, query_flows_filtered, query_metrics_filtered, query_protocol_stats, query_models, query_pcap_file, query_reports
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
@@ -711,8 +711,16 @@ async def get_flows_history(
         return []
 
 @app.get("/health")
-def health() -> Any:
-    return {"status": "ok"}
+@app.get("/api/health")
+async def health() -> Any:
+    try:
+        from api.db_pg import _get_pool
+        pool = await _get_pool()
+        async with pool.connection() as conn:
+            await conn.execute("SELECT 1")
+        return {"status": "ok", "postgres": "ready"}
+    except Exception:
+        return JSONResponse({"status": "ok", "postgres": "not ready"}, status_code=503, headers={"Retry-After": "2"})
 
 @app.get("/report")
 @app.get("/api/report")

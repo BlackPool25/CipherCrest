@@ -98,10 +98,19 @@ docker compose --profile lab up -d --build  # includes lab/docker-compose.yml 5 
 # or: WITH_LAB=1 bash scripts/turnup.sh
 # lab/offline fallback: lab/pcaps already in repo, reassembler scapy 5-tuple parity 4 prefs works without docker
 
-# verify
+# verify — Postgres ready gate (GET /health returns postgres ready or 503 Retry-After:2)
 curl -s http://localhost:8000/health | jq
+curl -s http://localhost:8000/health | jq '.postgres' | grep -q ready
+curl -s http://localhost:8000/api/families?limit=1 | jq
 curl -s http://localhost:8000/flows | jq '.[0].assessment.risk_level'
 curl -F pcap=@lab/pcaps/family-01.pcap http://localhost:8000/analyze | jq '.[0].assessment | {risk_level, calibrated_prob}'
+
+# Postgres persistence — pgdata named volume (NOT bind ./pgdata), lean <370 (<370 threshold = 365M budget)
+#   docker compose up creates named volume pgdata:/var/lib/postgresql/data via init-db/01_schema.sql mount ./init-db:/docker-entrypoint-initdb.d:ro
+#   docker compose down -v  to wipe pgdata and reset families/flows (fresh seed on next up)
+#   python -m api.seed --upsert-families  for 61+ families without wipe (incremental, avoids WAL bloat via IS DISTINCT FROM)
+#   proof lean: du -sh pgdata (docker volume inspect pgdata | jq .[0].Mountpoint | xargs du -sh) <370M, wheelhouse 345M <370, init-db lean DDL only schema no seed
+#   health: GET /health → {"status":"ok","postgres":"ready"} when pg_isready SELECT 1 succeeds else 503 {"status":"ok","postgres":"not ready"} Retry-After:2, Shell.jsx shows "Postgres seeding…" banner retrying GET /api/families every 2s until 200, never fallback to getFallbackFlows/synthesizeFamilies/lab/manifest.json when ready
 ```
 
 **Two-file lifecycle (turnup + turndown):**

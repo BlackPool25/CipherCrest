@@ -42,3 +42,7 @@ catboost_info/
 !lab/pcaps/**
 !lab/reassembled/**
 !lab/adversarial/**
+
+# Postgres persistence — pgdata named volume (NOT bind), ignore accidental bind if ever created
+pgdata/
+pgdata

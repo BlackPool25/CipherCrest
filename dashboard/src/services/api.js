@@ -18,6 +18,20 @@ async function checkIsSeeded() {
   } catch { return null }
 }
 
+async function checkHealth() {
+  try {
+    const r = await fetch('/health', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+    if (!r.ok) {
+      const j = await r.json().catch(() => null)
+      if (j && j.postgres) return j
+      return { status: 'ok', postgres: 'not ready' }
+    }
+    const j = await r.json().catch(() => null)
+    if (j && j.postgres) return j
+    return { status: 'ok', postgres: 'ready' }
+  } catch { return null }
+}
+
 export async function fetchFamilies(params = {}) {
   const qs = new URLSearchParams()
   if (params.status) qs.set('status', String(params.status))
@@ -68,7 +82,7 @@ export async function fetchFlows(opts = {}) {
     order = opts.order
   }
   try {
-    // GET /api/flows
+    // GET /api/flows — always via /api/* (Postgres SSOT)
     const qs = new URLSearchParams()
     qs.set('limit', String(limit))
     if (flow_id) qs.set('flow_id', String(flow_id))
@@ -80,32 +94,47 @@ export async function fetchFlows(opts = {}) {
     const data = await res.json()
     const list = Array.isArray(data) ? data : (data && Array.isArray(data.flows) ? data.flows : [])
     if (data.length === 0 || list.length === 0) return []; // empty-state not fallback
-    // Do NOT blend getFallbackFlows when DB reachable — guard isSeeded via GET /api/families
+    // Guard: only fallback when health.postgres!="ready", else return [] — never mask ready DB
+    const health = await checkHealth()
+    if (health && health.postgres!="ready") {
+      return getFallbackFlows()
+    }
+    if (health && health.postgres === "ready") {
+      // DB ready — never fallback to synthesizeFamilies/lab/manifest.json
+      const seeded = await checkIsSeeded()
+      isSeeded = seeded
+      if (seeded === true) return list
+      if (seeded === false) return []
+      if (list.length >= 1) return list
+      return []
+    }
+    // health null (unreachable) — use isSeeded guard as secondary
     const seeded = await checkIsSeeded()
     isSeeded = seeded
     if (seeded === true) {
-      // DB has rows — return DB data only, no fallback blend
       return list
     }
     if (seeded === false) {
-      // DB reachable but empty — return empty, not fallback (masking empty DB removed)
       return []
     }
-    // seeded null means check failed — fall through to length guard
     if (list.length >= 1) return list
     return list
   } catch (e) {
-    // only fallback when DB unreachable (health.postgresReady false)
-    // probe health / families to decide
+    // only fallback when DB unreachable — check GET /health postgres ready gate
     try {
+      const health = await checkHealth()
+      if (health && health.postgres === "ready") {
+        return []
+      }
+      if (health && health.postgres!="ready") {
+        return getFallbackFlows()
+      }
+      // health null — probe families
       const probe = await fetch('/api/families?limit=1', { cache: 'no-store' })
       if (probe.ok) {
-        // DB reachable — do not mask empty DB with fallback
         return []
       }
     } catch {}
-    // DB unreachable — fallback to synthetic for offline dev
-    // health.postgresReady false -> fallback
     return getFallbackFlows()
   }
 }

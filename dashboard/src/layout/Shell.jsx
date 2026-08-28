@@ -71,11 +71,24 @@ export function Layout() {
   }, [])
 
   useEffect(() => {
-    // GET /api/families readiness gate — 503 retry every 2s until 200
+    // Postgres ready gate — poll GET /health, if 503 show banner "Postgres seeding…" retry every 2s until 200
+    // then retry GET /api/families every 2s until 200, never fallback to synthesizeFamilies when health ready
     let cancelled = false
     let iv = null
     const check = async () => {
       try {
+        // Check Postgres readiness via GET /health — 503 postgres not ready with Retry-After: 2
+        const hr = await fetch('/health', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+        if (!hr.ok) {
+          if (!cancelled) setReadiness({ loading: false, seeding: true })
+          return
+        }
+        const hj = await hr.json().catch(() => null)
+        if (hj && hj.postgres && hj.postgres !== 'ready') {
+          if (!cancelled) setReadiness({ loading: false, seeding: true })
+          return
+        }
+        // Postgres ready — now check families seeding
         const r = await fetch('/api/families?limit=1', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
         if (!r.ok) {
           if (!cancelled) setReadiness({ loading: false, seeding: true })
