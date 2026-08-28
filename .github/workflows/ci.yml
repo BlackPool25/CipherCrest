@@ -220,7 +220,7 @@ jobs:
           python -c "import pathlib; hits=[str(p) for p in pathlib.Path('assessment').rglob('*.py') if 'isotonic' in p.read_text().lower() and 'test_' not in str(p) and '__pycache__' not in str(p)]; assert hits==[], f'found isotonic in {hits}'" || (echo "guard 3 isotonic python fail" && exit 1)
           echo "guard 3 !isotonic OK"
           # guard 4 ja4 whitelist
-          python -c "from assessment.features import FEATURES_TOP5; assert 'ja4' not in FEATURES_TOP5 and 'ja4_rarity' in FEATURES_TOP5" || (echo "guard 4 ja4 whitelist python fail" && exit 1)
+          python -c "from assessment.features import ALLOWED_RISK_FEATURES; assert 'ja4' not in ALLOWED_RISK_FEATURES and 'ja4_rarity' in ALLOWED_RISK_FEATURES" || (echo "guard 4 ja4 whitelist python fail" && exit 1)
           grep -q "ja4_rarity" assessment/features.py || (echo "guard 4 ja4_rarity grep fail" && exit 1)
           echo "guard 4 ja4 whitelist OK"
           # guard 5 grouping env_id LOFAM
