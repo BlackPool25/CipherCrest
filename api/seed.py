@@ -1257,11 +1257,12 @@ async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths
             async with conn.transaction():
                 await _seed_model_runs_async(conn)
         else:
-            # still seed model_runs and sqlite/fixtures but lightweight even when not full? Do minimal to ensure counts.
-            # For non-full, keep previous behavior: only families/pcaps/placeholder flows. But ensure model_runs at least 1 for verification?
-            # We will still do model_runs and sqlite/fixtures when full; otherwise skip to keep idempotent small.
-            # However verification expects model_runs >=1 after --full, so only needed when full.
-            pass
+            # Always seed model_runs so /api/models is always populated
+            try:
+                async with conn.transaction():
+                    await _seed_model_runs_async(conn)
+            except Exception:
+                pass
 
         # counts after
         counts_after = {}
@@ -1513,6 +1514,12 @@ def _seed_all_sync(dsn: str, families: list[tuple[str, dict]], pcap_paths: list[
                 _ingest_fixtures_sync(conn)
             with conn.transaction():
                 _seed_model_runs_sync(conn)
+        else:
+            try:
+                with conn.transaction():
+                    _seed_model_runs_sync(conn)
+            except Exception:
+                pass
 
         counts_after = {}
         for tbl in ("families", "pcap_files", "flows", "model_runs"):

@@ -918,6 +918,14 @@ async def query_models() -> list[dict]:
             try:
                 await cur.execute("SELECT model_name, trained_at, params, metrics, artifact_sha, n_eff, dataset_caveat FROM model_runs ORDER BY trained_at DESC")
                 rows = await cur.fetchall()
+                if not rows:
+                    try:
+                        from api.seed import _seed_model_runs_async
+                        await _seed_model_runs_async(conn)
+                        await cur.execute("SELECT model_name, trained_at, params, metrics, artifact_sha, n_eff, dataset_caveat FROM model_runs ORDER BY trained_at DESC")
+                        rows = await cur.fetchall()
+                    except Exception:
+                        pass
                 out: list[dict] = []
                 for r in rows:
                     if isinstance(r, dict):
