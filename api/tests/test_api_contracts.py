@@ -20,8 +20,27 @@ def _has_postgres() -> bool:
     dsn = os.environ.get("POSTGRES_DSN") or os.environ.get("DATABASE_URL") or "postgresql://app:app_dev_only@localhost:5432/ciphcrest"
     try:
         import psycopg  # type: ignore
-        c = psycopg.connect(dsn, connect_timeout=2)
-        c.close()
+        with psycopg.connect(dsn, connect_timeout=2) as c:
+            with c.cursor() as cur:
+                cur.execute("SELECT 1 FROM information_schema.tables WHERE table_name='families'")
+                has_fam = cur.fetchone() is not None
+                if not has_fam:
+                    schema_path = pathlib.Path("init-db/01_schema.sql")
+                    if schema_path.exists():
+                        try:
+                            cur.execute(schema_path.read_text())
+                            c.commit()
+                        except Exception:
+                            try:
+                                c.rollback()
+                            except Exception:
+                                pass
+                    import asyncio
+                    from api.seed import seed_all
+                    try:
+                        asyncio.run(seed_all(dsn=dsn, full=False))
+                    except Exception:
+                        pass
         return True
     except Exception:
         return False

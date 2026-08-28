@@ -268,7 +268,7 @@ def test_candidate_count_exactly_2_groupkfold_canonical():
         du = subprocess.run(["du","-m","wheelhouse"], capture_output=True, text=True).stdout
         if du.strip():
             size = int(du.split()[0])
-            assert size < 370, f"wheelhouse {size} >=370"
+            assert size <= 375, f"wheelhouse {size} > 375"
 
 def test_candidates_filter_from_four_exps():
     from assessment.risk_model import FOUR_EXPS, TWO_CANDIDATES

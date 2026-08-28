@@ -448,6 +448,11 @@ async def analyze(request: Request = None, pcap: UploadFile | None = File(defaul
             except Exception:
                 pass
             try:
+                from api.db import upsert_flows as _sqlite_upsert
+                _sqlite_upsert(flows)
+            except Exception:
+                pass
+            try:
                 await _broadcast_flows(flows)
             except Exception:
                 pass
@@ -482,6 +487,11 @@ async def analyze(request: Request = None, pcap: UploadFile | None = File(defaul
                         pass
             except Exception:
                 pass
+        except Exception:
+            pass
+        try:
+            from api.db import upsert_flows as _sqlite_upsert
+            _sqlite_upsert(validated_single)
         except Exception:
             pass
         try:
@@ -697,11 +707,24 @@ async def get_flows_history(
     if flow_id is not None:
         try:
             hist = await query_history(flow_id, limit=limit, offset=offset)
+            if hist:
+                return hist
         except Exception:
-            hist = []
-        return hist
+            pass
+        try:
+            from api.db import query_history as _sqlite_query_history
+            return _sqlite_query_history(flow_id, limit=limit, offset=offset)
+        except Exception:
+            return []
     try:
-        return await query_all_history(limit=limit, offset=offset)
+        hist = await query_all_history(limit=limit, offset=offset)
+        if hist:
+            return hist
+    except Exception:
+        pass
+    try:
+        from api.db import query_all_history as _sqlite_query_all_history
+        return _sqlite_query_all_history(limit=limit, offset=offset)
     except Exception:
         return []
 

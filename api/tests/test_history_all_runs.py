@@ -40,8 +40,18 @@ def _can_connect() -> bool:
             try:
                 with psycopg.connect(dsn, connect_timeout=2) as conn:
                     with conn.cursor() as cur:
-                        cur.execute("SELECT 1")
-                        cur.fetchone()
+                        cur.execute("SELECT 1 FROM information_schema.tables WHERE table_name='flows_history'")
+                        if cur.fetchone() is None:
+                            schema_path = pathlib.Path("init-db/01_schema.sql")
+                            if schema_path.exists():
+                                try:
+                                    cur.execute(schema_path.read_text())
+                                    conn.commit()
+                                except Exception:
+                                    try:
+                                        conn.rollback()
+                                    except Exception:
+                                        pass
                     return True
             except Exception:
                 continue
@@ -69,111 +79,117 @@ if CAN_PG:
             continue
 
 
-@pytest.mark.asyncio
-async def test_reruns_increment_version():
+def test_reruns_increment_version():
     """2 reruns produce version 1->2->3; verify via query_history."""
     if not CAN_PG or WORKING_DSN is None:
         pytest.skip("postgres not available — skipping pg version test")
-    from api.db_pg import query_history, upsert_flows, _get_pool
 
-    fid = "family-test-history-8"
-    # clean prior history for this fid to make test deterministic
-    pool = await _get_pool()
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
-                await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
-                await conn.commit()
-            except Exception:
+    async def _inner():
+        from api.db_pg import query_history, upsert_flows, _get_pool
+
+        fid = "family-test-history-8"
+        # clean prior history for this fid to make test deterministic
+        pool = await _get_pool()
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
                 try:
-                    await conn.rollback()
+                    await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
+                    await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
+                    await conn.commit()
+                except Exception:
+                    try:
+                        await conn.rollback()
+                    except Exception:
+                        pass
+
+        flow = _load_flow(fid)
+        # first insert -> version 1
+        await upsert_flows([flow], source="synthetic")
+        h1 = await query_history(fid, limit=10, offset=0)
+        assert len(h1) >= 1
+        assert max(r["version"] for r in h1) == 1
+
+        # second rerun with lab source -> version 2
+        await upsert_flows([flow], source="lab")
+        h2 = await query_history(fid, limit=10, offset=0)
+        assert len(h2) >= 2
+        versions = sorted(r["version"] for r in h2)
+        assert versions == list(range(1, len(versions) + 1))
+        assert max(versions) == 2
+        # check source differentiation exists (at least one lab)
+        # query raw pg for source column
+        pool = await _get_pool()
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT source FROM flows_history WHERE flow_id=%s ORDER BY version", (fid,))
+                rows = await cur.fetchall()
+                sources = [r[0] if isinstance(r, (list, tuple)) else r.get("source") for r in rows]
+                assert "lab" in sources
+
+        # third rerun -> version 3
+        await upsert_flows([flow], source="live")
+        h3 = await query_history(fid, limit=10, offset=0)
+        versions3 = sorted(r["version"] for r in h3)
+        assert max(versions3) == 3
+        assert versions3 == [1, 2, 3]
+
+        # cleanup
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                try:
+                    await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
+                    await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
+                    await conn.commit()
                 except Exception:
                     pass
 
-    flow = _load_flow(fid)
-    # first insert -> version 1
-    await upsert_flows([flow], source="synthetic")
-    h1 = await query_history(fid, limit=10, offset=0)
-    assert len(h1) >= 1
-    assert max(r["version"] for r in h1) == 1
-
-    # second rerun with lab source -> version 2
-    await upsert_flows([flow], source="lab")
-    h2 = await query_history(fid, limit=10, offset=0)
-    assert len(h2) >= 2
-    versions = sorted(r["version"] for r in h2)
-    assert versions == list(range(1, len(versions) + 1))
-    assert max(versions) == 2
-    # check source differentiation exists (at least one lab)
-    # query raw pg for source column
-    pool = await _get_pool()
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT source FROM flows_history WHERE flow_id=%s ORDER BY version", (fid,))
-            rows = await cur.fetchall()
-            sources = [r[0] if isinstance(r, (list, tuple)) else r.get("source") for r in rows]
-            assert "lab" in sources
-
-    # third rerun -> version 3
-    await upsert_flows([flow], source="live")
-    h3 = await query_history(fid, limit=10, offset=0)
-    versions3 = sorted(r["version"] for r in h3)
-    assert max(versions3) == 3
-    assert versions3 == [1, 2, 3]
-
-    # cleanup
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
-                await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
-                await conn.commit()
-            except Exception:
-                pass
+    asyncio.run(_inner())
 
 
-@pytest.mark.asyncio
-async def test_concurrent_5x_distinct_versions():
+def test_concurrent_5x_distinct_versions():
     """concurrent 5x same family produce distinct versions 1..5 with FOR UPDATE no collision."""
     if not CAN_PG or WORKING_DSN is None:
         pytest.skip("postgres not available")
-    from api.db_pg import query_history, upsert_flows, _get_pool
 
-    fid = "family-concurrent-8"
-    pool = await _get_pool()
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
-                await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
-                await conn.commit()
-            except Exception:
+    async def _inner():
+        from api.db_pg import query_history, upsert_flows, _get_pool
+
+        fid = "family-concurrent-8"
+        pool = await _get_pool()
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
                 try:
-                    await conn.rollback()
+                    await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
+                    await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
+                    await conn.commit()
+                except Exception:
+                    try:
+                        await conn.rollback()
+                    except Exception:
+                        pass
+
+        flow = _load_flow(fid)
+
+        # run 5 concurrent upserts
+        await asyncio.gather(*[upsert_flows([flow], source="synthetic") for _ in range(5)])
+        hist = await query_history(fid, limit=10, offset=0)
+        assert len(hist) == 5, f"expected 5 history rows, got {len(hist)}"
+        versions = sorted(r["version"] for r in hist)
+        assert versions == [1, 2, 3, 4, 5], f"versions not distinct 1..5: {versions}"
+        # no gaps, no duplicates
+        assert len(set(versions)) == 5
+
+        # cleanup
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                try:
+                    await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
+                    await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
+                    await conn.commit()
                 except Exception:
                     pass
 
-    flow = _load_flow(fid)
-
-    # run 5 concurrent upserts
-    await asyncio.gather(*[upsert_flows([flow], source="synthetic") for _ in range(5)])
-    hist = await query_history(fid, limit=10, offset=0)
-    assert len(hist) == 5, f"expected 5 history rows, got {len(hist)}"
-    versions = sorted(r["version"] for r in hist)
-    assert versions == [1, 2, 3, 4, 5], f"versions not distinct 1..5: {versions}"
-    # no gaps, no duplicates
-    assert len(set(versions)) == 5
-
-    # cleanup
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("DELETE FROM flows_history WHERE flow_id=%s", (fid,))
-                await cur.execute("DELETE FROM flows WHERE flow_id=%s", (fid,))
-                await conn.commit()
-            except Exception:
-                pass
+    asyncio.run(_inner())
 
 
 def test_source_column_and_indexes_exist():
