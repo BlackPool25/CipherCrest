@@ -39,11 +39,12 @@ import {
   Zap,
   Plus
 } from 'lucide-react'
-import { fetchFlows, fetchHistory } from './services/api.js'
+import { fetchFlows, fetchHistory, fetchMetrics } from './services/api.js'
 import CoverageTable from './components/CoverageTable.jsx'
 import PcapCustomizer from './components/PcapCustomizer.jsx'
 import Graphs from './components/Graphs.jsx'
 import { TOK, injectTokens } from './tokens.js'
+import { useQueryState, parseAsString } from 'nuqs'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
@@ -317,16 +318,58 @@ export function Gauge({ posture }) {
 }
 
 // ── Donezo-Style Analytics Capsule Chart ──
-export function AnalyticsCapsuleChart({ flows = [] }) {
-  const days = [
-    { day: 'S', val: 78, active: false },
-    { day: 'M', val: 88, active: false },
-    { day: 'T', val: 74, active: true, tag: '74%' },
-    { day: 'W', val: 95, active: false, fill: '#155C3A' },
-    { day: 'T', val: 60, active: false, striped: true },
-    { day: 'F', val: 70, active: false, striped: true },
-    { day: 'S', val: 65, active: false, striped: true },
-  ]
+export function AnalyticsCapsuleChart({ flows = [], selectedFlowId = null, protocolStats = null }) {
+  const days = (() => {
+    if (protocolStats && Array.isArray(protocolStats) && protocolStats.length > 0) {
+      const maxCnt = Math.max(...protocolStats.map(p => p.cnt || 0), 1)
+      const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+      return protocolStats.slice(0, 7).map((ps, i) => {
+        const pct = Math.round((ps.cnt / maxCnt) * 95)
+        const val = Math.max(12, Math.min(95, pct))
+        return {
+          day: labels[i] || ps.protocol?.slice(0, 1)?.toUpperCase() || String(i),
+          val,
+          active: i === 2,
+          tag: i === 2 ? `${val}%` : undefined,
+          striped: val < 65,
+          fill: i === 3 ? '#155C3A' : undefined,
+        }
+      })
+    }
+    if (selectedFlowId) {
+      return [
+        { day: 'S', val: 12, active: false, striped: true },
+        { day: 'M', val: 16, active: false, striped: true },
+        { day: 'T', val: 74, active: true, tag: '74%' },
+        { day: 'W', val: 18, active: false, striped: true },
+        { day: 'T', val: 14, active: false, striped: true },
+        { day: 'F', val: 20, active: false, striped: true },
+        { day: 'S', val: 12, active: false, striped: true },
+      ].map((d, i) => {
+        if (i === 2 && flows.length === 1) {
+          const p = flows[0]?.assessment?.posture_score ?? 74
+          return { ...d, val: Math.max(18, Math.min(95, p)), tag: `${Math.max(18, Math.min(95, p))}%` }
+        }
+        return d
+      })
+    }
+    const buckets = [0, 0, 0, 0, 0, 0, 0]
+    flows.forEach((f, idx) => { buckets[idx % 7] += 1 })
+    const maxB = Math.max(...buckets, 1)
+    const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+    const derived = buckets.map((c, i) => {
+      const base = Math.round(60 + (c / maxB) * 35)
+      return {
+        day: labels[i],
+        val: base,
+        active: i === 2,
+        tag: i === 2 ? `${base}%` : undefined,
+        striped: base < 68,
+        fill: i === 3 ? '#155C3A' : undefined,
+      }
+    })
+    return derived
+  })()
 
   return (
     <div style={{
@@ -1016,8 +1059,12 @@ export function DrillDown({ flow }) {
 
 export default function App() {
   const [flows, setFlows] = useState(() => getDiverseBaselineFlows())
-  const [selectedId, setSelectedId] = useState('family-01')
+  const [selectedFlowId, setSelectedFlowId] = useQueryState('flow', parseAsString.withDefault(null))
+  const selectedId = selectedFlowId
+  const setSelectedId = setSelectedFlowId
   const [loading, setLoading] = useState(false)
+  const [metrics, setMetrics] = useState(null)
+  const [protocolStats, setProtocolStats] = useState(null)
 
   // Merge server flows with baseline so monitored flows are always rich
   const mergeFlows = useCallback((serverFlows) => {
@@ -1057,7 +1104,26 @@ export default function App() {
     }
   }, [mergeFlows])
 
-  // Inject a randomized arriving flow / packet on demand
+  useEffect(() => {
+    let alive = true
+    const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
+    // GET /api/metrics?flow_id filtered via generated source_id index
+    fetch(url, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive) setMetrics(j) }).catch(() => {})
+    return () => { alive = false }
+  }, [selectedFlowId])
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/metrics/protocol', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && Array.isArray(j)) setProtocolStats(j) }).catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  const filteredFlows = useMemo(() => {
+    if (!selectedFlowId) return flows
+    const f = flows.filter(fl => fl.flow_id === selectedFlowId)
+    return f.length ? f : flows.filter(fl => fl.flow_id === selectedFlowId)
+  }, [flows, selectedFlowId])
+
   const handleInjectRandomPacket = () => {
     const randomIdx = Math.floor(Math.random() * 80 + 11)
     const newId = `family-${String(randomIdx).padStart(2, '0')}`
@@ -1109,10 +1175,11 @@ export default function App() {
 
   const selectedFlow = flows.find(f => f.flow_id === selectedId) || flows[0] || null
 
-  const postureScores = flows.map(f => f.assessment?.posture_score).filter(v => typeof v === 'number')
+  const displayFlows = selectedFlowId ? filteredFlows : flows
+  const postureScores = displayFlows.map(f => f.assessment?.posture_score).filter(v => typeof v === 'number')
   const avgPosture = postureScores.length ? Math.round(postureScores.reduce((a, b) => a + b, 0) / postureScores.length) : 85
 
-  const highRiskCount = flows.filter(f => f.assessment?.risk_level === 'High' || f.assessment?.risk_level === 'Critical').length
+  const highRiskCount = displayFlows.filter(f => f.assessment?.risk_level === 'High' || f.assessment?.risk_level === 'Critical').length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
@@ -1291,9 +1358,17 @@ export default function App() {
         </div>
       </div>
 
+      {selectedFlowId && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: TOK.primaryLight, border: `1px solid ${TOK.primary}30`, borderRadius: 10, padding: '10px 14px' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: TOK.primary }}>Filtered: {selectedFlowId}</span>
+          <span style={{ fontSize: 12, color: TOK.inkMuted }}>Showing {displayFlows.length} flow</span>
+          <button onClick={() => setSelectedFlowId(null)} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: `1px solid ${TOK.border}`, background: TOK.surface, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Clear filter — Show global</button>
+          <span style={{ fontSize: 11, color: TOK.inkFaint, fontFamily: TOK.fontMono }}>URL ?flow={selectedFlowId}</span>
+        </div>
+      )}
       {/* Middle Row: Protocol Analytics, Progress Gauge, Triage Reminders */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
-        <AnalyticsCapsuleChart flows={flows} />
+        <AnalyticsCapsuleChart flows={displayFlows} selectedFlowId={selectedFlowId} protocolStats={protocolStats} />
         <RadialProgressGauge posture={avgPosture} />
 
         <div style={{
@@ -1368,16 +1443,19 @@ export default function App() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) 1fr', gap: 16 }}>
         <MasterList
           flows={flows}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
+          selectedId={selectedFlowId}
+          onSelect={(flowOrId) => {
+            const id = typeof flowOrId === 'string' ? flowOrId : flowOrId?.flow_id
+            if (id) setSelectedFlowId(id)
+          }}
           onInjectRandomPacket={handleInjectRandomPacket}
         />
         <DrillDown flow={selectedFlow} />
       </div>
 
-      <ThreatMatrix flows={flows} onSelect={setSelectedId} selectedId={selectedId} />
-      <Graphs flows={flows} />
-      <CoverageTable flows={flows} />
+      <ThreatMatrix flows={displayFlows} onSelect={(id) => setSelectedFlowId(id)} selectedId={selectedFlowId} selectedFlowId={selectedFlowId} />
+      <Graphs flows={displayFlows} selectedFlowId={selectedFlowId} metrics={metrics} protocolStats={protocolStats} />
+      <CoverageTable flows={displayFlows} selectedFlowId={selectedFlowId} />
     </div>
   )
 }

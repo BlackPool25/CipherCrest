@@ -80,19 +80,25 @@ function FallbackPR() {
   )
 }
 
-export default function Graphs({ flows = [] }) {
+export default function Graphs({ flows = [], selectedFlowId = null, metrics = null, protocolStats = null }) {
   const [report, setReport] = useState(null)
   const [imgErr1, setImgErr1] = useState(false)
   const [imgErr2, setImgErr2] = useState(false)
+  const [localMetrics, setLocalMetrics] = useState(null)
 
   useEffect(() => {
     let alive = true
-    // GET /report for policy_dist allow/quarantine/block — posture distribution etc
     fetch('/api/report?format=json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && j) setReport(j) }).catch(()=>{})
-    // fallback to /report without prefix
     fetch('/report?format=json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && j && !report) setReport(j) }).catch(()=>{})
     return () => { alive = false }
   }, [])
+
+  useEffect(() => {
+    let alive = true
+    const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
+    fetch(url, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive) setLocalMetrics(j) }).catch(()=>{})
+    return () => { alive = false }
+  }, [selectedFlowId])
 
   // — 1) posture distribution BarChart —
   const postureBuckets = (() => {
@@ -180,13 +186,17 @@ export default function Graphs({ flows = [] }) {
 
   return (
     <div>
-      {/* header — little-color discipline */}
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
         <div style={{ width:28, height:28, borderRadius:8, background:TOK.actionSoft, border:`1px solid #E0E7FF`, display:'inline-flex', alignItems:'center', justifyContent:'center', color:TOK.action, fontWeight:700, fontSize:12, flexShrink:0 }}>◈</div>
         <div>
           <div style={{ fontSize:13, fontWeight:700, color:TOK.ink, letterSpacing:-0.2 }}>SIH-judge pack — 6 Recharts charts</div>
           <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:2 }}>Bar posture · Pie Donut policy_dist · histogram calibrated_prob · scatter anomaly_score 16.5/14.9 · line posture trend · bar ja4_rarity 0.926 — plus calibration_curve.png + risk_pr.png — Recharts 2.12</div>
         </div>
+        {selectedFlowId && (
+          <span style={{ background: TOK.primaryLight, color: TOK.primary, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, border: `1px solid ${TOK.primary}30` }}>
+            Filtered: {selectedFlowId} · {flows.length} flow · GET /api/metrics?flow_id={selectedFlowId} cnt={(localMetrics?.cnt ?? metrics?.cnt ?? flows.length)}
+          </span>
+        )}
         <span style={{ marginLeft:'auto', display:'inline-flex', gap:6 }}>
           <SeverityChip level="Low"/><SeverityChip level="High"/><SeverityChip level="Critical"/>
         </span>
