@@ -68,9 +68,11 @@ def evaluate(flow, history=None):
     bits = cert.get("pubkey_bits")
     algo = (cert.get("pubkey_algo") or "").upper()
     if bits is not None:
-        if bits < 1024:
+        if (algo.startswith("RSA") or algo == "DH" or not algo) and bits < 1024:
             findings.append(_f("Weak pubkey (<1024)", "Critical", "NIST SP 800-57 §5.6.1", f"pubkey {algo} {bits} bits <1024 Critical", "Rotate to RSA-2048/ECDSA P-256 SHA-256"))
-        elif bits < 2048 or (algo.startswith("EC") and bits < 256):
+        elif (algo.startswith("RSA") or algo == "DH" or not algo) and bits < 2048:
+            findings.append(_f("Weak pubkey (<2048 / <P-256)", "High", "NIST SP 800-57 §5.6.1", f"pubkey {algo} {bits} bits weak", "Rotate to RSA-2048/ECDSA P-256"))
+        elif algo.startswith("EC") and bits < 256:
             findings.append(_f("Weak pubkey (<2048 / <P-256)", "High", "NIST SP 800-57 §5.6.1", f"pubkey {algo} {bits} bits weak", "Rotate to RSA-2048/ECDSA P-256"))
     elif cert.get("keysize_weak"):
         sev7 = "Critical" if (bits or 0) < 1024 else "High"

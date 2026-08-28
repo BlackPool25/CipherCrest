@@ -42,7 +42,7 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                             break
                 if cert_file and pathlib.Path(cert_file).exists() and not cert.get("is_tls13_opaque") and real_validate:
                     vc = real_validate(cert_file)
-                    for ck in ["chain_valid","chain_length","san_match","pubkey_bits","pubkey_algo","sigalg","sigalg_weak","keysize_weak","days_to_expiry","is_expired","is_self_signed","ocsp_stapled_status"]:
+                    for ck in ["chain_valid","chain_length","san_match","pubkey_bits","pubkey_algo","sigalg","sigalg_weak","keysize_weak","days_to_expiry","is_expired","is_self_signed","ocsp_stapled_status","ocsp_must_staple","crl_unknown_reason","not_before","not_after"]:
                         if ck in vc and vc[ck] is not None: cert[ck] = vc[ck]
                     cert["leaf_present"] = True
                 elif "none" in hint_name.lower() or (fam and fam.get("cert") == "none"):
