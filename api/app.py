@@ -1,13 +1,14 @@
 from __future__ import annotations
-import asyncio, io, pathlib, zipfile
+import asyncio, io, os, pathlib, zipfile
+from contextlib import asynccontextmanager
 from typing import Any, Optional
 import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from api.db import query_all, query_history, query_all_history, upsert_flows
+from api.db_pg import query_all, query_history, query_all_history, upsert_flows
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 import api.ml_enrich as _ml
 from api.ml_enrich import enrich_flows as _ml_enrich
@@ -19,8 +20,61 @@ from api.pipeline import _real_pipeline_for_bytes
 from shared.config import USE_STUB
 from shared.mocks.reassembler_stub import reassemble as stub_reassemble
 from shared.schemas import FlowVerdict
+from api.seed import seed_all
 
-app = FastAPI(title="SecureMailScope Day1", version="0.1.0")
+POSTGRES_DSN = os.environ.get("POSTGRES_DSN") or os.environ.get("DATABASE_URL") or "postgresql://app:app_dev_only@localhost:5432/ciphcrest"
+
+_last_result: list[FlowVerdict] | None = None
+_last_summary: dict[str, Any] | None = None
+_connected_ws: set[WebSocket] = set()
+_broadcast_queue: asyncio.Queue = asyncio.Queue()
+_broadcaster_task: asyncio.Task | None = None
+
+
+async def _broadcaster():
+    while True:
+        try:
+            payload = await _broadcast_queue.get()
+            dead: list[WebSocket] = []
+            for ws in list(_connected_ws):
+                try:
+                    await ws.send_json(payload)
+                except Exception:
+                    dead.append(ws)
+            for ws in dead:
+                _connected_ws.discard(ws)
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            await asyncio.sleep(0.1)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _broadcaster_task
+    # pg_isready retry 5×500ms exponential before seed
+    dsn = POSTGRES_DSN
+    for attempt in range(5):
+        try:
+            await seed_all(dsn, with_dashboard_run=True)
+            break
+        except Exception as e:
+            if attempt == 4:
+                print(f"[lifespan] seed_all failed after 5 retries: {e}")
+            else:
+                await asyncio.sleep(0.5)
+    if _broadcaster_task is None or _broadcaster_task.done():
+        _broadcaster_task = asyncio.create_task(_broadcaster())
+    yield
+    if _broadcaster_task and not _broadcaster_task.done():
+        _broadcaster_task.cancel()
+        try:
+            await _broadcaster_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="SecureMailScope Day1", version="0.1.0", lifespan=lifespan)
 _dist = pathlib.Path(__file__).resolve().parent.parent / "dashboard" / "dist"
 
 # Mount static asset folders directly so /assets/..., /fonts/..., /dashboard resolve cleanly
@@ -64,58 +118,12 @@ def get_lab_pcap(pcap_name: str) -> Any:
     if pcap_file.exists() and pcap_file.is_file():
         return FileResponse(str(pcap_file), media_type="application/vnd.tcpdump.pcap", filename=safe_name)
     raise HTTPException(status_code=404, detail="pcap not found")
-_last_result: list[FlowVerdict] | None = None
-_last_summary: dict[str, Any] | None = None
-_connected_ws: set[WebSocket] = set()
-_broadcast_queue: asyncio.Queue = asyncio.Queue()
-_broadcaster_task: asyncio.Task | None = None
-
-
-async def _broadcaster():
-    while True:
-        try:
-            payload = await _broadcast_queue.get()
-            dead: list[WebSocket] = []
-            for ws in list(_connected_ws):
-                try:
-                    await ws.send_json(payload)
-                except Exception:
-                    dead.append(ws)
-            for ws in dead:
-                _connected_ws.discard(ws)
-        except asyncio.CancelledError:
-            break
-        except Exception:
-            await asyncio.sleep(0.1)
-
-
-@app.on_event("startup")
-async def _start_broadcaster():
-    global _broadcaster_task
-    if _broadcaster_task is None or _broadcaster_task.done():
-        _broadcaster_task = asyncio.create_task(_broadcaster())
-
-
-@app.on_event("shutdown")
-async def _stop_broadcaster():
-    global _broadcaster_task
-    if _broadcaster_task and not _broadcaster_task.done():
-        _broadcaster_task.cancel()
-        try:
-            await _broadcaster_task
-        except asyncio.CancelledError:
-            pass
 
 
 async def _broadcast_flows(flows: list[FlowVerdict]):
     try:
         payload = [f.model_dump() for f in flows]
         await _broadcast_queue.put(payload)
-        for ws in list(_connected_ws):
-            try:
-                await ws.send_json(payload)
-            except Exception:
-                pass
     except Exception:
         pass
 
@@ -129,21 +137,18 @@ async def ws_flows(ws: WebSocket):
     if _broadcaster_task is None or _broadcaster_task.done():
         _broadcaster_task = asyncio.create_task(_broadcaster())
     try:
-        # initial dump — query_all or _last_result fallback
+        # initial dump — always SELECT via db_pg, stub fallback only when DB unreachable and empty
         try:
             init_flows: list[FlowVerdict] = []
-            if _last_result is not None:
-                init_flows = _last_result
-            else:
+            try:
+                init_flows = await query_all(order="updated_at DESC")
+            except Exception:
+                init_flows = []
+            if not init_flows:
                 try:
-                    init_flows = query_all()
+                    init_flows = stub_reassemble("fallback")
                 except Exception:
                     init_flows = []
-                if not init_flows:
-                    try:
-                        init_flows = stub_reassemble("fallback")
-                    except Exception:
-                        init_flows = []
             await ws.send_json([f.model_dump() if hasattr(f, "model_dump") else f for f in init_flows])
         except Exception:
             try:
@@ -209,10 +214,20 @@ def _sync_ml():
 
 @app.post("/analyze")
 @app.post("/api/analyze")
-async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
+async def analyze(request: Request, pcap: UploadFile | None = File(default=None)) -> Any:
     _sync_ml()
     global _last_result, _last_summary
     if pcap is None: raise HTTPException(status_code=422, detail="missing pcap file")
+    # Content-Length pre-check before reading — 413 immediately if >100MB
+    cl = request.headers.get("content-length")
+    if cl is not None:
+        try:
+            if int(cl) > 100*1024*1024:
+                raise HTTPException(status_code=413, detail="pcap too large >100MB")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
     try:
         buf = io.BytesIO(); total = 0
         while chunk := await pcap.read(1*1024*1024):
@@ -254,7 +269,28 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
             flows = _enrich_stub_flows(flows); flows = _attach_policy(flows)
             for fv in flows:
                 FlowVerdict.model_validate(fv.model_dump())
-            _last_result = flows; _last_summary = _compute_summary(flows); upsert_flows(flows)
+            _last_result = flows; _last_summary = _compute_summary(flows)
+            # always SELECT persistence via Postgres
+            try:
+                await upsert_flows(flows)
+                # pg_notify after COMMIT outside TX — ensure NOTIFY even if upsert_flows already notifies
+                try:
+                    from api.db_pg import _get_pool
+                    pool = await _get_pool()
+                    async with pool.connection() as nconn:
+                        for fv in flows:
+                            try:
+                                await nconn.execute("SELECT pg_notify('flows_upsert', %s)", (fv.flow_id,))
+                            except Exception:
+                                pass
+                        try:
+                            await nconn.commit()
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+            except Exception:
+                pass
             try:
                 await _broadcast_flows(flows)
             except Exception:
@@ -272,7 +308,26 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
             try: validated_single.append(FlowVerdict.model_validate(fv.model_dump()))
             except Exception as exc: return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
         validated_single = _enrich_stub_flows(validated_single); validated_single = _attach_policy(validated_single)
-        _last_result = validated_single; _last_summary = _compute_summary(validated_single); upsert_flows(validated_single)
+        _last_result = validated_single; _last_summary = _compute_summary(validated_single)
+        try:
+            await upsert_flows(validated_single)
+            try:
+                from api.db_pg import _get_pool
+                pool = await _get_pool()
+                async with pool.connection() as nconn:
+                    for fv in validated_single:
+                        try:
+                            await nconn.execute("SELECT pg_notify('flows_upsert', %s)", (fv.flow_id,))
+                        except Exception:
+                            pass
+                    try:
+                        await nconn.commit()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        except Exception:
+            pass
         try:
             await _broadcast_flows(validated_single)
         except Exception:
@@ -282,32 +337,62 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
 
 @app.get("/flows")
 @app.get("/api/flows")
-def get_flows() -> Any:
-    global _last_result
-    if _last_result is not None: return [f.model_dump() for f in _last_result]
-    if not USE_STUB:
-        db_flows = query_all()
-        if db_flows: db_flows = _attach_policy(db_flows); return [f.model_dump() for f in db_flows]
-    flows = stub_reassemble("fallback"); validated=[]
-    for f in flows:
-        try: validated.append(FlowVerdict.model_validate(f.model_dump()))
-        except Exception: continue
-    return [f.model_dump() for f in validated]
+async def get_flows(q: str | None = Query(default=None), limit: int = Query(default=50), offset: int = Query(default=0)) -> Any:
+    # always SELECT via Postgres ORDER BY updated_at DESC — no _last_result branch
+    try:
+        flows = await query_all(order="updated_at DESC", limit=limit, offset=offset)
+    except Exception:
+        flows = []
+    # optional filtering via q (family_id/risk_level substring)
+    if q is not None and str(q).strip():
+        ql = str(q).strip().lower()
+        filtered: list[FlowVerdict] = []
+        for f in flows:
+            try:
+                if ql in f.flow_id.lower() or ql in (f.assessment.risk_level.lower() if f.assessment.risk_level else "") or ql in (f.family_id.lower() if hasattr(f, "family_id") and f.family_id else ""):
+                    filtered.append(f)
+            except Exception:
+                continue
+        flows = filtered
+    if flows:
+        flows = _attach_policy(flows)
+        return [f.model_dump() for f in flows]
+    # stub fallback only when DB unreachable and query_all empty
+    try:
+        stub_flows = stub_reassemble("fallback")
+        validated: list[FlowVerdict] = []
+        for f in stub_flows:
+            try: validated.append(FlowVerdict.model_validate(f.model_dump() if hasattr(f, "model_dump") else f))
+            except Exception: continue
+        # apply same filtering to stub if needed
+        if q is not None and str(q).strip():
+            ql = str(q).strip().lower()
+            validated = [f for f in validated if ql in f.flow_id.lower() or ql in (f.assessment.risk_level.lower() if f.assessment.risk_level else "")]
+        # respect limit/offset for stub as well
+        if limit is not None:
+            validated = validated[offset: offset + limit]
+        return [f.model_dump() for f in validated]
+    except Exception:
+        return []
 
 @app.get("/flows/history")
 @app.get("/api/flows/history")
-def get_flows_history(
+async def get_flows_history(
     flow_id: Optional[str] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
 ) -> Any:
     """Versioned history: ?flow_id= returns timeline, else paginated all history."""
     if flow_id is not None:
-        hist = query_history(flow_id)
-        # paginate
-        paged = hist[offset : offset + limit]
-        return paged
-    return query_all_history(limit=limit, offset=offset)
+        try:
+            hist = await query_history(flow_id, limit=limit, offset=offset)
+        except Exception:
+            hist = []
+        return hist
+    try:
+        return await query_all_history(limit=limit, offset=offset)
+    except Exception:
+        return []
 
 @app.get("/health")
 def health() -> Any:
@@ -315,9 +400,52 @@ def health() -> Any:
 
 @app.get("/report")
 @app.get("/api/report")
-def get_report(format: str = Query(default="json")) -> Any:
-    global _last_result, _last_summary
+async def get_report(format: str = Query(default="json")) -> Any:
     if format != "json": raise HTTPException(status_code=400, detail="only format=json supported Day1")
-    flows = _last_result if _last_result is not None else []
-    summary = _last_summary if _last_summary is not None else _compute_summary(flows)
+    # always SELECT from Postgres — no _last_result read branch
+    try:
+        flows = await query_all(order="updated_at DESC")
+    except Exception:
+        flows = []
+    # summary from mv_dashboard_metrics — fallback to _compute_summary if matview unavailable
+    summary: dict[str, Any] = {}
+    try:
+        from api.db_pg import _get_pool
+        pool = await _get_pool()
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT risk_level, cnt, avg_posture FROM mv_dashboard_metrics")
+                rows = await cur.fetchall()
+                risk_dist: dict[str, int] = {}
+                avg_posture_vals: list[float] = []
+                for r in rows:
+                    try:
+                        if isinstance(r, dict):
+                            rl = r.get("risk_level")
+                            cnt = r.get("cnt")
+                            avg = r.get("avg_posture")
+                        else:
+                            rl = r[0] if len(r) > 0 else None
+                            cnt = r[1] if len(r) > 1 else 0
+                            avg = r[2] if len(r) > 2 else None
+                        if rl:
+                            risk_dist[str(rl)] = int(cnt) if cnt is not None else 0
+                        if avg is not None:
+                            try:
+                                avg_posture_vals.append(float(avg))
+                            except Exception:
+                                pass
+                    except Exception:
+                        continue
+                base = _compute_summary(flows) if flows else {"proto_counts": {}, "starttls_modes": {}, "deprecated_count": 0, "opaque_count": 0, "posture": 0, "risk_dist": {}, "policy_dist": {}}
+                if risk_dist:
+                    summary = dict(base)
+                    summary["risk_dist"] = risk_dist
+                    # if matview has avg_posture, prefer weighted posture? keep base posture for now
+                else:
+                    summary = base
+                if not summary:
+                    summary = _compute_summary(flows)
+    except Exception:
+        summary = _compute_summary(flows)
     return {"flows": [f.model_dump() for f in flows], "summary": summary}
