@@ -1,8 +1,8 @@
 /**
  * Graphs — SIH-judge pack 6 charts via Recharts already dep 2.12
  * Bar posture distribution, Pie Donut policy_dist allow/quarantine/block from GET /report,
- * histogram calibrated_prob 0..1, scatter anomaly_score threshold 16.5 vs 14.9 dashed,
- * line posture trend capture_epoch, bar ja4_rarity 0.926 contrast,
+ * histogram calibrated_prob 0..1, scatter anomaly_score threshold DB-driven via /api/models,
+ * line posture trend capture_epoch, bar ja4_rarity DB-driven contrast,
  * plus img src /eval/calibration_curve.png + risk_pr.png inline fallback,
  * WCAG AA icons+patterns. tabular-nums. severity chip emerald/amber/red-700 not color-only.
  * Recharts — BarChart, PieChart, etc. Stripe/Linear little-color + 8pt rhythm.
@@ -85,6 +85,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
   const [imgErr1, setImgErr1] = useState(false)
   const [imgErr2, setImgErr2] = useState(false)
   const [localMetrics, setLocalMetrics] = useState(null)
+  const [modelThresholds, setModelThresholds] = useState({ threshold_c10_honest: null, threshold_c10: null, ja4_rarity_auc: null })
 
   useEffect(() => {
     let alive = true
@@ -99,6 +100,30 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     fetch(url, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive) setLocalMetrics(j) }).catch(()=>{})
     return () => { alive = false }
   }, [selectedFlowId])
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/models', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => {
+      if (!alive || !Array.isArray(j) || j.length===0) return
+      let honest = null, inverted = null, ja4auc = null
+      for (const m of j) {
+        const metricsObj = m.metrics || {}
+        const paramsObj = m.params || {}
+        if (honest==null) {
+          honest = metricsObj.threshold_c10_honest ?? metricsObj.thresholds_honest?.c10 ?? metricsObj.thresholds_honest?.c10 ?? paramsObj.threshold ?? paramsObj.threshold_c10_honest ?? null
+          if (honest==null && metricsObj.threshold_10) honest = metricsObj.threshold_10
+        }
+        if (inverted==null) {
+          inverted = metricsObj.threshold_c10 ?? metricsObj.thresholds?.c10 ?? paramsObj.threshold_c10 ?? metricsObj.threshold_10 ?? null
+        }
+        if (ja4auc==null) {
+          ja4auc = metricsObj.ja4_rarity_auc ?? metricsObj.ja4_auc ?? paramsObj.ja4_rarity_auc ?? null
+        }
+      }
+      if (alive) setModelThresholds({ threshold_c10_honest: honest!=null? Number(honest): null, threshold_c10: inverted!=null? Number(inverted): null, ja4_rarity_auc: ja4auc!=null? Number(ja4auc): null })
+    }).catch(()=>{})
+    return () => { alive = false }
+  }, [])
 
   // — 1) posture distribution BarChart —
   const postureBuckets = (() => {
@@ -149,8 +174,9 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     return bins
   })()
 
-  // — 4) scatter anomaly_score threshold 16.5 vs 14.9 dashed —
-  // thresholds from anomaly_baselines.json: c10=16.5 honest 14.974 (approx 14.9)
+  const thresholdHonest = modelThresholds.threshold_c10_honest
+  const thresholdInverted = modelThresholds.threshold_c10
+  const ja4Auc = modelThresholds.ja4_rarity_auc
   const scatterData = flows.map((f,i) => ({
     x: i+1,
     y: typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : (Math.random()*18+2),
@@ -169,13 +195,13 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     return sorted.map(f => ({ epoch: (f.capture_epoch||'').slice(11,16)||f.flow_id, posture: f.assessment?.posture_score ?? (100-(f.assessment?.risk_score||50)) }))
   })()
 
-  // — 6) bar ja4_rarity 0.926 contrast —
   const ja4Data = (() => {
-    const pts = flows.filter(f=> typeof f.tls?.ja4_rarity==='number').map(f=>({ name:f.flow_id, rarity: f.tls.ja4_rarity, auc:0.926 }))
+    const auc = ja4Auc
+    const pts = flows.filter(f=> typeof f.tls?.ja4_rarity==='number').map(f=>({ name:f.flow_id, rarity: f.tls.ja4_rarity, auc: auc ?? 0 }))
     if (pts.length) return pts
-    // contrast: ja4_rarity single-feature AUC 0.926 vs ECOD honest 0.473 table
+    if (auc==null) return [{ name:'loading ja4_rarity', rarity: 0, note:'loading from /api/models' }]
     return [
-      { name:'ja4_rarity_single', rarity:0.926, note:'AUC 0.926 contrast' },
+      { name:'ja4_rarity_single', rarity: auc, note:`AUC ${fmt(auc,3)} contrast from /api/models` },
       { name:'ECOD_honest', rarity:0.473, note:'0.47 random' },
       { name:'ECOD_inverted', rarity:0.871, note:'0.871 mixed' },
       { name:'IF_corrected', rarity:0.759, note:'IF 0.759' },
@@ -190,7 +216,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         <div style={{ width:28, height:28, borderRadius:8, background:TOK.actionSoft, border:`1px solid #E0E7FF`, display:'inline-flex', alignItems:'center', justifyContent:'center', color:TOK.action, fontWeight:700, fontSize:12, flexShrink:0 }}>◈</div>
         <div>
           <div style={{ fontSize:13, fontWeight:700, color:TOK.ink, letterSpacing:-0.2 }}>SIH-judge pack — 6 Recharts charts</div>
-          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:2 }}>Bar posture · Pie Donut policy_dist · histogram calibrated_prob · scatter anomaly_score 16.5/14.9 · line posture trend · bar ja4_rarity 0.926 — plus calibration_curve.png + risk_pr.png — Recharts 2.12</div>
+          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:2 }}>Bar posture · Pie Donut policy_dist · histogram calibrated_prob · scatter anomaly_score {thresholdInverted!=null?fmt(thresholdInverted,1):'…'}/{thresholdHonest!=null?fmt(thresholdHonest,1):'…'} · line posture trend · bar ja4_rarity {ja4Auc!=null?fmt(ja4Auc,3):'…'} — plus calibration_curve.png + risk_pr.png — Recharts 2.12</div>
         </div>
         {selectedFlowId && (
           <span style={{ background: TOK.primaryLight, color: TOK.primary, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, border: `1px solid ${TOK.primary}30` }}>
@@ -253,8 +279,8 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>calibrated_prob histogram · tabular-nums <span className="tabular-nums">{calHist.map(b=>b.count).join(' · ')}</span> — kernel ECE 0.21</div>
         </Card>
 
-        {/* 4 — scatter anomaly_score threshold 16.5 vs 14.9 dashed */}
-        <Card title="Anomaly score — scatter" subtitle="ECOD decision_scores_ — threshold 16.5 vs 14.9 dashed (c10 honest) · ja4 0.926 contrast dashed">
+        {/* 4 — scatter anomaly_score threshold DB-driven */}
+        <Card title="Anomaly score — scatter" subtitle={`ECOD decision_scores_ — threshold ${thresholdInverted!=null?fmt(thresholdInverted,1):'…'} vs ${thresholdHonest!=null?fmt(thresholdHonest,1):'…'} dashed (c10 honest) · ja4 ${ja4Auc!=null?fmt(ja4Auc,3):'…'} contrast dashed · from /api/models`}>
           <ResponsiveContainer width="100%" height={220}>
             <ScatterChart margin={{ top:12, right:12, left:0, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -263,13 +289,13 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
               <ZAxis range={[60,60]} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ strokeDasharray:'3 3' }} formatter={(v,n,p)=>[fmt(v,2), p?.payload?.flow || n]} />
               <Scatter name="flows" data={scatterFallback} fill={TOK.action} />
-              <ReferenceLine y={16.5} stroke={TOK.danger} strokeDasharray="8 6" strokeWidth={1.5} label={{ value:'16.5 c10', position:'right', fontSize:10, fill:TOK.danger }} />
-              <ReferenceLine y={14.9} stroke={TOK.warning} strokeDasharray="6 6" strokeWidth={1.2} label={{ value:'14.9 honest c10', position:'right', fontSize:10, fill:TOK.warning }} />
+              {thresholdInverted!=null && <ReferenceLine y={thresholdInverted} stroke={TOK.danger} strokeDasharray="8 6" strokeWidth={1.5} label={{ value: `${fmt(thresholdInverted,1)} c10`, position:'right', fontSize:10, fill:TOK.danger }} />}
+              {thresholdHonest!=null && <ReferenceLine y={thresholdHonest} stroke={TOK.warning} strokeDasharray="6 6" strokeWidth={1.2} label={{ value: `${fmt(thresholdHonest,1)} honest c10`, position:'right', fontSize:10, fill:TOK.warning }} />}
             </ScatterChart>
           </ResponsiveContainer>
           <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6, display:'flex', gap:10 }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}><span style={{ width:14, height:2, background:TOK.danger, display:'inline-block', borderTop:'2px dashed #B91C1C' }} aria-hidden="true"/> 16.5 inverted c10</span>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}><span style={{ width:14, height:2, background:TOK.warning, display:'inline-block', borderTop:'2px dashed #B45309' }} aria-hidden="true"/> 14.9 honest c10</span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}><span style={{ width:14, height:2, background:TOK.danger, display:'inline-block', borderTop:'2px dashed #B91C1C' }} aria-hidden="true"/> {thresholdInverted!=null?fmt(thresholdInverted,1):'…'} inverted c10 from /api/models</span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}><span style={{ width:14, height:2, background:TOK.warning, display:'inline-block', borderTop:'2px dashed #B45309' }} aria-hidden="true"/> {thresholdHonest!=null?fmt(thresholdHonest,1):'…'} honest c10 from /api/models</span>
           </div>
         </Card>
 
@@ -289,8 +315,8 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>capture_epoch trend · strong &gt;80 emerald · medium ≥50 amber · weak red-700 — not color-only (line + markers + refs)</div>
         </Card>
 
-        {/* 6 — bar ja4_rarity 0.926 contrast */}
-        <Card title="JA4 rarity contrast" subtitle="Bar — ja4_rarity 0.926 vs ECOD honest 0.473 · contrast table — little-color discipline">
+        {/* 6 — bar ja4_rarity DB-driven */}
+        <Card title="JA4 rarity contrast" subtitle={`Bar — ja4_rarity ${ja4Auc!=null?fmt(ja4Auc,3):'…'} vs ECOD honest 0.473 · contrast from /api/models`}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={ja4Data} layout="vertical" margin={{ top:4, right:16, left:40, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={false} />
@@ -305,7 +331,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>ja4_rarity_single AUC <span className="tabular-nums" style={{ fontWeight:700, color:TOK.ink }}>0.926</span> &gt; ECOD honest 0.473 — proves Censys separation JA4-trivial — tabular-nums</div>
+          <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:6 }}>ja4_rarity_single AUC <span className="tabular-nums" style={{ fontWeight:700, color:TOK.ink }}>{ja4Auc!=null?fmt(ja4Auc,3):'…'}</span> &gt; ECOD honest 0.473 — proves Censys separation JA4-trivial — from /api/models — tabular-nums</div>
         </Card>
       </div>
 
@@ -329,7 +355,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
       {/* footnote */}
       <div style={{ marginTop:12, fontSize:10, color:TOK.inkFaint, lineHeight:1.6, background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:8, padding:'8px 10px' }}>
-        Recharts — 6 charts: Bar posture · Pie Donut policy_dist · histogram calibrated_prob · scatter anomaly_score 16.5/14.9 dashed · line posture trend capture_epoch · bar ja4_rarity 0.926 contrast — WCAG 1.4.1 not color-only (icons ⬢▲●◆ + patterns + labels) · tabular-nums · severity chip emerald/amber/red-700
+        Recharts — 6 charts: Bar posture · Pie Donut policy_dist · histogram calibrated_prob · scatter anomaly_score {thresholdInverted!=null?fmt(thresholdInverted,1):'…'}/{thresholdHonest!=null?fmt(thresholdHonest,1):'…'} dashed · line posture trend capture_epoch · bar ja4_rarity {ja4Auc!=null?fmt(ja4Auc,3):'…'} contrast — from /api/models — WCAG 1.4.1 not color-only (icons ⬢▲●◆ + patterns + labels) · tabular-nums · severity chip emerald/amber/red-700
       </div>
     </div>
   )

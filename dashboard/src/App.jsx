@@ -317,59 +317,28 @@ export function Gauge({ posture }) {
   return <RadialProgressGauge posture={posture} />
 }
 
-// ── Donezo-Style Analytics Capsule Chart ──
 export function AnalyticsCapsuleChart({ flows = [], selectedFlowId = null, protocolStats = null }) {
-  const days = (() => {
-    if (protocolStats && Array.isArray(protocolStats) && protocolStats.length > 0) {
-      const maxCnt = Math.max(...protocolStats.map(p => p.cnt || 0), 1)
-      const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-      return protocolStats.slice(0, 7).map((ps, i) => {
-        const pct = Math.round((ps.cnt / maxCnt) * 95)
-        const val = Math.max(12, Math.min(95, pct))
-        return {
-          day: labels[i] || ps.protocol?.slice(0, 1)?.toUpperCase() || String(i),
-          val,
-          active: i === 2,
-          tag: i === 2 ? `${val}%` : undefined,
-          striped: val < 65,
-          fill: i === 3 ? '#155C3A' : undefined,
-        }
-      })
+  const [internalStats, setInternalStats] = useState(protocolStats)
+  useEffect(() => {
+    if (protocolStats && Array.isArray(protocolStats) && protocolStats.length) {
+      setInternalStats(protocolStats)
+      return
     }
-    if (selectedFlowId) {
-      return [
-        { day: 'S', val: 12, active: false, striped: true },
-        { day: 'M', val: 16, active: false, striped: true },
-        { day: 'T', val: 74, active: true, tag: '74%' },
-        { day: 'W', val: 18, active: false, striped: true },
-        { day: 'T', val: 14, active: false, striped: true },
-        { day: 'F', val: 20, active: false, striped: true },
-        { day: 'S', val: 12, active: false, striped: true },
-      ].map((d, i) => {
-        if (i === 2 && flows.length === 1) {
-          const p = flows[0]?.assessment?.posture_score ?? 74
-          return { ...d, val: Math.max(18, Math.min(95, p)), tag: `${Math.max(18, Math.min(95, p))}%` }
-        }
-        return d
-      })
-    }
-    const buckets = [0, 0, 0, 0, 0, 0, 0]
-    flows.forEach((f, idx) => { buckets[idx % 7] += 1 })
-    const maxB = Math.max(...buckets, 1)
-    const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-    const derived = buckets.map((c, i) => {
-      const base = Math.round(60 + (c / maxB) * 35)
-      return {
-        day: labels[i],
-        val: base,
-        active: i === 2,
-        tag: i === 2 ? `${base}%` : undefined,
-        striped: base < 68,
-        fill: i === 3 ? '#155C3A' : undefined,
-      }
-    })
-    return derived
-  })()
+    let alive = true
+    fetch('/api/metrics/protocol', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && Array.isArray(j)) setInternalStats(j) }).catch(()=>{})
+    return () => { alive = false }
+  }, [protocolStats])
+
+  const stats = internalStats || protocolStats
+  const hasData = Array.isArray(stats) && stats.length > 0
+  const barData = hasData ? stats.slice(0, 12).map(s => ({
+    name: `${s.protocol}/${s.tls_version}`,
+    protocol: s.protocol,
+    tls_version: s.tls_version,
+    cipher_suite: s.cipher_suite,
+    cnt: s.cnt,
+    label: `${s.protocol} ${s.tls_version}`,
+  })) : []
 
   return (
     <div style={{
@@ -386,55 +355,33 @@ export function AnalyticsCapsuleChart({ flows = [], selectedFlowId = null, proto
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Protocol Analytics</div>
-          <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2 }}>Handshake success &amp; TLS health</div>
+          <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2 }}>mv_protocol_stats · app_protocol / tls_version / cipher</div>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 600, color: TOK.primary, cursor: 'pointer' }}>
-          Weekly View
+        <span style={{ fontSize: 12, fontWeight: 600, color: TOK.primary }}>
+          DB Live
         </span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 140, padding: '10px 10px 0' }}>
-        {days.map((item, idx) => {
-          const height = `${item.val}%`
-          return (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, height: '100%', justifyContent: 'flex-end' }}>
-              {item.active && (
-                <span style={{
-                  background: TOK.surface,
-                  border: `1px solid ${TOK.border}`,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                  color: TOK.ink,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: 999,
-                  marginBottom: 2,
-                }}>
-                  {item.tag}
-                </span>
-              )}
-              <div
-                style={{
-                  width: 26,
-                  height,
-                  borderRadius: 999,
-                  background: item.striped
-                    ? 'repeating-linear-gradient(45deg, #CBD5E1, #CBD5E1 2px, #E7EAEC 2px, #E7EAEC 6px)'
-                    : item.fill || (item.active ? '#34D399' : '#1F7A4D'),
-                  transition: 'height 0.4s ease',
-                }}
-              />
-              <span style={{ fontSize: 12, fontWeight: 600, color: item.active ? TOK.ink : TOK.inkFaint }}>
-                {item.day}
-              </span>
-            </div>
-          )
-        })}
-      </div>
+      {hasData ? (
+        <div style={{ height: 140, marginTop: 8 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData} margin={{ top: 8, right: 8, left: 0, bottom: 24 }}>
+              <XAxis dataKey="name" tick={{ fontSize: 9, fill: TOK.inkFaint }} interval={0} angle={-28} textAnchor="end" height={36} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: TOK.inkFaint }} />
+              <Tooltip contentStyle={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 8, fontSize: 11 }} formatter={(v, n, p)=>[v, p?.payload?.cipher_suite || n]} labelFormatter={(l)=>` ${l}`} />
+              <Bar dataKey="cnt" radius={[8,8,0,0]} barSize={18}>
+                {barData.map((e,i)=> <Cell key={i} fill={e.tls_version==='TLS1.3' ? TOK.primary : e.tls_version==='TLS1.2' ? '#0F766E' : e.tls_version==='TLS1.0' ? TOK.danger : TOK.warning} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TOK.inkMuted, fontSize: 12 }}>Loading protocol stats from /api/metrics/protocol…</div>
+      )}
 
       <div style={{ fontSize: 11, color: TOK.inkMuted, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${TOK.border}`, paddingTop: 14 }}>
-        <span>TLS 1.2 / 1.3 Traffic Stability</span>
-        <span style={{ fontWeight: 700, color: TOK.primary }}>+14% vs last cycle</span>
+        <span>{hasData ? `${barData.length} groups · ` : ''}TLS health from mv_protocol_stats</span>
+        <span style={{ fontWeight: 700, color: TOK.primary }}>{hasData ? `${barData.reduce((a,b)=>a+b.cnt,0)} flows` : 'live'}</span>
       </div>
     </div>
   )
@@ -1114,9 +1061,19 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
+    // GET /api/metrics/protocol from mv_protocol_stats (app_protocol/tls_version/cipher)
     fetch('/api/metrics/protocol', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && Array.isArray(j)) setProtocolStats(j) }).catch(() => {})
     return () => { alive = false }
   }, [])
+
+  // Triage: server-ordered channel GET /api/flows?order=risk_score_desc&limit=5 backed by risk_score DESC, updated_at DESC index
+  useEffect(() => {
+    // ensure server ordering via generated column index risk_score DESC, updated_at DESC
+    fetch('/api/flows?order=risk_score_desc&limit=5', { cache: 'no-store' }).then(r=>r.ok?r.json():null).then(j=>{ if(Array.isArray(j)&&j.length){ /* triage channel - merge keeps server order */ mergeFlows(j)} }).catch(()=>{})
+  }, [mergeFlows])
+
+  // flowsSorted = useMemo(()=> [...flows].sort((a,b)=> (b.assessment.risk_score - a.assessment.risk_score) || (new Date(b.updated_at)-new Date(a.updated_at))), [flows]).slice(0,5)
+  const flowsSorted = useMemo(()=> [...flows].sort((a,b)=> (b.assessment.risk_score - a.assessment.risk_score) || (new Date(b.updated_at)-new Date(a.updated_at))), [flows]).slice(0,5)
 
   const filteredFlows = useMemo(() => {
     if (!selectedFlowId) return flows
@@ -1388,7 +1345,7 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '14px 0' }}>
-            {flows.slice(0, 3).map((f) => (
+            {flowsSorted.map((f) => (
               <div
                 key={f.flow_id}
                 onClick={() => setSelectedId(f.flow_id)}
