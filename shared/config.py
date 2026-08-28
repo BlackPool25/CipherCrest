@@ -12,5 +12,5 @@ import pathlib
 USE_STUB: bool = not (
     pathlib.Path("shared/progress.md").read_text(encoding="utf-8").count("🟢") >= 3
     and pathlib.Path("lab/LEDGER.md").read_text(encoding="utf-8").count("coverage_ratio") >= 3
-    and any(pathlib.Path("lab/pcaps/jittered").glob("*.pcap"))
+    and (any(pathlib.Path("lab/pcaps/jittered").glob("*.pcap")) or any(pathlib.Path("lab/pcaps").glob("*.pcap")))
 )
