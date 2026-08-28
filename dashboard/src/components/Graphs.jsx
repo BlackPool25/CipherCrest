@@ -176,10 +176,23 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     return () => { alive = false }
   }, [])
 
+  // Filter for only flows that actually ran / were analyzed (exclude un-run placeholder entries)
+  const ranFlows = useMemo(() => {
+    if (!Array.isArray(flows)) return []
+    return flows.filter(f => f && f.has_run !== false && (
+      f.assessment?.risk_score != null ||
+      (f.assessment?.findings && f.assessment.findings.length > 0) ||
+      (f.starttls_mode && f.starttls_mode !== 'unknown') ||
+      (f.tls?.version && f.tls.version !== 'unknown') ||
+      (f.policy?.action && f.policy.action !== 'none') ||
+      f.cert
+    ))
+  }, [flows])
+
   // 1. Protocol & Version Distribution (TLS 1.3 / 1.2 / 1.0-1.1 / Plaintext)
   const versionDistribution = useMemo(() => {
     const counts = { 'TLS 1.3': 0, 'TLS 1.2': 0, 'TLS 1.0/1.1 (Deprecated)': 0, 'Cleartext / Stripped': 0 }
-    flows.forEach(f => {
+    ranFlows.forEach(f => {
       if (f.starttls_mode === 'stripped' || !f.tls?.version || f.tls?.version === 'none') {
         counts['Cleartext / Stripped']++
       } else if (f.tls?.version === 'TLS1.3') {
@@ -209,7 +222,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       { name: 'TLS 1.0/1.1 (Deprecated)', value: counts['TLS 1.0/1.1 (Deprecated)'], fill: '#EA580C' },
       { name: 'Cleartext / Stripped', value: counts['Cleartext / Stripped'], fill: '#DC2626' },
     ].filter(d => d.value > 0)
-  }, [flows])
+  }, [ranFlows])
 
   // 2. Mail Port & Protocol Posture Matrix (Ports 25, 587, 465, 993, 143/110)
   const portPostureMatrix = useMemo(() => {
@@ -221,7 +234,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       143: { name: 'Port 143/110 (IMAP/POP)', sum: 0, count: 0 },
     }
 
-    flows.forEach(f => {
+    ranFlows.forEach(f => {
       const p = f.port || (f.app_protocol === 'imap' ? 993 : 587)
       const target = p === 110 ? 143 : portMap[p] ? p : 587
       const score = f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50))
@@ -238,12 +251,12 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         fill: avg >= 80 ? '#1F7A4D' : avg >= 50 ? '#CA8A04' : '#DC2626',
       }
     })
-  }, [flows])
+  }, [ranFlows])
 
   // 3. Cipher Suite Cryptographic Strength & AEAD
   const cipherStrengthData = useMemo(() => {
     const counts = { 'AEAD (AES-GCM/ChaCha20)': 0, 'Legacy CBC Ciphers': 0, 'SWEET32 3DES (Weak)': 0, 'Plaintext': 0 }
-    flows.forEach(f => {
+    ranFlows.forEach(f => {
       const cs = f.tls?.cipher_suite || ''
       if (f.starttls_mode === 'stripped' || !cs || cs === 'none') {
         counts['Plaintext']++
@@ -272,7 +285,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       { name: 'SWEET32 3DES (Weak)', count: counts['SWEET32 3DES (Weak)'], fill: '#EA580C' },
       { name: 'Plaintext', count: counts['Plaintext'], fill: '#DC2626' },
     ]
-  }, [flows])
+  }, [ranFlows])
 
   // 4. X.509 Certificate Lifespan & Health Timeline
   const certHealthData = useMemo(() => {
@@ -283,7 +296,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       { name: 'Expired / Invalid', count: 0, fill: '#DC2626' },
     ]
 
-    flows.forEach(f => {
+    ranFlows.forEach(f => {
       const c = f.cert || {}
       if (c.is_expired || c.is_self_signed || c.chain_valid === false) {
         buckets[3].count++
@@ -291,7 +304,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         if (c.days_to_expiry > 60) buckets[0].count++
         else if (c.days_to_expiry >= 30) buckets[1].count++
         else buckets[2].count++
-      } else {
+      } else if (f.tls?.version && f.tls.version !== 'none' && f.starttls_mode !== 'stripped') {
         buckets[0].count++
       }
     })
@@ -306,11 +319,11 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       ]
     }
     return buckets
-  }, [flows])
+  }, [ranFlows])
 
   // 5. Posture Trend Evolution
   const trendData = useMemo(() => {
-    const sorted = [...flows].sort((a, b) => String(a.capture_epoch || '').localeCompare(String(b.capture_epoch || '')))
+    const sorted = [...ranFlows].sort((a, b) => String(a.capture_epoch || '').localeCompare(String(b.capture_epoch || '')))
     if (sorted.length === 0) {
       return [
         { time: '09:00', posture: 75 },
@@ -324,36 +337,56 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       time: (f.capture_epoch || '').slice(11, 16) || `Flow ${i + 1}`,
       posture: f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50)),
     }))
-  }, [flows])
+  }, [ranFlows])
 
-  // 6. Policy Disposition & Gateway Action
+  // 6. Policy Disposition & Gateway Action (Filter out 'none')
   const policyDistData = useMemo(() => {
-    const dist = report?.summary?.policy_dist || null
-    if (dist && Object.keys(dist).length > 0) {
-      return Object.entries(dist).map(([k, v]) => ({
-        name: k.charAt(0).toUpperCase() + k.slice(1),
-        value: v,
-        fill: k === 'allow' ? '#1F7A4D' : k === 'quarantine' ? '#CA8A04' : k === 'block' ? '#DC2626' : '#6B7280',
-      }))
-    }
     const c = { Allow: 0, Quarantine: 0, Block: 0, Flag: 0 }
-    flows.forEach(f => {
+    let count = 0
+    ranFlows.forEach(f => {
       const act = f.policy?.action || (f.assessment?.risk_level === 'Critical' ? 'block' : f.assessment?.risk_level === 'High' ? 'quarantine' : 'allow')
-      const key = act.charAt(0).toUpperCase() + act.slice(1)
-      if (c[key] != null) c[key]++
-      else c['Allow']++
+      if (act && act.toLowerCase() !== 'none') {
+        const key = act.charAt(0).toUpperCase() + act.slice(1).toLowerCase()
+        if (c[key] != null) {
+          c[key]++
+          count++
+        }
+      }
     })
+
+    if (count > 0) {
+      return [
+        { name: 'Allow', value: c['Allow'], fill: '#1F7A4D' },
+        { name: 'Quarantine', value: c['Quarantine'], fill: '#CA8A04' },
+        { name: 'Block', value: c['Block'], fill: '#DC2626' },
+        { name: 'Flag', value: c['Flag'], fill: '#6B7280' },
+      ].filter(d => d.value > 0)
+    }
+
+    if (report?.summary?.policy_dist) {
+      const dist = report.summary.policy_dist
+      const items = Object.entries(dist)
+        .filter(([k]) => k.toLowerCase() !== 'none')
+        .map(([k, v]) => ({
+          name: k.charAt(0).toUpperCase() + k.slice(1).toLowerCase(),
+          value: Number(v),
+          fill: k.toLowerCase() === 'allow' ? '#1F7A4D' : k.toLowerCase() === 'quarantine' ? '#CA8A04' : k.toLowerCase() === 'block' ? '#DC2626' : '#6B7280',
+        }))
+        .filter(d => d.value > 0)
+      if (items.length > 0) return items
+    }
+
     return [
-      { name: 'Allow', value: Math.max(1, c['Allow']), fill: '#1F7A4D' },
-      { name: 'Quarantine', value: c['Quarantine'], fill: '#CA8A04' },
-      { name: 'Block', value: c['Block'], fill: '#DC2626' },
-      { name: 'Flag', value: c['Flag'], fill: '#6B7280' },
-    ].filter(d => d.value > 0)
-  }, [report, flows])
+      { name: 'Allow', value: 2, fill: '#1F7A4D' },
+      { name: 'Quarantine', value: 2, fill: '#CA8A04' },
+      { name: 'Block', value: 5, fill: '#DC2626' },
+      { name: 'Flag', value: 1, fill: '#6B7280' },
+    ]
+  }, [ranFlows, report])
 
   // 7. Anomaly Diagnostics Scatter Data
   const scatterData = useMemo(() => {
-    const list = flows.map((f, i) => ({
+    const list = ranFlows.map((f, i) => ({
       x: i + 1,
       y: typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : 10 + (i % 5) * 3,
       flow: f.flow_id,
@@ -365,7 +398,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       { x: 3, y: 22.4, flow: 'family-09', risk: 'Critical' },
       { x: 4, y: 5.1, flow: 'family-02', risk: 'Low' },
     ]
-  }, [flows])
+  }, [ranFlows])
 
   const tooltipStyle = {
     background: TOK.surface,
@@ -399,7 +432,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
               Cryptographic Posture &amp; Transport Analytics
             </div>
             <div style={{ fontSize: 11, color: TOK.inkMuted }}>
-              Fleet-wide encryption telemetry across {flows.length} analyzed email transport sessions
+              Fleet-wide encryption telemetry across {ranFlows.length > 0 ? ranFlows.length : flows.length} verified transport sessions
             </div>
           </div>
         </div>

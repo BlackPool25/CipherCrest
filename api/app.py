@@ -724,6 +724,7 @@ async def get_report(format: str = Query(default="json")) -> Any:
     # always SELECT from Postgres — no _last_result read branch
     try:
         flows = await query_all(order="updated_at DESC")
+        flows = _attach_policy(flows)
     except Exception:
         flows = []
     # summary from mv_dashboard_metrics — fallback to _compute_summary if matview unavailable
