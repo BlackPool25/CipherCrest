@@ -47,36 +47,6 @@ log(){ echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG_FILE" >/dev/null 2>&1 || tru
 
 HOST_MODE="${HOST_MODE:-0}"
 
-# parse args
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --check) MODE="check"; shift ;;
-    --help|-h) MODE="help"; shift ;;
-    --port) API_PORT="$2"; shift 2 ;;
-    --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
-    --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
-    --docker) HOST_MODE=0; shift ;;
-    --frontend-port) warn "frontend-port ignored in pure Docker single-port 8000 mode"; shift 2 ;;
-    --down) warn "--down is now scripts/turndown.sh (two-file lifecycle)"; MODE="help"; shift ;;
-    *) warn "unknown arg $1"; shift ;;
-  esac
-done
-# honor WITH_LAB env vs flag
-if [[ "$WITH_LAB_FLAG" -eq 1 ]]; then WITH_LAB=1; fi
-
-# port collision preflight via ss -ltn (fallback fuser)
-check_port_free(){
-  port="$1"
-  if command -v ss >/dev/null 2>&1; then
-    if ss -ltn 2>/dev/null | grep -q ":${port} "; then warn "port $port already in use (ss -ltn)"; return 1; fi
-  elif command -v fuser >/dev/null 2>&1; then
-    if fuser "${port}/tcp" >/dev/null 2>&1; then warn "port $port already in use (fuser)"; return 1; fi
-  elif command -v lsof >/dev/null 2>&1; then
-    if lsof -ti :"$port" >/dev/null 2>&1; then warn "port $port already in use (lsof)"; return 1; fi
-  fi
-  return 0
-}
-
 do_help(){
   echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab] [--host|--wheelhouse]"
   echo "  --check               dry-run checks only (no servers) — CI-safe"
@@ -104,6 +74,36 @@ do_help(){
   echo "       bash scripts/turnup.sh --host             # host install via wheelhouse & run natively"
   echo "       bash scripts/turndown.sh                  # clean down"
   echo "See docs/LARGE_FILES.md §5 and README Quick Start (git clone + compose)."
+}
+
+# parse args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) MODE="check"; shift ;;
+    --help|-h) do_help; exit 0 ;;
+    --port) API_PORT="$2"; shift 2 ;;
+    --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
+    --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
+    --docker) HOST_MODE=0; shift ;;
+    --frontend-port) warn "frontend-port ignored in pure Docker single-port 8000 mode"; shift 2 ;;
+    --down) warn "--down is now scripts/turndown.sh (two-file lifecycle)"; do_help; exit 0 ;;
+    *) warn "unknown arg $1"; shift ;;
+  esac
+done
+# honor WITH_LAB env vs flag
+if [[ "$WITH_LAB_FLAG" -eq 1 ]]; then WITH_LAB=1; fi
+
+# port collision preflight via ss -ltn (fallback fuser)
+check_port_free(){
+  port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    if ss -ltn 2>/dev/null | grep -q ":${port} "; then warn "port $port already in use (ss -ltn)"; return 1; fi
+  elif command -v fuser >/dev/null 2>&1; then
+    if fuser "${port}/tcp" >/dev/null 2>&1; then warn "port $port already in use (fuser)"; return 1; fi
+  elif command -v lsof >/dev/null 2>&1; then
+    if lsof -ti :"$port" >/dev/null 2>&1; then warn "port $port already in use (lsof)"; return 1; fi
+  fi
+  return 0
 }
 
 check_python(){
