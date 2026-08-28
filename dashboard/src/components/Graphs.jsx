@@ -185,15 +185,15 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     if (!Array.isArray(flows)) return []
     return flows.filter(f => {
       if (!f || f.has_run === false) return false
-      // Distinctly identify real analyzed traffic vs seeded placeholders
-      const hasRealCert = Boolean(f.cert && (f.cert.leaf_present === true || f.cert.is_tls13_opaque === true || typeof f.cert.days_to_expiry === 'number' || f.cert.is_expired === true))
+      // Genuine analyzed telemetry checks (excludes offline database placeholders)
       const hasRealFindings = Boolean(Array.isArray(f.assessment?.findings) && f.assessment.findings.length > 0)
-      const hasRealAnomaly = typeof f.assessment?.anomaly_score === 'number' || typeof f.assessment?.calibrated_prob === 'number'
-      const hasRealPolicy = Boolean(f.policy != null && f.policy.action != null && f.policy.action !== 'none')
+      const hasRealCert = Boolean(f.cert && (f.cert.leaf_present === true || f.cert.is_tls13_opaque === true || typeof f.cert.days_to_expiry === 'number' || f.cert.is_expired === true))
       const hasRealTls = Boolean(f.tls && f.tls.cipher_strength && f.tls.cipher_strength !== 'unknown')
+      const hasRealAnomaly = typeof f.assessment?.anomaly_score === 'number' || typeof f.assessment?.calibrated_prob === 'number'
       const isLiveOrLab = f.source === 'live' || f.source === 'lab' || f.source === 'model'
       const isExplicitRun = f.has_run === true
-      return hasRealCert || hasRealFindings || hasRealAnomaly || hasRealPolicy || hasRealTls || isLiveOrLab || isExplicitRun
+
+      return hasRealFindings || hasRealCert || hasRealTls || hasRealAnomaly || isLiveOrLab || isExplicitRun
     })
   }, [flows])
 
@@ -401,7 +401,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
       let score = typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : null
       if (score == null) {
         const rs = f.assessment?.risk_score ?? (100 - (f.assessment?.posture_score || 85))
-        score = Number((rs * 0.22 + 4.0).toFixed(1))
+        score = Number((rs * 0.20 + 4.0).toFixed(1))
       }
       return {
         x: i + 1,
@@ -432,6 +432,22 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <style>{`
+        .cc-graphs-6-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+          gap: 18px;
+        }
+        @media (min-width: 1200px) {
+          .cc-graphs-6-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+          .cc-graphs-2-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
+
       {/* Header Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -473,8 +489,8 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         )}
       </div>
 
-      {/* 6 Core Visualizations Grid (2 Columns) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
+      {/* 6 Core Visualizations Grid (3 Columns on Desktop, 2 on Tablet, 1 on Mobile) */}
+      <div className="cc-graphs-6-grid">
         {/* 1. TLS Protocol & Version Distribution */}
         <Card
           title="TLS Protocol & Version Distribution"
@@ -621,8 +637,8 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         </Card>
       </div>
 
-      {/* Cryptographic Assurance & Anomaly Diagnostics Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
+      {/* Cryptographic Assurance & Anomaly Diagnostics Grid (2 Columns on Desktop) */}
+      <div className="cc-graphs-2-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 18 }}>
         {/* Scatter Anomaly Diagnostics */}
         <Card
           title="Cryptographic Anomaly Detection"
@@ -630,15 +646,22 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           icon={Cpu}
         >
           <ResponsiveContainer width="100%" height={200}>
-            <ScatterChart margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <ScatterChart margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-              <XAxis type="number" dataKey="x" name="Flow Index" tick={{ fontSize: 10, fill: TOK.inkMuted }} />
+              <XAxis
+                type="number"
+                dataKey="x"
+                name="Flow Index"
+                domain={[0, Math.max(12, scatterData.length + 1)]}
+                tickCount={Math.min(14, scatterData.length + 2)}
+                tick={{ fontSize: 10, fill: TOK.inkMuted }}
+              />
               <YAxis type="number" dataKey="y" name="Anomaly Score" domain={[0, 25]} tick={{ fontSize: 10, fill: TOK.inkMuted }} />
-              <ZAxis range={[60, 60]} />
+              <ZAxis range={[70, 70]} />
               <Tooltip contentStyle={tooltipStyle} formatter={(v, n, p) => [fmt(v, 2), p?.payload?.flow || n]} />
               <Scatter name="Flows" data={scatterData} fill={TOK.primary} />
-              <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', fill: '#DC2626', fontSize: 10 }} />
-              <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', fill: '#CA8A04', fontSize: 10 }} />
+              <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', position: 'right', fill: '#DC2626', fontSize: 10 }} />
+              <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', position: 'right', fill: '#CA8A04', fontSize: 10 }} />
             </ScatterChart>
           </ResponsiveContainer>
         </Card>
