@@ -10,7 +10,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TOK } from '../tokens.js'
-import { fetchFlows } from '../services/api.js'
+import { fetchFlows, fetchFamilies } from '../services/api.js'
 
 // —— scapy synthesis note — must mention scapy + TLSRecord + TLSHandshakes + synth_families ——
 // Real synthesis: lab/scripts/synth_families.py --synth-one --port <v> --tls <v> --cipher <v> --kex <v> --cert <v> --starttls <v> --early <v> --out /tmp/synth.pcap
@@ -315,16 +315,41 @@ export default function Lab(){
   const [liveQueue, setLiveQueue] = useState(0)
   const [toast, setToast] = useState(null) // {type, msg}
   const [flows, setFlows] = useState([])
+  const [families, setFamilies] = useState([])
+  const [familiesReady, setFamiliesReady] = useState(null) // null loading, true DB ready, false empty
+  const [flowsLoading, setFlowsLoading] = useState(true)
   const [manifestInfo, setManifestInfo] = useState(null)
   const fileRef = useRef(null)
   const dropRef = useRef(null)
 
-  // fetch manifest lineage side-by-side + flows
+  // DB-backed fetch — gated behind GET /api/families readiness, never fallback synthesis as primary
+  // GET /api/families determines has_run via EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)
   useEffect(()=>{
     let alive=true
     fetch('/lab/manifest.json', { cache:'no-store' }).then(r=> r.ok? r.json(): null).then(d=>{ if(alive && d) setManifestInfo(d)}).catch(()=>{})
-    fetchFlows().then(d=>{ if(alive) setFlows(d)}).catch(()=>{})
-    const iv=setInterval(()=> fetchFlows().then(d=>{ if(alive) setFlows(d)}).catch(()=>{}), 5000)
+    async function loadDbBacked(){
+      try{
+        // GET /api/families readiness gate — if count>0 then DB-backed fetchFlows
+        const fams = await fetchFamilies({ limit: 60 })
+        if(!alive) return
+        setFamilies(fams)
+        const ready = Array.isArray(fams) && fams.length>0
+        setFamiliesReady(ready)
+        // fetchFlows now DB-backed (api.js returns [] when empty, not fallback blend)
+        const fl = await fetchFlows({ limit: 60 })
+        if(!alive) return
+        setFlows(Array.isArray(fl)? fl: [])
+      }catch{
+        if(alive){
+          setFamiliesReady(false)
+          setFlows([])
+        }
+      }finally{
+        if(alive) setFlowsLoading(false)
+      }
+    }
+    loadDbBacked()
+    const iv=setInterval(()=> loadDbBacked().catch(()=>{}), 5000)
     return ()=>{ alive=false; clearInterval(iv)}
   }, [])
 
@@ -353,10 +378,17 @@ export default function Lab(){
     }
   }, [])
 
-  // Customize & Generate — synthesizes real pcap via lab/scripts/synth_families.py --synth-one + FormData → POST /api/analyze
   const handleGenerate = useCallback(async ()=>{
-    // if user provided files via Drop Zone, use those; else synthesize new pcap from matrix via scapy
     const hasFiles = files.length>0
+    // gate synthesizePcapBlob behind GET /api/families readiness — do not mask empty DB with fallback synthesis
+    if(!hasFiles && familiesReady===false){
+      setToast({type:'error', msg:'DB not ready — GET /api/families empty, run seed --run-dashboard before synthesis'})
+      return
+    }
+    if(!hasFiles && familiesReady===null){
+      setToast({type:'error', msg:'DB loading — waiting for GET /api/families readiness'})
+      return
+    }
     // 413 guard >100MiB before synth
     if(hasFiles){
       const total = files.reduce((a,f)=>a+f.size,0)
@@ -422,7 +454,6 @@ export default function Lab(){
         completed+=1
         setLiveQueue(toSend.length - completed)
       }
-      // refetch GET /flows — liveQueue spinner until done
       try{
         const r = await fetch('/api/flows', { cache:'no-store', headers:{'Cache-Control':'no-cache'}})
         if(r.ok){
@@ -430,9 +461,14 @@ export default function Lab(){
           const list = Array.isArray(data)? data: (data.flows||[])
           setFlows(list)
         } else {
-          // fallback via fetchFlows helper
           const data = await fetchFlows(); setFlows(data)
         }
+        // refresh families has_run after POST /api/analyze (Postgres writes)
+        try{
+          const fams2 = await fetchFamilies({ limit: 60 })
+          setFamilies(fams2)
+          setFamiliesReady(Array.isArray(fams2) && fams2.length>0)
+        }catch{}
       }catch{
         try{ const data= await fetchFlows(); setFlows(data)}catch{}
       }
@@ -444,7 +480,7 @@ export default function Lab(){
       setTimeout(()=> setProgress(0), 900)
       setLiveQueue(0)
     }
-  }, [files, port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, psk, ech])
+  }, [files, port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, psk, ech, familiesReady])
 
   const selectedFlow = flows[0] || null
   const manifestEntry = useMemo(()=>{
@@ -469,7 +505,9 @@ export default function Lab(){
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
           {liveQueue>0 && <span style={{ background:TOK.action, color:'#fff', padding:'6px 10px', borderRadius:999, fontSize:11, fontWeight:700, display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:12, height:12, border:'2px solid rgba(255,255,255,.35)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin .7s linear infinite' }} aria-hidden="true"/> liveQueue {liveQueue}</span>}
-          <span className="tabular-nums" style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, padding:'6px 10px', borderRadius:999, fontSize:11, color:TOK.inkMuted }}>{flows.length} flows · GET /flows</span>
+          {familiesReady===null && <span style={{ background:TOK.canvas, border:`1px solid ${TOK.border}`, padding:'6px 10px', borderRadius:999, fontSize:11, color:TOK.inkFaint }}>GET /api/families loading…</span>}
+          {familiesReady!==null && <span className="tabular-nums" style={{ background: familiesReady? TOK.actionSoft: '#FEF3C7', border:`1px solid ${familiesReady? TOK.action+'20':'#FDE68A'}`, padding:'6px 10px', borderRadius:999, fontSize:11, color: familiesReady? TOK.action: '#92400E', fontWeight:700 }}>{families.length} families · {families.filter(f=> f.has_run).length} has_run · {familiesReady? 'DB ready':'DB empty'} · GET /api/families</span>}
+          {flowsLoading ? <span style={{ background:TOK.canvas, border:`1px solid ${TOK.border}`, padding:'6px 10px', borderRadius:999, fontSize:11, color:TOK.inkFaint }}>flows loading skeleton…</span> : <span className="tabular-nums" style={{ background:TOK.surface, border:`1px solid ${TOK.border}`, padding:'6px 10px', borderRadius:999, fontSize:11, color:TOK.inkMuted }}>{flows.length} flows · GET /flows DB-backed</span>}
         </div>
       </header>
 
@@ -590,18 +628,30 @@ export default function Lab(){
               </div>
               <div style={{ background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:10, padding:12 }}>
                 <div style={{ fontSize:10, color:TOK.inkFaint, textTransform:'uppercase', letterSpacing:0.6, fontWeight:700, marginBottom:6 }}>parsed (reassembled) + 120B</div>
-                {selectedFlow ? (
+                {flowsLoading ? (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    <div style={{ height:12, background:TOK.border, borderRadius:6, width:'70%', animation:'spin 1.2s ease infinite' }} />
+                    <div style={{ height:10, background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:6, width:'90%' }} />
+                    <div style={{ height:10, background:TOK.canvas, border:`1px solid ${TOK.border}`, borderRadius:6, width:'60%' }} />
+                    <div style={{ fontSize:10, color:TOK.inkFaint }}>loading skeleton — GET /api/families / GET /flows DB-backed, not fallback 10 green rows</div>
+                  </div>
+                ) : selectedFlow ? (
                   <div className="mono" style={{ fontFamily:TOK.fontMono, fontSize:11, color:TOK.ink, lineHeight:1.6 }}>
                     <div>flow {selectedFlow.flow_id} · {selectedFlow.tls?.cipher_suite || cipher} · kex {selectedFlow.tls?.kex || kex} fs {String(selectedFlow.tls?.fs_flag)}</div>
-                    <div>reassembled/{selectedFlow.flow_id}.bin 120B · sha256:{(selectedFlow.source_id||'e828b0ab').slice(0,8)} · coverage {selectedFlow.coverage_ratio ?? '1.0'}</div>
+                    <div>reassembled/{selectedFlow.flow_id}.bin 120B · sha256:{(selectedFlow.source_id||'e828b0ab').slice(0,8)} · coverage {selectedFlow.coverage_ratio ?? '1.0'} · has_run {String(families.find(f=> f.family_id===selectedFlow.flow_id)?.has_run ?? true)}</div>
                     <div>pre_tls_buf {selectedFlow.pre_tls_buffer_len ?? 0} injection {String(selectedFlow.pre_tls_buffer_injection_possible ?? false)}</div>
-                    <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>reassembled/*.bin 120B side-by-side proof · tshark 4-prefs vs scapy 5-tuple</div>
+                    <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>reassembled/*.bin 120B side-by-side proof · tshark 4-prefs vs scapy 5-tuple · DB-backed GET /flows has_run</div>
+                  </div>
+                ) : familiesReady===false ? (
+                  <div style={{ fontSize:11, color:TOK.inkMuted }}>
+                    <div>DB empty — 0 flows · GET /api/families has_run 0 · no fallback synthesis masking DB</div>
+                    <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>Postgres SSOT — synthesize via Customize & Generate → POST /api/analyze writes Postgres</div>
                   </div>
                 ) : (
                   <div style={{ fontSize:11, color:TOK.inkMuted }}>
                     <div>port {port} · {cipher} · kex {kex} fs {kex!=='RSA'?'true':'false'}</div>
-                    <div>reassembled/family-01.bin 120B · sha256 e828b0ab · coverage 1.0</div>
-                    <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>reassembled 120B side-by-side proof · select flow via GET /flows</div>
+                    <div>reassembled/family-01.bin 120B · sha256 e828b0ab · coverage 1.0 · has_run {String(families.find(f=> f.family_id==='family-01')?.has_run ?? 'unknown')}</div>
+                    <div style={{ fontSize:10, color:TOK.inkFaint, marginTop:4 }}>reassembled 120B side-by-side proof · select flow via GET /flows DB-backed has_run</div>
                   </div>
                 )}
               </div>

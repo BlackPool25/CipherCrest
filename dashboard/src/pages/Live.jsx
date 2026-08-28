@@ -89,14 +89,11 @@ export default function Live() {
   const wsRef = useRef(null)
   const [wsConnected, setWsConnected] = useState(false)
 
-  // Establish WebSocket connection to backend /ws/flows
+  // Establish WebSocket same-origin — Postgres NOTIFY via ws, no hardcoded :8000
   useEffect(() => {
     let ws = null
     try {
-      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const host = window.location.hostname || 'localhost'
-      const port = '8000'
-      ws = new WebSocket(`${proto}//${host}:${port}/ws/flows`)
+      ws = new WebSocket(`${location.protocol==="https:" ? "wss:" : "ws:"}//${location.host}/ws/flows`)
 
       ws.onopen = () => setWsConnected(true)
       ws.onclose = () => setWsConnected(false)
@@ -141,14 +138,48 @@ export default function Live() {
     setTotalIngested(c => c + 1)
   }, [])
 
-  // Auto-generate stream when WebSocket is idle
+  // isStreaming gated off when wsConnected — don't push SAMPLE_FLOWS locally when WS live
   useEffect(() => {
-    if (!isStreaming) return
+    if (!isStreaming || wsConnected) return
     const iv = setInterval(() => {
       handleNewPacketArrival()
     }, speedMs)
     return () => clearInterval(iv)
-  }, [isStreaming, speedMs, handleNewPacketArrival])
+  }, [isStreaming, wsConnected, speedMs, handleNewPacketArrival])
+
+  // poll fallback GET /api/live_captures or GET /api/flows?source=live when WS disconnected every 2s
+  // ensure TRUNCATE live_captures trigger matches future poll empty
+  useEffect(() => {
+    if (wsConnected) return
+    let alive = true
+    async function pollLive(){
+      try{
+        // try primary: GET /api/live_captures
+        let res = await fetch('/api/live_captures', { cache:'no-store', headers:{'Cache-Control':'no-cache'} })
+        let data = null
+        if(res.ok){
+          data = await res.json()
+        } else {
+          // fallback: GET /api/flows?source=live
+          res = await fetch('/api/flows?source=live', { cache:'no-store', headers:{'Cache-Control':'no-cache'} })
+          if(res.ok) data = await res.json()
+        }
+        if(!alive || !data) return
+        const list = Array.isArray(data) ? data : (data.flows || data.live_captures || [])
+        if(list.length>0){
+          // ingest newest via handleNewPacketArrival without local SAMPLE simulation
+          const latest = list[0]
+          handleNewPacketArrival(latest)
+        }
+        if(list.length===0){
+          // TRUNCATE live_captures → poll empty, matches future empty state
+        }
+      }catch{}
+    }
+    pollLive()
+    const iv = setInterval(pollLive, 2000)
+    return ()=>{ alive=false; clearInterval(iv) }
+  }, [wsConnected, handleNewPacketArrival])
 
   // Advance stages of the active packet in pipeline
   useEffect(() => {
