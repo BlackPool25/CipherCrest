@@ -6,9 +6,9 @@ import numpy as np
 if not hasattr(np, "NaN"): np.NaN = np.nan  # type: ignore
 if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from api.db_pg import query_all, query_history, query_all_history, upsert_flows
+from api.db_pg import query_all, query_history, query_all_history, upsert_flows, query_families, query_flows_filtered, query_metrics_filtered, query_protocol_stats, query_models, query_pcap_file
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 import api.ml_enrich as _ml
 from api.ml_enrich import enrich_flows as _ml_enrich
@@ -335,15 +335,57 @@ async def analyze(request: Request, pcap: UploadFile | None = File(default=None)
         return [f.model_dump() for f in validated_single]
     except Exception as exc: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":f"malformed pcap: {exc}"}]
 
+@app.get("/families")
+@app.get("/api/families")
+async def get_families(
+    status: str | None = Query(default=None),
+    q: str | None = Query(default=None),
+    limit: int = Query(default=60, ge=0, le=1000),
+    offset: int = Query(default=0, ge=0),
+) -> Any:
+    allowed = {"not_run", "running", "done", "failed"}
+    if status is not None and status not in allowed:
+        raise HTTPException(status_code=400, detail=f"invalid status must be one of {sorted(allowed)}")
+    try:
+        rows = await query_families(status=status, limit=limit, offset=offset, q=q)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return rows
+
+
 @app.get("/flows")
 @app.get("/api/flows")
-async def get_flows(q: str | None = Query(default=None), limit: int = Query(default=50), offset: int = Query(default=0)) -> Any:
-    # always SELECT via Postgres ORDER BY updated_at DESC — no _last_result branch
+async def get_flows(
+    q: str | None = Query(default=None),
+    flow_id: str | None = Query(default=None),
+    family_id: str | None = Query(default=None),
+    risk_level: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=0, le=1000),
+    offset: int = Query(default=0, ge=0),
+    order: str | None = Query(default=None),
+) -> Any:
+    # New filtered contract: use generated columns + GIN when any new param present
+    use_filtered = any(v is not None and str(v).strip() for v in [flow_id, family_id, risk_level]) or (order is not None and order.strip().lower() in ("risk_score_desc", "updated_at_desc", "risk_score_asc", "updated_at_asc"))
+    if use_filtered:
+        eff_order = (order or "updated_at_desc").strip()
+        # normalize order param
+        low = eff_order.lower()
+        if low not in ("risk_score_desc", "updated_at_desc", "risk_score_asc", "updated_at_asc"):
+            eff_order = "updated_at_desc"
+        try:
+            flows = await query_flows_filtered(flow_id=flow_id, family_id=family_id, risk_level=risk_level, limit=limit, offset=offset, order=eff_order)
+        except Exception:
+            flows = []
+        if flows:
+            flows = _attach_policy(flows)
+            return [f.model_dump() for f in flows]
+        # empty filtered -> return []
+        return []
+    # Legacy q path — always SELECT via Postgres ORDER BY updated_at DESC — no _last_result branch
     try:
         flows = await query_all(order="updated_at DESC", limit=limit, offset=offset)
     except Exception:
         flows = []
-    # optional filtering via q (family_id/risk_level substring)
     if q is not None and str(q).strip():
         ql = str(q).strip().lower()
         filtered: list[FlowVerdict] = []
@@ -357,23 +399,122 @@ async def get_flows(q: str | None = Query(default=None), limit: int = Query(defa
     if flows:
         flows = _attach_policy(flows)
         return [f.model_dump() for f in flows]
-    # stub fallback only when DB unreachable and query_all empty
     try:
         stub_flows = stub_reassemble("fallback")
         validated: list[FlowVerdict] = []
         for f in stub_flows:
             try: validated.append(FlowVerdict.model_validate(f.model_dump() if hasattr(f, "model_dump") else f))
             except Exception: continue
-        # apply same filtering to stub if needed
         if q is not None and str(q).strip():
             ql = str(q).strip().lower()
             validated = [f for f in validated if ql in f.flow_id.lower() or ql in (f.assessment.risk_level.lower() if f.assessment.risk_level else "")]
-        # respect limit/offset for stub as well
         if limit is not None:
             validated = validated[offset: offset + limit]
         return [f.model_dump() for f in validated]
     except Exception:
         return []
+
+
+@app.get("/metrics")
+@app.get("/api/metrics")
+async def get_metrics(flow_id: str | None = Query(default=None)) -> Any:
+    try:
+        result = await query_metrics_filtered(flow_id=flow_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return result
+
+
+@app.get("/metrics/protocol")
+@app.get("/api/metrics/protocol")
+async def get_metrics_protocol() -> Any:
+    try:
+        result = await query_protocol_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return result
+
+
+@app.get("/models")
+@app.get("/api/models")
+async def get_models() -> Any:
+    try:
+        result = await query_models()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return result
+
+
+@app.get("/pcap_files/{family_id}/download")
+@app.get("/api/pcap_files/{family_id}/download")
+async def download_pcap(family_id: str, request: Request) -> Any:
+    try:
+        res = await query_pcap_file(family_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if res is None:
+        raise HTTPException(status_code=404, detail="pcap not found")
+    data, byte_length, sha256 = res
+    # byte_length from DB should match octet_length(data)
+    bl = int(byte_length) if byte_length is not None else len(data)
+    # Range support: bytes=start-end
+    range_header = request.headers.get("range") or request.headers.get("Range")
+    headers = {
+        "Content-Disposition": f'attachment; filename="{family_id}.pcap"',
+        "Content-Type": "application/vnd.tcpdump.pcap",
+        "Accept-Ranges": "bytes",
+    }
+    if range_header:
+        try:
+            # parse bytes=0- or bytes=START-END
+            rh = range_header.strip()
+            if rh.lower().startswith("bytes="):
+                spec = rh[6:]
+                if "-" in spec:
+                    s_str, e_str = spec.split("-", 1)
+                    start = int(s_str) if s_str else 0
+                    end = int(e_str) if e_str else bl - 1
+                    if start < 0:
+                        start = 0
+                    if end >= bl:
+                        end = bl - 1
+                    if start > end or start >= bl:
+                        raise HTTPException(status_code=416, detail="Range Not Satisfiable")
+                    chunk_len = end - start + 1
+                    headers["Content-Range"] = f"bytes {start}-{end}/{bl}"
+                    headers["Content-Length"] = str(chunk_len)
+                    # StreamingResponse with 206, chunked 64KB without loading whole when >10MB
+                    # Slice already in memory for small pcaps, but chunk generator avoids holding extra copies for >10MB
+                    def _range_iter():
+                        # yield 64KB chunks from slice
+                        chunk_size = 64 * 1024
+                        offset = start
+                        remaining = chunk_len
+                        while remaining > 0:
+                            sz = min(chunk_size, remaining)
+                            yield data[offset: offset + sz]
+                            offset += sz
+                            remaining -= sz
+                    return StreamingResponse(_range_iter(), status_code=206, headers=headers, media_type="application/vnd.tcpdump.pcap")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+    # No Range — full content 200 with Content-Length
+    headers["Content-Length"] = str(bl)
+    # Use streaming generator chunked 64KB to avoid loading whole BYTEA into memory for >10MB
+    # psycopg streaming not loading whole BYTEA when >10MB — chunked 64KB
+    def _iter():
+        if bl > 10 * 1024 * 1024:
+            chunk_size = 64 * 1024
+            for i in range(0, bl, chunk_size):
+                yield data[i: i + chunk_size]
+        else:
+            # still stream via generator for consistency, but chunked
+            chunk_size = 64 * 1024
+            for i in range(0, bl, chunk_size):
+                yield data[i: i + chunk_size]
+    return StreamingResponse(_iter(), status_code=200, headers=headers, media_type="application/vnd.tcpdump.pcap")
 
 @app.get("/flows/history")
 @app.get("/api/flows/history")

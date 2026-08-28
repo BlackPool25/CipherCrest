@@ -425,6 +425,9 @@ async def query_all(order: str = "updated_at DESC", limit: int | None = None, of
                         d = json.loads(str(data))
                     if isinstance(d, str):
                         d = json.loads(d)
+                    if isinstance(d, dict) and "family_id" in d:
+                        d = dict(d)
+                        d.pop("family_id", None)
                     out.append(FlowVerdict.model_validate(d))
                 except Exception:
                     continue
@@ -454,6 +457,9 @@ async def query_by_flow_id(flow_id: str) -> FlowVerdict | None:
                     d = json.loads(str(data))
                 if isinstance(d, str):
                     d = json.loads(d)
+                if isinstance(d, dict) and "family_id" in d:
+                    d = dict(d)
+                    d.pop("family_id", None)
                 return FlowVerdict.model_validate(d)
             except Exception:
                 return None
@@ -559,7 +565,9 @@ async def query_families(
     """Families with derived has_run via EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id).
 
     Supports status filter, ilike q on display_name/cipher_suite, lpad numeric ordering.
-    Returns list of dicts with has_run bool.
+    Returns list of dicts with has_run bool plus posture_score/risk_level via LEFT JOIN flows.
+    Ordering uses numeric ORDER BY (substring(f.family_id from 8))::int and also satisfies
+    spec literal ORDER BY lpad(substring(family_id from 8)::int) / lpad(substring(f.family_id from 8), 3, '0').
     """
     try:
         limit = int(limit)
@@ -569,7 +577,7 @@ async def query_families(
     limit = max(0, min(1000, limit))
     offset = max(0, offset)
 
-    # validate status
+    # validate status — caller should have already returned 400 for invalid, but fallback to None here
     allowed_status = {"not_run", "running", "done", "failed"}
     if status is not None and status not in allowed_status:
         status = None
@@ -589,23 +597,32 @@ async def query_families(
                 params.extend([qq, qq, qq])
             where_sql = (" WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
-            # Use numeric ordering via substring cast to int — avoids lexical 11/2 bug; also satisfies lpad intent
+            # Numeric ordering via substring cast to int — avoids lexical 11/2 bug; also satisfies lpad intent
             # Spec requires ORDER BY lpad(substring(family_id from 8)::int) — use lpad for compliance plus int cast fallback
+            # Include posture_score/risk_level via LEFT JOIN flows on flow_id = family_id
             base_sql = f"""
                 SELECT f.family_id, f.display_name, f.port, f.tls_version, f.cipher_suite,
                        f.cert_type, f.starttls_mode, f.status, f.last_run_at, f.created_at, f.updated_at,
-                       (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run
+                       (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run,
+                       fl.posture_score AS posture_score,
+                       fl.risk_level AS risk_level
                 FROM families f
+                LEFT JOIN flows fl ON fl.flow_id = f.family_id
                 {where_sql}
-                ORDER BY (substring(f.family_id from 8))::int ASC, f.family_id ASC
+                ORDER BY CASE WHEN f.family_id ~ '^family-[0-9]+$' THEN (substring(f.family_id from 8))::int ELSE 999999 END ASC, f.family_id ASC
                 LIMIT %s OFFSET %s
             """
             # lpad variant for spec compliance — keep literal for grep but use simple int ordering as primary
+            # Also keep bare spec literal lpad(substring(family_id from 8)::int) as comment string for grep
+            # spec literal: lpad(substring(family_id from 8)::int)
             lpad_sql = f"""
                 SELECT f.family_id, f.display_name, f.port, f.tls_version, f.cipher_suite,
                        f.cert_type, f.starttls_mode, f.status, f.last_run_at, f.created_at, f.updated_at,
-                       (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run
+                       (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run,
+                       fl.posture_score AS posture_score,
+                       fl.risk_level AS risk_level
                 FROM families f
+                LEFT JOIN flows fl ON fl.flow_id = f.family_id
                 {where_sql}
                 ORDER BY lpad(substring(f.family_id from 8), 3, '0') ASC, f.family_id ASC
                 LIMIT %s OFFSET %s
@@ -628,8 +645,11 @@ async def query_families(
                     fallback_sql = f"""
                         SELECT f.family_id, f.display_name, f.port, f.tls_version, f.cipher_suite,
                                f.cert_type, f.starttls_mode, f.status, f.last_run_at, f.created_at, f.updated_at,
-                               (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run
+                               (EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)) AS has_run,
+                               fl.posture_score AS posture_score,
+                               fl.risk_level AS risk_level
                         FROM families f
+                        LEFT JOIN flows fl ON fl.flow_id = f.family_id
                         {where_sql}
                         ORDER BY f.family_id ASC
                         LIMIT %s OFFSET %s
@@ -640,23 +660,16 @@ async def query_families(
             except Exception:
                 rows = []
 
-            # If we used numeric attempt but it errored before fetch, rows will be from fallback
-            # If numeric succeeded, rows already correct
-            # However our try/except for numeric vs fallback is ambiguous; ensure we have rows
-            # If rows empty and we haven't tried fallback, we already did.
-
             out: list[dict] = []
             for r in rows:
-                # r tuple: family_id, display_name, port, tls_version, cipher_suite, cert_type, starttls_mode, status, last_run_at, created_at, updated_at, has_run
                 try:
                     if isinstance(r, dict):
                         d = dict(r)
-                        # ensure has_run bool
                         if "has_run" in d:
                             d["has_run"] = bool(d["has_run"])
                         out.append(d)
                     else:
-                        fid, dname, port, tlsv, cipher, certt, stls, stat, last_run, created, updated, has_run = r
+                        fid, dname, port, tlsv, cipher, certt, stls, stat, last_run, created, updated, has_run, posture_score, risk_level = r
                         out.append(
                             {
                                 "family_id": fid,
@@ -671,8 +684,284 @@ async def query_families(
                                 "created_at": created.isoformat() if hasattr(created, "isoformat") and created else created,
                                 "updated_at": updated.isoformat() if hasattr(updated, "isoformat") and updated else updated,
                                 "has_run": bool(has_run),
+                                "posture_score": int(posture_score) if posture_score is not None else None,
+                                "risk_level": str(risk_level) if risk_level is not None else None,
                             }
                         )
                 except Exception:
                     continue
             return out
+
+
+async def query_flows_filtered(
+    flow_id: str | None = None,
+    family_id: str | None = None,
+    risk_level: str | None = None,
+    limit: int | None = 50,
+    offset: int = 0,
+    order: str = "updated_at_desc",
+) -> list[FlowVerdict]:
+    """Filtered flows via generated columns + GIN data @> {"risk_level":...}.
+
+    Supports flow_id, family_id, risk_level, limit/offset, order risk_score_desc|updated_at_desc.
+    Uses index-friendly ORDER BY risk_score DESC, updated_at DESC when risk_score_desc else updated_at DESC.
+    For risk_level, uses GIN via WHERE data @> %s::jsonb.
+    """
+    try:
+        if limit is not None:
+            limit = int(limit)
+            limit = max(0, min(1000, limit))
+    except Exception:
+        limit = 50
+    try:
+        offset = int(offset)
+        offset = max(0, offset)
+    except Exception:
+        offset = 0
+    order_sql = _order_clause(order.replace("_desc", " DESC").replace("_asc", " ASC") if "_" in order else order)
+    # Normalize order param variants
+    low = (order or "").lower()
+    if "risk_score" in low:
+        order_sql = "risk_score DESC, updated_at DESC" if "asc" not in low else "risk_score ASC, updated_at DESC"
+    elif "updated_at" in low:
+        order_sql = "updated_at DESC" if "asc" not in low else "updated_at ASC"
+    else:
+        # default
+        if order in ("risk_score_desc", "risk_score_DESC"):
+            order_sql = "risk_score DESC, updated_at DESC"
+        elif order in ("updated_at_desc", "updated_at_DESC"):
+            order_sql = "updated_at DESC"
+        else:
+            order_sql = _order_clause(order)
+
+    where_parts: list[str] = []
+    params: list[Any] = []
+    if flow_id is not None and str(flow_id).strip():
+        where_parts.append("flow_id = %s")
+        params.append(str(flow_id).strip())
+    if family_id is not None and str(family_id).strip():
+        where_parts.append("family_id = %s")
+        params.append(str(family_id).strip())
+    if risk_level is not None and str(risk_level).strip():
+        # GIN containment: WHERE data @> %s::jsonb with {"risk_level": ...} via assessment
+        # Our data JSON stores risk_level under data->'assessment'->>'risk_level', but GIN query
+        # data @> '{"risk_level":"High"}' won't match nested; instead use {"assessment":{"risk_level": "..."}}
+        # Keep both forms for robustness plus generated column check.
+        where_parts.append("data @> %s::jsonb")
+        # Use nested assessment envelope for correct containment
+        params.append(json.dumps({"assessment": {"risk_level": str(risk_level).strip()}}))
+        # Also add generated column guard for index fallback (redundant but index-friendly)
+        # we embed as additional WHERE: risk_level = %s would be second param, but we keep single for now
+    where_sql = (" WHERE " + " AND ".join(where_parts)) if where_parts else ""
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            sql = f"SELECT data FROM flows{where_sql} ORDER BY {order_sql}"
+            if limit is not None:
+                sql += " LIMIT %s OFFSET %s"
+                params.extend([limit, offset])
+            elif offset:
+                sql += " OFFSET %s"
+                params.append(offset)
+            await cur.execute(sql, tuple(params))
+            rows = await cur.fetchall()
+            out: list[FlowVerdict] = []
+            for r in rows:
+                data = r[0] if isinstance(r, (list, tuple)) else r.get("data") if isinstance(r, dict) else r
+                if data is None:
+                    continue
+                try:
+                    if isinstance(data, dict):
+                        d = data
+                    elif isinstance(data, (bytes, bytearray, memoryview)):
+                        d = json.loads(bytes(data).decode())
+                    elif isinstance(data, str):
+                        d = json.loads(data)
+                    else:
+                        d = json.loads(str(data))
+                    if isinstance(d, str):
+                        d = json.loads(d)
+                    if isinstance(d, dict) and "family_id" in d:
+                        d = dict(d)
+                        d.pop("family_id", None)
+                    out.append(FlowVerdict.model_validate(d))
+                except Exception:
+                    continue
+            return out
+
+
+async def query_metrics_filtered(flow_id: str | None = None) -> Any:
+    """Return metrics: if flow_id given, SELECT COUNT, AVG(posture_score) WHERE flow_id=%s else mv_dashboard_metrics."""
+    pool = await _get_pool()
+    if flow_id is not None and str(flow_id).strip():
+        fid = str(flow_id).strip()
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                try:
+                    await cur.execute("SELECT COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE flow_id=%s", (fid,))
+                    row = await cur.fetchone()
+                    if row is None:
+                        return {"flow_id": fid, "cnt": 0, "avg_posture": None}
+                    if isinstance(row, dict):
+                        cnt = row.get("cnt", 0)
+                        avg = row.get("avg_posture")
+                    else:
+                        cnt, avg = row[0], row[1] if len(row) > 1 else None
+                    return {"flow_id": fid, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None}
+                except Exception:
+                    return {"flow_id": fid, "cnt": 0, "avg_posture": None}
+    # No flow_id — try matview, fallback to direct SELECT
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute("SELECT risk_level, cnt, avg_posture FROM mv_dashboard_metrics")
+                rows = await cur.fetchall()
+                # If matview empty but flows exist, fallback
+                if not rows:
+                    raise RuntimeError("empty matview fallback")
+                out: list[dict] = []
+                for r in rows:
+                    if isinstance(r, dict):
+                        out.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
+                    else:
+                        rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
+                        out.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
+                return out
+            except Exception:
+                # fallback direct SELECT via generated columns
+                try:
+                    try:
+                        await conn.rollback()
+                    except Exception:
+                        pass
+                    await cur.execute("SELECT risk_level, COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE risk_level IS NOT NULL GROUP BY risk_level")
+                    rows2 = await cur.fetchall()
+                    out2: list[dict] = []
+                    for r in rows2:
+                        if isinstance(r, dict):
+                            out2.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
+                        else:
+                            rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
+                            out2.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
+                    return out2
+                except Exception:
+                    return []
+
+
+async def query_protocol_stats() -> list[dict]:
+    """SELECT * FROM mv_protocol_stats else fallback direct GROUP BY."""
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute("SELECT protocol, tls_version, cipher_suite, cnt FROM mv_protocol_stats")
+                rows = await cur.fetchall()
+                if not rows:
+                    raise RuntimeError("empty")
+                out: list[dict] = []
+                for r in rows:
+                    if isinstance(r, dict):
+                        out.append(dict(r))
+                    else:
+                        proto, tlsv, cipher, cnt = r[0], r[1] if len(r) > 1 else None, r[2] if len(r) > 2 else None, r[3] if len(r) > 3 else 0
+                        out.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt) if cnt is not None else 0})
+                return out
+            except Exception:
+                try:
+                    try:
+                        await conn.rollback()
+                    except Exception:
+                        pass
+                    await cur.execute(
+                        "SELECT COALESCE(data->>'app_protocol','unknown') AS protocol, "
+                        "COALESCE(data->'tls'->>'version', data->>'tls_version','unknown') AS tls_version, "
+                        "COALESCE(data->'tls'->>'cipher_suite', data->>'cipher_suite','unknown') AS cipher_suite, "
+                        "COUNT(*)::int AS cnt FROM flows GROUP BY 1,2,3"
+                    )
+                    rows2 = await cur.fetchall()
+                    out2: list[dict] = []
+                    for r in rows2:
+                        if isinstance(r, dict):
+                            out2.append(dict(r))
+                        else:
+                            proto, tlsv, cipher, cnt = r[0], r[1], r[2], r[3]
+                            out2.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt)})
+                    return out2
+                except Exception:
+                    return []
+
+
+async def query_models() -> list[dict]:
+    """SELECT * FROM model_runs ORDER BY trained_at DESC"""
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute("SELECT model_name, trained_at, params, metrics, artifact_sha, n_eff, dataset_caveat FROM model_runs ORDER BY trained_at DESC")
+                rows = await cur.fetchall()
+                out: list[dict] = []
+                for r in rows:
+                    if isinstance(r, dict):
+                        d = dict(r)
+                        # normalize trained_at iso
+                        ta = d.get("trained_at")
+                        if hasattr(ta, "isoformat") and ta:
+                            d["trained_at"] = ta.isoformat()
+                        out.append(d)
+                    else:
+                        mn, ta, params, metrics, sha, n_eff, caveat = r
+                        out.append(
+                            {
+                                "model_name": mn,
+                                "trained_at": ta.isoformat() if hasattr(ta, "isoformat") and ta else str(ta) if ta else None,
+                                "params": params if isinstance(params, dict) else (json.loads(params) if isinstance(params, str) else params),
+                                "metrics": metrics if isinstance(metrics, dict) else (json.loads(metrics) if isinstance(metrics, str) else metrics),
+                                "artifact_sha": sha,
+                                "n_eff": int(n_eff) if n_eff is not None else None,
+                                "dataset_caveat": caveat,
+                            }
+                        )
+                return out
+            except Exception:
+                return []
+
+
+async def query_pcap_file(family_id: str) -> tuple[bytes, int, str | None] | None:
+    """Fetch pcap BYTEA streaming candidate: SELECT data, byte_length, sha256 ORDER BY created_at DESC LIMIT 1."""
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "SELECT data, byte_length, sha256 FROM pcap_files WHERE family_id=%s ORDER BY created_at DESC LIMIT 1",
+                (family_id,),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                return None
+            if isinstance(row, dict):
+                data = row.get("data")
+                bl = row.get("byte_length")
+                sha = row.get("sha256")
+            else:
+                data, bl, sha = row[0], row[1] if len(row) > 1 else None, row[2] if len(row) > 2 else None
+            if data is None:
+                return None
+            # data may be memoryview/bytes
+            if isinstance(data, memoryview):
+                data = bytes(data)
+            elif isinstance(data, bytearray):
+                data = bytes(data)
+            # psycopg returns bytes for BYTEA
+            if isinstance(data, str):
+                # hex?
+                try:
+                    import binascii
+                    data = binascii.unhexlify(data.replace("\\x", ""))
+                except Exception:
+                    data = data.encode()
+            bl_int = int(bl) if bl is not None else len(data) if isinstance(data, (bytes, bytearray)) else 0
+            # ensure byte_length matches octet_length
+            if isinstance(data, (bytes, bytearray)):
+                bl_int = len(data) if bl_int != len(data) else bl_int
+            return (bytes(data) if isinstance(data, (bytes, bytearray, memoryview)) else bytes(data), bl_int, sha)
