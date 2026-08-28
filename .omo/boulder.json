@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "wrk_sih26159_ml_honest_success",
+  "active_work_id": "wrk_hyperplan_ciphercrest_ml_remediation",
   "works": {
     "wrk_sih26159_day1day2": {
       "work_id": "wrk_sih26159_day1day2",
@@ -104,6 +104,19 @@
       "worktree_path": null,
       "started_at": "2026-08-27T15:30:00Z",
       "elapsed_ms": 0
+    },
+    "wrk_hyperplan_ciphercrest_ml_remediation": {
+      "work_id": "wrk_hyperplan_ciphercrest_ml_remediation",
+      "active_plan": ".omo/plans/hyperplan-ciphercrest-ml-remediation.md",
+      "plan_name": "hyperplan-ciphercrest-ml-remediation",
+      "session_ids": [
+        "codex:ses_atlas_hyperplan"
+      ],
+      "status": "completed",
+      "worktree_path": null,
+      "started_at": "2026-08-27T14:47:48.189414Z",
+      "elapsed_ms": 5525215,
+      "ended_at": "2026-08-27T16:19:53.405208Z"
     }
   }
 }

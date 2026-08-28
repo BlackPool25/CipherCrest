@@ -1,0 +1,3093 @@
+{
+  "canonical_n": 253,
+  "conflict_rate": 0.192,
+  "coverages": [
+    0.4,
+    0.336,
+    1.0,
+    0.186,
+    0.004,
+    0.06
+  ],
+  "deff": 1.8154,
+  "deterministic_note": "PYTHONHASHSEED 0, hashlib.sha256 not hash(), sort_keys True, byte-identical when re-run",
+  "icc": 0.3,
+  "label_version": "fs-v1-60fam",
+  "lf_names": [
+    "lf_tls_deprecated",
+    "lf_weak_cipher",
+    "lf_weak_kex",
+    "lf_chain_invalid",
+    "lf_days_lt30",
+    "lf_san_or_ja4_high"
+  ],
+  "m": 6,
+  "max_jaccard": 0.4319,
+  "method": "triplet_mean CPI outer fold",
+  "n_eff": 319,
+  "n_total": 500,
+  "outer_fold_k": 5,
+  "outer_fold_note": "CPI outer fold: weak labels generated without training on same fold (never train on weak labels for risk model evaluation)",
+  "overall_coverage": 1.0,
+  "per_env": [
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-208__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-109__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-61__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-249__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-268__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-388__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-454__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-453__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-443__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-81__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-431__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-357__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-73__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-121__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-322__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-123__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-364__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-253__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-361__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-204__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-126__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-125__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-343__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-237__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-352__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-113__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-281__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-320__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-319__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-229__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-277__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-243__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-122__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-452__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-220__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-217__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-02__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-417__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-31__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-349__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-58__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-270__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-224__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-85__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-348__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-182__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-385__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-99__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-120__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-30__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-257__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-66__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-419__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-150__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-127__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-313__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-366__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-170__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-402__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-164__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-57__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-410__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-213__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-411__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-451__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-259__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-409__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-263__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-375__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-241__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-236__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-141__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-298__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-332__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-72__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-43__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-116__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-21__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-56__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-130__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-77__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-450__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-187__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-267__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-87__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-68__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-345__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-373__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-52__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-216__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-219__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-172__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-449__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-302__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-190__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-02__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-232__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-316__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-155__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-02__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-154__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-54__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-406__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-262__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-29__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-420__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-64__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-292__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-38__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-09__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-189__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-362__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-383__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-440__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-315__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-36__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-138__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-293__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-254__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-42__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-395__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-210__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-174__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-63__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-290__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-261__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-461__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-96__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-251__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-228__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-250__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-89__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-160__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-94__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-191__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-193__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-143__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-414__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-397__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-93__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-360__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-279__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-382__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-103__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-310__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-44__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-405__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-350__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-303__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-432__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-275__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-346__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-117__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-59__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-444__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-447__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-424__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-430__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-464__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-201__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-378__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-192__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-200__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-02__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-278__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-105__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-425__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-134__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-436__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-178__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-102__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-147__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-459__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-199__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-317__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-333__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-162__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-327__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-413__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-32__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-24__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-338__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-434__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-433__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-393__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-181__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-185__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-197__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-41__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-148__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-463__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-165__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-39__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-205__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-65__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-258__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-256__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-291__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-124__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-79__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-372__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-118__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-363__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-128__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-15__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-53__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-14__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-146__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-183__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-354__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-106__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-133__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-17__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-48__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-100__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-240__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-71__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-442__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-215__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-153__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-330__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-412__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-75__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-341__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-427__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-284__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-423__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-168__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-458__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-371__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-326__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-377__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-161__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-369__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-271__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-91__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-416__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-323__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-212__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-336__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-158__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-184__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-83__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-194__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-318__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-140__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-400__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-329__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-235__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-356__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-74__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-390__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-441__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-457__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-112__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-455__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-314__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-421__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-324__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-391__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-114__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-47__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-12__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-55__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-287__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-415__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-142__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-399__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-435__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-274__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-115__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-353__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-374__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-301__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-22__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-307__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-305__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-33__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-408__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-403__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-173__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-137__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-244__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-46__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-438__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-234__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-51__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-196__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-462__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-297__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-239__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-76__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__jitter2_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-248__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-95__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-439__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-342__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-179__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-13__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-139__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-70__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-02__jitter4_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-351__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-84__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-203__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-376__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-335__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-429__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-339__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-392__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-119__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-387__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-60__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-272__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-368__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-88__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-225__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-418__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-242__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-308__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-246__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-245__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-386__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-282__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-19__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-337__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-40__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-227__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-86__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-209__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-135__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-389__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-309__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-110__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-175__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-107__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-223__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-344__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-331__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-207__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-67__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-214__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-367__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-34__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-218__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-166__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-156__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-288__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-428__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-355__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-286__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-18__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-445__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-321__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-238__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-180__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-49__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-177__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-255__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-252__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-446__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-265__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-379__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-404__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-407__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-437__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-167__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-151__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-169__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-365__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-45__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-08__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-82__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-37__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-312__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-129__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-26__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-304__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-163__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-222__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-347__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-35__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-266__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-325__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-03__jitter3_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-131__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-188__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-328__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-299__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-280__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-247__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-02__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-300__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-334__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-111__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-152__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-340__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-384__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-50__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-269__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-132__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-62__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-381__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-231__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-396__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-92__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-401__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-276__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-311__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-20__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-198__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-206__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-27__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-04__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-211__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-456__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-176__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-380__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-273__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-171__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-233__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-78__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-264__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-28__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-306__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-289__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-202__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-226__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-230__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-394__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-358__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-05__jitter5_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-06__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-07__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-195__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-144__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-90__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-283__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-145__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-398__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-10__jitter1_loss5"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-285__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-294__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-80__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-448__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-422__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-460__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-104__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-157__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-69__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-16__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-108__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-465__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-186__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-359__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-23__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-98__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-426__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-101__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-221__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-295__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-149__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-260__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-25__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-11__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-159__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-136__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-296__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-370__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 0,
+      "denoised_proba": 0.0,
+      "environment_id": "family-01__postfix3.9_loss0"
+    },
+    {
+      "abstain": false,
+      "denoised_label": 1,
+      "denoised_proba": 1.0,
+      "environment_id": "family-97__postfix3.9_loss0"
+    }
+  ],
+  "prerequisite_60_families": "canonical_n 253 >=60 and tls_distinct_100 253 >=60 PASS",
+  "pythonhashseed": 0,
+  "seed": 0,
+  "solver": "triplet_mean",
+  "timestamp": "2026-08-27T00:00:00Z",
+  "tls_distinct_100": 253,
+  "tls_distinct_500": 253,
+  "triplet_alphas": [
+    0.8515,
+    0.6,
+    0.6826,
+    0.7703,
+    0.6,
+    0.8886
+  ],
+  "triplet_alphas_per_fold": [
+    [
+      0.9115,
+      0.6,
+      0.723,
+      0.8526,
+      0.6,
+      0.859
+    ],
+    [
+      0.85,
+      0.6,
+      0.6668,
+      0.7478,
+      0.6,
+      0.8566
+    ],
+    [
+      0.8448,
+      0.6,
+      0.6961,
+      0.7203,
+      0.6,
+      0.7894
+    ],
+    [
+      0.8768,
+      0.6,
+      0.7182,
+      0.7612,
+      0.6,
+      0.9186
+    ],
+    [
+      0.8434,
+      0.6,
+      0.7099,
+      0.7527,
+      0.6,
+      0.8064
+    ]
+  ],
+  "voter": "FlyingSquidTripletVoter",
+  "weak_supervision_verbatim": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter §1/§4a."
+}

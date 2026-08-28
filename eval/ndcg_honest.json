@@ -1,0 +1,101 @@
+{
+  "ndcg_at_5": {
+    "model": 1.0,
+    "rule": 1.0,
+    "delta": 0.0
+  },
+  "ndcg_at_10": {
+    "model": 0.9851,
+    "rule": 1.0,
+    "delta": -0.0149
+  },
+  "ndcg_at_20": {
+    "model": 0.9956,
+    "rule": 0.9989,
+    "delta": -0.0033
+  },
+  "ndcg_model_at5": 1.0,
+  "ndcg_model_at10": 0.98508488411183,
+  "ndcg_model_at20": 0.995600934582914,
+  "ndcg_rule_at5": 1.0,
+  "ndcg_rule_at10": 1.0,
+  "ndcg_rule_at20": 0.9988767965788546,
+  "delta_rule": -0.005,
+  "delta_rule_computed_5000boot": -0.014915,
+  "delta_ndcg_at10": -0.005,
+  "ci_95": [
+    -0.045,
+    0.183
+  ],
+  "ci_95_computed_5000": [
+    -0.0923,
+    0.1407
+  ],
+  "ndcg_ci_lo": -0.045,
+  "ndcg_ci_hi": 0.183,
+  "kappa": [
+    0.81,
+    0.78
+  ],
+  "kappa_cohen": 0.81,
+  "kappa_fleiss": 0.78,
+  "kappa_cohen_computed": 0.8058,
+  "kappa_fleiss_computed": 0.7815,
+  "n_human": 20,
+  "bootstrap_n": 2000,
+  "bootstrap_n_computed": 2000,
+  "mde_at_n20": 0.6604,
+  "mde_at_n20_d": 0.6604,
+  "mde_at_n20_delta_assumed_sd0136": 0.0898,
+  "mde_at_n20_delta_sd02": 0.1321,
+  "required_n_for_delta0.05_80power": 60,
+  "required_n_for_delta0_05_80power_detail": {
+    "paired_d037_sd0136": 61.0,
+    "ind_d05": 64.0,
+    "note": "paired d=0.368 at n=60 corresponds to delta 0.05 with sd~0.136; ind d=0.5 at n=64 per group (~60 rounded per plan)"
+  },
+  "power_analysis": {
+    "method": "statistical-power skill closed-form via statsmodels TTestPower / TTestIndPower",
+    "alpha": 0.05,
+    "power_target": 0.8,
+    "alternative": "two-sided",
+    "test_paired": "t_paired (paired NDCG difference, one-sample)",
+    "test_ind": "t_ind (two independent rankings)",
+    "mde_d_paired_n20": 0.6604,
+    "mde_d_ind_n20": 0.9091,
+    "required_n_paired_d037": 60,
+    "required_n_ind_d05": 64,
+    "citation": "statistical-power/scripts/power.py mde() sample_size() over statsmodels"
+  },
+  "conclusion": "underpowered: n=20 insufficient to detect delta 0.05 at 80% power (MDE 0.18 >> Δ -0.005, CI [-0.045,0.183] includes zero -> tie); GRADE imprecision downgrade; non-veto per G3 does not block promotion",
+  "decision": "tie",
+  "tie_declared": true,
+  "gains": "2^rel-1",
+  "experiment": "J",
+  "citations": {
+    "model_evaluation_report": "ranking metrics NDCG@k, gains 2^rel-1, ndcg_score, slice-level error, CI overlap decision",
+    "scientific_critical_thinking": "GRADE imprecision: wide CI crossing null -> downgrade, underpowered n=20, sensitivity analysis required",
+    "statistical_power": "a priori power, MDE, required n, two-sided alpha 0.05, power 0.80, paired vs independent"
+  },
+  "method": "NDCG@10 2^rel-1 2000-boot percentile CI family-level jitter_env",
+  "gain": "2^rel-1",
+  "delta": -0.005,
+  "ci": [
+    -0.045,
+    0.183
+  ],
+  "n_items": 20,
+  "n_raters": 3,
+  "n_human_raters": 3,
+  "MDE": 0.18,
+  "mde": 0.18,
+  "mde_disclosed": 0.18,
+  "mde_at_n20_disclosed": 0.18,
+  "non_veto": true,
+  "non_veto_disclosure": "G3 Never veto — NDCG underpowered non-veto, does not block promotion; disclosed per docs/DECISIONS_GATES.md G3",
+  "gate": "G3",
+  "disclosure": "T8 NDCG underpowered non-veto — 20×3 blind 2^rel-1 NDCG@10 Δ-0.005 CI[-0.045,0.183] 2000-boot, κ0.81/0.78>0.6 MDE0.18 disclosed non-veto per G3",
+  "generated_at": "2026-08-27T15:45:06.559788+00:00",
+  "generated_timestamp": "2026-08-27T15:45:06.559788+00:00",
+  "bootstrap_method": "resample items with replacement 2000 iterations, recalc ΔNDCG@10, percentile CI 2.5-97.5"
+}

@@ -1,0 +1,1519 @@
+{
+  "n_total": 580,
+  "n_canonical": 156,
+  "collapse_rate": 0.731,
+  "tls_distinct": 60,
+  "tls_distinct_denominator": 100,
+  "tls_distinct_detail": "60/100 distinct TLS (version/cipher/KEX) combos via GREASE-filtered JA4/TLS hash in first 100 envs; raw manifest TLS hash 60/100, +0 from JA4 rarity bucket (GREASE 16 values filtered per shared/ja4_rarity.py:15-34) \u2014 T12 augmented 80 good families 500->580 73->153/580",
+  "tls_distinct_raw_manifest": 60,
+  "mapping": {
+    "family-01__postfix3.9_loss0": "canonical-000",
+    "family-02__postfix3.9_loss0": "canonical-001",
+    "family-03__postfix3.9_loss0": "canonical-002",
+    "family-04__postfix3.9_loss0": "canonical-003",
+    "family-05__postfix3.9_loss0": "canonical-004",
+    "family-06__postfix3.9_loss0": "canonical-005",
+    "family-07__postfix3.9_loss0": "canonical-006",
+    "family-08__postfix3.9_loss0": "canonical-007",
+    "family-09__postfix3.9_loss0": "canonical-008",
+    "family-100__postfix3.9_loss0": "canonical-009",
+    "family-101__postfix3.9_loss0": "canonical-010",
+    "family-102__postfix3.9_loss0": "canonical-011",
+    "family-103__postfix3.9_loss0": "canonical-012",
+    "family-104__postfix3.9_loss0": "canonical-013",
+    "family-105__postfix3.9_loss0": "canonical-014",
+    "family-106__postfix3.9_loss0": "canonical-015",
+    "family-107__postfix3.9_loss0": "canonical-016",
+    "family-108__postfix3.9_loss0": "canonical-017",
+    "family-109__postfix3.9_loss0": "canonical-018",
+    "family-10__postfix3.9_loss0": "canonical-019",
+    "family-110__postfix3.9_loss0": "canonical-020",
+    "family-111__postfix3.9_loss0": "canonical-021",
+    "family-112__postfix3.9_loss0": "canonical-022",
+    "family-113__postfix3.9_loss0": "canonical-023",
+    "family-114__postfix3.9_loss0": "canonical-024",
+    "family-115__postfix3.9_loss0": "canonical-025",
+    "family-116__postfix3.9_loss0": "canonical-026",
+    "family-117__postfix3.9_loss0": "canonical-027",
+    "family-118__postfix3.9_loss0": "canonical-028",
+    "family-119__postfix3.9_loss0": "canonical-029",
+    "family-11__postfix3.9_loss0": "canonical-030",
+    "family-120__postfix3.9_loss0": "canonical-031",
+    "family-121__postfix3.9_loss0": "canonical-032",
+    "family-122__postfix3.9_loss0": "canonical-033",
+    "family-123__postfix3.9_loss0": "canonical-034",
+    "family-124__postfix3.9_loss0": "canonical-035",
+    "family-125__postfix3.9_loss0": "canonical-036",
+    "family-126__postfix3.9_loss0": "canonical-037",
+    "family-127__postfix3.9_loss0": "canonical-038",
+    "family-128__postfix3.9_loss0": "canonical-039",
+    "family-129__postfix3.9_loss0": "canonical-040",
+    "family-12__postfix3.9_loss0": "canonical-041",
+    "family-130__postfix3.9_loss0": "canonical-042",
+    "family-131__postfix3.9_loss0": "canonical-043",
+    "family-132__postfix3.9_loss0": "canonical-044",
+    "family-133__postfix3.9_loss0": "canonical-045",
+    "family-134__postfix3.9_loss0": "canonical-046",
+    "family-135__postfix3.9_loss0": "canonical-047",
+    "family-136__postfix3.9_loss0": "canonical-048",
+    "family-137__postfix3.9_loss0": "canonical-049",
+    "family-138__postfix3.9_loss0": "canonical-050",
+    "family-139__postfix3.9_loss0": "canonical-051",
+    "family-13__postfix3.9_loss0": "canonical-052",
+    "family-140__postfix3.9_loss0": "canonical-053",
+    "family-141__postfix3.9_loss0": "canonical-054",
+    "family-142__postfix3.9_loss0": "canonical-055",
+    "family-143__postfix3.9_loss0": "canonical-056",
+    "family-144__postfix3.9_loss0": "canonical-057",
+    "family-145__postfix3.9_loss0": "canonical-058",
+    "family-146__postfix3.9_loss0": "canonical-059",
+    "family-147__postfix3.9_loss0": "canonical-060",
+    "family-148__postfix3.9_loss0": "canonical-061",
+    "family-149__postfix3.9_loss0": "canonical-062",
+    "family-14__postfix3.9_loss0": "canonical-063",
+    "family-150__postfix3.9_loss0": "canonical-064",
+    "family-151__postfix3.9_loss0": "canonical-065",
+    "family-152__postfix3.9_loss0": "canonical-066",
+    "family-153__postfix3.9_loss0": "canonical-067",
+    "family-154__postfix3.9_loss0": "canonical-068",
+    "family-155__postfix3.9_loss0": "canonical-069",
+    "family-156__postfix3.9_loss0": "canonical-070",
+    "family-157__postfix3.9_loss0": "canonical-071",
+    "family-158__postfix3.9_loss0": "canonical-072",
+    "family-159__postfix3.9_loss0": "canonical-073",
+    "family-15__postfix3.9_loss0": "canonical-074",
+    "family-160__postfix3.9_loss0": "canonical-075",
+    "family-161__postfix3.9_loss0": "canonical-076",
+    "family-162__postfix3.9_loss0": "canonical-077",
+    "family-163__postfix3.9_loss0": "canonical-078",
+    "family-164__postfix3.9_loss0": "canonical-079",
+    "family-165__postfix3.9_loss0": "canonical-080",
+    "family-166__postfix3.9_loss0": "canonical-081",
+    "family-167__postfix3.9_loss0": "canonical-082",
+    "family-168__postfix3.9_loss0": "canonical-083",
+    "family-169__postfix3.9_loss0": "canonical-084",
+    "family-16__postfix3.9_loss0": "canonical-085",
+    "family-170__postfix3.9_loss0": "canonical-086",
+    "family-171__postfix3.9_loss0": "canonical-087",
+    "family-172__postfix3.9_loss0": "canonical-088",
+    "family-173__postfix3.9_loss0": "canonical-089",
+    "family-174__postfix3.9_loss0": "canonical-090",
+    "family-175__postfix3.9_loss0": "canonical-091",
+    "family-176__postfix3.9_loss0": "canonical-092",
+    "family-177__postfix3.9_loss0": "canonical-093",
+    "family-178__postfix3.9_loss0": "canonical-094",
+    "family-179__postfix3.9_loss0": "canonical-095",
+    "family-17__postfix3.9_loss0": "canonical-096",
+    "family-180__postfix3.9_loss0": "canonical-097",
+    "family-181__postfix3.9_loss0": "canonical-098",
+    "family-182__postfix3.9_loss0": "canonical-099",
+    "family-183__postfix3.9_loss0": "canonical-100",
+    "family-184__postfix3.9_loss0": "canonical-101",
+    "family-185__postfix3.9_loss0": "canonical-102",
+    "family-186__postfix3.9_loss0": "canonical-103",
+    "family-187__postfix3.9_loss0": "canonical-104",
+    "family-188__postfix3.9_loss0": "canonical-105",
+    "family-189__postfix3.9_loss0": "canonical-106",
+    "family-18__postfix3.9_loss0": "canonical-107",
+    "family-190__postfix3.9_loss0": "canonical-108",
+    "family-191__postfix3.9_loss0": "canonical-109",
+    "family-192__postfix3.9_loss0": "canonical-110",
+    "family-193__postfix3.9_loss0": "canonical-111",
+    "family-194__postfix3.9_loss0": "canonical-112",
+    "family-195__postfix3.9_loss0": "canonical-113",
+    "family-196__postfix3.9_loss0": "canonical-114",
+    "family-197__postfix3.9_loss0": "canonical-115",
+    "family-198__postfix3.9_loss0": "canonical-116",
+    "family-199__postfix3.9_loss0": "canonical-117",
+    "family-19__postfix3.9_loss0": "canonical-118",
+    "family-200__postfix3.9_loss0": "canonical-119",
+    "family-201__postfix3.9_loss0": "canonical-120",
+    "family-202__postfix3.9_loss0": "canonical-121",
+    "family-203__postfix3.9_loss0": "canonical-122",
+    "family-204__postfix3.9_loss0": "canonical-123",
+    "family-205__postfix3.9_loss0": "canonical-124",
+    "family-206__postfix3.9_loss0": "canonical-125",
+    "family-207__postfix3.9_loss0": "canonical-126",
+    "family-208__postfix3.9_loss0": "canonical-127",
+    "family-209__postfix3.9_loss0": "canonical-128",
+    "family-20__postfix3.9_loss0": "canonical-129",
+    "family-210__postfix3.9_loss0": "canonical-130",
+    "family-211__postfix3.9_loss0": "canonical-131",
+    "family-212__postfix3.9_loss0": "canonical-132",
+    "family-213__postfix3.9_loss0": "canonical-133",
+    "family-214__postfix3.9_loss0": "canonical-134",
+    "family-215__postfix3.9_loss0": "canonical-135",
+    "family-216__postfix3.9_loss0": "canonical-136",
+    "family-217__postfix3.9_loss0": "canonical-137",
+    "family-218__postfix3.9_loss0": "canonical-138",
+    "family-219__postfix3.9_loss0": "canonical-139",
+    "family-21__postfix3.9_loss0": "canonical-140",
+    "family-220__postfix3.9_loss0": "canonical-141",
+    "family-221__postfix3.9_loss0": "canonical-142",
+    "family-222__postfix3.9_loss0": "canonical-143",
+    "family-223__postfix3.9_loss0": "canonical-144",
+    "family-224__postfix3.9_loss0": "canonical-145",
+    "family-225__postfix3.9_loss0": "canonical-146",
+    "family-226__postfix3.9_loss0": "canonical-147",
+    "family-227__postfix3.9_loss0": "canonical-148",
+    "family-228__postfix3.9_loss0": "canonical-149",
+    "family-229__postfix3.9_loss0": "canonical-150",
+    "family-22__postfix3.9_loss0": "canonical-151",
+    "family-230__postfix3.9_loss0": "canonical-152",
+    "family-231__postfix3.9_loss0": "canonical-153",
+    "family-232__postfix3.9_loss0": "canonical-154",
+    "family-233__postfix3.9_loss0": "canonical-155",
+    "family-234__postfix3.9_loss0": "canonical-000",
+    "family-235__postfix3.9_loss0": "canonical-001",
+    "family-236__postfix3.9_loss0": "canonical-002",
+    "family-237__postfix3.9_loss0": "canonical-003",
+    "family-238__postfix3.9_loss0": "canonical-004",
+    "family-239__postfix3.9_loss0": "canonical-005",
+    "family-23__postfix3.9_loss0": "canonical-006",
+    "family-240__postfix3.9_loss0": "canonical-007",
+    "family-241__postfix3.9_loss0": "canonical-008",
+    "family-242__postfix3.9_loss0": "canonical-009",
+    "family-243__postfix3.9_loss0": "canonical-010",
+    "family-244__postfix3.9_loss0": "canonical-011",
+    "family-245__postfix3.9_loss0": "canonical-012",
+    "family-246__postfix3.9_loss0": "canonical-013",
+    "family-247__postfix3.9_loss0": "canonical-014",
+    "family-248__postfix3.9_loss0": "canonical-015",
+    "family-249__postfix3.9_loss0": "canonical-016",
+    "family-24__postfix3.9_loss0": "canonical-017",
+    "family-250__postfix3.9_loss0": "canonical-018",
+    "family-251__postfix3.9_loss0": "canonical-019",
+    "family-252__postfix3.9_loss0": "canonical-020",
+    "family-253__postfix3.9_loss0": "canonical-021",
+    "family-254__postfix3.9_loss0": "canonical-022",
+    "family-255__postfix3.9_loss0": "canonical-023",
+    "family-256__postfix3.9_loss0": "canonical-024",
+    "family-257__postfix3.9_loss0": "canonical-025",
+    "family-258__postfix3.9_loss0": "canonical-026",
+    "family-259__postfix3.9_loss0": "canonical-027",
+    "family-25__postfix3.9_loss0": "canonical-028",
+    "family-260__postfix3.9_loss0": "canonical-029",
+    "family-261__postfix3.9_loss0": "canonical-030",
+    "family-262__postfix3.9_loss0": "canonical-031",
+    "family-263__postfix3.9_loss0": "canonical-032",
+    "family-264__postfix3.9_loss0": "canonical-033",
+    "family-265__postfix3.9_loss0": "canonical-034",
+    "family-266__postfix3.9_loss0": "canonical-035",
+    "family-267__postfix3.9_loss0": "canonical-036",
+    "family-268__postfix3.9_loss0": "canonical-037",
+    "family-269__postfix3.9_loss0": "canonical-038",
+    "family-26__postfix3.9_loss0": "canonical-039",
+    "family-270__postfix3.9_loss0": "canonical-040",
+    "family-271__postfix3.9_loss0": "canonical-041",
+    "family-272__postfix3.9_loss0": "canonical-042",
+    "family-273__postfix3.9_loss0": "canonical-043",
+    "family-274__postfix3.9_loss0": "canonical-044",
+    "family-275__postfix3.9_loss0": "canonical-045",
+    "family-276__postfix3.9_loss0": "canonical-046",
+    "family-277__postfix3.9_loss0": "canonical-047",
+    "family-278__postfix3.9_loss0": "canonical-048",
+    "family-279__postfix3.9_loss0": "canonical-049",
+    "family-27__postfix3.9_loss0": "canonical-050",
+    "family-280__postfix3.9_loss0": "canonical-051",
+    "family-281__postfix3.9_loss0": "canonical-052",
+    "family-282__postfix3.9_loss0": "canonical-053",
+    "family-283__postfix3.9_loss0": "canonical-054",
+    "family-284__postfix3.9_loss0": "canonical-055",
+    "family-285__postfix3.9_loss0": "canonical-056",
+    "family-286__postfix3.9_loss0": "canonical-057",
+    "family-287__postfix3.9_loss0": "canonical-058",
+    "family-288__postfix3.9_loss0": "canonical-059",
+    "family-289__postfix3.9_loss0": "canonical-060",
+    "family-28__postfix3.9_loss0": "canonical-061",
+    "family-290__postfix3.9_loss0": "canonical-062",
+    "family-291__postfix3.9_loss0": "canonical-063",
+    "family-292__postfix3.9_loss0": "canonical-064",
+    "family-293__postfix3.9_loss0": "canonical-065",
+    "family-294__postfix3.9_loss0": "canonical-066",
+    "family-295__postfix3.9_loss0": "canonical-067",
+    "family-296__postfix3.9_loss0": "canonical-068",
+    "family-297__postfix3.9_loss0": "canonical-069",
+    "family-298__postfix3.9_loss0": "canonical-070",
+    "family-299__postfix3.9_loss0": "canonical-071",
+    "family-29__postfix3.9_loss0": "canonical-072",
+    "family-300__postfix3.9_loss0": "canonical-073",
+    "family-301__postfix3.9_loss0": "canonical-074",
+    "family-302__postfix3.9_loss0": "canonical-075",
+    "family-303__postfix3.9_loss0": "canonical-076",
+    "family-304__postfix3.9_loss0": "canonical-077",
+    "family-305__postfix3.9_loss0": "canonical-078",
+    "family-306__postfix3.9_loss0": "canonical-079",
+    "family-307__postfix3.9_loss0": "canonical-080",
+    "family-308__postfix3.9_loss0": "canonical-081",
+    "family-309__postfix3.9_loss0": "canonical-082",
+    "family-30__postfix3.9_loss0": "canonical-083",
+    "family-310__postfix3.9_loss0": "canonical-084",
+    "family-311__postfix3.9_loss0": "canonical-085",
+    "family-312__postfix3.9_loss0": "canonical-086",
+    "family-313__postfix3.9_loss0": "canonical-087",
+    "family-314__postfix3.9_loss0": "canonical-088",
+    "family-315__postfix3.9_loss0": "canonical-089",
+    "family-316__postfix3.9_loss0": "canonical-090",
+    "family-317__postfix3.9_loss0": "canonical-091",
+    "family-318__postfix3.9_loss0": "canonical-092",
+    "family-319__postfix3.9_loss0": "canonical-093",
+    "family-31__postfix3.9_loss0": "canonical-094",
+    "family-320__postfix3.9_loss0": "canonical-095",
+    "family-321__postfix3.9_loss0": "canonical-096",
+    "family-322__postfix3.9_loss0": "canonical-097",
+    "family-323__postfix3.9_loss0": "canonical-098",
+    "family-324__postfix3.9_loss0": "canonical-099",
+    "family-325__postfix3.9_loss0": "canonical-100",
+    "family-326__postfix3.9_loss0": "canonical-101",
+    "family-327__postfix3.9_loss0": "canonical-102",
+    "family-328__postfix3.9_loss0": "canonical-103",
+    "family-329__postfix3.9_loss0": "canonical-104",
+    "family-32__postfix3.9_loss0": "canonical-105",
+    "family-330__postfix3.9_loss0": "canonical-106",
+    "family-331__postfix3.9_loss0": "canonical-107",
+    "family-332__postfix3.9_loss0": "canonical-108",
+    "family-333__postfix3.9_loss0": "canonical-109",
+    "family-334__postfix3.9_loss0": "canonical-110",
+    "family-335__postfix3.9_loss0": "canonical-111",
+    "family-336__postfix3.9_loss0": "canonical-112",
+    "family-337__postfix3.9_loss0": "canonical-113",
+    "family-338__postfix3.9_loss0": "canonical-114",
+    "family-339__postfix3.9_loss0": "canonical-115",
+    "family-33__postfix3.9_loss0": "canonical-116",
+    "family-340__postfix3.9_loss0": "canonical-117",
+    "family-341__postfix3.9_loss0": "canonical-118",
+    "family-342__postfix3.9_loss0": "canonical-119",
+    "family-343__postfix3.9_loss0": "canonical-120",
+    "family-344__postfix3.9_loss0": "canonical-121",
+    "family-345__postfix3.9_loss0": "canonical-122",
+    "family-346__postfix3.9_loss0": "canonical-123",
+    "family-347__postfix3.9_loss0": "canonical-124",
+    "family-348__postfix3.9_loss0": "canonical-125",
+    "family-349__postfix3.9_loss0": "canonical-126",
+    "family-34__postfix3.9_loss0": "canonical-127",
+    "family-350__postfix3.9_loss0": "canonical-128",
+    "family-351__postfix3.9_loss0": "canonical-129",
+    "family-352__postfix3.9_loss0": "canonical-130",
+    "family-353__postfix3.9_loss0": "canonical-131",
+    "family-354__postfix3.9_loss0": "canonical-132",
+    "family-355__postfix3.9_loss0": "canonical-133",
+    "family-356__postfix3.9_loss0": "canonical-134",
+    "family-357__postfix3.9_loss0": "canonical-135",
+    "family-358__postfix3.9_loss0": "canonical-136",
+    "family-359__postfix3.9_loss0": "canonical-137",
+    "family-35__postfix3.9_loss0": "canonical-138",
+    "family-360__postfix3.9_loss0": "canonical-139",
+    "family-361__postfix3.9_loss0": "canonical-140",
+    "family-362__postfix3.9_loss0": "canonical-141",
+    "family-363__postfix3.9_loss0": "canonical-142",
+    "family-364__postfix3.9_loss0": "canonical-143",
+    "family-365__postfix3.9_loss0": "canonical-144",
+    "family-366__postfix3.9_loss0": "canonical-145",
+    "family-367__postfix3.9_loss0": "canonical-146",
+    "family-368__postfix3.9_loss0": "canonical-147",
+    "family-369__postfix3.9_loss0": "canonical-148",
+    "family-36__postfix3.9_loss0": "canonical-149",
+    "family-370__postfix3.9_loss0": "canonical-150",
+    "family-371__postfix3.9_loss0": "canonical-151",
+    "family-372__postfix3.9_loss0": "canonical-152",
+    "family-373__postfix3.9_loss0": "canonical-153",
+    "family-374__postfix3.9_loss0": "canonical-154",
+    "family-375__postfix3.9_loss0": "canonical-155",
+    "family-376__postfix3.9_loss0": "canonical-000",
+    "family-377__postfix3.9_loss0": "canonical-001",
+    "family-378__postfix3.9_loss0": "canonical-002",
+    "family-379__postfix3.9_loss0": "canonical-003",
+    "family-37__postfix3.9_loss0": "canonical-004",
+    "family-380__postfix3.9_loss0": "canonical-005",
+    "family-381__postfix3.9_loss0": "canonical-006",
+    "family-382__postfix3.9_loss0": "canonical-007",
+    "family-383__postfix3.9_loss0": "canonical-008",
+    "family-384__postfix3.9_loss0": "canonical-009",
+    "family-385__postfix3.9_loss0": "canonical-010",
+    "family-386__postfix3.9_loss0": "canonical-011",
+    "family-387__postfix3.9_loss0": "canonical-012",
+    "family-388__postfix3.9_loss0": "canonical-013",
+    "family-389__postfix3.9_loss0": "canonical-014",
+    "family-38__postfix3.9_loss0": "canonical-015",
+    "family-390__postfix3.9_loss0": "canonical-016",
+    "family-391__postfix3.9_loss0": "canonical-017",
+    "family-392__postfix3.9_loss0": "canonical-018",
+    "family-393__postfix3.9_loss0": "canonical-019",
+    "family-394__postfix3.9_loss0": "canonical-020",
+    "family-395__postfix3.9_loss0": "canonical-021",
+    "family-396__postfix3.9_loss0": "canonical-022",
+    "family-397__postfix3.9_loss0": "canonical-023",
+    "family-398__postfix3.9_loss0": "canonical-024",
+    "family-399__postfix3.9_loss0": "canonical-025",
+    "family-39__postfix3.9_loss0": "canonical-026",
+    "family-400__postfix3.9_loss0": "canonical-027",
+    "family-401__postfix3.9_loss0": "canonical-028",
+    "family-402__postfix3.9_loss0": "canonical-029",
+    "family-403__postfix3.9_loss0": "canonical-030",
+    "family-404__postfix3.9_loss0": "canonical-031",
+    "family-405__postfix3.9_loss0": "canonical-032",
+    "family-406__postfix3.9_loss0": "canonical-033",
+    "family-407__postfix3.9_loss0": "canonical-034",
+    "family-408__postfix3.9_loss0": "canonical-035",
+    "family-409__postfix3.9_loss0": "canonical-036",
+    "family-40__postfix3.9_loss0": "canonical-037",
+    "family-410__postfix3.9_loss0": "canonical-038",
+    "family-411__postfix3.9_loss0": "canonical-039",
+    "family-412__postfix3.9_loss0": "canonical-040",
+    "family-413__postfix3.9_loss0": "canonical-041",
+    "family-414__postfix3.9_loss0": "canonical-042",
+    "family-415__postfix3.9_loss0": "canonical-043",
+    "family-416__postfix3.9_loss0": "canonical-044",
+    "family-417__postfix3.9_loss0": "canonical-045",
+    "family-418__postfix3.9_loss0": "canonical-046",
+    "family-419__postfix3.9_loss0": "canonical-047",
+    "family-41__postfix3.9_loss0": "canonical-048",
+    "family-420__postfix3.9_loss0": "canonical-049",
+    "family-421__postfix3.9_loss0": "canonical-050",
+    "family-422__postfix3.9_loss0": "canonical-051",
+    "family-423__postfix3.9_loss0": "canonical-052",
+    "family-424__postfix3.9_loss0": "canonical-053",
+    "family-425__postfix3.9_loss0": "canonical-054",
+    "family-426__postfix3.9_loss0": "canonical-055",
+    "family-427__postfix3.9_loss0": "canonical-056",
+    "family-428__postfix3.9_loss0": "canonical-057",
+    "family-429__postfix3.9_loss0": "canonical-058",
+    "family-42__postfix3.9_loss0": "canonical-059",
+    "family-430__postfix3.9_loss0": "canonical-060",
+    "family-431__postfix3.9_loss0": "canonical-061",
+    "family-432__postfix3.9_loss0": "canonical-062",
+    "family-433__postfix3.9_loss0": "canonical-063",
+    "family-434__postfix3.9_loss0": "canonical-064",
+    "family-435__postfix3.9_loss0": "canonical-065",
+    "family-436__postfix3.9_loss0": "canonical-066",
+    "family-437__postfix3.9_loss0": "canonical-067",
+    "family-438__postfix3.9_loss0": "canonical-068",
+    "family-439__postfix3.9_loss0": "canonical-069",
+    "family-43__postfix3.9_loss0": "canonical-070",
+    "family-440__postfix3.9_loss0": "canonical-071",
+    "family-441__postfix3.9_loss0": "canonical-072",
+    "family-442__postfix3.9_loss0": "canonical-073",
+    "family-443__postfix3.9_loss0": "canonical-074",
+    "family-444__postfix3.9_loss0": "canonical-075",
+    "family-445__postfix3.9_loss0": "canonical-076",
+    "family-446__postfix3.9_loss0": "canonical-077",
+    "family-447__postfix3.9_loss0": "canonical-078",
+    "family-448__postfix3.9_loss0": "canonical-079",
+    "family-449__postfix3.9_loss0": "canonical-080",
+    "family-44__postfix3.9_loss0": "canonical-081",
+    "family-450__postfix3.9_loss0": "canonical-082",
+    "family-451__postfix3.9_loss0": "canonical-083",
+    "family-452__postfix3.9_loss0": "canonical-084",
+    "family-453__postfix3.9_loss0": "canonical-085",
+    "family-454__postfix3.9_loss0": "canonical-086",
+    "family-455__postfix3.9_loss0": "canonical-087",
+    "family-456__postfix3.9_loss0": "canonical-088",
+    "family-457__postfix3.9_loss0": "canonical-089",
+    "family-458__postfix3.9_loss0": "canonical-090",
+    "family-459__postfix3.9_loss0": "canonical-091",
+    "family-45__postfix3.9_loss0": "canonical-092",
+    "family-460__postfix3.9_loss0": "canonical-093",
+    "family-461__postfix3.9_loss0": "canonical-094",
+    "family-462__postfix3.9_loss0": "canonical-095",
+    "family-463__postfix3.9_loss0": "canonical-096",
+    "family-464__postfix3.9_loss0": "canonical-097",
+    "family-465__postfix3.9_loss0": "canonical-098",
+    "family-466__postfix3.9_loss0": "canonical-099",
+    "family-467__postfix3.9_loss0": "canonical-100",
+    "family-468__postfix3.9_loss0": "canonical-101",
+    "family-469__postfix3.9_loss0": "canonical-102",
+    "family-46__postfix3.9_loss0": "canonical-103",
+    "family-470__postfix3.9_loss0": "canonical-104",
+    "family-471__postfix3.9_loss0": "canonical-105",
+    "family-472__postfix3.9_loss0": "canonical-106",
+    "family-473__postfix3.9_loss0": "canonical-107",
+    "family-474__postfix3.9_loss0": "canonical-108",
+    "family-475__postfix3.9_loss0": "canonical-109",
+    "family-476__postfix3.9_loss0": "canonical-110",
+    "family-477__postfix3.9_loss0": "canonical-111",
+    "family-478__postfix3.9_loss0": "canonical-112",
+    "family-479__postfix3.9_loss0": "canonical-113",
+    "family-47__postfix3.9_loss0": "canonical-114",
+    "family-480__postfix3.9_loss0": "canonical-115",
+    "family-481__postfix3.9_loss0": "canonical-116",
+    "family-482__postfix3.9_loss0": "canonical-117",
+    "family-483__postfix3.9_loss0": "canonical-118",
+    "family-484__postfix3.9_loss0": "canonical-119",
+    "family-485__postfix3.9_loss0": "canonical-120",
+    "family-486__postfix3.9_loss0": "canonical-121",
+    "family-487__postfix3.9_loss0": "canonical-122",
+    "family-488__postfix3.9_loss0": "canonical-123",
+    "family-489__postfix3.9_loss0": "canonical-124",
+    "family-48__postfix3.9_loss0": "canonical-125",
+    "family-490__postfix3.9_loss0": "canonical-126",
+    "family-491__postfix3.9_loss0": "canonical-127",
+    "family-492__postfix3.9_loss0": "canonical-128",
+    "family-493__postfix3.9_loss0": "canonical-129",
+    "family-494__postfix3.9_loss0": "canonical-130",
+    "family-495__postfix3.9_loss0": "canonical-131",
+    "family-496__postfix3.9_loss0": "canonical-132",
+    "family-497__postfix3.9_loss0": "canonical-133",
+    "family-498__postfix3.9_loss0": "canonical-134",
+    "family-499__postfix3.9_loss0": "canonical-135",
+    "family-49__postfix3.9_loss0": "canonical-136",
+    "family-500__postfix3.9_loss0": "canonical-137",
+    "family-501__postfix3.9_loss0": "canonical-138",
+    "family-502__postfix3.9_loss0": "canonical-139",
+    "family-503__postfix3.9_loss0": "canonical-140",
+    "family-504__postfix3.9_loss0": "canonical-141",
+    "family-505__postfix3.9_loss0": "canonical-142",
+    "family-506__postfix3.9_loss0": "canonical-143",
+    "family-507__postfix3.9_loss0": "canonical-144",
+    "family-508__postfix3.9_loss0": "canonical-145",
+    "family-509__postfix3.9_loss0": "canonical-146",
+    "family-50__postfix3.9_loss0": "canonical-147",
+    "family-510__postfix3.9_loss0": "canonical-148",
+    "family-511__postfix3.9_loss0": "canonical-149",
+    "family-512__postfix3.9_loss0": "canonical-150",
+    "family-513__postfix3.9_loss0": "canonical-151",
+    "family-514__postfix3.9_loss0": "canonical-152",
+    "family-515__postfix3.9_loss0": "canonical-153",
+    "family-516__postfix3.9_loss0": "canonical-154",
+    "family-517__postfix3.9_loss0": "canonical-155",
+    "family-518__postfix3.9_loss0": "canonical-000",
+    "family-519__postfix3.9_loss0": "canonical-001",
+    "family-51__postfix3.9_loss0": "canonical-002",
+    "family-520__postfix3.9_loss0": "canonical-003",
+    "family-521__postfix3.9_loss0": "canonical-004",
+    "family-522__postfix3.9_loss0": "canonical-005",
+    "family-523__postfix3.9_loss0": "canonical-006",
+    "family-524__postfix3.9_loss0": "canonical-007",
+    "family-525__postfix3.9_loss0": "canonical-008",
+    "family-526__postfix3.9_loss0": "canonical-009",
+    "family-527__postfix3.9_loss0": "canonical-010",
+    "family-528__postfix3.9_loss0": "canonical-011",
+    "family-529__postfix3.9_loss0": "canonical-012",
+    "family-52__postfix3.9_loss0": "canonical-013",
+    "family-530__postfix3.9_loss0": "canonical-014",
+    "family-531__postfix3.9_loss0": "canonical-015",
+    "family-532__postfix3.9_loss0": "canonical-016",
+    "family-533__postfix3.9_loss0": "canonical-017",
+    "family-534__postfix3.9_loss0": "canonical-018",
+    "family-535__postfix3.9_loss0": "canonical-019",
+    "family-536__postfix3.9_loss0": "canonical-020",
+    "family-537__postfix3.9_loss0": "canonical-021",
+    "family-538__postfix3.9_loss0": "canonical-022",
+    "family-539__postfix3.9_loss0": "canonical-023",
+    "family-53__postfix3.9_loss0": "canonical-024",
+    "family-540__postfix3.9_loss0": "canonical-025",
+    "family-541__postfix3.9_loss0": "canonical-026",
+    "family-542__postfix3.9_loss0": "canonical-027",
+    "family-543__postfix3.9_loss0": "canonical-028",
+    "family-544__postfix3.9_loss0": "canonical-029",
+    "family-545__postfix3.9_loss0": "canonical-030",
+    "family-546__postfix3.9_loss0": "canonical-031",
+    "family-547__postfix3.9_loss0": "canonical-032",
+    "family-548__postfix3.9_loss0": "canonical-033",
+    "family-549__postfix3.9_loss0": "canonical-034",
+    "family-54__postfix3.9_loss0": "canonical-035",
+    "family-550__postfix3.9_loss0": "canonical-036",
+    "family-551__postfix3.9_loss0": "canonical-037",
+    "family-552__postfix3.9_loss0": "canonical-038",
+    "family-553__postfix3.9_loss0": "canonical-039",
+    "family-554__postfix3.9_loss0": "canonical-040",
+    "family-555__postfix3.9_loss0": "canonical-041",
+    "family-556__postfix3.9_loss0": "canonical-042",
+    "family-557__postfix3.9_loss0": "canonical-043",
+    "family-558__postfix3.9_loss0": "canonical-044",
+    "family-559__postfix3.9_loss0": "canonical-045",
+    "family-55__postfix3.9_loss0": "canonical-046",
+    "family-560__postfix3.9_loss0": "canonical-047",
+    "family-561__postfix3.9_loss0": "canonical-048",
+    "family-562__postfix3.9_loss0": "canonical-049",
+    "family-563__postfix3.9_loss0": "canonical-050",
+    "family-564__postfix3.9_loss0": "canonical-051",
+    "family-565__postfix3.9_loss0": "canonical-052",
+    "family-566__postfix3.9_loss0": "canonical-053",
+    "family-567__postfix3.9_loss0": "canonical-054",
+    "family-568__postfix3.9_loss0": "canonical-055",
+    "family-569__postfix3.9_loss0": "canonical-056",
+    "family-56__postfix3.9_loss0": "canonical-057",
+    "family-570__postfix3.9_loss0": "canonical-058",
+    "family-571__postfix3.9_loss0": "canonical-059",
+    "family-572__postfix3.9_loss0": "canonical-060",
+    "family-573__postfix3.9_loss0": "canonical-061",
+    "family-574__postfix3.9_loss0": "canonical-062",
+    "family-575__postfix3.9_loss0": "canonical-063",
+    "family-576__postfix3.9_loss0": "canonical-064",
+    "family-577__postfix3.9_loss0": "canonical-065",
+    "family-578__postfix3.9_loss0": "canonical-066",
+    "family-579__postfix3.9_loss0": "canonical-067",
+    "family-57__postfix3.9_loss0": "canonical-068",
+    "family-580__postfix3.9_loss0": "canonical-069",
+    "family-58__postfix3.9_loss0": "canonical-079",
+    "family-59__postfix3.9_loss0": "canonical-090",
+    "family-60__postfix3.9_loss0": "canonical-101",
+    "family-61__postfix3.9_loss0": "canonical-112",
+    "family-62__postfix3.9_loss0": "canonical-123",
+    "family-63__postfix3.9_loss0": "canonical-134",
+    "family-64__postfix3.9_loss0": "canonical-145",
+    "family-65__postfix3.9_loss0": "canonical-000",
+    "family-66__postfix3.9_loss0": "canonical-011",
+    "family-67__postfix3.9_loss0": "canonical-022",
+    "family-68__postfix3.9_loss0": "canonical-024",
+    "family-69__postfix3.9_loss0": "canonical-025",
+    "family-70__postfix3.9_loss0": "canonical-026",
+    "family-71__postfix3.9_loss0": "canonical-027",
+    "family-72__postfix3.9_loss0": "canonical-028",
+    "family-73__postfix3.9_loss0": "canonical-029",
+    "family-74__postfix3.9_loss0": "canonical-030",
+    "family-75__postfix3.9_loss0": "canonical-031",
+    "family-76__postfix3.9_loss0": "canonical-032",
+    "family-77__postfix3.9_loss0": "canonical-033",
+    "family-78__postfix3.9_loss0": "canonical-034",
+    "family-79__postfix3.9_loss0": "canonical-035",
+    "family-80__postfix3.9_loss0": "canonical-036",
+    "family-81__postfix3.9_loss0": "canonical-037",
+    "family-82__postfix3.9_loss0": "canonical-038",
+    "family-83__postfix3.9_loss0": "canonical-039",
+    "family-84__postfix3.9_loss0": "canonical-040",
+    "family-85__postfix3.9_loss0": "canonical-041",
+    "family-86__postfix3.9_loss0": "canonical-042",
+    "family-87__postfix3.9_loss0": "canonical-043",
+    "family-88__postfix3.9_loss0": "canonical-044",
+    "family-89__postfix3.9_loss0": "canonical-045",
+    "family-90__postfix3.9_loss0": "canonical-046",
+    "family-91__postfix3.9_loss0": "canonical-047",
+    "family-92__postfix3.9_loss0": "canonical-048",
+    "family-93__postfix3.9_loss0": "canonical-049",
+    "family-94__postfix3.9_loss0": "canonical-050",
+    "family-95__postfix3.9_loss0": "canonical-051",
+    "family-96__postfix3.9_loss0": "canonical-052",
+    "family-97__postfix3.9_loss0": "canonical-053",
+    "family-98__postfix3.9_loss0": "canonical-054",
+    "family-99__postfix3.9_loss0": "canonical-055"
+  },
+  "clusters": {
+    "canonical-120": [
+      "family-01__postfix3.9_loss0",
+      "family-167__postfix3.9_loss0",
+      "family-333__postfix3.9_loss0",
+      "family-414__postfix3.9_loss0"
+    ],
+    "canonical-094": [
+      "family-02__postfix3.9_loss0",
+      "family-229__postfix3.9_loss0",
+      "family-404__postfix3.9_loss0",
+      "family-53__postfix3.9_loss0"
+    ],
+    "canonical-011": [
+      "family-03__postfix3.9_loss0",
+      "family-318__postfix3.9_loss0",
+      "family-500__postfix3.9_loss0"
+    ],
+    "canonical-103": [
+      "family-04__postfix3.9_loss0",
+      "family-126__postfix3.9_loss0",
+      "family-248__postfix3.9_loss0",
+      "family-301__postfix3.9_loss0",
+      "family-348__postfix3.9_loss0"
+    ],
+    "canonical-153": [
+      "family-05__postfix3.9_loss0",
+      "family-150__postfix3.9_loss0",
+      "family-212__postfix3.9_loss0",
+      "family-261__postfix3.9_loss0",
+      "family-294__postfix3.9_loss0",
+      "family-44__postfix3.9_loss0",
+      "family-64__postfix3.9_loss0"
+    ],
+    "canonical-125": [
+      "family-06__postfix3.9_loss0",
+      "family-467__postfix3.9_loss0"
+    ],
+    "canonical-150": [
+      "family-07__postfix3.9_loss0",
+      "family-24__postfix3.9_loss0",
+      "family-303__postfix3.9_loss0",
+      "family-455__postfix3.9_loss0",
+      "family-580__postfix3.9_loss0"
+    ],
+    "canonical-059": [
+      "family-08__postfix3.9_loss0",
+      "family-110__postfix3.9_loss0",
+      "family-258__postfix3.9_loss0",
+      "family-296__postfix3.9_loss0",
+      "family-434__postfix3.9_loss0",
+      "family-535__postfix3.9_loss0"
+    ],
+    "canonical-124": [
+      "family-09__postfix3.9_loss0",
+      "family-101__postfix3.9_loss0",
+      "family-114__postfix3.9_loss0",
+      "family-195__postfix3.9_loss0",
+      "family-274__postfix3.9_loss0",
+      "family-424__postfix3.9_loss0",
+      "family-451__postfix3.9_loss0",
+      "family-74__postfix3.9_loss0"
+    ],
+    "canonical-155": [
+      "family-10__postfix3.9_loss0",
+      "family-250__postfix3.9_loss0",
+      "family-528__postfix3.9_loss0"
+    ],
+    "canonical-078": [
+      "family-11__postfix3.9_loss0",
+      "family-235__postfix3.9_loss0",
+      "family-284__postfix3.9_loss0",
+      "family-441__postfix3.9_loss0",
+      "family-450__postfix3.9_loss0",
+      "family-533__postfix3.9_loss0"
+    ],
+    "canonical-086": [
+      "family-12__postfix3.9_loss0",
+      "family-267__postfix3.9_loss0",
+      "family-344__postfix3.9_loss0",
+      "family-567__postfix3.9_loss0"
+    ],
+    "canonical-110": [
+      "family-13__postfix3.9_loss0",
+      "family-475__postfix3.9_loss0",
+      "family-482__postfix3.9_loss0"
+    ],
+    "canonical-089": [
+      "family-14__postfix3.9_loss0",
+      "family-306__postfix3.9_loss0",
+      "family-471__postfix3.9_loss0"
+    ],
+    "canonical-032": [
+      "family-15__postfix3.9_loss0",
+      "family-256__postfix3.9_loss0",
+      "family-34__postfix3.9_loss0",
+      "family-435__postfix3.9_loss0",
+      "family-56__postfix3.9_loss0"
+    ],
+    "canonical-070": [
+      "family-162__postfix3.9_loss0",
+      "family-16__postfix3.9_loss0",
+      "family-289__postfix3.9_loss0",
+      "family-28__postfix3.9_loss0",
+      "family-320__postfix3.9_loss0",
+      "family-73__postfix3.9_loss0"
+    ],
+    "canonical-041": [
+      "family-17__postfix3.9_loss0",
+      "family-399__postfix3.9_loss0",
+      "family-446__postfix3.9_loss0",
+      "family-493__postfix3.9_loss0",
+      "family-546__postfix3.9_loss0",
+      "family-66__postfix3.9_loss0"
+    ],
+    "canonical-126": [
+      "family-18__postfix3.9_loss0",
+      "family-217__postfix3.9_loss0",
+      "family-242__postfix3.9_loss0",
+      "family-30__postfix3.9_loss0",
+      "family-360__postfix3.9_loss0",
+      "family-413__postfix3.9_loss0",
+      "family-487__postfix3.9_loss0"
+    ],
+    "canonical-001": [
+      "family-19__postfix3.9_loss0",
+      "family-282__postfix3.9_loss0",
+      "family-479__postfix3.9_loss0",
+      "family-538__postfix3.9_loss0"
+    ],
+    "canonical-039": [
+      "family-20__postfix3.9_loss0",
+      "family-297__postfix3.9_loss0",
+      "family-429__postfix3.9_loss0"
+    ],
+    "canonical-106": [
+      "family-112__postfix3.9_loss0",
+      "family-21__postfix3.9_loss0",
+      "family-36__postfix3.9_loss0",
+      "family-512__postfix3.9_loss0",
+      "family-542__postfix3.9_loss0"
+    ],
+    "canonical-048": [
+      "family-133__postfix3.9_loss0",
+      "family-22__postfix3.9_loss0",
+      "family-243__postfix3.9_loss0",
+      "family-376__postfix3.9_loss0",
+      "family-430__postfix3.9_loss0",
+      "family-445__postfix3.9_loss0",
+      "family-504__postfix3.9_loss0"
+    ],
+    "canonical-060": [
+      "family-23__postfix3.9_loss0",
+      "family-278__postfix3.9_loss0",
+      "family-337__postfix3.9_loss0",
+      "family-338__postfix3.9_loss0",
+      "family-401__postfix3.9_loss0",
+      "family-560__postfix3.9_loss0"
+    ],
+    "canonical-142": [
+      "family-103__postfix3.9_loss0",
+      "family-254__postfix3.9_loss0",
+      "family-25__postfix3.9_loss0",
+      "family-448__postfix3.9_loss0"
+    ],
+    "canonical-085": [
+      "family-187__postfix3.9_loss0",
+      "family-26__postfix3.9_loss0",
+      "family-478__postfix3.9_loss0",
+      "family-543__postfix3.9_loss0",
+      "family-69__postfix3.9_loss0"
+    ],
+    "canonical-040": [
+      "family-228__postfix3.9_loss0",
+      "family-27__postfix3.9_loss0",
+      "family-346__postfix3.9_loss0"
+    ],
+    "canonical-066": [
+      "family-196__postfix3.9_loss0",
+      "family-230__postfix3.9_loss0",
+      "family-271__postfix3.9_loss0",
+      "family-277__postfix3.9_loss0",
+      "family-29__postfix3.9_loss0",
+      "family-354__postfix3.9_loss0",
+      "family-457__postfix3.9_loss0",
+      "family-97__postfix3.9_loss0"
+    ],
+    "canonical-033": [
+      "family-143__postfix3.9_loss0",
+      "family-148__postfix3.9_loss0",
+      "family-234__postfix3.9_loss0",
+      "family-252__postfix3.9_loss0",
+      "family-31__postfix3.9_loss0",
+      "family-556__postfix3.9_loss0"
+    ],
+    "canonical-123": [
+      "family-32__postfix3.9_loss0",
+      "family-495__postfix3.9_loss0"
+    ],
+    "canonical-054": [
+      "family-147__postfix3.9_loss0",
+      "family-272__postfix3.9_loss0",
+      "family-33__postfix3.9_loss0",
+      "family-385__postfix3.9_loss0",
+      "family-483__postfix3.9_loss0",
+      "family-530__postfix3.9_loss0",
+      "family-548__postfix3.9_loss0"
+    ],
+    "canonical-091": [
+      "family-100__postfix3.9_loss0",
+      "family-35__postfix3.9_loss0",
+      "family-362__postfix3.9_loss0",
+      "family-485__postfix3.9_loss0"
+    ],
+    "canonical-092": [
+      "family-179__postfix3.9_loss0",
+      "family-224__postfix3.9_loss0",
+      "family-331__postfix3.9_loss0",
+      "family-340__postfix3.9_loss0",
+      "family-37__postfix3.9_loss0",
+      "family-439__postfix3.9_loss0",
+      "family-507__postfix3.9_loss0"
+    ],
+    "canonical-038": [
+      "family-287__postfix3.9_loss0",
+      "family-388__postfix3.9_loss0",
+      "family-38__postfix3.9_loss0"
+    ],
+    "canonical-047": [
+      "family-181__postfix3.9_loss0",
+      "family-186__postfix3.9_loss0",
+      "family-199__postfix3.9_loss0",
+      "family-232__postfix3.9_loss0",
+      "family-379__postfix3.9_loss0",
+      "family-39__postfix3.9_loss0",
+      "family-561__postfix3.9_loss0",
+      "family-76__postfix3.9_loss0",
+      "family-78__postfix3.9_loss0"
+    ],
+    "canonical-077": [
+      "family-106__postfix3.9_loss0",
+      "family-205__postfix3.9_loss0",
+      "family-220__postfix3.9_loss0",
+      "family-40__postfix3.9_loss0",
+      "family-544__postfix3.9_loss0"
+    ],
+    "canonical-076": [
+      "family-325__postfix3.9_loss0",
+      "family-41__postfix3.9_loss0"
+    ],
+    "canonical-143": [
+      "family-42__postfix3.9_loss0",
+      "family-49__postfix3.9_loss0"
+    ],
+    "canonical-128": [
+      "family-213__postfix3.9_loss0",
+      "family-43__postfix3.9_loss0",
+      "family-68__postfix3.9_loss0"
+    ],
+    "canonical-004": [
+      "family-210__postfix3.9_loss0",
+      "family-383__postfix3.9_loss0",
+      "family-447__postfix3.9_loss0",
+      "family-45__postfix3.9_loss0"
+    ],
+    "canonical-045": [
+      "family-170__postfix3.9_loss0",
+      "family-236__postfix3.9_loss0",
+      "family-419__postfix3.9_loss0",
+      "family-423__postfix3.9_loss0",
+      "family-46__postfix3.9_loss0"
+    ],
+    "canonical-130": [
+      "family-238__postfix3.9_loss0",
+      "family-47__postfix3.9_loss0",
+      "family-529__postfix3.9_loss0"
+    ],
+    "canonical-109": [
+      "family-191__postfix3.9_loss0",
+      "family-48__postfix3.9_loss0",
+      "family-92__postfix3.9_loss0"
+    ],
+    "canonical-121": [
+      "family-275__postfix3.9_loss0",
+      "family-342__postfix3.9_loss0",
+      "family-50__postfix3.9_loss0"
+    ],
+    "canonical-139": [
+      "family-265__postfix3.9_loss0",
+      "family-269__postfix3.9_loss0",
+      "family-353__postfix3.9_loss0",
+      "family-356__postfix3.9_loss0",
+      "family-51__postfix3.9_loss0",
+      "family-564__postfix3.9_loss0",
+      "family-58__postfix3.9_loss0",
+      "family-93__postfix3.9_loss0"
+    ],
+    "canonical-082": [
+      "family-524__postfix3.9_loss0",
+      "family-52__postfix3.9_loss0",
+      "family-551__postfix3.9_loss0"
+    ],
+    "canonical-141": [
+      "family-169__postfix3.9_loss0",
+      "family-304__postfix3.9_loss0",
+      "family-322__postfix3.9_loss0",
+      "family-374__postfix3.9_loss0",
+      "family-409__postfix3.9_loss0",
+      "family-54__postfix3.9_loss0"
+    ],
+    "canonical-101": [
+      "family-511__postfix3.9_loss0",
+      "family-55__postfix3.9_loss0"
+    ],
+    "canonical-052": [
+      "family-166__postfix3.9_loss0",
+      "family-472__postfix3.9_loss0",
+      "family-57__postfix3.9_loss0"
+    ],
+    "canonical-073": [
+      "family-59__postfix3.9_loss0"
+    ],
+    "canonical-028": [
+      "family-153__postfix3.9_loss0",
+      "family-292__postfix3.9_loss0",
+      "family-336__postfix3.9_loss0",
+      "family-366__postfix3.9_loss0",
+      "family-371__postfix3.9_loss0",
+      "family-531__postfix3.9_loss0",
+      "family-60__postfix3.9_loss0"
+    ],
+    "canonical-000": [
+      "family-130__postfix3.9_loss0",
+      "family-525__postfix3.9_loss0",
+      "family-61__postfix3.9_loss0"
+    ],
+    "canonical-075": [
+      "family-142__postfix3.9_loss0",
+      "family-568__postfix3.9_loss0",
+      "family-62__postfix3.9_loss0"
+    ],
+    "canonical-083": [
+      "family-168__postfix3.9_loss0",
+      "family-280__postfix3.9_loss0",
+      "family-408__postfix3.9_loss0",
+      "family-427__postfix3.9_loss0",
+      "family-63__postfix3.9_loss0"
+    ],
+    "canonical-043": [
+      "family-182__postfix3.9_loss0",
+      "family-281__postfix3.9_loss0",
+      "family-286__postfix3.9_loss0",
+      "family-314__postfix3.9_loss0",
+      "family-65__postfix3.9_loss0"
+    ],
+    "canonical-021": [
+      "family-163__postfix3.9_loss0",
+      "family-365__postfix3.9_loss0",
+      "family-410__postfix3.9_loss0",
+      "family-420__postfix3.9_loss0",
+      "family-67__postfix3.9_loss0"
+    ],
+    "canonical-019": [
+      "family-129__postfix3.9_loss0",
+      "family-288__postfix3.9_loss0",
+      "family-70__postfix3.9_loss0"
+    ],
+    "canonical-114": [
+      "family-174__postfix3.9_loss0",
+      "family-218__postfix3.9_loss0",
+      "family-375__postfix3.9_loss0",
+      "family-522__postfix3.9_loss0",
+      "family-71__postfix3.9_loss0"
+    ],
+    "canonical-112": [
+      "family-341__postfix3.9_loss0",
+      "family-532__postfix3.9_loss0",
+      "family-72__postfix3.9_loss0"
+    ],
+    "canonical-072": [
+      "family-562__postfix3.9_loss0",
+      "family-75__postfix3.9_loss0"
+    ],
+    "canonical-046": [
+      "family-466__postfix3.9_loss0",
+      "family-486__postfix3.9_loss0",
+      "family-499__postfix3.9_loss0",
+      "family-536__postfix3.9_loss0",
+      "family-558__postfix3.9_loss0",
+      "family-77__postfix3.9_loss0"
+    ],
+    "canonical-025": [
+      "family-124__postfix3.9_loss0",
+      "family-132__postfix3.9_loss0",
+      "family-79__postfix3.9_loss0",
+      "family-99__postfix3.9_loss0"
+    ],
+    "canonical-122": [
+      "family-251__postfix3.9_loss0",
+      "family-509__postfix3.9_loss0",
+      "family-80__postfix3.9_loss0"
+    ],
+    "canonical-105": [
+      "family-184__postfix3.9_loss0",
+      "family-402__postfix3.9_loss0",
+      "family-81__postfix3.9_loss0"
+    ],
+    "canonical-042": [
+      "family-145__postfix3.9_loss0",
+      "family-211__postfix3.9_loss0",
+      "family-317__postfix3.9_loss0",
+      "family-412__postfix3.9_loss0",
+      "family-422__postfix3.9_loss0",
+      "family-572__postfix3.9_loss0",
+      "family-577__postfix3.9_loss0",
+      "family-82__postfix3.9_loss0"
+    ],
+    "canonical-108": [
+      "family-175__postfix3.9_loss0",
+      "family-491__postfix3.9_loss0",
+      "family-83__postfix3.9_loss0"
+    ],
+    "canonical-115": [
+      "family-116__postfix3.9_loss0",
+      "family-183__postfix3.9_loss0",
+      "family-305__postfix3.9_loss0",
+      "family-84__postfix3.9_loss0"
+    ],
+    "canonical-159": [
+      "family-425__postfix3.9_loss0",
+      "family-433__postfix3.9_loss0",
+      "family-85__postfix3.9_loss0"
+    ],
+    "canonical-129": [
+      "family-444__postfix3.9_loss0",
+      "family-474__postfix3.9_loss0",
+      "family-86__postfix3.9_loss0"
+    ],
+    "canonical-111": [
+      "family-214__postfix3.9_loss0",
+      "family-245__postfix3.9_loss0",
+      "family-87__postfix3.9_loss0"
+    ],
+    "canonical-099": [
+      "family-247__postfix3.9_loss0",
+      "family-88__postfix3.9_loss0"
+    ],
+    "canonical-068": [
+      "family-136__postfix3.9_loss0",
+      "family-207__postfix3.9_loss0",
+      "family-246__postfix3.9_loss0",
+      "family-326__postfix3.9_loss0",
+      "family-89__postfix3.9_loss0"
+    ],
+    "canonical-009": [
+      "family-90__postfix3.9_loss0"
+    ],
+    "canonical-145": [
+      "family-279__postfix3.9_loss0",
+      "family-310__postfix3.9_loss0",
+      "family-505__postfix3.9_loss0",
+      "family-563__postfix3.9_loss0",
+      "family-91__postfix3.9_loss0"
+    ],
+    "canonical-050": [
+      "family-164__postfix3.9_loss0",
+      "family-438__postfix3.9_loss0",
+      "family-570__postfix3.9_loss0",
+      "family-94__postfix3.9_loss0"
+    ],
+    "canonical-013": [
+      "family-490__postfix3.9_loss0",
+      "family-549__postfix3.9_loss0",
+      "family-95__postfix3.9_loss0"
+    ],
+    "canonical-062": [
+      "family-105__postfix3.9_loss0",
+      "family-115__postfix3.9_loss0",
+      "family-120__postfix3.9_loss0",
+      "family-121__postfix3.9_loss0",
+      "family-216__postfix3.9_loss0",
+      "family-330__postfix3.9_loss0",
+      "family-477__postfix3.9_loss0",
+      "family-515__postfix3.9_loss0",
+      "family-96__postfix3.9_loss0"
+    ],
+    "canonical-146": [
+      "family-144__postfix3.9_loss0",
+      "family-398__postfix3.9_loss0",
+      "family-421__postfix3.9_loss0",
+      "family-520__postfix3.9_loss0",
+      "family-98__postfix3.9_loss0"
+    ],
+    "canonical-147": [
+      "family-102__postfix3.9_loss0",
+      "family-369__postfix3.9_loss0"
+    ],
+    "canonical-027": [
+      "family-104__postfix3.9_loss0",
+      "family-329__postfix3.9_loss0",
+      "family-552__postfix3.9_loss0"
+    ],
+    "canonical-095": [
+      "family-107__postfix3.9_loss0",
+      "family-397__postfix3.9_loss0",
+      "family-407__postfix3.9_loss0",
+      "family-465__postfix3.9_loss0"
+    ],
+    "canonical-134": [
+      "family-108__postfix3.9_loss0",
+      "family-123__postfix3.9_loss0",
+      "family-200__postfix3.9_loss0",
+      "family-203__postfix3.9_loss0",
+      "family-223__postfix3.9_loss0",
+      "family-442__postfix3.9_loss0"
+    ],
+    "canonical-030": [
+      "family-109__postfix3.9_loss0",
+      "family-488__postfix3.9_loss0"
+    ],
+    "canonical-018": [
+      "family-111__postfix3.9_loss0"
+    ],
+    "canonical-056": [
+      "family-113__postfix3.9_loss0",
+      "family-227__postfix3.9_loss0",
+      "family-298__postfix3.9_loss0",
+      "family-358__postfix3.9_loss0",
+      "family-489__postfix3.9_loss0",
+      "family-550__postfix3.9_loss0"
+    ],
+    "canonical-117": [
+      "family-117__postfix3.9_loss0",
+      "family-193__postfix3.9_loss0",
+      "family-300__postfix3.9_loss0",
+      "family-363__postfix3.9_loss0",
+      "family-574__postfix3.9_loss0"
+    ],
+    "canonical-127": [
+      "family-118__postfix3.9_loss0",
+      "family-378__postfix3.9_loss0"
+    ],
+    "canonical-133": [
+      "family-119__postfix3.9_loss0",
+      "family-372__postfix3.9_loss0",
+      "family-386__postfix3.9_loss0",
+      "family-453__postfix3.9_loss0",
+      "family-554__postfix3.9_loss0"
+    ],
+    "canonical-090": [
+      "family-122__postfix3.9_loss0",
+      "family-134__postfix3.9_loss0",
+      "family-219__postfix3.9_loss0",
+      "family-387__postfix3.9_loss0",
+      "family-534__postfix3.9_loss0"
+    ],
+    "canonical-012": [
+      "family-125__postfix3.9_loss0",
+      "family-334__postfix3.9_loss0",
+      "family-368__postfix3.9_loss0"
+    ],
+    "canonical-104": [
+      "family-127__postfix3.9_loss0",
+      "family-351__postfix3.9_loss0",
+      "family-352__postfix3.9_loss0",
+      "family-443__postfix3.9_loss0",
+      "family-494__postfix3.9_loss0",
+      "family-497__postfix3.9_loss0",
+      "family-513__postfix3.9_loss0"
+    ],
+    "canonical-007": [
+      "family-128__postfix3.9_loss0",
+      "family-502__postfix3.9_loss0"
+    ],
+    "canonical-057": [
+      "family-131__postfix3.9_loss0",
+      "family-307__postfix3.9_loss0",
+      "family-476__postfix3.9_loss0",
+      "family-508__postfix3.9_loss0"
+    ],
+    "canonical-065": [
+      "family-135__postfix3.9_loss0",
+      "family-239__postfix3.9_loss0"
+    ],
+    "canonical-071": [
+      "family-137__postfix3.9_loss0",
+      "family-283__postfix3.9_loss0",
+      "family-440__postfix3.9_loss0"
+    ],
+    "canonical-049": [
+      "family-138__postfix3.9_loss0",
+      "family-178__postfix3.9_loss0",
+      "family-263__postfix3.9_loss0",
+      "family-473__postfix3.9_loss0",
+      "family-537__postfix3.9_loss0"
+    ],
+    "canonical-053": [
+      "family-139__postfix3.9_loss0",
+      "family-262__postfix3.9_loss0",
+      "family-390__postfix3.9_loss0"
+    ],
+    "canonical-002": [
+      "family-140__postfix3.9_loss0",
+      "family-335__postfix3.9_loss0",
+      "family-381__postfix3.9_loss0",
+      "family-416__postfix3.9_loss0",
+      "family-571__postfix3.9_loss0"
+    ],
+    "canonical-087": [
+      "family-141__postfix3.9_loss0",
+      "family-154__postfix3.9_loss0",
+      "family-470__postfix3.9_loss0",
+      "family-545__postfix3.9_loss0"
+    ],
+    "canonical-079": [
+      "family-146__postfix3.9_loss0",
+      "family-257__postfix3.9_loss0",
+      "family-327__postfix3.9_loss0",
+      "family-395__postfix3.9_loss0",
+      "family-492__postfix3.9_loss0"
+    ],
+    "canonical-020": [
+      "family-149__postfix3.9_loss0",
+      "family-260__postfix3.9_loss0"
+    ],
+    "canonical-017": [
+      "family-151__postfix3.9_loss0",
+      "family-176__postfix3.9_loss0",
+      "family-177__postfix3.9_loss0",
+      "family-194__postfix3.9_loss0",
+      "family-459__postfix3.9_loss0",
+      "family-575__postfix3.9_loss0"
+    ],
+    "canonical-136": [
+      "family-152__postfix3.9_loss0",
+      "family-299__postfix3.9_loss0"
+    ],
+    "canonical-069": [
+      "family-155__postfix3.9_loss0",
+      "family-578__postfix3.9_loss0"
+    ],
+    "canonical-140": [
+      "family-156__postfix3.9_loss0",
+      "family-417__postfix3.9_loss0"
+    ],
+    "canonical-014": [
+      "family-157__postfix3.9_loss0",
+      "family-291__postfix3.9_loss0",
+      "family-367__postfix3.9_loss0"
+    ],
+    "canonical-149": [
+      "family-158__postfix3.9_loss0",
+      "family-244__postfix3.9_loss0",
+      "family-540__postfix3.9_loss0"
+    ],
+    "canonical-036": [
+      "family-159__postfix3.9_loss0",
+      "family-173__postfix3.9_loss0",
+      "family-456__postfix3.9_loss0"
+    ],
+    "canonical-080": [
+      "family-160__postfix3.9_loss0"
+    ],
+    "canonical-113": [
+      "family-161__postfix3.9_loss0",
+      "family-290__postfix3.9_loss0",
+      "family-349__postfix3.9_loss0",
+      "family-355__postfix3.9_loss0"
+    ],
+    "canonical-138": [
+      "family-165__postfix3.9_loss0",
+      "family-350__postfix3.9_loss0",
+      "family-364__postfix3.9_loss0",
+      "family-518__postfix3.9_loss0"
+    ],
+    "canonical-098": [
+      "family-171__postfix3.9_loss0",
+      "family-276__postfix3.9_loss0",
+      "family-309__postfix3.9_loss0"
+    ],
+    "canonical-023": [
+      "family-172__postfix3.9_loss0",
+      "family-264__postfix3.9_loss0",
+      "family-328__postfix3.9_loss0",
+      "family-380__postfix3.9_loss0"
+    ],
+    "canonical-093": [
+      "family-180__postfix3.9_loss0",
+      "family-394__postfix3.9_loss0",
+      "family-579__postfix3.9_loss0"
+    ],
+    "canonical-044": [
+      "family-185__postfix3.9_loss0",
+      "family-319__postfix3.9_loss0",
+      "family-332__postfix3.9_loss0",
+      "family-347__postfix3.9_loss0"
+    ],
+    "canonical-031": [
+      "family-188__postfix3.9_loss0"
+    ],
+    "canonical-008": [
+      "family-189__postfix3.9_loss0"
+    ],
+    "canonical-148": [
+      "family-190__postfix3.9_loss0",
+      "family-249__postfix3.9_loss0"
+    ],
+    "canonical-158": [
+      "family-192__postfix3.9_loss0",
+      "family-393__postfix3.9_loss0",
+      "family-406__postfix3.9_loss0",
+      "family-523__postfix3.9_loss0"
+    ],
+    "canonical-064": [
+      "family-197__postfix3.9_loss0",
+      "family-569__postfix3.9_loss0"
+    ],
+    "canonical-035": [
+      "family-198__postfix3.9_loss0",
+      "family-514__postfix3.9_loss0"
+    ],
+    "canonical-135": [
+      "family-201__postfix3.9_loss0",
+      "family-481__postfix3.9_loss0"
+    ],
+    "canonical-097": [
+      "family-202__postfix3.9_loss0",
+      "family-452__postfix3.9_loss0",
+      "family-484__postfix3.9_loss0",
+      "family-498__postfix3.9_loss0"
+    ],
+    "canonical-116": [
+      "family-204__postfix3.9_loss0",
+      "family-208__postfix3.9_loss0",
+      "family-382__postfix3.9_loss0"
+    ],
+    "canonical-034": [
+      "family-206__postfix3.9_loss0",
+      "family-464__postfix3.9_loss0",
+      "family-527__postfix3.9_loss0",
+      "family-547__postfix3.9_loss0"
+    ],
+    "canonical-137": [
+      "family-209__postfix3.9_loss0",
+      "family-285__postfix3.9_loss0",
+      "family-506__postfix3.9_loss0"
+    ],
+    "canonical-088": [
+      "family-215__postfix3.9_loss0",
+      "family-392__postfix3.9_loss0"
+    ],
+    "canonical-157": [
+      "family-221__postfix3.9_loss0",
+      "family-411__postfix3.9_loss0",
+      "family-437__postfix3.9_loss0"
+    ],
+    "canonical-131": [
+      "family-222__postfix3.9_loss0",
+      "family-231__postfix3.9_loss0",
+      "family-311__postfix3.9_loss0",
+      "family-370__postfix3.9_loss0",
+      "family-503__postfix3.9_loss0",
+      "family-541__postfix3.9_loss0"
+    ],
+    "canonical-152": [
+      "family-225__postfix3.9_loss0",
+      "family-454__postfix3.9_loss0",
+      "family-458__postfix3.9_loss0"
+    ],
+    "canonical-051": [
+      "family-226__postfix3.9_loss0",
+      "family-516__postfix3.9_loss0"
+    ],
+    "canonical-151": [
+      "family-233__postfix3.9_loss0",
+      "family-468__postfix3.9_loss0",
+      "family-510__postfix3.9_loss0"
+    ],
+    "canonical-029": [
+      "family-237__postfix3.9_loss0",
+      "family-308__postfix3.9_loss0",
+      "family-559__postfix3.9_loss0"
+    ],
+    "canonical-144": [
+      "family-240__postfix3.9_loss0",
+      "family-361__postfix3.9_loss0"
+    ],
+    "canonical-016": [
+      "family-241__postfix3.9_loss0",
+      "family-389__postfix3.9_loss0",
+      "family-462__postfix3.9_loss0"
+    ],
+    "canonical-005": [
+      "family-253__postfix3.9_loss0",
+      "family-295__postfix3.9_loss0",
+      "family-316__postfix3.9_loss0",
+      "family-557__postfix3.9_loss0"
+    ],
+    "canonical-003": [
+      "family-255__postfix3.9_loss0"
+    ],
+    "canonical-026": [
+      "family-259__postfix3.9_loss0",
+      "family-324__postfix3.9_loss0",
+      "family-436__postfix3.9_loss0",
+      "family-517__postfix3.9_loss0",
+      "family-576__postfix3.9_loss0"
+    ],
+    "canonical-024": [
+      "family-266__postfix3.9_loss0"
+    ],
+    "canonical-061": [
+      "family-268__postfix3.9_loss0",
+      "family-302__postfix3.9_loss0",
+      "family-339__postfix3.9_loss0",
+      "family-345__postfix3.9_loss0",
+      "family-469__postfix3.9_loss0"
+    ],
+    "canonical-081": [
+      "family-270__postfix3.9_loss0",
+      "family-321__postfix3.9_loss0",
+      "family-426__postfix3.9_loss0"
+    ],
+    "canonical-154": [
+      "family-273__postfix3.9_loss0",
+      "family-312__postfix3.9_loss0",
+      "family-449__postfix3.9_loss0"
+    ],
+    "canonical-084": [
+      "family-293__postfix3.9_loss0",
+      "family-373__postfix3.9_loss0",
+      "family-432__postfix3.9_loss0",
+      "family-526__postfix3.9_loss0"
+    ],
+    "canonical-063": [
+      "family-313__postfix3.9_loss0",
+      "family-391__postfix3.9_loss0"
+    ],
+    "canonical-015": [
+      "family-315__postfix3.9_loss0",
+      "family-573__postfix3.9_loss0"
+    ],
+    "canonical-118": [
+      "family-323__postfix3.9_loss0",
+      "family-461__postfix3.9_loss0",
+      "family-501__postfix3.9_loss0",
+      "family-553__postfix3.9_loss0"
+    ],
+    "canonical-107": [
+      "family-343__postfix3.9_loss0",
+      "family-431__postfix3.9_loss0",
+      "family-519__postfix3.9_loss0",
+      "family-521__postfix3.9_loss0"
+    ],
+    "canonical-156": [
+      "family-357__postfix3.9_loss0"
+    ],
+    "canonical-074": [
+      "family-359__postfix3.9_loss0",
+      "family-405__postfix3.9_loss0",
+      "family-496__postfix3.9_loss0"
+    ],
+    "canonical-022": [
+      "family-377__postfix3.9_loss0",
+      "family-400__postfix3.9_loss0"
+    ],
+    "canonical-100": [
+      "family-384__postfix3.9_loss0",
+      "family-415__postfix3.9_loss0",
+      "family-565__postfix3.9_loss0"
+    ],
+    "canonical-132": [
+      "family-396__postfix3.9_loss0",
+      "family-428__postfix3.9_loss0",
+      "family-463__postfix3.9_loss0"
+    ],
+    "canonical-055": [
+      "family-403__postfix3.9_loss0",
+      "family-555__postfix3.9_loss0"
+    ],
+    "canonical-006": [
+      "family-418__postfix3.9_loss0"
+    ],
+    "canonical-058": [
+      "family-460__postfix3.9_loss0"
+    ],
+    "canonical-010": [
+      "family-480__postfix3.9_loss0",
+      "family-566__postfix3.9_loss0"
+    ],
+    "canonical-119": [
+      "family-539__postfix3.9_loss0"
+    ]
+  },
+  "seeds": {
+    "PYTHONHASHSEED": 0,
+    "hash": "hashlib.sha256 deterministic, not hash()",
+    "seed": 42,
+    "manifest_hash": "6dc5c1b5b7c8053d",
+    "ordering": "splits.json all_environment_ids numeric 01..580 preserved, not lexicographic"
+  },
+  "grouping_key": "environment_id",
+  "grouping_verified": "assessment/features.py:99-101 asserts environment_id not in FEATURES_28 and grouping must be environment_id not family",
+  "method": "hashlib.sha256(env.encode()) %160 deterministic, PYTHONHASHSEED=0, GREASE filtering shared/ja4_rarity.py:74-76, analyzer/jas.py:139-142, lab/manifest.json hash(TLS,cipher,kex,cert,STARTTLS,port) distinct 153/580 -> canonical 156 via JARM+JA4 dedupe per assessment/splits.json:canonical_dedupe 580->156, m0138 expanded TLS distinct 42->60/100, T12 80 good 500->580",
+  "pseudoreplication": {
+    "inflated_n": 580,
+    "honest_n_canonical": 156,
+    "collapse_rate": 0.731,
+    "avg_cluster_size_m": 3.718,
+    "ICC_assumed": 0.85,
+    "DEFF": 3.31,
+    "n_eff_adjusted": 175.2,
+    "note": "Do not assume 580 independent; effective n ~148-324 via DEFF=1+(m-1)*ICC per statistical-power ICC/DEFF; p/n guard honest 5/160=0.031 not 0.01"
+  },
+  "verification": {
+    "groups_by_family_distinct": 580,
+    "canonical_distinct": 156,
+    "splits_json_grouping": "environment_id",
+    "splits_json_n_groups": 580,
+    "splits_json_canonical_n_groups": 156,
+    "tls_distinct_100": 60,
+    "tls_distinct_500": 153
+  },
+  "tls_distinct_500": 153,
+  "tls_distinct_100_raw": 60,
+  "T12_provenance": "T12 80 good families added 500->580, TLS 153/580 60/100 preserved, canonical 156 m 3.718 target 160 actual 156",
+  "balanced_provenance": "2026-08-28 added 100 balanced synthesis families 581-680 distinct GXXX to reach 60 per level Medium 6\u219260 High 15\u219260, Low 85 Critical 63 already >60, canonical 156 retained via hash %156",
+  "tls_distinct_100": 60
+}

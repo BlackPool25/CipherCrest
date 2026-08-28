@@ -333,3 +333,59 @@ def load_and_validate(path: str | pathlib.Path = "eval/metrics.json") -> dict[st
     if errs:
         raise ValueError("metrics.json hard-fail:\n" + "\n".join(f" - {e}" for e in errs))
     return data
+
+
+def validate_metrics_honest(data: dict[str, Any]) -> list[str]:
+    errs: list[str] = []
+    if "WEAK SUPERVISION" not in data:
+        errs.append("missing WEAK SUPERVISION in metrics_honest")
+    elif data["WEAK SUPERVISION"] != WEAK_SUPERVISION_VERBATIM:
+        errs.append("WEAK SUPERVISION verbatim mismatch in metrics_honest")
+    for k in ("brier", "brier_joint", "ece_5bin", "ece_quantile", "ece_smooth", "ece_kernel", "bootstrap_n", "bin_counts"):
+        if k not in data:
+            errs.append(f"metrics_honest missing {k}")
+    if data.get("bootstrap_n") != 2000:
+        errs.append(f"metrics_honest bootstrap_n must be 2000 got {data.get('bootstrap_n')}")
+    brier = data.get("brier")
+    base = data.get("brier_base_rate")
+    if isinstance(brier, (int, float)) and isinstance(base, (int, float)) and not (brier < base):
+        errs.append(f"metrics_honest brier {brier} not < base {base}")
+    ece_hi = data.get("ece_hi")
+    if isinstance(ece_hi, (int, float)) and not (ece_hi < 0.20):
+        errs.append(f"metrics_honest ece_hi {ece_hi} not <0.20 tight")
+    return errs
+
+
+def validate_calibration_honest(data: dict[str, Any]) -> list[str]:
+    errs: list[str] = []
+    for k in ("ece_ew", "ece_quantile", "ece_kernel", "brier", "brier_joint", "gated_honest"):
+        if k not in data:
+            errs.append(f"calibration_honest missing {k}")
+    gated = data.get("gated_honest", {})
+    if isinstance(gated, dict) and gated.get("should_be") not in (None, 3, 5):
+        pass
+    if "ece_ew" in data and isinstance(data["ece_ew"], (int, float)) and not (data["ece_ew"] < 0.40):
+        errs.append(f"calibration ece_ew {data['ece_ew']} not <0.40")
+    return errs
+
+
+def load_and_validate_honest(path: str | pathlib.Path = "eval/metrics_honest.json") -> dict[str, Any]:
+    p = pathlib.Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"{path} missing — hard-fail")
+    data = json.loads(p.read_text(encoding="utf-8"))
+    errs = validate_metrics_honest(data)
+    if errs:
+        raise ValueError("metrics_honest.json hard-fail:\n" + "\n".join(f" - {e}" for e in errs))
+    return data
+
+
+def load_and_validate_calibration(path: str | pathlib.Path = "eval/calibration_honest.json") -> dict[str, Any]:
+    p = pathlib.Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"{path} missing — hard-fail")
+    data = json.loads(p.read_text(encoding="utf-8"))
+    errs = validate_calibration_honest(data)
+    if errs:
+        raise ValueError("calibration_honest.json hard-fail:\n" + "\n".join(f" - {e}" for e in errs))
+    return data

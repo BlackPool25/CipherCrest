@@ -3,7 +3,7 @@
 # Single port 8000 via docker compose up -d --build demo (+ --profile lab optional)
 # Offline-first: tshark optional (scapy parity fallback). Docs: docs/LARGE_FILES.md
 # Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab]
-#   --check    dry-run, no servers (CI-safe) — checks python 3.11, node >=18, tshark 4 prefs, du wheelhouse <370, models prot4 <5M, gzip <3670016, check_port_free 8000 via ss/fuser
+#   --check    dry-run, no servers (CI-safe) — checks python 3.11, node >=18, tshark 4 prefs, du wheelhouse <350, models prot4 <5M, gzip <3670016, check_port_free 8000 via ss/fuser
 #   --with-lab also bring lab profile (WITH_LAB=1)
 #   --help     usage
 # Env: API_PORT=8000, PYTHONHASHSEED=0, OMP_NUM_THREADS=6, WITH_LAB=0|1
@@ -146,13 +146,13 @@ check_wheelhouse(){
     mb=$(echo "$du_line" | awk '{print $1}')
     cnt=$(ls wheelhouse/*.whl 2>/dev/null | wc -l | tr -d ' ')
     echo "wheelhouse $cnt wheels"
-    if [[ "$mb" -lt 370 ]]; then ok "wheelhouse $mb <370M lean"; else fail "wheelhouse $mb >=370M — re-lean (see docs/LARGE_FILES.md)"; fi
+    if [[ "$mb" -lt 350 ]]; then ok "wheelhouse $mb <350M lean"; else fail "wheelhouse $mb >=350M — re-lean (see docs/LARGE_FILES.md)"; fi
     if ls wheelhouse/*.whl 2>/dev/null | grep -qi torch; then fail "torch wheel in wheelhouse — lean forbids torch (see requirements.txt)"; else ok "no torch (lean)"; fi
     if git ls-files 2>/dev/null | grep -q "^wheelhouse/"; then fail "wheelhouse tracked in git — must be gitignored (b9d18b4)"; else ok "HEAD clean: wheelhouse gitignored (not tracked)"; fi
     if python3 -c "import pathlib; wh=pathlib.Path('wheelhouse'); assert any('torch' not in p.name.lower() for p in wh.glob('*.whl'))" 2>/dev/null; then ok "wheelhouse no torch (python guard)"; fi
   else
     warn "wheelhouse missing or empty — fresh clone (no USB air-gap) — CI fallback: pip install -r requirements.txt"
-    echo "  rebuild: pip download --only-binary=:all: -d wheelhouse -r requirements.txt && du -m wheelhouse | tail -1  # expect 361 <370"
+    echo "  rebuild: pip download --only-binary=:all: -d wheelhouse -r requirements.txt && du -m wheelhouse | tail -1  # expect 339 <350"
     # not fatal for --check
   fi
 }

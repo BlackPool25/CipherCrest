@@ -1,0 +1,63 @@
+{
+  "seed": 42,
+  "n": 100,
+  "stratified": {
+    "Low": 25,
+    "Medium": 25,
+    "High": 25,
+    "Critical": 25
+  },
+  "ecod_auc": 0.782,
+  "if_auc": 0.891,
+  "ja4_auc": 0.619,
+  "hybrid_auc": 0.883,
+  "hybrid2_auc": 0.869,
+  "ecod_accuracy": 0.82,
+  "if_accuracy": 0.88,
+  "ja4_accuracy": 0.62,
+  "hybrid_accuracy": 0.89,
+  "thresholds_youden": {
+    "ecod": 3.583,
+    "if": -0.0606,
+    "ja": -0.42,
+    "hybrid": 0.1769
+  },
+  "per_level": {
+    "Low": {
+      "n": 25,
+      "ecod_acc": 0.92,
+      "if_acc": 0.96,
+      "ja_acc": 0.48,
+      "hybrid_acc": 0.96,
+      "hybrid_pred_anomaly_rate": 0.04
+    },
+    "Medium": {
+      "n": 25,
+      "ecod_acc": 0.84,
+      "if_acc": 0.92,
+      "ja_acc": 0.68,
+      "hybrid_acc": 0.92,
+      "hybrid_pred_anomaly_rate": 0.08
+    },
+    "High": {
+      "n": 25,
+      "ecod_acc": 0.68,
+      "if_acc": 0.68,
+      "ja_acc": 0.68,
+      "hybrid_acc": 0.72,
+      "hybrid_pred_anomaly_rate": 0.72
+    },
+    "Critical": {
+      "n": 25,
+      "ecod_acc": 0.84,
+      "if_acc": 0.96,
+      "ja_acc": 0.64,
+      "hybrid_acc": 0.96,
+      "hybrid_pred_anomaly_rate": 0.96
+    }
+  },
+  "low_fp": 0.04,
+  "overall_accuracy": 0.89,
+  "not_rating_everything_anomaly": true,
+  "overall_gt_080": true
+}

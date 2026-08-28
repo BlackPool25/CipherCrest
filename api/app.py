@@ -238,18 +238,22 @@ async def analyze(pcap: UploadFile | None = File(default=None)) -> Any:
                         real_part = _real_pipeline_for_bytes(inner_bytes, inner_name)
                         part = real_part if real_part else stub_reassemble(inner_name)
                     for fv in part:
-                        try: flows.append(FlowVerdict.model_validate(fv.model_dump()))
-                        except Exception: continue
+                        flows.append(FlowVerdict.model_validate(fv.model_dump() if hasattr(fv, "model_dump") else fv))
             if not flows:
                 if not USE_STUB:
                     rp = _real_pipeline_for_bytes(data, "fallback")
-                    if rp: flows.extend(rp)
+                    if rp:
+                        validated_rp: list[FlowVerdict] = []
+                        for fv in rp:
+                            validated_rp.append(FlowVerdict.model_validate(fv.model_dump() if hasattr(fv, "model_dump") else fv))
+                        flows.extend(validated_rp)
                 if not flows:
                     fallback = stub_reassemble("fallback")
                     for fv in fallback:
-                        try: flows.append(FlowVerdict.model_validate(fv.model_dump()))
-                        except Exception: continue
+                        flows.append(FlowVerdict.model_validate(fv.model_dump() if hasattr(fv, "model_dump") else fv))
             flows = _enrich_stub_flows(flows); flows = _attach_policy(flows)
+            for fv in flows:
+                FlowVerdict.model_validate(fv.model_dump())
             _last_result = flows; _last_summary = _compute_summary(flows); upsert_flows(flows)
             try:
                 await _broadcast_flows(flows)

@@ -72,26 +72,27 @@ class TcpSegment:
 
 
 def _compute_pre_tls_buffer(reassembled_payload: bytes) -> tuple[int, bool]:
-    """Compute pre-TLS buffer: bytes between 220 Ready and TLS ClientHello.
+    """Compute pre-TLS buffer: bytes between initial banner and TLS ClientHello.
 
-    Finds last 220 banner before first TLS ClientHello record start
-    (\\x16\\x03). Returns (pre_tls_buffer_len, pre_tls_buffer_injection_possible).
-    Flag is True iff bytes exist between banner line end and ClientHello.
-    Honest: injection possible iff len > 0 (R1-R8 not hidden, ∂ per-version).
+    Finds initial protocol banner before first TLS ClientHello record start (\\x16\\x03).
+    Returns (pre_tls_buffer_len, pre_tls_buffer_injection_possible).
     """
     if not reassembled_payload:
         return 0, False
     tls_offset = reassembled_payload.find(b"\x16\x03")
     if tls_offset == -1:
         return 0, False
-    # Find last 220 before TLS (Ready line), not first banner
-    banner_offset = reassembled_payload.rfind(b"220", 0, tls_offset)
-    if banner_offset == -1:
-        banner_offset = reassembled_payload.find(b"220")
-    # TLS ClientHello record starts with 0x16 0x03 (any version 0x01..0x04)
-    if banner_offset == -1:
+    # If TLS ClientHello is at the very beginning of the flow (implicit TLS, e.g. IMAPS 993 / SMTPS 465)
+    if tls_offset == 0:
         return 0, False
-    if tls_offset <= banner_offset:
+    # Find first banner (220, * OK, +OK) before TLS
+    banner_offset = -1
+    for bmark in (b"220", b"* OK", b"+OK"):
+        bo = reassembled_payload.find(bmark, 0, tls_offset)
+        if bo != -1 and (banner_offset == -1 or bo < banner_offset):
+            banner_offset = bo
+    if banner_offset == -1:
+        # No banner found before TLS ClientHello
         return 0, False
     banner_line_end = reassembled_payload.find(b"\r\n", banner_offset)
     if banner_line_end == -1:

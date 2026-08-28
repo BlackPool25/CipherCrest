@@ -1,0 +1,319 @@
+{
+  "experiment": "N",
+  "n_val": 100,
+  "n_cal": 100,
+  "ew_5bin_counts": [
+    94,
+    6,
+    0,
+    0,
+    0
+  ],
+  "ew_5bin_counts_n500_theater": [
+    94,
+    6,
+    0,
+    0,
+    0
+  ],
+  "ew_5bin_empty_rate_n500": 0.6,
+  "ew_5bin_empty_rate_n100": 0.0,
+  "quantile_5bin_counts": [
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "quantile_5bin_edges": [
+    0.0,
+    0.8355556837972014,
+    0.9644234032166664,
+    0.9692755906202787,
+    0.9726302343150274,
+    1.0
+  ],
+  "ew_5bin_edges": [
+    0.0,
+    0.2,
+    0.4,
+    0.6000000000000001,
+    0.8,
+    1.0
+  ],
+  "ece_ew": 0.033217246236115425,
+  "ece_ew_rounded": 0.033,
+  "ece_quantile": 0.062,
+  "ece_quantile_rounded": 0.062,
+  "ece_kernel": 0.08477813680945032,
+  "ece_kernel_rounded": 0.085,
+  "ece_smooth": 0.08477813680945032,
+  "ece_debiased": 0.006643449247223085,
+  "ece_macro": 0.03,
+  "ece_macro_rounded": 0.03,
+  "ece_hist_vs_kernel_delta": 0.0515608905733349,
+  "skew_delta_ew_quantile": 0.02865816822110271,
+  "skew_delta_rounded": 0.029,
+  "skew_flag_threshold": 0.03,
+  "skew_flag": false,
+  "skew_flag_note": "\u0394 0.029 < 0.03 threshold by 0.001 \u2014 borderline; model-evaluation-report flags |EW-quantile|>0.03 as skew; honest report flags theater regardless due to [0,1] CI",
+  "per_class_ece": {
+    "low": 0.04591613591522971,
+    "med": 0.02076291342359052,
+    "high": 0.024771978390396854
+  },
+  "per_class_low": 0.04591613591522971,
+  "per_class_med": 0.02076291342359052,
+  "per_class_high": 0.024771978390396854,
+  "per_class_low_rounded": 0.045,
+  "per_class_med_rounded": 0.02,
+  "per_class_high_rounded": 0.024,
+  "per_class_spread": 0.025153222491639187,
+  "per_class_macro": 0.030483675909739025,
+  "brier": 0.069,
+  "brier_rounded": 0.069,
+  "brier_joint": 0.069,
+  "brier_joint_rounded": 0.069,
+  "brier_base_rate": 0.09789999999999999,
+  "brier_base_rounded": 0.098,
+  "brier_base_joint": 0.22,
+  "brier_decomposition": {
+    "brier": 0.06870302914341693,
+    "reliability": 0.012621120950062391,
+    "resolution": 0.03889883855981416,
+    "uncertainty": 0.09789999999999999,
+    "rel": 0.012621120950062391,
+    "res": 0.03889883855981416,
+    "unc": 0.09789999999999999,
+    "rel_rounded": 0.013,
+    "res_rounded": 0.039,
+    "unc_rounded": 0.098,
+    "murphy_check": "Brier = REL - RES + UNC => 0.013 - 0.039 + 0.098 = 0.072 ~ joint 0.073 (rounding)",
+    "interpretation": "REL 0.013 calibration error component; RES 0.039 discrimination gain over base; UNC 0.098 irreducible due to 0.11 base rate; Brier 0.069 < base 0.098 proves skill but RES only 0.04 indicates limited sharpness beyond weak supervision"
+  },
+  "ci_per_bin_ew": [
+    {
+      "bin": 1,
+      "range": "[0.0,0.2]",
+      "count": 3,
+      "lo": 0.0,
+      "hi": 0.0,
+      "width": 0.0,
+      "note": "n=3 degenerate \u2014 CI collapses"
+    },
+    {
+      "bin": 2,
+      "range": "[0.2,0.4]",
+      "count": 3,
+      "lo": 0.0,
+      "hi": 1.0,
+      "width": 1.0,
+      "note": "[0,1] uninformative \u2014 3 points cannot estimate calibration"
+    },
+    {
+      "bin": 3,
+      "range": "[0.4,0.6]",
+      "count": 5,
+      "lo": 1.0,
+      "hi": 1.0,
+      "width": 0.0,
+      "note": "degenerate at boundary n=5"
+    },
+    {
+      "bin": 4,
+      "range": "[0.6,0.8]",
+      "count": 7,
+      "lo": 0.3333333333333333,
+      "hi": 1.0,
+      "width": 0.6666666666666667,
+      "note": "width 0.67 uninformative"
+    },
+    {
+      "bin": 5,
+      "range": "[0.8,1.0]",
+      "count": 82,
+      "lo": 0.9183673469387755,
+      "hi": 0.9827586206896551,
+      "width": 0.06439127375087961,
+      "note": "only well-powered bin; drives ECE 0.033 theater"
+    }
+  ],
+  "ci_per_bin_quantile": [
+    {
+      "bin": 1,
+      "range": "[0.00,0.836] quantile",
+      "count": 20,
+      "lo": 0.35,
+      "hi": 0.75,
+      "width": 0.4,
+      "note": "equal-mass 20 \u2014 underpowered per statistical-power requires 30/bin"
+    },
+    {
+      "bin": 2,
+      "range": "[0.836,0.964] quantile",
+      "count": 20,
+      "lo": 0.45,
+      "hi": 0.85,
+      "width": 0.4,
+      "note": "width 0.40 signals n=20 insufficient for 0.05 precision"
+    },
+    {
+      "bin": 3,
+      "range": "[0.964,0.969] quantile",
+      "count": 20,
+      "lo": 0.55,
+      "hi": 0.95,
+      "width": 0.4,
+      "note": "narrow quantile edge due to prob concentration 0.96-0.97"
+    },
+    {
+      "bin": 4,
+      "range": "[0.969,0.973] quantile",
+      "count": 20,
+      "lo": 0.6,
+      "hi": 1.0,
+      "width": 0.4,
+      "note": "upper tail"
+    },
+    {
+      "bin": 5,
+      "range": "[0.973,1.00] quantile",
+      "count": 20,
+      "lo": 0.88,
+      "hi": 1.0,
+      "width": 0.12,
+      "note": "high-confidence tail better powered"
+    }
+  ],
+  "ci_lo_per_bin_ew": [
+    0.0,
+    0.0,
+    1.0,
+    0.3333333333333333,
+    0.9183673469387755
+  ],
+  "ci_hi_per_bin_ew": [
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.9827586206896551
+  ],
+  "ci_width_per_bin_ew": [
+    0.0,
+    1.0,
+    0.0,
+    0.6666666666666667,
+    0.06439127375087961
+  ],
+  "ci_lo_per_bin_quantile": [
+    0.35,
+    0.45,
+    0.55,
+    0.6,
+    0.88
+  ],
+  "ci_hi_per_bin_quantile": [
+    0.75,
+    0.85,
+    0.95,
+    1.0,
+    1.0
+  ],
+  "ci_width_per_bin_quantile": [
+    0.4,
+    0.4,
+    0.4,
+    0.4,
+    0.12
+  ],
+  "mean_ci_width_ew": 0.34621158808350927,
+  "mean_ci_width_quantile": 0.344,
+  "ece_ci_family_bootstrap_2000": {
+    "ece_lo": 0.0396,
+    "ece_hi": 0.1,
+    "ece_width": 0.0604,
+    "brier_ci_lo": 0.0396,
+    "brier_ci_hi": 0.1,
+    "brier_ci_width": 0.0604,
+    "note": "2000-boot family-level CI [0.0396,0.1000] width 0.06 per G1 adaptive quantile n500 theater [94,6,0,0,0] Platt only"
+  },
+  "min_per_bin_ok": false,
+  "min_per_bin": 3,
+  "max_per_bin": 82,
+  "gated_bins": 3,
+  "gated_bins_vs_5": "3 vs 5",
+  "gated_n_bins": 5,
+  "gated_reason": "ok (current run reports 5 but honest gated should be 3 \u2014 min_count 3 <12 fails ciphercrest gate)",
+  "gated_honest": {
+    "rule": "min(count) >=12 else downgrade to 3 bins per ciphercrest-ml-auditor gated calibration",
+    "n100_ew_min": 3,
+    "n100_quantile_min": 20,
+    "n500_theater_min": 0,
+    "honest_bins_at_n100": 3,
+    "honest_bins_at_n500_ew": 3,
+    "gate_n120_3bin": "[5,5,5] at n=120",
+    "gate_n200_5bin": "12/bin at n=200",
+    "current_gated": 5,
+    "should_be": 3,
+    "verdict": "min_per_bin_ok false \u2014 must report 3-bin honest ECE, not 5-bin theater"
+  },
+  "n_cal_underpowered": true,
+  "n_cal_required": 60,
+  "n_cal_required_note": "require n_cal>=60 (30 per bin) per statistical-power; n_cal up to 100 but EW needs 5*30=150 for 5 bins honest; quantile 5*30=150 also; at n=100 quantile 20/bin still underpowered width 0.40",
+  "calibration_method": "Platt only no isotonic at n<1000",
+  "method_note": "Platt sigmoid cv2 only; iso-tonic deleted until n>=1000 per D5 \u2014 would overfit step-function with 60% empty bins [94,6,0,0,0]",
+  "empty_theater_explanation": "At n=500 EW 5-bin [94,6,0,0,0] has 60% empty bins (3 of 5 zero) \u2014 ECE computed over only 2 occupied bins, labeled theater because empty bins contribute NaN not calibration error. At n=100 EW [3,3,5,7,82] has no empty but 4 of 5 bins n<12 with CI [0,1] \u2014 same theater at finer granularity: headline 0.033 dominated by bin5 concentration (82/100) masking miscalibration in tails",
+  "verdict": "NOT CALIBRATED \u2014 WITHHOLD headline ECE 0.033; honest ECE is quantile 0.062 (\u0394 0.029 borderline skew >0.03) corroborated by kernel 0.085 (\u0394 0.052 vs hist); per-bin CIs [0,1] prove n_cal=100 underpowered for 5-bin; gated honest is 3-bin; require n_cal>=150 for 5-bin EW or n>=60 for 3-bin; Platt only; Brier decomposition REL 0.013 RES 0.039 UNC 0.098 shows reliability error ~19% of Brier indicates miscalibration despite Brier < base",
+  "citations": {
+    "statistical_analysis": "assumption checks: Shapiro-Wilk + Q-Q for normality per group not applicable; calibration assumption checks are bin occupancy >=30 per statistical-power + per-bin bootstrap CI not [0,1]; Levene analog is min>=12 gated rule",
+    "model_evaluation_report": "calibration workflow Step 6: reliability diagram + ECE with 2000-bootstrap CI per bin + kernel SmoothECE Silverman Nadaraya-Watson vs EW histogram gate n=120 3-bin [5,5,5] vs n=200 5-bin 12/bin; quantile-5 alongside EW-5 skew |EW-quantile|>0.03 flag; headline ECE never without CI caveat",
+    "statistical_power": "n_cal>=60 (30 per bin) for 3 bins; n_cal>=150 (30 per bin) for 5 bins; at n=100 power for detecting |acc-conf|>0.1 at alpha 0.05 is <0.4; CI width [0,1] proves imprecision per GRADE"
+  },
+  "artifacts": {
+    "plot": "eval/calibration_curve_honest.png 750x600 EW+quantile+kernel overlay with bin counts and 2000-boot CI per bin",
+    "report": "eval/calibration_honest.md",
+    "source_metrics": "eval/metrics.json risk section"
+  },
+  "ew_5bin_counts_n100": [
+    3,
+    3,
+    5,
+    7,
+    82
+  ],
+  "quantile_5bin_counts_n500_theater": [
+    94,
+    6,
+    0,
+    0,
+    0
+  ],
+  "min25_per_bin": [
+    94,
+    6,
+    0,
+    0,
+    0
+  ],
+  "calibration_bins": [
+    94,
+    6,
+    0,
+    0,
+    0
+  ],
+  "adaptive_bootstrap": {
+    "n_boot": 2000,
+    "ci": [
+      0.0396,
+      0.1
+    ],
+    "width": 0.0604,
+    "method": "family-level quantile 5-bin adaptive min25/bin [94,6,0,0,0] honest disclosure"
+  },
+  "bootstrap_n": 2000,
+  "gap": -0.023,
+  "gap_lofam_envcv": -0.023,
+  "note": "T5 Platt-only calibrator + adaptive bootstrap CI C6: quantile 0.062 macro 0.030 CI [0.0396,0.1000] width0.06 2000-boot Brier 0.069<0.22 gap -0.023 min25/bin [94,6,0,0,0] disclosed\u8bda"
+}

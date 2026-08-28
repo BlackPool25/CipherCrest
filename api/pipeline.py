@@ -66,11 +66,32 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                     pass
                 calibrated_prob = None; anomaly_score = None; anomaly_honest_score = None
                 if _ml.risk_clf is not None or _ml.anomaly_clf is not None or _ml.anomaly_honest_clf is not None:
-                    from assessment.features import FEATURES_TOP5 as _F28, _TOP5_CATEGORICAL as _CAT6, build_vector_top5 as _bv_top5, build_vector as _bv
-                    # TOP5 DataFrame for risk stump pos class + honest ECOD primary
+                    from assessment.features import FEATURES_8 as _F8, _TOP8_CATEGORICAL as _CAT8, build_vector as _bv, build_vector_top5 as _bv_top5
                     v5_raw = None
                     v5_df = None
                     vec = None
+                    vec8_df = None
+                    try:
+                        vec = _bv(flow_dict, mode='xgb')
+                        import pandas as _pd8
+
+                        vec8_df = _pd8.DataFrame([vec], columns=list(_F8))
+                        try:
+                            from assessment.risk_dataset import _load_dataset as _ld8
+
+                            _df_tr8, *_ = _ld8()
+                            for c in _CAT8:
+                                if c in vec8_df.columns:
+                                    vec8_df[c] = _pd8.Categorical(vec8_df[c], categories=_df_tr8[c].cat.categories)
+                        except Exception:
+                            for c in _CAT8:
+                                if c in vec8_df.columns:
+                                    vec8_df[c] = vec8_df[c].astype("category")
+                    except Exception:
+                        try:
+                            vec = _bv(flow_dict, mode='xgb')
+                        except Exception:
+                            vec = None
                     try:
                         v5_df = _bv_top5(flow_dict)
                         import pandas as _pd_tmp
@@ -91,57 +112,33 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                                 v5_raw = _np_f.array([float(x) for x in _tmp], dtype=float)  # type: ignore
                         except Exception:
                             v5_raw = None
-                    # fallback 28 vec for legacy shape mismatch
-                    try:
-                        vec = _bv(flow_dict, mode='xgb')
-                    except Exception:
-                        vec = v5_raw
                     if _ml.risk_clf is not None:
                         _cp_ok = False
                         try:
                             import pandas as pd
-                            if v5_df is not None:
-                                df = v5_df
-                                try:
-                                    from assessment.risk_dataset import _load_dataset as _ld2
-                                    _df_tr2, *_ = _ld2()
-                                    for c in _CAT6: 
-                                        if c in df.columns:
-                                            df[c] = pd.Categorical(df[c], categories=_df_tr2[c].cat.categories)
-                                except Exception:
-                                    for c in _CAT6: 
-                                        if c in df.columns:
-                                            df[c] = df[c].astype('category')
+                            if vec8_df is not None:
+                                df = vec8_df
                                 proba = _ml.risk_clf.predict_proba(df)[0]
-                            else:
-                                import numpy as _np_r
-                                vals = v5_raw if v5_raw is not None else _np_r.array(vec)
-                                df2 = pd.DataFrame([vals], columns=_F28)
-                                for c in _CAT6:
+                            elif vec is not None:
+                                df2 = pd.DataFrame([vec], columns=list(_F8))
+                                for c in _CAT8:
                                     if c in df2.columns:
-                                        df2[c] = df2[c].astype('category')
+                                        df2[c] = df2[c].astype("category")
                                 proba = _ml.risk_clf.predict_proba(df2)[0]
+                            else:
+                                raise ValueError("no vec8")
                             calibrated_prob = float(proba[1]) if len(proba) > 1 else None
                             if calibrated_prob is not None and not (0.0 <= calibrated_prob <= 1.0): calibrated_prob = max(0.0, min(1.0, calibrated_prob))
                             _cp_ok = True
                         except Exception: _cp_ok = False
                         if not _cp_ok or calibrated_prob is None:
                             try:
-                                from assessment.features import FEATURES_28 as _F28_28, _CATEGORICAL_6 as _CAT6_28
-                                import pandas as pd2
-                                df28 = pd2.DataFrame([vec], columns=_F28_28)
-                                try:
-                                    from assessment.risk_dataset import _load_dataset as _ld_e2
-                                    _df_tr2b, *_ = _ld_e2()
-                                    for c in _CAT6_28:
-                                        df28[c] = pd2.Categorical(df28[c], categories=_df_tr2b[c].cat.categories)
-                                except Exception:
-                                    for c in _CAT6_28:
-                                        df28[c] = df28[c].astype("category")
-                                proba28 = _ml.risk_clf.predict_proba(df28)[0]
-                                calibrated_prob = float(proba28[1]) if len(proba28) > 1 else calibrated_prob
-                                if calibrated_prob is not None and not (0.0 <= calibrated_prob <= 1.0):
-                                    calibrated_prob = max(0.0, min(1.0, calibrated_prob))
+                                from assessment.risk_train import predict as _rpred
+
+                                _cp2 = _rpred(flow_dict)
+                                if _cp2.get("calibrated_prob") is not None:
+                                    calibrated_prob = float(_cp2["calibrated_prob"])
+                                    _cp_ok = True
                             except Exception:
                                 pass
                     if _ml.anomaly_clf is not None:

@@ -57,12 +57,16 @@ def init_db() -> None:
 def upsert_flows(flows: list[FlowVerdict]) -> None:
     """INSERT OR REPLACE each FlowVerdict; history version auto-inc before REPLACE.
 
+    Hard-fail: validates each flow via FlowVerdict.model_validate before any
+    SQLite write — invalid flow raises ValidationError and is NOT inserted.
     Handles 10-flow zip + 20 prior <100 rows. History insertion uses
     COALESCE((SELECT MAX(version) FROM flows_history WHERE flow_id=:flow_id),0)+1
     before the canonical flows INSERT OR REPLACE, ensuring version 1..N timeline.
     """
     if not flows:
         return
+    for f in flows:
+        FlowVerdict.model_validate(f.model_dump() if hasattr(f, "model_dump") else f)
     init_db()
     con = sqlite3.connect(str(_DB))
     try:

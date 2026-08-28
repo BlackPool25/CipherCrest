@@ -20,11 +20,11 @@ import sys
 from shared.ja4_rarity import ALLOWED_RISK_FEATURES as _WL
 from shared.ja4_rarity import filter_grease, get_ja4_rarity
 
-# Re-export whitelist + hard guard (raw ja4 spoofable via curl-cffi impersonate=chrome131)
-# Oracle Top2 fix: explicit set + ja4 not in it (raw hash never vector) — fixes grep always-pass
-ALLOWED_RISK_FEATURES = frozenset({"cipher_strength","kex","fs_flag","pubkey_bits","sigalg_weak","days_to_expiry","chain_valid","ja4_rarity","chain_depth","san_match","starttls_mode","port","cert_missing_reason","miss_indicator_*"})
+# Re-export whitelist + hard guard
+ALLOWED_RISK_FEATURES = _WL
 assert "ja4" not in ALLOWED_RISK_FEATURES, "raw ja4 MUST NOT be whitelisted"
-assert "ja4_rarity" in ALLOWED_RISK_FEATURES
+assert "ja4_rarity" in ALLOWED_RISK_FEATURES, "ja4_rarity MUST be whitelisted"
+assert "prior_flag" not in ALLOWED_RISK_FEATURES, "prior_flag MUST NOT be whitelisted"
 assert _WL == ALLOWED_RISK_FEATURES, "whitelist divergence shared/ja4_rarity vs analyzer/jas"
 
 log = logging.getLogger(__name__)

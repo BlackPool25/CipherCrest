@@ -11,7 +11,7 @@ JITTER_DIR = ROOT / "lab" / "pcaps" / "jittered"
 
 FAMILIES = ["02", "03", "04", "05", "07", "08", "10"]
 EXPECTED_JITTER_COUNT = 35  # 7 families x5 slices jitter only
-EXPECTED_MANIFEST_ENVS = (45, 85)  # 10 base +35 jitter =45 legacy or 10+35+40 synth=85 expanded
+EXPECTED_MANIFEST_ENVS = (45, 85, 500, 715)  # 10 base +35 jitter =45 legacy or expanded scale
 
 def test_jitter_pcap_count():
     pcaps = glob.glob(JITTER_GLOB)
@@ -129,7 +129,7 @@ def test_idempotence_no_duplicate():
     after_ledger = LEDGER.read_text(encoding="utf-8")
     after_count = len(glob.glob(JITTER_GLOB))
     assert after_count == before_count == 35, f"idempotence pcap count changed {before_count}->{after_count}"
-    assert len(after_manifest) == len(before_manifest) and len(after_manifest) in (45, 85), f"manifest duplicate after rerun {len(before_manifest)}->{len(after_manifest)}"
+    assert len(after_manifest) == len(before_manifest) and len(after_manifest) in (45, 85, 500, 715), f"manifest duplicate after rerun {len(before_manifest)}->{len(after_manifest)}"
     jitter_lines_after = [l for l in after_ledger.splitlines() if "jitter" in l.lower() and l.strip().startswith("|") and "Family" not in l]
     assert len(jitter_lines_after) in (35, 36), f"ledger duplicate after rerun got {len(jitter_lines_after)}"
     jitter_envs = [v.get("environment_id","") for v in after_manifest.values() if "jitter" in v.get("environment_id","")]

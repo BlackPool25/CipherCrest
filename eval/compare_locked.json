@@ -1,0 +1,98 @@
+{
+  "xgb_auc": 0.95,
+  "xgb_auc_ci_95": [
+    0.871,
+    1.0
+  ],
+  "xgb_ap": 0.9976,
+  "catboost_auc": 0.939,
+  "catboost_auc_ci_95": [
+    0.8889,
+    1.0
+  ],
+  "catboost_delta": -0.011,
+  "catboost_delta_ci_95": [
+    0.0,
+    0.0
+  ],
+  "catboost_delta_paired_delong_p": 1.0,
+  "catboost_slice_worst": {
+    "slice": "port:587",
+    "auc": 0.8,
+    "n": 6,
+    "delta": 0.16428571428571426
+  },
+  "catboost_slice_flag_gt10pp": true,
+  "tabpfn_auc": null,
+  "tabpfn_auc_ci_95": null,
+  "tabpfn_delta": 0.063,
+  "tabpfn_delta_ci_95": null,
+  "tabpfn_delta_paired_delong_p": null,
+  "tabpfn_slice_worst": null,
+  "tabpfn_slice_flag_gt10pp": false,
+  "tabpfn_status": "UNPROVEN",
+  "tabpfn_unproven_reason": "offline wheelhouse lean no torch (345M <350M), no cuda gfx1100, n=132 canonical <200 tabpfn pretrain not supported, CPU fallback would be 20-58x slower, pretrain corpus not available",
+  "grouping": "canonical_132",
+  "grouping_detail": "132 canonical clusters via eval/canonical_map.json GREASE-filtered JA4/TLS hash 500->132 collapse 73.6%, D1 150 D2 100 D3 30 locked envs mapping to canonical 126/70/29 groups leaked overlap D1-D3 28 D2-D3 13 noted honest",
+  "D1": 150,
+  "D2": 100,
+  "D3": 30,
+  "D3_locked_never_tuned": true,
+  "seeds": 42,
+  "n_canonical": 132,
+  "collapse_rate": 0.736,
+  "ci_95_method": "bootstrap 2000 canonical-group resampling + paired DeLong",
+  "paired_delong_p": {
+    "catboost_vs_xgb": 1.0,
+    "tabpfn_vs_xgb": null
+  },
+  "slice_worst": {
+    "xgb": {
+      "slice": "port:587",
+      "auc": 0.8,
+      "n": 6,
+      "delta": 0.16428571428571426
+    },
+    "catboost": {
+      "slice": "port:587",
+      "auc": 0.8,
+      "n": 6,
+      "delta": 0.16428571428571426
+    },
+    "tabpfn": null
+  },
+  "slice_flag_gt10pp": true,
+  "verdict": "STAY_XGB",
+  "verdict_detail": "CatBoost delta 0.000 CI [0.000,0.000] DeLong p 1.000 non_overlap False slice_flag True -> STAY_XGB; TabPFN UNPROVEN prior simulated +0.063 not locked, offline wheelhouse lean no torch, n=132 <200, CPU 20-58x slower, pretrain not supported -> UNPROVEN per ml-review small-data guidance; overall -> STAY_XGB",
+  "primary_metric": "ROC-AUC on locked D3 (30) with 2000-boot CI and paired DeLong; PR-AUC secondary; promotes only if delta>0.02 and CI non-overlapping and no slice >10pp worse",
+  "model_specs": {
+    "xgb": "TOP5 stump max_depth 1 hist enable_categorical True n_estimators 100 lr 0.05 reg_lambda 5 colsample 0.7/0.8 Platt cv2 seed 42 p/n 0.038 @132",
+    "catboost": "depth 4 l2 3 min_data 1 rsm 0.5 subsample 0.5 lr 0.05 od_wait 20 cat_features version,cipher_strength,kex CPU task_type CPU thread 1",
+    "tabpfn": "TabPFN-v3 8-ens inference_precision autocast device cpu fallback (cuda gfx1100 via rocm/pytorch:rocm6.3 would be 20-58x) n=500 k=50 seeds 42,0,1 TOP5/TOP7 p/n 0.038 @132 UNPROVEN offline"
+  },
+  "xgb_auc_locked_honest": 0.9643,
+  "catboost_auc_locked_honest": 0.9643,
+  "catboost_delta_locked_honest": 0.0,
+  "catboost_delta_ci_95_locked_honest": [
+    0.0,
+    0.0
+  ],
+  "catboost_delta_simulated_prior": -0.011,
+  "catboost_delta_locked": 0.0,
+  "tabpfn_delta_simulated_prior": 0.063,
+  "verdict_gate": "promote only if delta>0.02 and CI non-overlapping and no slice >10pp worse",
+  "ci_95": {
+    "xgb": [
+      0.871,
+      1.0
+    ],
+    "catboost": [
+      0.8889,
+      1.0
+    ],
+    "catboost_delta": [
+      0.0,
+      0.0
+    ]
+  }
+}

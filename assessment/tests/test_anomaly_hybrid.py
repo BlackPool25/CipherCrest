@@ -83,7 +83,9 @@ def test_roc_point_above_060():
     import pandas as pd
     rows = []
     for f in all_flows:
-        v = build_vector_top5(f)
+        # strip prior_flag that censys carries — features 8-col forbids it
+        f_clean = {k: v for k, v in f.items() if k != "prior_flag"} if isinstance(f, dict) else f
+        v = build_vector_top5(f_clean)
         try:
             if isinstance(v, pd.DataFrame):
                 rows.append(v.values[0].astype(float).tolist())
@@ -136,13 +138,17 @@ def test_anomaly_score_wired_to_flowverdict():
 
 def test_no_raw_ja4_in_vector():
     flow = json.loads(pathlib.Path("shared/fixtures/family-04.json").read_text())
-    # ensure build_vector never uses raw ja4 (only ja4_rarity)
-    from assessment.features import FEATURES_28
+    # ensure build_vector never uses raw ja4 (only ja4_rarity in 28, not in 8)
+    from assessment.features import FEATURES_28, FEATURES_8
 
     assert "ja4" not in FEATURES_28
     assert "ja4_rarity" in FEATURES_28
+    assert "ja4" not in FEATURES_8
+    assert "prior_flag" not in FEATURES_8
     v = build_vector(flow, mode="xgb")
-    assert len(v) == 28
+    # T2 8-col honest vs legacy 28 — allow either but enforce 8 for honest
+    assert len(v) == 8, f"8-col honest expected got {len(v)}"
+    assert len(FEATURES_8) == 8
 
 
 def test_fit_time_under_03s():

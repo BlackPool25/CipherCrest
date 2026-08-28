@@ -32,12 +32,13 @@ api/flows.db
 *.db
 *.sqlite
 *.sqlite3
-.opencode/skills
+.opencode/
 logs/
 
 # Ignore loose/temp capture files by default, but preserve essential lab datasets
 *.tmp.pcap
 *.cap
+catboost_info/
 !lab/pcaps/**
 !lab/reassembled/**
 !lab/adversarial/**

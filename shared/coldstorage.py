@@ -1,7 +1,12 @@
-"""shared/coldstorage.py — category formatter + normalizer extracted from assessment/features.py."""
+"""shared/coldstorage.py — category formatter + normalizer extracted from assessment/features.py.
+
+T2 8-col freeze: adds FEATURES_VERSION + build_miss_flags single definition.
+"""
 from __future__ import annotations
 
 import hashlib
+
+FEATURES_VERSION: str = "8-col-honest-v1"
 
 
 def encode_categorical(name: str, value: object) -> int | float:
@@ -52,3 +57,25 @@ def normalize_value(name: str, val: object, mode: str = "xgb") -> float:
             return float(val) / 4096.0 if mode == "ae" else float(val)
         return float(val)
     return float(val) if isinstance(val, (int, float)) else 0.0
+
+
+def build_miss_flags(raw: dict, cert: dict) -> dict[str, int]:
+    """Single definition for miss indicators — train/serve parity.
+
+    Args:
+        raw: dict with keys chain_valid, san_match, days_to_expiry, pubkey_bits,
+             sigalg_weak, chain_length, ja4_rarity (values may be None)
+        cert: cert dict for sigalg fallback (cert.get("sigalg"))
+
+    Returns:
+        dict of 7 miss_indicator_* -> 0/1
+    """
+    return {
+        "miss_indicator_chain_valid": 1 if raw.get("chain_valid") is None else 0,
+        "miss_indicator_san_match": 1 if raw.get("san_match") is None else 0,
+        "miss_indicator_days_to_expiry": 1 if raw.get("days_to_expiry") is None else 0,
+        "miss_indicator_pubkey_bits": 1 if raw.get("pubkey_bits") is None else 0,
+        "miss_indicator_sigalg": 1 if raw.get("sigalg_weak") is None and cert.get("sigalg") is None else 0,
+        "miss_indicator_chain_length": 1 if raw.get("chain_length") is None else 0,
+        "miss_indicator_ja4_rarity": 1 if raw.get("ja4_rarity") is None else 0,
+    }

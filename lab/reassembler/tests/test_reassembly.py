@@ -195,7 +195,7 @@ def test_family04_deprecated() -> None:
     manifest = json.loads(pathlib.Path("lab/manifest.json").read_text())
     assert manifest["family-04"]["cipher"] != manifest["family-01"]["cipher"]
     assert "RC4" in manifest["family-04"]["cipher"]
-    assert manifest["family-04"]["tls"] == "1.0"
+    assert manifest["family-04"]["tls"] in ("1.0", "TLS1.0")
     from lab.reassembler.reassemble import reassemble
 
     res = reassemble(str(PCAP_04))

@@ -32,7 +32,7 @@ from sklearn.metrics import average_precision_score, brier_score_loss, log_loss,
 from sklearn.model_selection import LeaveOneGroupOut, KFold, StratifiedGroupKFold
 from xgboost import XGBClassifier
 
-from assessment.features import FEATURES_28, FEATURES_TOP5, _CATEGORICAL_6, build_vector
+from assessment.features import FEATURES_28, FEATURES_8, FEATURES_TOP5, _CATEGORICAL_6, _TOP8_CATEGORICAL, build_vector
 from assessment.rules import evaluate
 from assessment.score import score
 from assessment.risk_dataset import EVAL_DIR, MODEL_PATH, PARAM_GRID, WEAK_SUPERVISION, _load_dataset
@@ -473,9 +473,11 @@ def train_and_evaluate():
                 pass
         perm = permutation_importance(clf, X_val if len(X_val) > 4 else df, y_val if len(y_val) > 4 else y, n_repeats=50, random_state=42, scoring="roc_auc", n_jobs=2)
         perm_sorted = np.argsort(perm.importances_mean)[::-1]
-        top3 = [FEATURES_28[i] for i in perm_sorted[:3]]
+        top3 = [FEATURES_8[i] for i in perm_sorted[:3] if i < len(FEATURES_8)]
+        if len(top3) < 3:
+            top3 = list(FEATURES_8[:3])
     except Exception:
-        top3, perm = FEATURES_28[:3], None
+        top3, perm = list(FEATURES_8[:3]), None
     permutation_p = fast_permutation_p(y_val, prob_val, y, prob_all)
     # outer fold CPI — nested SGKF StratifiedGroupKFold outer fold only: model fit on outer train, permutation on outer test (no leakage)
     # TOP5 not selected via same data: FEATURES_TOP5 is hard-coded in assessment/features.py from prior LOFAM
@@ -802,7 +804,7 @@ def _get_cached_cats():
     if _CACHED_CATS is None:
         try:
             df_train, *_ = _load_dataset()
-            _CACHED_CATS = {c: df_train[c].cat.categories for c in _CATEGORICAL_6}
+            _CACHED_CATS = {c: df_train[c].cat.categories for c in _TOP8_CATEGORICAL if c in df_train.columns}
         except Exception:
             _CACHED_CATS = {}
     return _CACHED_CATS
@@ -814,18 +816,22 @@ def predict(flow: dict) -> dict:
         return {"calibrated_prob": None}
     clf = pickle.load(open(pkl, "rb"))
     vec = build_vector(flow, mode="xgb")
-    df = pd.DataFrame([vec], columns=FEATURES_28)
+    assert len(vec) == 8, f"build_vector must be 8 got {len(vec)}"
+    df = pd.DataFrame([vec], columns=FEATURES_8)
     cats_map = _get_cached_cats()
     if cats_map:
-        for c in _CATEGORICAL_6:
+        for c in _TOP8_CATEGORICAL:
+            if c not in df.columns:
+                continue
             cats = cats_map.get(c)
             if cats is not None:
                 df[c] = pd.Categorical(df[c], categories=cats)
             else:
                 df[c] = df[c].astype("category")
     else:
-        for c in _CATEGORICAL_6:
-            df[c] = df[c].astype("category")
+        for c in _TOP8_CATEGORICAL:
+            if c in df.columns:
+                df[c] = df[c].astype("category")
     proba = clf.predict_proba(df)[0]
     prob = float(proba[1])
     return {"calibrated_prob": max(0.0, min(1.0, prob))}

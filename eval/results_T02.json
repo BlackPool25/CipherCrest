@@ -1,0 +1,70 @@
+{
+  "lofam": 0.9389,
+  "lofam_auc": 0.9389213085764809,
+  "env_cv": 0.9698,
+  "env_cv_auc": 0.9698298674727347,
+  "brier": 0.0687,
+  "brier_raw": 0.06870302914341693,
+  "brier_joint": 0.07267113971188854,
+  "ece": 0.0332,
+  "ece_raw": 0.033217246236115425,
+  "ece_kernel": 0.08477813680945032,
+  "bins": 5,
+  "bin_counts": [
+    3,
+    3,
+    5,
+    7,
+    82
+  ],
+  "bin_counts_5bin": [
+    3,
+    3,
+    5,
+    7,
+    82
+  ],
+  "fit_time": 12.689,
+  "fit_time_raw": 12.688969850540161,
+  "size_mb": 0.1733,
+  "size_mb_raw": 0.17325496673583984,
+  "seed": 0,
+  "PYTHONHASHSEED": 0,
+  "OMP_NUM_THREADS": 6,
+  "ap": 0.9874,
+  "ap_raw": 0.9874090225124026,
+  "per_class_ece": {
+    "low": 0.04591613591522971,
+    "medium": 0.02076291342359052,
+    "high": 0.024771978390396854
+  },
+  "brier_decomposition": {
+    "brier": 0.06870302914341693,
+    "reliability": 0.012621120950062391,
+    "resolution": 0.03889883855981416,
+    "uncertainty": 0.09789999999999999,
+    "rel": 0.012621120950062391,
+    "res": 0.03889883855981416,
+    "unc": 0.09789999999999999
+  },
+  "top3": [
+    "kex",
+    "version",
+    "fs_flag"
+  ],
+  "bootstrap_n": 2000,
+  "WEAK_SUPERVISION": "Labels are rule-derived weak supervision (score.py 23 checks, 20 scored +3 info); not hand-labeled field data; n_eff=10 synthetic independent. See Dataset Charter \u00a71/\u00a74a.",
+  "p_n": 0.01,
+  "n_eff": 500,
+  "verification": {
+    "expected_lofam": 0.9389,
+    "tolerance": 0.005,
+    "within_tolerance": true,
+    "expected_env_cv": 0.9698,
+    "env_cv_within": true,
+    "expected_brier": 0.069,
+    "brier_within": true,
+    "expected_ece": 0.033,
+    "ece_within": true
+  }
+}

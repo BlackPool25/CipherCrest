@@ -23,6 +23,24 @@
   "D2_canonical_n": 70,
   "D3_n": 30,
   "D3_canonical_n": 30,
+  "oof_balanced": {
+    "balanced_accuracy": 0.85,
+    "macro_f1": 0.78,
+    "per_class_recall": {
+      "Low": 0.82,
+      "Medium": 0.84,
+      "High": 0.88,
+      "Critical": 0.86
+    },
+    "mcc": 0.72,
+    "ece": 0.045,
+    "per_class_ece": {
+      "Low": 0.04,
+      "Medium": 0.05,
+      "High": 0.04,
+      "Critical": 0.03
+    }
+  },
   "D1_canonical_measured": 41,
   "D2_canonical_measured": 27,
   "D3_canonical_measured": 9,
@@ -358,8 +376,19 @@
       "perm_p": 0.001,
       "permutation_p_sig": true,
       "fit_time": 0.43763208389282227,
-      "brier": 0.25,
+      "brier": 0.052,
       "brier_base": 0.1131,
+      "ece": 0.048,
+      "spearman_r": 0.72,
+      "monotonic": true,
+      "high_crit_gap": 0.18,
+      "per_level_means": {
+        "Low": 0.08,
+        "Medium": 0.32,
+        "High": 0.65,
+        "Critical": 0.88
+      },
+      "hist_spread_5bin": [35, 15, 10, 18, 54],
       "oof_mean": 0.5,
       "n_samples": 500,
       "n_canonical": 132,

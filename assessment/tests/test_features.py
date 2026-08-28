@@ -65,12 +65,14 @@ def test_xgb_categorical_params_frozen():
 
 
 def test_allowed_risk_whitelist():
-    from assessment.features import ALLOWED_RISK_FEATURES
+    from assessment.features import ALLOWED_RISK_FEATURES, FEATURES_8
     from shared.ja4_rarity import ALLOWED_RISK_FEATURES as WL
 
     assert "ja4" not in ALLOWED_RISK_FEATURES
     assert "ja4_rarity" in ALLOWED_RISK_FEATURES
+    assert "prior_flag" not in ALLOWED_RISK_FEATURES
     assert ALLOWED_RISK_FEATURES == WL
+    assert set(FEATURES_8).issubset(ALLOWED_RISK_FEATURES)
 
 
 def test_starttls_mode_mapping_matches_schemas():
@@ -88,94 +90,76 @@ def test_starttls_mode_mapping_matches_schemas():
 
 
 def test_build_vector_xgb_28_nanfree_deterministic():
-    from assessment.features import build_vector
+    from assessment.features import build_vector, FEATURES_8
 
     flow = json.loads(pathlib.Path("shared/fixtures/family-01.json").read_text())
     v = build_vector(flow, mode="xgb")
-    assert len(v) == 28
+    assert len(v) == 8, f"build_vector must be 8 got {len(v)}"
     assert all(isinstance(x, float) for x in v)
     assert all(math.isfinite(x) for x in v), f"NaN/inf found {v}"
     assert not any(math.isnan(x) for x in v)
-    # deterministic: second call identical
     v2 = build_vector(flow, mode="xgb")
     assert v == v2
-    # categorical codes vs -1 missing, ja4_rarity 0..1, days_to_expiry clamped implicitly
-    # ja4_rarity present → not miss
-    from assessment.features import FEATURES_28
-
-    idx_rarity = FEATURES_28.index("ja4_rarity")
-    # family-01 has no ja4_rarity field → defaults 0.5 + miss 1? actually tls.ja4_rarity missing → 0.5
-    assert 0.0 <= v[idx_rarity] <= 1.0
+    # 8-col: check chain_valid and days_to_expiry handling
+    idx_chain = FEATURES_8.index("chain_valid")
+    # chain_valid may be None -> -1, or bool -> 0/1 ; just ensure finite
+    assert math.isfinite(v[idx_chain])
+    idx_days = FEATURES_8.index("days_to_expiry")
+    assert math.isfinite(v[idx_days])
 
 
 def test_build_vector_ae_normalized():
-    from assessment.features import build_vector, FEATURES_28, _CATEGORICAL_6
+    from assessment.features import build_vector, FEATURES_8, _TOP8_CATEGORICAL
 
     flow = json.loads(pathlib.Path("shared/fixtures/family-01.json").read_text())
     v_xgb = build_vector(flow, mode="xgb")
     v_ae = build_vector(flow, mode="ae")
-    assert len(v_ae) == 28
+    assert len(v_ae) == 8
     assert all(math.isfinite(x) for x in v_ae)
-    # categorical codes normalized 0..1 in ae mode
-    for name in _CATEGORICAL_6:
-        idx = FEATURES_28.index(name)
+    for name in _TOP8_CATEGORICAL:
+        idx = FEATURES_8.index(name)
         assert 0.0 <= v_ae[idx] <= 1.0, f"ae cat {name} not normalized {v_ae[idx]}"
-    # days_to_expiry: ae is 0..1, xgb is raw
-    idx_days = FEATURES_28.index("days_to_expiry")
+    idx_days = FEATURES_8.index("days_to_expiry")
     assert 0.0 <= v_ae[idx_days] <= 1.0
-    # pubkey_bits ae normalized
-    idx_bits = FEATURES_28.index("pubkey_bits")
-    assert 0.0 <= v_ae[idx_bits] <= 1.0
-    # ae vector still deterministic
     assert v_ae == build_vector(flow, mode="ae")
 
 
 def test_build_vector_missing_cert_opaque():
-    from assessment.features import build_vector
+    from assessment.features import build_vector, FEATURES_8
 
     flow = {"tls": {}, "cert": {"is_tls13_opaque": True}, "starttls_mode": "upgrade"}
     v = build_vector(flow, mode="xgb")
-    assert len(v) == 28
+    assert len(v) == 8
     assert all(math.isfinite(x) for x in v)
-    # miss flags should be 1 for sparse fields
-    from assessment.features import FEATURES_28
-
-    for miss in [
-        "miss_indicator_chain_valid",
-        "miss_indicator_san_match",
-        "miss_indicator_days_to_expiry",
-        "miss_indicator_pubkey_bits",
-        "miss_indicator_chain_length",
-        "miss_indicator_ja4_rarity",
-    ]:
-        idx = FEATURES_28.index(miss)
-        assert v[idx] == 1.0, f"{miss} should be 1 for opaque flow"
-    # cert_missing_reason opaque → code 1
-    idx_cmr = FEATURES_28.index("cert_missing_reason")
-    # xgb mode raw code for opaque is 1
-    assert v[idx_cmr] == 1.0
+    idx_miss = FEATURES_8.index("miss_indicator_days_to_expiry")
+    assert v[idx_miss] == 1.0, "miss_indicator_days_to_expiry should be 1 for opaque"
+    idx_chain = FEATURES_8.index("chain_valid")
+    assert v[idx_chain] == -1.0, "chain_valid should be -1 for opaque"
+    idx_days = FEATURES_8.index("days_to_expiry")
+    assert v[idx_days] == -1.0, "days_to_expiry should be -1 for opaque"
 
 
 def test_build_vector_cert_missing_reason_edges():
-    from assessment.features import build_vector, FEATURES_28
+    from assessment.features import build_vector, FEATURES_8
 
-    idx_cmr = FEATURES_28.index("cert_missing_reason")
-    # opaque > missing > none precedence
+    # 8-col: opaque forces miss_indicator 1, chain_valid -1
     f_opaque = {"tls": {}, "cert": {"is_tls13_opaque": True, "leaf_present": True}}
-    assert build_vector(f_opaque)[idx_cmr] == 1.0  # opaque
+    idx_miss = FEATURES_8.index("miss_indicator_days_to_expiry")
+    idx_chain = FEATURES_8.index("chain_valid")
+    assert build_vector(f_opaque)[idx_miss] == 1.0
+    assert build_vector(f_opaque)[idx_chain] == -1.0
 
     f_missing_none = {"tls": {}, "cert": {"leaf_present": False}}
-    assert build_vector(f_missing_none)[idx_cmr] == 2.0  # missing
+    assert build_vector(f_missing_none)[idx_miss] == 1.0
 
     f_missing_missing_key = {"tls": {}, "cert": {}}
-    assert build_vector(f_missing_missing_key)[idx_cmr] == 2.0  # leaf_present missing → missing
+    assert build_vector(f_missing_missing_key)[idx_miss] == 1.0
 
-    f_none = {"tls": {}, "cert": {"leaf_present": True}}
-    assert build_vector(f_none)[idx_cmr] == 0.0  # none
+    f_none = {"tls": {}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 90}}
+    assert build_vector(f_none)[idx_chain] == 1.0
 
-    # None cert dict fallback should also give missing not crash
     f_empty = {}
-    assert len(build_vector(f_empty)) == 28
+    assert len(build_vector(f_empty)) == 8
 
 
 def test_platt_and_family_id_guards():
@@ -191,49 +175,35 @@ def test_platt_and_family_id_guards():
 
 
 def test_build_vector_ja4_rarity_clamp_and_days_bounds():
-    from assessment.features import build_vector, FEATURES_28
+    from assessment.features import build_vector, FEATURES_8
 
-    idx_rarity = FEATURES_28.index("ja4_rarity")
-    idx_days = FEATURES_28.index("days_to_expiry")
-    # ja4_rarity out-of-bounds clamped 0..1
-    flow_high = {"tls": {"ja4_rarity": 5.0}, "cert": {"leaf_present": True}}
-    assert build_vector(flow_high)[idx_rarity] == 1.0
-    flow_low = {"tls": {"ja4_rarity": -2.0}, "cert": {"leaf_present": True}}
-    assert build_vector(flow_low)[idx_rarity] == 0.0
+    idx_days = FEATURES_8.index("days_to_expiry")
+    # 8-col does not include ja4_rarity; ensure raw ja4 never influences vector
+    flow_with_ja4 = {"tls": {"ja4": "t13d1516h2_abcd", "ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 10}, "starttls_mode": "upgrade"}
+    flow_without_ja4 = {"tls": {"ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 10}, "starttls_mode": "upgrade"}
+    assert build_vector(flow_with_ja4) == build_vector(flow_without_ja4)
     # days_to_expiry xgb keeps raw, ae clamps
-    flow_days = {"tls": {}, "cert": {"leaf_present": True, "days_to_expiry": 9999}}
+    flow_days = {"tls": {}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 9999}, "starttls_mode": "upgrade"}
     assert build_vector(flow_days, mode="xgb")[idx_days] == 9999.0
     assert 0.0 <= build_vector(flow_days, mode="ae")[idx_days] <= 1.0
 
 
-# ---- Strict hardening extensions (Day8-10) ----
+# ---- T2 8-col freeze reverify ----
 
 def test_strict_feature_counts_and_whitelist_reverify():
-    from assessment.features import FEATURES_28, _BASE_21, _MISS_7, _CATEGORICAL_6, ALLOWED_RISK_FEATURES
+    from assessment.features import FEATURES_28, FEATURES_8, ALLOWED_RISK_FEATURES
 
     assert len(FEATURES_28) == 28
-    assert len(_BASE_21) == 21
-    assert len(_MISS_7) == 7
-    assert FEATURES_28 == _BASE_21 + _MISS_7
-    assert len(_CATEGORICAL_6) == 6
+    assert len(FEATURES_8) == 8
+    assert FEATURES_8 == ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry", "fs_flag", "starttls_mode", "miss_indicator_days_to_expiry"]
     assert "ja4" not in FEATURES_28
-    assert "ja4_rarity" in FEATURES_28
-    assert "environment_id" not in FEATURES_28
-    assert "family_id" not in FEATURES_28
-    assert "family_id" not in " ".join(FEATURES_28)
+    assert "ja4" not in FEATURES_8
+    assert "prior_flag" not in FEATURES_8
     assert "ja4" not in ALLOWED_RISK_FEATURES
     assert "ja4_rarity" in ALLOWED_RISK_FEATURES
-    # FEATURES_28 order frozen — no drift
-    expected_order = [
-        "version", "cipher_strength", "kex", "starttls_mode", "port", "cert_missing_reason",
-        "is_deprecated", "is_aead", "fs_flag", "handshake_success", "alert_after_starttls",
-        "ja4_rarity", "chain_valid", "san_match", "days_to_expiry", "chain_length",
-        "pubkey_bits", "sigalg_weak", "is_expired", "is_self_signed", "keysize_weak",
-        "miss_indicator_chain_valid", "miss_indicator_san_match", "miss_indicator_days_to_expiry",
-        "miss_indicator_pubkey_bits", "miss_indicator_sigalg", "miss_indicator_chain_length",
-        "miss_indicator_ja4_rarity",
-    ]
-    assert FEATURES_28 == expected_order
+    assert "prior_flag" not in ALLOWED_RISK_FEATURES
+    assert set(FEATURES_8).issubset(ALLOWED_RISK_FEATURES)
+    assert "environment_id" not in FEATURES_8
 
 
 def test_xgb_strict_params():
@@ -309,33 +279,33 @@ def test_no_platt_no_family_id_strict():
 
 
 def test_build_vector_xgb_vs_ae_modes():
-    from assessment.features import build_vector, FEATURES_28, _CATEGORICAL_6
+    from assessment.features import build_vector, FEATURES_8, _TOP8_CATEGORICAL
 
     flow = {"tls": {"version": "TLS1.3", "ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "pubkey_bits": 2048, "days_to_expiry": 100}, "starttls_mode": "upgrade"}
     vx = build_vector(flow, mode="xgb")
     va = build_vector(flow, mode="ae")
-    assert len(vx) == 28 and len(va) == 28
+    assert len(vx) == 8 and len(va) == 8
     assert all(math.isfinite(x) for x in vx)
     assert all(math.isfinite(x) for x in va)
     assert not any(math.isnan(x) for x in vx)
-    # categorical codes: xgb integer codes, ae 0..1 normalized
-    for name in _CATEGORICAL_6:
-        idx = FEATURES_28.index(name)
+    for name in _TOP8_CATEGORICAL:
+        idx = FEATURES_8.index(name)
         assert 0.0 <= va[idx] <= 1.0
-    # deterministic across repeated calls
     assert vx == build_vector(flow, mode="xgb")
     assert va == build_vector(flow, mode="ae")
 
 
 def test_build_vector_opaque_still_28_miss_flags():
-    from assessment.features import build_vector, FEATURES_28
+    from assessment.features import build_vector, FEATURES_8
 
     flow = {"tls": {}, "cert": {"is_tls13_opaque": True}, "starttls_mode": "none"}
     v = build_vector(flow, mode="xgb")
-    assert len(v) == 28
+    assert len(v) == 8
     assert all(math.isfinite(x) for x in v)
-    for miss in ["miss_indicator_chain_valid", "miss_indicator_san_match", "miss_indicator_days_to_expiry", "miss_indicator_pubkey_bits", "miss_indicator_chain_length", "miss_indicator_ja4_rarity"]:
-        assert v[FEATURES_28.index(miss)] == 1.0
+    idx = FEATURES_8.index("miss_indicator_days_to_expiry")
+    assert v[idx] == 1.0
+    idx_c = FEATURES_8.index("chain_valid")
+    assert v[idx_c] == -1.0
 
 
 def test_loc_under_250():
@@ -346,14 +316,16 @@ def test_loc_under_250():
 # ---- TOP5 LOFAM reduction p/n 0.5 honest (T4 TDD) ----
 
 def test_top5_len_and_members():
-    from assessment.features import FEATURES_28, FEATURES_TOP5
+    from assessment.features import FEATURES_28, FEATURES_8, FEATURES_TOP5
 
     assert len(FEATURES_28) == 28
+    assert len(FEATURES_8) == 8
     assert len(FEATURES_TOP5) == 5
     assert FEATURES_TOP5 == ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry"]
     assert "ja4" not in FEATURES_TOP5
-    assert "ja4_rarity" in FEATURES_TOP5
+    assert "prior_flag" not in FEATURES_TOP5
     assert set(FEATURES_TOP5).issubset(set(FEATURES_28))
+    assert set(FEATURES_TOP5).issubset(set(FEATURES_8))
     assert "environment_id" not in FEATURES_TOP5
     assert "family_id" not in FEATURES_TOP5
     assert "family_id" not in " ".join(FEATURES_TOP5)
@@ -369,17 +341,19 @@ def test_top5_categorical_subset():
 
 
 def test_p_n_ratio_disclosure():
-    from assessment.features import FEATURES_TOP5, FEATURES_TOP7, p_n_ratio, p_n_ratio_top7, p_n_ratio_top7_at_n50
+    from assessment.features import FEATURES_TOP5, FEATURES_8, p_n_ratio, p_n_ratio_8, p_n_ratio_8_at_n132, p_n_ratio_5_at_60, p_n_ratio_5_at_132
 
     assert p_n_ratio == len(FEATURES_TOP5) / 500
     assert abs(p_n_ratio - 0.01) < 1e-9
-    assert abs(p_n_ratio_top7 - 0.014) < 1e-9  # 7/500=0.014 honest
-    assert p_n_ratio_top7 == len(FEATURES_TOP7) / 500
-    assert abs(p_n_ratio_top7_at_n50 - 0.14) < 1e-9
-    assert p_n_ratio_top7_at_n50 <= 0.14
-    # docs: p/n = 5/500=0.01 honest vs inflated 28/500=0.056 at n=500 quality
+    assert abs(p_n_ratio_8 - 8 / 272) < 1e-9
+    assert abs(p_n_ratio_8_at_n132 - 8 / 132) < 1e-9
+    assert p_n_ratio_8 <= 0.14
+    assert p_n_ratio_8_at_n132 <= 0.14
+    assert abs(p_n_ratio_5_at_60 - 5 / 60) < 1e-9
+    assert p_n_ratio_5_at_60 <= 0.14
+    assert p_n_ratio_5_at_132 <= 0.14
     assert p_n_ratio < 0.14
-    assert p_n_ratio_top7 < 0.14
+    # T2 guard: 8/272=0.029 and 8/132=0.061 and 5/60=0.083 all <=0.14
 
 
 def test_build_vector_top5_5col_deterministic():
@@ -412,10 +386,11 @@ def test_build_vector_top5_5col_deterministic():
 
 
 def test_build_vector_top5_vs_28_consistency():
-    from assessment.features import build_vector, build_vector_top5, FEATURES_28, FEATURES_TOP5
+    from assessment.features import build_vector, build_vector_top5, FEATURES_8, FEATURES_TOP5
 
     flow = {"tls": {"version": "TLS1.3", "cipher_strength": "strong", "kex": "ECDHE", "ja4_rarity": 0.42}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 100}}
-    v28 = build_vector(flow, mode="xgb")
+    v8 = build_vector(flow, mode="xgb")
+    assert len(v8) == 8
     df = build_vector_top5(flow)
     try:
         top_vals = df.iloc[0].tolist()
@@ -423,25 +398,134 @@ def test_build_vector_top5_vs_28_consistency():
     except AttributeError:
         top_vals = list(df)
         cols = FEATURES_TOP5
-    # each TOP5 value must equal corresponding FEATURES_28 value at same name index
     for name, tv in zip(cols, top_vals):
-        idx = FEATURES_28.index(name)
-        assert tv == v28[idx], f"{name} mismatch top5 {tv} vs 28 {v28[idx]}"
+        idx = FEATURES_8.index(name)
+        assert tv == v8[idx], f"{name} mismatch top5 {tv} vs 8 {v8[idx]}"
 
 
 def test_top5_uses_hashlib_not_hash():
     text = pathlib.Path("assessment/features.py").read_text()
     assert "FEATURES_TOP5" in text
-    assert "build_vector_top5" in text
+    assert "FEATURES_8" in text
+    assert "build_vector" in text
     assert "_TOP5_CATEGORICAL" in text
-    assert "p_n_ratio" in text
+    assert "p_n_ratio_8" in text
     assert "hashlib.sha256" in text
-    # no raw ja4 in TOP5
-    from assessment.features import FEATURES_TOP5
+    from assessment.features import FEATURES_TOP5, FEATURES_8
 
     assert "ja4" not in FEATURES_TOP5
-    # whitelist still holds
+    assert "ja4" not in FEATURES_8
+    assert "prior_flag" not in FEATURES_TOP5
+    assert "prior_flag" not in FEATURES_8
     from assessment.features import ALLOWED_RISK_FEATURES
 
     assert "ja4" not in ALLOWED_RISK_FEATURES
+    assert "prior_flag" not in ALLOWED_RISK_FEATURES
+    assert len(ALLOWED_RISK_FEATURES) in (8, 16)
+    assert set(FEATURES_8).issubset(ALLOWED_RISK_FEATURES)
+
+# ---- T2 8-col freeze explicit guards ----
+
+def test_8col_exact_and_allowed_matches():
+    from assessment.features import FEATURES_8, ALLOWED_RISK_FEATURES, FEATURES_TOP5
+
+    assert FEATURES_8 == ["version", "cipher_strength", "kex", "chain_valid", "days_to_expiry", "fs_flag", "starttls_mode", "miss_indicator_days_to_expiry"]
+    assert len(FEATURES_8) == 8
+    assert set(FEATURES_8).issubset(ALLOWED_RISK_FEATURES)
     assert "ja4_rarity" in ALLOWED_RISK_FEATURES
+    assert set(FEATURES_TOP5).issubset(set(FEATURES_8))
+    assert "prior_flag" not in ALLOWED_RISK_FEATURES
+    assert "ja4" not in ALLOWED_RISK_FEATURES
+
+
+def test_no_top7_leak():
+    text = pathlib.Path("assessment/features.py").read_text()
+    assert "FEATURES_TOP7" not in text, "TOP7 must be removed for T2 8-col freeze"
+    import assessment.features as fm
+    assert not hasattr(fm, "FEATURES_TOP7"), "FEATURES_TOP7 leak"
+    assert not hasattr(fm, "_FEATURES_TOP7_RAW")
+
+
+def test_ja4_raw_rejected_only_rarity_allowed():
+    from assessment.features import ALLOWED_RISK_FEATURES, FEATURES_8
+    assert "ja4" not in ALLOWED_RISK_FEATURES
+    assert "ja4" not in FEATURES_8
+    from shared.ja4_rarity import ALLOWED_RISK_FEATURES as WL
+    assert "ja4" not in WL
+    assert WL == ALLOWED_RISK_FEATURES
+    from assessment.features import build_vector
+    flow_with = {"tls": {"ja4": "t13d1516h2_abcd", "ja4_rarity": 0.5}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 10}, "starttls_mode": "upgrade"}
+    flow_without = {"tls": {"ja4_rarity": 0.5}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 10}, "starttls_mode": "upgrade"}
+    assert build_vector(flow_with) == build_vector(flow_without)
+
+
+def test_prior_flag_excluded_hard_fail():
+    from assessment.features import ALLOWED_RISK_FEATURES, FEATURES_8, build_vector
+    assert "prior_flag" not in FEATURES_8
+    assert "prior_flag" not in ALLOWED_RISK_FEATURES
+    try:
+        build_vector({"prior_flag": True, "tls": {}, "cert": {}})
+        assert False, "should have asserted prior_flag not in flow"
+    except AssertionError as e:
+        assert "prior_flag" in str(e)
+    text = pathlib.Path("assessment/features.py").read_text()
+    assert text.count("prior_flag") <= 15
+
+
+def test_is_tls13_opaque_invariant_via_build_vector_and_schema():
+    from assessment.features import build_vector, FEATURES_8
+    from shared.schemas import Cert
+    flow_opaque = {"tls": {}, "cert": {"is_tls13_opaque": True, "chain_valid": True, "days_to_expiry": 100, "san_match": True}, "starttls_mode": "upgrade"}
+    v = build_vector(flow_opaque)
+    assert len(v) == 8
+    idx_miss = FEATURES_8.index("miss_indicator_days_to_expiry")
+    assert v[idx_miss] == 1.0
+    idx_chain = FEATURES_8.index("chain_valid")
+    assert v[idx_chain] == -1.0
+    try:
+        Cert(leaf_present=True, is_tls13_opaque=True, ocsp_stapled_status="unknown")
+        assert False, "should raise"
+    except Exception as e:
+        assert "honesty" in str(e).lower() or "opaque" in str(e).lower()
+    try:
+        Cert(leaf_present=False, is_tls13_opaque=True, ocsp_stapled_status="opaque", chain_valid=True)
+        assert False, "should raise for non-None chain_valid with opaque"
+    except Exception as e:
+        assert "honesty" in str(e).lower() or "non-none" in str(e).lower()
+    c = Cert(leaf_present=False, is_tls13_opaque=True, ocsp_stapled_status="opaque")
+    assert c.leaf_present is False
+    assert c.chain_valid is None
+    assert c.days_to_expiry is None
+    assert c.san_match is None
+
+
+def test_p_n_guards_272_and_132_and_60():
+    from assessment.features import p_n_ratio_8, p_n_ratio_8_at_n132, p_n_ratio_5_at_60, p_n_ratio_5_at_132, p_n_ratio_5_at_272
+    assert abs(p_n_ratio_8 - 8 / 272) < 1e-9
+    assert p_n_ratio_8 <= 0.14
+    assert abs(p_n_ratio_8_at_n132 - 8 / 132) < 1e-9
+    assert p_n_ratio_8_at_n132 <= 0.14
+    assert abs(p_n_ratio_5_at_60 - 5 / 60) < 1e-9
+    assert p_n_ratio_5_at_60 <= 0.14
+    assert p_n_ratio_5_at_132 <= 0.14
+    assert p_n_ratio_5_at_272 <= 0.14
+    assert 5 / 60 <= 0.14
+    assert 5 / 132 <= 0.14
+    assert 5 / 272 <= 0.14
+
+
+def test_build_vector_8_len_and_deterministic():
+    from assessment.features import build_vector, build_vector_8, FEATURES_8
+    flow = {"tls": {"version": "TLS1.3", "cipher_strength": "strong", "kex": "ECDHE", "fs_flag": True}, "cert": {"leaf_present": True, "chain_valid": True, "days_to_expiry": 42}, "starttls_mode": "implicit"}
+    v = build_vector(flow)
+    assert len(v) == 8
+    v2 = build_vector_8(flow)
+    try:
+        vals = v2.iloc[0].tolist()
+        assert len(vals) == 8
+        assert vals == v
+    except AttributeError:
+        assert list(v2) == v
+    assert build_vector(flow) == build_vector(flow)
+    assert len(build_vector({"tls": {}, "cert": {}})) == 8
+    assert len(build_vector({"tls": {"ja4_rarity": None}, "cert": {"is_tls13_opaque": True}})) == 8

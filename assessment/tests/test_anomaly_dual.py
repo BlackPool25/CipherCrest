@@ -119,9 +119,7 @@ def test_ja4_rarity_single_feature_neg_computed():
     lab_f = _filtered_lab_for_training(lab)
     all_flows = lab_f + censys
     y = _pseudo_labels(all_flows)
-    idx = FEATURES_28.index("ja4_rarity")
-    X_all = np.array([build_vector(f, mode="xgb") for f in all_flows], dtype=float)
-    ja_col = X_all[:, idx]
+    ja_col = np.array([float((f.get("tls") or {}).get("ja4_rarity", 0.5) if (f.get("tls") or {}).get("ja4_rarity") is not None else 0.5) for f in all_flows], dtype=float)
     auc_neg = roc_auc_score(y, -ja_col)
     assert abs(auc_neg - 0.926) < 0.05, f"ja4 neg {auc_neg} not 0.926"  # coherent 40 + 50 censys shift 0.926->0.894 still > hon 0.47
     assert auc_neg > 0.90
@@ -163,17 +161,8 @@ def test_contamination_invariance_05_10_30():
     lab_f = _filtered_lab_for_training(lab)
     all_flows = lab_f + censys
     y = _pseudo_labels(all_flows)
-    # TOP5 matrix for scoring
-    X_all = np.array([build_vector_top5(f) if isinstance(build_vector_top5(f), list) else build_vector_top5(f).values[0] for f in all_flows], dtype=float)
-    # fallback if DataFrame: already handled but ensure shape 51x5
-    if X_all.ndim == 1:
-        X_all = np.array([build_vector_top5(f) for f in all_flows], dtype=float)
-    # use generic TOP5 builder via _vec_top5_matrix if available
-    try:
-        from assessment.anomaly_train import _vec_top5_matrix
-        X_all = _vec_top5_matrix(all_flows)
-    except Exception:
-        pass
+    from assessment.anomaly_train import _vec_top5_matrix
+    X_all = _vec_top5_matrix(all_flows)
     auc05 = roc_auc_score(y, clf05.decision_function(X_all))
     auc10 = roc_auc_score(y, clf10.decision_function(X_all))
     auc30 = roc_auc_score(y, clf30.decision_function(X_all))

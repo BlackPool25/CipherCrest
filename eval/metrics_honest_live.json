@@ -1,0 +1,30 @@
+{
+  "sgkf5_mean_auc": 0.9886471809271702,
+  "sgkf5_aucs": [
+    0.9689839572192513,
+    0.9907670454545454,
+    0.9978070175438597,
+    0.9929453262786596,
+    0.9927325581395348
+  ],
+  "sgkf5_mean_brier": 0.027943667074702007,
+  "sgkf5_mean_ap": 0.9982149241949203,
+  "D2_auc": 0.9645641389085755,
+  "D3_auc": 1.0,
+  "gap": 0.02408304201859468,
+  "quality": "PASS",
+  "generalization": "PASS",
+  "n_eff": 272,
+  "p_n_8": 0.029,
+  "features": [
+    "version",
+    "cipher_strength",
+    "kex",
+    "chain_valid",
+    "days_to_expiry",
+    "fs_flag",
+    "starttls_mode",
+    "miss_indicator_days_to_expiry"
+  ],
+  "grouping": "canonical_cluster_id 132 StratifiedGroupKFold5"
+}

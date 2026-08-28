@@ -1,0 +1,6 @@
+usage: risk_train.py [-h] [--device DEVICE] [--validate]
+
+options:
+  -h, --help       show this help message and exit
+  --device DEVICE  device cpu (risk_train CPU only)
+  --validate       alias

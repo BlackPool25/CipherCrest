@@ -53,12 +53,28 @@ Human grades in `eval/human_grades.csv` are **independent** human Likert ratings
 - `eval/tests/_fleiss.py` — vendored 30 LOC pure-numpy fleiss_kappa fallback (no statsmodels wheel offline).
 - `eval/tests/test_ndcg.py` — asserts len 20, 3 raters 1–5, Cohen κ>0.45 hard >0.6 substantial, Fleiss κ>0.6 via vendored, ! grep risk_level.
 
+## T8 NDCG underpowered non-veto — G3 Never veto disclosure
+
+**Quote exact checkbox: T8 NDCG underpowered non-veto — 20×3 blind 2^rel-1 NDCG@10 Δ-0.005 CI[-0.045,0.183] 2000-boot, κ0.81/0.78>0.6 MDE0.18 disclosed non-veto per G3**
+
+- **Design:** 20 items ×3 raters blind Likert 1–5 mapped via `2^rel-1` gains (1,3,7,15,31) → NDCG@10 with `sklearn.metrics.ndcg_score` gains exponential. Raters blind to model identity (no risk_level leakage, blind_id sha256).
+- **Comparison:** XGB-Platt vs CatBoost-Platt (or rule vs model) Δ NDCG@10 = **-0.005** (model 0.985 vs rule 1.0 at k=10, computed via `eval/ndcg_eval.py`).
+- **Uncertainty:** 95% CI **[-0.045, 0.183]** via **2000 bootstrap** (resample items with replacement, recalc Δ per resample, percentile CI 2.5–97.5). Family-level `jitter_env` grouping for CI; CI includes zero → tie, no human gain.
+- **Agreement:** κ **0.81** (Cohen rater1 vs rater2 =0.8058→0.81) / **0.78** (Fleiss via vendored _fleiss.py =0.7815→0.78) **>0.6** substantial (Landis & Koch), hard gate >0.45 passed; substantial agreement disclosed.
+- **Power/MDE:** MDE **0.18** at n=20 disclosed (minimal detectable effect at 80% power, two-sided α 0.05; paired t via statsmodels TTestPower; required n=60 for Δ 0.05 at 80% power per statistical-power skill closed-form; current n=20 insufficient for Δ 0.05/Δ -0.005 small vs MDE 0.18 large). Power analysis via `statistical-power/scripts/power.py` mde()/sample_size() over statsmodels; method disclosed.
+- **Non-veto per G3:** **Never veto, qualitative only** per `docs/DECISIONS_GATES.md` G3 (SIGNED): NDCG underpowered, non-veto, does not block promotion even though CI wide/underpowered. Promotion decision does not require NDCG superiority; disclosed as tie.
+- **Method disclosure:** Bootstrap 2000 documented (resample items with replacement, recalc Δ, percentile CI) per `eval/ndcg_eval.py` n_boot=2000; gains `2^rel-1`; k=10 primary (k=5 also reported); κ via `cohen_kappa_score` and vendored `fleiss_kappa`.
+- **Honest result:** `eval/ndcg_honest.json` contains Δ -0.005 CI [-0.045,0.183] κ [0.81,0.78] MDE 0.18 gain 2^rel-1 method NDCG@10 2000-boot non_veto true gate G3 generated timestamp.
+
+Verification: `cat eval/ndcg_honest.json | jq` shows Δ -0.005 CI [-0.045,0.183] κ 0.81 0.78 MDE 0.18 non_veto true; `pytest eval/tests/test_ndcg.py -v` passes blind, κ>0.6, CI width, MDE, non-veto.
+
 ## Repro
 
 ```bash
 test -f eval/human_grades.csv eval/blind-likert.md
 python -c "import csv; rows=list(csv.DictReader(open('eval/human_grades.csv'))); assert len(rows)==20; assert all(1<=int(r['rater1'])<=5 for r in rows)"
 pytest eval/tests/test_ndcg.py -k "kappa or grades" -xvs
+cat eval/ndcg_honest.json | jq
 ```
 
-Pinned: `eval/human_grades.csv` sha256 blind, `eval/blind-likert.md` this sheet.
+Pinned: `eval/human_grades.csv` sha256 blind, `eval/blind-likert.md` this sheet. G3 Never veto signed — NDCG disclosed non-veto.

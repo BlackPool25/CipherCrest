@@ -1,0 +1,119 @@
+{
+  "version": "1.0.0-hyperplan-2026-08-27",
+  "plan": ".omo/plans/hyperplan-ciphercrest-ml-remediation.md",
+  "gates": {
+    "G1_gate_thresholds": {
+      "status": "signed",
+      "owner": "Shreyas",
+      "date": "2026-08-27",
+      "decision": "adaptive-ci-gate",
+      "thresholds": {
+        "ece_quantile": 0.062,
+        "ece_quantile_ci": [
+          0.0396,
+          0.1
+        ],
+        "ece_ci_boots": 2000,
+        "ece_min_per_bin": 25,
+        "ece_per_class_macro": 0.03,
+        "brier_joint": 0.069,
+        "brier_base": 0.22,
+        "brier_gate": "brier_joint < brier_base",
+        "gap_lofam_envcv": -0.023,
+        "gap_gate": 0.05,
+        "gap_condition": "gap < 0.05",
+        "calibration_bins_skew": [
+          94,
+          6,
+          0,
+          0,
+          0
+        ],
+        "isotonic": "deleted until CI passes",
+        "platt": "cv=2 wrapper only"
+      },
+      "verification": "pytest eval/tests/test_metrics_json.py + python -m eval.calibration --adaptive --min25 --boots 2000"
+    },
+    "G2_two_candidate_promotion": {
+      "status": "signed",
+      "owner": "Shreyas",
+      "date": "2026-08-27",
+      "decision": "XGB-Platt + CatBoost-Platt",
+      "research": "searchxng 2026-08-27: TabPFN Nature +0.187 vs CatBoost but open-env CatBoost/RF > TabPFN (arXiv 2505.16226 Table 3), TabICL beats TabPFN 72% +4x faster, TabPFN requires torch violates !torch C8 wheelhouse 345M, CatBoost ordered boosting CPU-only GroupKFold via catboost#701",
+      "thresholds": {
+        "phase1_pair": [
+          "XGB-Platt cv2 max_depth 4 (primary)",
+          "CatBoost-Platt ordered boosting (secondary)"
+        ],
+        "phase1_candidates": 2,
+        "phase1_groupkfold": "canonical_cluster_id 132",
+        "phase1_gap_gate": 0.15,
+        "phase1_perm_p": 0.001,
+        "phase1_pr_ap": 0.976,
+        "deferred_to_phase2_conditional": [
+          "TabPFN v2",
+          "XGB depth ablation max_depth 2/3"
+        ],
+        "phase2_condition": "Phase-1 CatBoost fails to beat XGB by >0.02 with 2000-boot CI AND n_canonical >=60 distinct families (user m0138: 60 distinct, not 40)",
+        "etl_bert": "rejected",
+        "offline": "CatBoost adds catboost wheel CPU no torch, du -m wheelhouse <350 still"
+      },
+      "verification": "pytest assessment/tests/test_risk_ablation.py -k candidate --exactly 2 GroupKFold canonical"
+    },
+    "G3_ndcg_veto": {
+      "status": "signed",
+      "owner": "Shreyas",
+      "date": "2026-08-27",
+      "decision": "never-veto-qualitative-only",
+      "thresholds": {
+        "ndcg_queries": 20,
+        "ndcg_judges": 3,
+        "gains": "2^rel-1",
+        "ndcg_at": 10,
+        "delta_vs_rule": -0.005,
+        "ci_2000_boot": [
+          -0.045,
+          0.183
+        ],
+        "mde": 0.18,
+        "kappa": [
+          0.81,
+          0.78
+        ],
+        "kappa_gate": 0.6,
+        "veto": false
+      },
+      "verification": "pytest eval/tests/test_ndcg.py"
+    },
+    "G4_label_model_choice": {
+      "status": "signed-and-active",
+      "owner": "Shreyas",
+      "date": "2026-08-27",
+      "decision": "active-flyingsquid-m6-triplet-CPI-outer-fold-brutal-retrain",
+      "research": "FlyingSquid https://arxiv.org/abs/2103.02553 https://github.com/HazyResearch/flyingsquid m=6 triplet, Snorkel https://arxiv.org/abs/1711.10160 rejected per user explicit FlyingSquid, CPI outer fold prevents weak-label leakage",
+      "thresholds": {
+        "weak_supervision_verbatim": "23 checks 20 scored +3 info-greyed, WEAK SUPERVISION FlyingSquid denoised",
+        "phase1": "active FlyingSquid m=6 triplet CPI outer fold → weak_labels_flyingsquid.json label_version pin PYTHONHASHSEED 0 deterministic",
+        "phase1_retrain": "XGB-Platt cv2 max_depth 4 + CatBoost-Platt ordered boosting both retrained on FlyingSquid denoised labels, GroupKFold canonical_cluster_id 132 (expand to 60 distinct families per m0138, p_n 5/60=0.083 guard ≤0.14), 4-exp harness LOFAM/EnvCV gap <0.15 perm p0.001 + brutal generalisation: shuffled_target p≈1.0, proxy leakage ablations (no JA4, no cert, behavioral 7-col), source holdout, synth→real cliff, TLS distinct target 60/100 (currently 42/100 must expand)",
+        "phase1_candidates": ["FlyingSquid https://github.com/HazyResearch/flyingsquid", "XGB-Platt", "CatBoost-Platt"],
+        "gap_ablation": "measure proxy leakage 0.008 honest vs 0.031 theater before final, but FlyingSquid active regardless per user",
+        "label_version_pin": "label_version in DB/manifest + tests/test_label_reproducibility.py byte-identical seed"
+      },
+      "verification": "pytest assessment/tests/test_rules.py -k weak_supervision + pytest tests/test_label_reproducibility.py + pytest assessment/tests/test_risk_ablation.py (4 exps brutal) + pytest eval/tests/test_metrics_honest.py + shuffled_target p≈1.0 + source holdout"
+    },
+    "G5_storage_history": {
+      "status": "signed-and-executed",
+      "owner": "Shreyas",
+      "date": "2026-08-27",
+      "decision": "fix-sqlite-typed-columns-now-and-filter-repo-wheelhouse-dist-purge-executed",
+      "thresholds": {
+        "sqlite_action": "migrate flows to typed columns, FlowVerdict hard-fail",
+        "wheelhouse_guard": "du -m wheelhouse <350, git ls-files ==0, .git 3.3M size-pack 2.97M after filter-repo Parsed 185 commits HEAD 71d68c7",
+        "history_rewrite": "EXECUTED 2026-08-27 filter-repo --path wheelhouse --path dashboard/dist --invert-paths --force, origin restored",
+        "offline": "wheelhouse 339M 37 wheels local not in git, dashboard/dist 4.1M local not in git"
+      },
+      "verification": "pytest api/tests/test_api_e2e.py + pytest shared/tests/test_offline_bundle.py"
+    }
+  },
+  "provenance": "hyperplan 7311dea2 34/34 survived, searchxng 2026-08-27, filter-repo 185 commits .git 3.3M"
+}

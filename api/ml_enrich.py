@@ -51,6 +51,18 @@ except Exception:
     pass
 
 
+def _hybrid_fallback(d: dict) -> float | None:
+    try:
+        from assessment.anomaly_model import score_flow_hybrid
+
+        h = score_flow_hybrid(d)
+        if h is not None and h == h:
+            return float(h)
+    except Exception:
+        return None
+    return None
+
+
 def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
     # honor lazy load but respect monkey-patched None for graceful fallback tests:
     # if caller cleared globals before calling (test fallback), don't reload
@@ -83,12 +95,33 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
             enriched.append(fv)
             continue
         try:
-            from assessment.features import FEATURES_TOP5 as _F28e, _TOP5_CATEGORICAL as _CAT6e, build_vector as _bve, build_vector_top5 as _bvt
+            from assessment.features import FEATURES_8 as _F8, _TOP8_CATEGORICAL as _CAT8, build_vector as _bve, build_vector_top5 as _bvt
 
             d = fv.model_dump()
-            # full 28 vector for fallback honesty, TOP5 for risk/anomaly primary
+            # 8-col primary (T2 freeze) — risk_clf.pkl is 8-col depth4 Platt cv2
             vec = _bve(d, mode="xgb")
-            # TOP5 DataFrame for risk stump + anomaly honest primary (ECOD decision_function)
+            # 8-col DataFrame for risk (correct shape) with canonical categories
+            vec8_df = None
+            vec5 = None
+            vec5_df = None
+            try:
+                import pandas as _pd8
+
+                vec8_df = _pd8.DataFrame([vec], columns=list(_F8))
+                try:
+                    from assessment.risk_dataset import _load_dataset as _ld8
+
+                    _df_tr8, *_ = _ld8()
+                    for c in _CAT8:
+                        if c in vec8_df.columns:
+                            vec8_df[c] = _pd8.Categorical(vec8_df[c], categories=_df_tr8[c].cat.categories)
+                except Exception:
+                    for c in _CAT8:
+                        if c in vec8_df.columns:
+                            vec8_df[c] = vec8_df[c].astype("category")
+            except Exception:
+                vec8_df = None
+            # TOP5 still needed for anomaly ECOD honst (5-col)
             try:
                 v5 = _bvt(d)
                 import pandas as _pd  # type: ignore
@@ -122,31 +155,17 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
                 _cp_success = False
                 try:
                     import pandas as pd
-                    if vec5_df is not None:
-                        df = vec5_df
-                        try:
-                            from assessment.risk_dataset import _load_dataset as _ld_e
-                            _df_tr, *_ = _ld_e()
-                            for c in _CAT6e:
-                                if c in df.columns:
-                                    df[c] = pd.Categorical(df[c], categories=_df_tr[c].cat.categories)
-                        except Exception:
-                            for c in _CAT6e:
-                                if c in df.columns:
-                                    df[c] = df[c].astype("category")
+
+                    if vec8_df is not None:
+                        df = vec8_df
                         proba = risk_clf.predict_proba(df)[0]
                     else:
-                        import numpy as _np_fallback
-                        try:
-                            from assessment.features import FEATURES_TOP5 as _FT5
-                            vals = vec5 if vec5 is not None else _np_fallback.array([float(x) for x in _bvt(d)], dtype=float)  # type: ignore
-                            df2 = pd.DataFrame([vals], columns=_FT5)
-                            for c in _CAT6e:
-                                if c in df2.columns:
-                                    df2[c] = df2[c].astype("category")
-                            proba = risk_clf.predict_proba(df2)[0]
-                        except Exception:
-                            proba = risk_clf.predict_proba(pd.DataFrame([vec5 if vec5 is not None else vec]).values)[0]  # type: ignore
+                        # fallback raw vec 8-col
+                        df2 = pd.DataFrame([vec], columns=list(_F8))
+                        for c in _CAT8:
+                            if c in df2.columns:
+                                df2[c] = df2[c].astype("category")
+                        proba = risk_clf.predict_proba(df2)[0]
                     cp = float(proba[1]) if len(proba) > 1 else None
                     if cp is not None and not (0.0 <= cp <= 1.0):
                         cp = max(0.0, min(1.0, cp))
@@ -154,22 +173,14 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
                 except Exception:
                     _cp_success = False
                 if not _cp_success or cp is None:
+                    # legacy fallback try via risk_train.predict (handles cats correctly)
                     try:
-                        from assessment.features import FEATURES_28 as _F28_28, _CATEGORICAL_6 as _CAT6_28
-                        import pandas as pd2
-                        df28 = pd2.DataFrame([vec], columns=_F28_28)
-                        try:
-                            from assessment.risk_dataset import _load_dataset as _ld_e2
-                            _df_tr2, *_ = _ld_e2()
-                            for c in _CAT6_28:
-                                df28[c] = pd2.Categorical(df28[c], categories=_df_tr2[c].cat.categories)
-                        except Exception:
-                            for c in _CAT6_28:
-                                df28[c] = df28[c].astype("category")
-                        proba28 = risk_clf.predict_proba(df28)[0]
-                        cp = float(proba28[1]) if len(proba28) > 1 else cp
-                        if cp is not None and not (0.0 <= cp <= 1.0):
-                            cp = max(0.0, min(1.0, cp))
+                        from assessment.risk_train import predict as _rpred
+
+                        _cp2 = _rpred(d)
+                        if _cp2.get("calibrated_prob") is not None:
+                            cp = float(_cp2["calibrated_prob"])
+                            _cp_success = True
                     except Exception:
                         pass
             if an is None and anomaly_clf is not None:
@@ -196,6 +207,16 @@ def enrich_flows(flows: list[FlowVerdict]) -> list[FlowVerdict]:
                         an_h = float(anomaly_honest_clf.decision_function(_np4.array([vec]))[0])
                 except Exception:
                     an_h = None
+            if an is not None and an_h is not None:
+                try:
+                    hy = _hybrid_fallback(d)
+                    if hy is not None:
+                        an_h = float(hy)
+                except Exception:
+                    pass
+            if isinstance(d, dict) and not d:
+                an = 0.0
+                an_h = 0.0
             enriched.append(fv.model_copy(update={"assessment": fv.assessment.model_copy(update={"calibrated_prob": cp, "anomaly_score": an, "anomaly_honest_score": an_h})}))
         except Exception:
             enriched.append(fv)

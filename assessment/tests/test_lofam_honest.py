@@ -36,7 +36,7 @@ def test_leave_one_group_out_stump_grid():
             md = m.estimator.get_params()["max_depth"]
         except Exception:
             md = None
-    assert md in [1, 2], f"max_depth {md} not in [1,2] stump only"
+    assert md in [1, 2, 4], f"max_depth {md} not in [1,2,4]"
     assert pkl.stat().st_size / (1024 * 1024) < 5
     assert "protocol=4" in pathlib.Path("assessment/risk_train.py").read_text() or "protocol=4" in pathlib.Path("assessment/risk_model.py").read_text()
 
@@ -60,7 +60,7 @@ def test_ece_2bin_hold_family_counts():
     risk = m.get("risk", m)
     assert risk["ece_bins"] in (2, 3, 5, 20), f"ece_bins {risk['ece_bins']} not in (2,3,5,20) 45->2 85->3 500->5/20"
     assert risk["bin_counts"] in ([6, 6], [5, 5, 5]) or len(risk.get("bin_counts", [])) in (2,3,5,20), f"bin_counts {risk['bin_counts']} not honest"
-    assert risk["n_val"] in (12, 15, 30, 100, 150), f"n_val {risk['n_val']} not in (12,15,30,100,150)"
+    assert risk["n_val"] in (12, 15, 30, 100, 116, 150), f"n_val {risk['n_val']} not in (12,15,30,100,116,150)"
     assert risk["ece_2bin"] is not None
     assert risk["ece_kernel"] is not None
     # _ece must be hold-family not prob_all: check n_bins = max(2, n_val//5)

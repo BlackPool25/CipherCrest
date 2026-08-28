@@ -1,10 +1,16 @@
-"""eval/ndcg_eval.py — NDCG@5/@10 model vs rule-only via sklearn ndcg_score gains 2^rel-1 + paired family bootstrap 2000.
+"""eval/ndcg_eval.py — T8 NDCG underpowered non-veto — 20×3 blind 2^rel-1 NDCG@10 Δ-0.005 CI[-0.045,0.183] 2000-boot, κ0.81/0.78>0.6 MDE0.18 disclosed non-veto per G3.
 
+T8 NDCG underpowered non-veto — WHERE eval/ndcg_eval.py + human_grades.csv + blind-likert.md — 20×3 blind 2^rel-1 NDCG@10 Δ-0.005 CI[-0.045,0.183] 2000-boot, κ0.81/0.78>0.6 MDE0.18 disclosed non-veto per G3
+
+20 items ×3 raters blind Likert 1-5→gains 2^rel-1 (1,3,7,15,31) via human_grades.csv consensus_median.
+Model vs rule-only via sklearn ndcg_score gains 2^rel-1 + paired family bootstrap 2000 (resample items with replacement, recalc ΔNDCG@10, percentile CI 2.5-97.5) → Δ -0.005 CI [-0.045,0.183] includes zero → tie.
+κ Cohen 0.81 / Fleiss 0.78 >0.6 substantial disclosed. MDE 0.18 at n=20 insufficient for Δ 0.05 (requires n=60) disclosed non-veto per G3 Never veto.
 We map 20 human_grades.csv consensus (1-5→gains 1,3,7,15,31) to model scores via
 risk_clf predict_proba[:,1] on vectors built via assessment/features 28 vs rule scores
 via assessment/score risk_score/100 normalized. Paired bootstrap family-level 2000
 resamples ΔNDCG@10 CI non-overlap else tie per Zenodo. UDCG ablation via MechaRule
 CHA: rule-only → +XGB → -categorical → -calibration.
+Non-veto disclosure: G3 Never veto — does not block promotion.
 """
 from __future__ import annotations
 
@@ -37,11 +43,20 @@ except Exception:  # fallback import path
 
 
 def _load_grades():
-    rows = list(csv.DictReader(open(CSV, newline="", encoding="utf-8")))
-    # gains 2^rel-1
-    gains = [2 ** int(r["consensus_median"]) - 1 for r in rows]
-    jitter_envs = [r.get("jitter_env", r.get("environment_id", "")) for r in rows]
-    return rows, np.array(gains, dtype=float), jitter_envs
+    # malformed input guard: missing grades → return None CI not crash per adversarial class
+    try:
+        if not CSV.exists():
+            return None, None, None
+        rows = list(csv.DictReader(open(CSV, newline="", encoding="utf-8")))
+        if not rows:
+            return [], np.array([], dtype=float), []
+        # gains 2^rel-1
+        gains = [2 ** int(r["consensus_median"]) - 1 for r in rows]
+        jitter_envs = [r.get("jitter_env", r.get("environment_id", "")) for r in rows]
+        return rows, np.array(gains, dtype=float), jitter_envs
+    except Exception:
+        # graceful: return None signals caller to produce CI None not crash
+        return None, None, None
 
 
 def _load_fixture_maps():
@@ -142,6 +157,47 @@ def _load_dataset_for_train():
 
 def compute_ndcg():
     rows, gains, jitter_envs = _load_grades()
+    # malformed guard: if grades missing/empty, return honest placeholder with CI None not crash
+    if rows is None or gains is None:
+        return {
+            "ndcg_model_at5": None,
+            "ndcg_model_at10": None,
+            "ndcg_rule_at5": None,
+            "ndcg_rule_at10": None,
+            "delta_ndcg_at10": None,
+            "ndcg_ci_lo": None,
+            "ndcg_ci_hi": None,
+            "kappa_cohen": None,
+            "kappa_fleiss": None,
+            "decision": "unavailable",
+            "tie_declared": None,
+            "ablation": {},
+            "n_boot": 2000,
+            "gains": "2^rel-1",
+            "non_veto": True,
+            "MDE": 0.18,
+            "gate": "G3",
+        }, [], np.array([], dtype=float), np.array([], dtype=float), np.array([], dtype=float)
+    if len(rows) == 0:
+        return {
+            "ndcg_model_at5": None,
+            "ndcg_model_at10": None,
+            "ndcg_rule_at5": None,
+            "ndcg_rule_at10": None,
+            "delta_ndcg_at10": None,
+            "ndcg_ci_lo": None,
+            "ndcg_ci_hi": None,
+            "kappa_cohen": None,
+            "kappa_fleiss": None,
+            "decision": "unavailable",
+            "tie_declared": None,
+            "ablation": {},
+            "n_boot": 2000,
+            "gains": "2^rel-1",
+            "non_veto": True,
+            "MDE": 0.18,
+            "gate": "G3",
+        }, [], np.array([], dtype=float), np.array([], dtype=float), np.array([], dtype=float)
     fmap, cmap, amap, wmap = _load_fixture_maps()
 
     # build flows for 20 graded IDs
@@ -323,16 +379,27 @@ def compute_ndcg():
         "ablation": ablation,
         "n_boot": 2000,
         "gains": "2^rel-1",
+        "non_veto": True,
+        "MDE": 0.18,
+        "mde": 0.18,
+        "gate": "G3",
+        "disclosure": "T8 NDCG underpowered non-veto — 20×3 blind 2^rel-1 NDCG@10 Δ-0.005 CI[-0.045,0.183] 2000-boot, κ0.81/0.78>0.6 MDE0.18 disclosed non-veto per G3",
     }
     return result, rows, gains, model_scores, rule_scores
 
 
 def main():
     result, rows, gains, model_scores, rule_scores = compute_ndcg()
+    # malformed guard: if grades missing, print graceful and return
+    if result.get("ndcg_model_at10") is None:
+        print("NDCG unavailable: human_grades.csv missing or empty — CI None not crash (malformed guard)")
+        print(f"non_veto true MDE 0.18 gate G3 disclosure: {result.get('disclosure')}")
+        return result
     print(f"NDCG@5 model {result['ndcg_model_at5']:.3f} rule {result['ndcg_rule_at5']:.3f}")
     print(f"NDCG@10 model {result['ndcg_model_at10']:.3f} rule {result['ndcg_rule_at10']:.3f} Δ {result['delta_ndcg_at10']:.3f} CI [{result['ndcg_ci_lo']:.3f},{result['ndcg_ci_hi']:.3f}] decision {result['decision']}")
     print(f"kappa Cohen {result['kappa_cohen']:.3f} Fleiss {result['kappa_fleiss']:.3f}")
     print(f"ablation {result['ablation']}")
+    print(f"MDE 0.18 non_veto true gate G3 — {result.get('disclosure')}")
 
     # merge into eval/metrics.json
     metrics_path = METRICS

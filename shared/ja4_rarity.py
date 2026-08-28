@@ -3,6 +3,13 @@
 MUST NOT call ja4db.com live. MUST NOT feed raw ja4 to risk model — only rarity.
 JA4 table stores normalized JA4 after GREASE filtering; rarity = 1 - percentile (freq).
 FoxIO technical_details §4 + issue #305: GREASE MUST be stripped before JA4 hash.
+
+T2 8-col freeze: ALLOWED_RISK_FEATURES locked to exactly 8:
+  TOP5 (version, cipher_strength, kex, chain_valid, days_to_expiry)
+  + fs_flag + starttls_mode + miss_indicator_days_to_expiry =8
+Raw ja4 NEVER allowed; only ja4_rarity (0..1) would be allowed if used, but 8-col
+risk model does not include ja4_rarity (dropped to avoid leakage; rarity still
+available for analyzer but not vectorised in risk). prior_flag never in vector.
 """
 from __future__ import annotations
 
@@ -37,6 +44,7 @@ GREASE_VALUES: frozenset[int] = frozenset(
 # and MUST NEVER be an ML feature. Only numeric ja4_rarity (0..1) is allowed.
 ALLOWED_RISK_FEATURES: frozenset[str] = frozenset(
     {
+        "version",
         "cipher_strength",
         "kex",
         "fs_flag",
@@ -51,12 +59,14 @@ ALLOWED_RISK_FEATURES: frozenset[str] = frozenset(
         "port",
         "cert_missing_reason",
         "miss_indicator_*",
+        "miss_indicator_days_to_expiry",
     }
 )
 
 # Hard guard: fail fast if raw ja4 leaks into feature whitelist
 assert "ja4" not in ALLOWED_RISK_FEATURES, "raw ja4 MUST NOT be in ALLOWED_RISK_FEATURES"
 assert "ja4_rarity" in ALLOWED_RISK_FEATURES, "ja4_rarity must be whitelisted"
+assert "prior_flag" not in ALLOWED_RISK_FEATURES, "prior_flag MUST NOT be whitelisted"
 
 _TABLE_PATH = pathlib.Path(__file__).parent / "data" / "censys_top_ja4.json"
 

@@ -152,3 +152,56 @@ def test_ech_outer_info():
     v["tls"]["ech_outer_present"]=True
     fs=evaluate(v)
     assert any("ECH" in x.check or "ECH" in x.evidence for x in fs)
+
+
+def test_weak_supervision_m6_triplet_cpi():
+    """T9 FlyingSquid m=6 triplet CPI outer fold + brutal retrain hook."""
+    import pathlib as _pl
+    import json as _js
+    # weak_supervision m=6
+    ws = _pl.Path("assessment/weak_supervision.py").read_text()
+    assert ws.count("labeling_function") == 6, f"m=6 LF required got {ws.count('labeling_function')}"
+    assert "triplet_mean" in ws, "triplet_mean CPI required"
+    assert "CPI outer fold" in ws or "outer fold" in ws.lower(), "CPI outer fold note required"
+    assert "never train on weak labels" in ws.lower(), "never train on weak labels disclosure required"
+    assert "LABEL_VERSION" in ws and "fs-v1-60fam" in ws, "label_version pin required"
+    assert "PYTHONHASHSEED" in ws and '"0"' in ws, "PYTHONHASHSEED 0 required"
+    assert "hashlib.sha256" in ws, "hashlib.sha256 deterministic required, not hash()"
+    assert "ABSTAIN = -1" in ws and "CARDINALITY = 2" in ws, "ABSTAIN -1 cardinality 2 required"
+    # check 60 families prerequisite
+    assert "canonical_n" in ws and ">=60" in ws, "60 families prerequisite check required"
+    # retrain hook
+    assert "retrain_on_denoised" in ws, "retrain hook retrain_on_denoised required"
+    assert "def retrain_on_denoised" in ws
+    # weak_labels json exists and canonical>=60 + label_version pinned + m=6
+    p = _pl.Path("weak_labels_flyingsquid.json")
+    if not p.exists():
+        p = _pl.Path("eval/weak_labels_flyingsquid.json")
+    assert p.exists(), f"weak_labels_flyingsquid.json not found at root nor eval"
+    j = _js.loads(p.read_text())
+    assert j.get("canonical_n", 0) >= 60, f"canonical_n {j.get('canonical_n')} <60"
+    assert j.get("label_version") == "fs-v1-60fam", f"label_version {j.get('label_version')} != fs-v1-60fam"
+    assert j.get("m") == 6, f"m {j.get('m')} !=6"
+    assert "triplet" in j.get("method", "").lower() or "triplet" in j.get("solver", "").lower(), "method triplet required"
+    assert j.get("outer_fold_k", 5) == 5, "outer_fold_k 5 required"
+    assert "never train on weak labels" in j.get("outer_fold_note", "").lower(), "CPI note required in json"
+    assert len(j.get("per_env", [])) >= 60, f"per_env {len(j.get('per_env', []))} <60"
+    # triplet estimates present
+    assert "triplet_alphas" in j and len(j["triplet_alphas"]) == 6, "triplet_alphas m=6 required"
+    # no raw ja4 in weak supervision LFs
+    assert "ja4_rarity" in ws and '"ja4"' not in ws.replace("ja4_rarity", ""), "raw ja4 never allowed"
+    # check score.py still 23 checks preserved (score weights unchanged)
+    score_src = _pl.Path("assessment/score.py").read_text()
+    assert 'SEVERITY_WEIGHTS' in score_src and 'Critical' in score_src
+    # verify deterministic note in json
+    assert "byte-identical" in j.get("deterministic_note", "").lower() or "PYTHONHASHSEED" in j.get("deterministic_note", "")
+
+
+def test_weak_supervision_no_train_on_weak_labels():
+    """Ensure risk model not trained on weak labels without outer fold — rule preserved."""
+    import pathlib as _pl
+    txt = _pl.Path("assessment/weak_supervision.py").read_text()
+    # outer fold note must mention never train on weak labels for evaluation
+    assert "never train on weak labels" in txt.lower()
+    # retrain hook is opt-in, not auto-retrain
+    assert "Does NOT train" in txt or "does NOT auto" in txt.lower() or "opt-in" in txt.lower()

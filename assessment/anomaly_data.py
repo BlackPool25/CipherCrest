@@ -4,6 +4,7 @@ Honest primary 100c+100lab=200 (50 Censys +50 Tranco +100 lab distinct via _expa
 Inverted ablation 20c+7lab=27 models/anomaly_inverted.pkl ROC~0.87 demoted proves inversion.
 TOP5 200x5 honest vs 27x5 legacy via build_vector_top5 p/n 0.025 honest at n=200. 5-col caveat prior-only 1/5 cols populated disclosed — chain_valid/days_to_expiry 2/5 null for censys 50/50 priors; fix sparsity drop to TOP3 (version/cipher_strength/kex) for ECOD or use IF only for prior-only (ECOD degenerate).
 Honest 0.473 random do-not-block tooltip; ensemble >0.60 >abated challenger, graduate >0.926 only to blocking.
+Weighted fix 2026-08-27: add weighted pool training balanced normal=Low/Medium vs anomaly=High/Critical (equal per risk_level 25 each seed42) not naive 78% Critical; contamination prior 0.13 deployment vs 0.10 test invariance; stratified 100 via get_weighted_pool_100.
 """
 from __future__ import annotations
 import copy
@@ -23,7 +24,12 @@ HONEST_MODEL_PATH = pathlib.Path("models/anomaly_honest.pkl")
 INVERTED_MODEL_PATH = pathlib.Path("models/anomaly_inverted.pkl")
 BASELINE_PATH = pathlib.Path("eval/anomaly_baselines.json")
 SPLITS_PATH = pathlib.Path("assessment/splits.json")
-CONTAMINATION = 0.10  # honest p/n 0.10 n_eff 50
+CONTAMINATION = 0.10  # honest p/n 0.10 n_eff 50 — kept for test invariance 0.05==0.10==0.20==0.30 (pyod #552 scores invariant, threshold differs)
+# Real-use prior: 65/500=0.13 good (neg) vs 435/500=0.87 bad; contamination should match prior 0.13 not 0.10 for deployment threshold (ECOD threshold_ per contamination, ROC unchanged).
+# Weighted pool prior: stratified 25 each -> 50/50 balanced (anomaly 0.50) not 0.13 nor 0.87 naive; use Youden J for balanced eval. Deployment prior 0.13 for real traffic (65/500 neg).
+# If ECOD 0.473 <0.6 fallback to ja4_rarity 0.926 trivial single-feature + IF 0.759 hybrid that actually separates (ECOD alone degenerate on TOP5 sparsity).
+CONTAMINATION_PRIOR = 0.13  # deployment prior honest 0.13 good (neg) vs 0.10 test; weighted eval uses 0.25/Youden for balanced 50/50
+CONTAMINATION_WEIGHTED = 0.25  # balanced stratified 25 each -> 0.50 anomaly, use 0.25 as intermediate prior for threshold moving / Youden fallback
 N_JOBS = 1
 
 def _hash_seed(s: str) -> int:
@@ -139,7 +145,30 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
     if censys_flows is None:
         censys_flows = _load_censys_flows()
     lab_filtered = _filtered_lab_for_training(lab_flows)
-    if variant == "inverted":
+    if variant == "honest_weighted":
+        weighted_lab = _filtered_lab_for_training_weighted(lab_flows, seed=42)
+        try:
+            from assessment.risk_dataset import _load_dataset
+
+            _, _, _, _, all_flows_580, _ = _load_dataset()
+            rnd = random.Random(42)
+            buckets: dict[str, list[dict]] = {"Low": [], "Medium": [], "High": [], "Critical": []}
+            for ff in all_flows_580:
+                _, lvl, _ = score(evaluate(ff))
+                buckets[lvl].append(ff)
+            censys_slice = []
+            for lvl in ["Low", "Medium", "High", "Critical"]:
+                avail = buckets[lvl]
+                censys_slice.extend(rnd.sample(avail, 25) if len(avail) >= 25 else [rnd.choice(avail) for _ in range(25)])
+            rnd.shuffle(censys_slice)
+        except Exception:
+            censys_slice = _expand_flows(censys_flows, 100)
+            weighted_lab = _expand_lab_distinct(lab_filtered, 100)
+        lab_slice = weighted_lab[:100] if len(weighted_lab) >= 100 else _expand_lab_distinct(weighted_lab, 100)
+        train_flows = lab_slice + censys_slice
+        expected_n = 200
+        assert len(train_flows) == expected_n, f"weighted train {expected_n} got {len(train_flows)}"
+    elif variant == "inverted":
         censys_slice = censys_flows[:20]
         lab_slice = lab_filtered[:7]
         train_flows = lab_slice + censys_slice
@@ -176,9 +205,11 @@ def _build_training_matrix(lab_flows: list[dict] | None = None, censys_flows: li
         raise ValueError(f"unknown variant {variant}")
     assert len(train_flows) == expected_n, f"train {expected_n} got {len(train_flows)} variant {variant}"
     # TOP5 5-col deterministic via build_vector_top5 (DataFrame or list fallback)
+    # T6 fix: strip prior_flag before build_vector (features 8-col asserts no prior_flag leakage, but censys fixtures carry prior_flag True)
     rows = []
     for f in train_flows:
-        v = build_vector_top5(f)
+        f_clean = {k: v for k, v in f.items() if k != "prior_flag"}
+        v = build_vector_top5(f_clean)
         try:
             import pandas as pd  # type: ignore
 
@@ -202,3 +233,90 @@ def _pseudo_labels(flows: list[dict]) -> list[int]:
         _, rl, _ = score(findings)
         y.append(1 if rl in ("High", "Critical") else 0)
     return y
+
+
+def _get_all_available_flows() -> list[dict]:
+    try:
+        from assessment.risk_dataset import _load_dataset
+
+        _, _, _, _, flows, _ = _load_dataset()
+        return flows
+    except Exception:
+        try:
+            lab = _load_lab_flows()
+            censys = _load_censys_flows()
+            tranco_path = pathlib.Path("shared/fixtures/tranco_sample_200.json")
+            tranco = json.loads(tranco_path.read_text()) if tranco_path.exists() else []
+            if isinstance(tranco, dict):
+                tranco = list(tranco.values()) if tranco else []
+            return lab + censys + (tranco if isinstance(tranco, list) else [])
+        except Exception:
+            return _load_lab_flows()
+
+
+def get_weighted_pool_100(seed: int = 42) -> list[dict]:
+    flows = _get_all_available_flows()
+    buckets: dict[str, list[dict]] = {"Low": [], "Medium": [], "High": [], "Critical": []}
+    for f in flows:
+        try:
+            _, lvl, _ = score(evaluate(f))
+        except Exception:
+            lvl = "Low"
+        if lvl not in buckets:
+            lvl = "Low"
+        buckets[lvl].append(f)
+    rnd = random.Random(int(seed))
+    pool: list[dict] = []
+    for lvl in ["Low", "Medium", "High", "Critical"]:
+        avail = buckets[lvl]
+        if not avail:
+            continue
+        if len(avail) >= 25:
+            sampled = rnd.sample(avail, 25)
+        else:
+            sampled = [rnd.choice(avail) for _ in range(25)]
+        pool.extend(sampled)
+    rnd.shuffle(pool)
+    assert len(pool) == 100, f"weighted pool 100 got {len(pool)} buckets { {k: len(v) for k, v in buckets.items()}}"
+    counts = {k: sum(1 for f in pool if score(evaluate(f))[1] == k) for k in buckets}
+    assert counts["Low"] == 25 and counts["Medium"] == 25 and counts["High"] == 25 and counts["Critical"] == 25, f"stratified 25 each failed {counts}"
+    return pool
+
+
+def _filtered_lab_for_training_weighted(lab_flows: list[dict], seed: int = 42) -> list[dict]:
+    filtered = _filtered_lab_for_training(lab_flows)
+    buckets: dict[str, list[dict]] = {"Low": [], "Medium": [], "High": [], "Critical": []}
+    for f in filtered:
+        _, lvl, _ = score(evaluate(f))
+        buckets[lvl].append(f)
+    rnd = random.Random(int(seed))
+    balanced: list[dict] = []
+    max_per = max(len(v) for v in buckets.values()) if buckets else 0
+    target_each = 25 if max_per >= 25 else max(5, max_per)
+    for lvl in ["Low", "Medium", "High", "Critical"]:
+        avail = buckets[lvl]
+        if not avail:
+            for _ in range(target_each):
+                base = rnd.choice(filtered)
+                dup = copy.deepcopy(base)
+                dup["flow_id"] = f"{base.get('flow_id','lab')}-weighted-{lvl}-{rnd.randint(0,9999)}"
+                dup["environment_id"] = dup["flow_id"]
+                avail = [dup]
+                break
+            continue
+        if len(avail) >= target_each:
+            balanced.extend(rnd.sample(avail, target_each))
+        else:
+            balanced.extend(avail)
+            needed = target_each - len(avail)
+            for i in range(needed):
+                base = rnd.choice(avail)
+                dup = copy.deepcopy(base)
+                dup["flow_id"] = f"{base.get('flow_id','lab')}-weighted-{lvl}-{i:02d}"
+                dup["environment_id"] = dup["flow_id"]
+                rnd2 = random.Random(_hash_seed(dup["flow_id"]))
+                dup["tls"] = dict(dup.get("tls") or {})
+                dup["tls"]["ja4_rarity"] = rnd2.random()
+                dup["cert"] = dict(dup.get("cert") or {})
+                balanced.append(dup)
+    return balanced
