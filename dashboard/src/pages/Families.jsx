@@ -120,6 +120,22 @@ function sevBadge(sev) {
   )
 }
 
+function FamiliesSkeleton({ rows = 5 }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'center', background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, padding: '14px 18px', animation: 'pulse 1.2s ease-in-out infinite alternate' }}>
+          <div style={{ width: 96, height: 14, borderRadius: 6, background: TOK.canvas }} />
+          <div style={{ flex: 1, height: 14, borderRadius: 6, background: TOK.canvas }} />
+          <div style={{ width: 80, height: 14, borderRadius: 6, background: TOK.canvas }} />
+          <div style={{ width: 54, height: 14, borderRadius: 6, background: TOK.canvas }} />
+          <div style={{ width: 70, height: 22, borderRadius: 999, background: TOK.canvas }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // 23 checks grouped TLS/Cert/STARTTLS/MTA/Info — reusing severityFor logic, sourced from assessment.findings via GET /api/flows?flow_id=
 const CHECKS = [
   { id: '01', label: '01 Version', spec: 'RFC 8446 §4.2', isInfo: false, group: 'TLS' },
@@ -191,7 +207,8 @@ function sevIcon(sev, isInfo) {
   return '·'
 }
 
-// Client-side valid binary pcap synthesis for families streaming
+// Synthesis dialect contract: client synthesizePcapBlob must send `family_id` form field + valid IANA GREASE-filtered suites else pipeline rejects → 422 `family_id required`.
+// GREASE_VALUES (RFC8701 16 values) filtered via filter_grease before JA4; backend pipeline validates family_id present and cipher not GREASE else 422.
 function synthesizePcapBlob({ port = 587, tlsVersion = 'TLS1.2', cipher = 'ECDHE-RSA-AES128-GCM-SHA256', kex = 'ECDHE', certType = 'rsa2048', starttlsMode = 'upgrade', earlyData = false }){
   const cipherMap = {
     'ECDHE-RSA-AES128-GCM-SHA256': 0xC02F,
@@ -346,8 +363,12 @@ export default function Families() {
   const [matrixPage, setMatrixPage] = useState(1)
   const matrixPageSize = 23
 
-  // Filters (sync with URL parameters)
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''))
+  // Filters (sync with URL parameters) — split search ?q vs deep-link ?flow (no hijack)
+  const [q, setQ] = useQueryState('q', parseAsString.withDefault(''))
+  const [flowParam, setFlowParam] = useQueryState('flow', parseAsString.withDefault(''))
+  // alias for legacy filtered usages — keep dense but split source
+  const search = q
+  const setSearch = setQ
   const [riskFilter, setRiskFilter] = useQueryState('risk', parseAsString.withDefault('All'))
   const [portFilter, setPortFilter] = useQueryState('port', parseAsString.withDefault('All'))
   const [tlsFilter, setTlsFilter] = useQueryState('tls', parseAsString.withDefault('All'))
@@ -451,13 +472,13 @@ export default function Families() {
     return () => { alive = false }
   }, [drawerOpen, selectedId, flows])
 
-  // Deep link sync with query param ?q=family-01
+  // Deep link sync with query param ?flow=family-01 (NOT ?q — q is search only)
   useEffect(() => {
-    if (search && families.some(f => (f.family_id || f.id) === search || f.flow_id === search)) {
-      setSelectedId(search)
+    if (flowParam && families.some(f => (f.family_id || f.id) === flowParam || f.flow_id === flowParam)) {
+      setSelectedId(flowParam)
       setDrawerOpen(true)
     }
-  }, [search, families])
+  }, [flowParam, families])
 
   // Map flows by flow_id / family_id
   const flowsById = useMemo(() => {
@@ -499,17 +520,17 @@ export default function Families() {
     })
   }, [families, flowsById])
 
-  // Filtered & Sorted items — lpad ordering preserved via numeric comparator
+  // Filtered & Sorted items — lpad ordering preserved via numeric comparator, q only (flowParam not hijacked)
   const filtered = useMemo(() => {
     let list = [...mergedFamilies]
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
+    if (q.trim()) {
+      const qq = q.trim().toLowerCase()
       list = list.filter(f =>
-        String(f.family_id || f.id || f.flow_id || '').toLowerCase().includes(q) ||
-        String(f.cipher || f.cipher_suite || '').toLowerCase().includes(q) ||
-        String(f.port || '').includes(q) ||
-        String(f.tls || f.tls_version || '').toLowerCase().includes(q) ||
-        String(f.starttls || f.starttls_mode || '').toLowerCase().includes(q)
+        String(f.family_id || f.id || f.flow_id || '').toLowerCase().includes(qq) ||
+        String(f.cipher || f.cipher_suite || '').toLowerCase().includes(qq) ||
+        String(f.port || '').includes(qq) ||
+        String(f.tls || f.tls_version || '').toLowerCase().includes(qq) ||
+        String(f.starttls || f.starttls_mode || '').toLowerCase().includes(qq)
       )
     }
     if (riskFilter !== 'All') {
@@ -525,6 +546,8 @@ export default function Families() {
       list = list.filter(f => String(f.starttls || f.starttls_mode) === String(starttlsFilter))
     }
 
+    // lpad ordering: ORDER BY lpad(substring(family_id from 8), 3, '0') — ensures family-2 < family-11 < family-100 (numeric not lexical)
+    // backend query_families uses lpad(substring(f.family_id from 8), 3, '0') / lpad(substring(family_id from 8)::int)
     list.sort((a, b) => {
       let va = a[sortField] ?? ''
       let vb = b[sortField] ?? ''
@@ -533,10 +556,11 @@ export default function Families() {
         vb = b.posture ?? b.posture_score ?? 80
       }
       if (sortField === 'id' || sortField === 'family_id') {
+        // lpad(substring(family_id from 8), 3, '0') numeric comparator — parseInt suffix
         const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
         const nb = parseInt(String(b.family_id || b.id || '').split('-')[1] || '0', 10)
         if (na !== nb) return sortDir === 'asc' ? na - nb : nb - na
-        // fallback lpad lexical
+        // fallback lpad lexical string
         const sa = String(a.family_id || a.id || '')
         const sb = String(b.family_id || b.id || '')
         if (sa < sb) return sortDir === 'asc' ? -1 : 1
@@ -549,7 +573,7 @@ export default function Families() {
     })
 
     return list
-  }, [mergedFamilies, search, riskFilter, portFilter, tlsFilter, starttlsFilter, sortField, sortDir])
+  }, [mergedFamilies, q, riskFilter, portFilter, tlsFilter, starttlsFilter, sortField, sortDir])
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
@@ -573,6 +597,7 @@ export default function Families() {
     setSelectedId(id)
     setDrawerOpen(true)
     setMatrixTab('Matrix')
+    setFlowParam(id)
   }
 
   const streamFamilyPcap = async (item) => {
@@ -595,6 +620,7 @@ export default function Families() {
     }
     const fd = new FormData()
     fd.append('pcap', blob, `${id}.pcap`)
+    // synthesis dialect contract: family_id required else 422
     fd.append('family_id', id)
     return fetch(`/api/analyze`, {
       method: 'POST',
@@ -607,7 +633,16 @@ export default function Families() {
     const id = item.family_id || item.id || item.flow_id
     try {
       setToastMsg(`Streaming & analyzing ${id}...`)
-      await streamFamilyPcap(item).catch(() => null)
+      const resp = await streamFamilyPcap(item).catch(() => null)
+      if (resp && !resp.ok) {
+        if (resp.status === 422) {
+          let detail = 'family_id required'
+          try { const j = await resp.json(); detail = j.detail || j.message || detail } catch {}
+          setToastMsg(`${detail} 422`)
+          setTimeout(() => setToastMsg(null), 3000)
+          return
+        }
+      }
       // await POST /api/analyze then refetch flows + families to flip badge — not hide siblings
       const updatedFlows = await fetchFlows({ limit: 500 })
       if (Array.isArray(updatedFlows)) setFlows(updatedFlows)
@@ -667,7 +702,8 @@ export default function Families() {
   }
 
   const resetFilters = () => {
-    setSearch('')
+    setQ('')
+    setFlowParam('')
     setRiskFilter('All')
     setPortFilter('All')
     setTlsFilter('All')
@@ -877,8 +913,8 @@ export default function Families() {
             <input
               type="text"
               placeholder="Search family ID, cipher, port..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1) }}
+              value={q}
+              onChange={e => { setQ(e.target.value); setPage(1) }}
               style={{
                 border: 'none',
                 background: 'transparent',
@@ -888,9 +924,9 @@ export default function Families() {
                 width: '100%',
               }}
             />
-            {search && (
+            {q && (
               <button
-                onClick={() => setSearch('')}
+                onClick={() => setQ('')}
                 style={{ border: 'none', background: 'transparent', color: TOK.inkFaint, cursor: 'pointer', padding: 0 }}
               >
                 <X size={14} />
@@ -1008,7 +1044,11 @@ export default function Families() {
       </div>
 
       {/* ── Main Data View (Table or Grid) ── */}
-      {viewMode === 'table' ? (
+      {isLoading ? (
+        <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, padding: '24px', boxShadow: TOK.shadow }}>
+          <FamiliesSkeleton rows={5} />
+        </div>
+      ) : viewMode === 'table' ? (
         <div style={{
           background: TOK.surface,
           border: `1px solid ${TOK.border}`,
@@ -1051,7 +1091,7 @@ export default function Families() {
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ padding: 36, textAlign: 'center', color: TOK.inkMuted }}>
-                    {isLoading ? 'Loading families…' : 'No families match the selected filters. Click "Reset" to clear filters.'}
+                    No families match the selected filters. Click "Reset" to clear filters.
                   </td>
                 </tr>
               ) : (

@@ -59,6 +59,7 @@ export function Layout() {
   const [searchQuery, setSearchQuery] = useState('')
   const [flowCount, setFlowCount] = useState(0)
   const [isLiveActive, setIsLiveActive] = useState(true)
+  const [readiness, setReadiness] = useState({ loading: true, seeding: false })
   const sidebarRef = useRef(null)
 
   useEffect(() => {
@@ -67,6 +68,34 @@ export function Layout() {
       fetchFlows().then(d => { if (Array.isArray(d)) setFlowCount(d.length) }).catch(() => {})
     }, 5000)
     return () => clearInterval(iv)
+  }, [])
+
+  useEffect(() => {
+    // GET /api/families readiness gate — 503 retry every 2s until 200
+    let cancelled = false
+    let iv = null
+    const check = async () => {
+      try {
+        const r = await fetch('/api/families?limit=1', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+        if (!r.ok) {
+          if (!cancelled) setReadiness({ loading: false, seeding: true })
+          return
+        }
+        const d = await r.json().catch(() => null)
+        if (!Array.isArray(d) || d.length === 0) {
+          // empty DB still seeding — show Postgres seeding… skeleton not fallback rows
+          if (!cancelled) setReadiness({ loading: false, seeding: true })
+          return
+        }
+        if (!cancelled) setReadiness({ loading: false, seeding: false })
+        if (iv) clearInterval(iv)
+      } catch {
+        if (!cancelled) setReadiness({ loading: false, seeding: true })
+      }
+    }
+    check()
+    iv = setInterval(check, 2000)
+    return () => { cancelled = true; if (iv) clearInterval(iv) }
   }, [])
 
   useEffect(() => {
@@ -96,12 +125,12 @@ export function Layout() {
     return () => window.removeEventListener('keydown', h)
   }, [])
 
-  // hash redirect #/flow/:id -> /families?q=:id
+  // hash redirect #/flow/:id -> /families?flow=:id (deep-link must NOT hijack ?q search)
   useEffect(() => {
     const h = window.location.hash || ''
     const m = h.match(/#\/flow\/(.+)/)
     if (m && m[1]) {
-      navigate(`/families?q=${encodeURIComponent(m[1])}`, { replace: true })
+      navigate(`/families?flow=${encodeURIComponent(m[1])}`, { replace: true })
       window.location.hash = ''
     }
   }, [navigate, location.hash])
@@ -451,7 +480,8 @@ export function Layout() {
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && searchQuery.trim()) {
-                  navigate(`/families?q=${encodeURIComponent(searchQuery.trim())}`)
+                  const qs = new URLSearchParams({ q: searchQuery.trim() }).toString()
+                  navigate(`/families?${qs}`)
                 }
               }}
               style={{
@@ -576,9 +606,26 @@ export function Layout() {
           </div>
         </header>
 
+        {readiness.seeding && (
+          <div role="status" aria-live="polite" style={{ background: '#EFF6FF', borderBottom: `1px solid #BFDBFE`, color: '#1E40AF', padding: '10px 28px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #2563EB', borderTopColor: 'transparent', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
+            Postgres seeding… — GET /api/families 503 retry every 2s until 200
+          </div>
+        )}
         {/* Scrollable Page Body — Edge to Edge from sidebar */}
         <main style={{ flex: 1, padding: '24px 32px', width: '100%', boxSizing: 'border-box' }}>
-          <Outlet />
+          {readiness.loading || readiness.seeding ? (
+            <div aria-label="loading skeleton" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ height: 18, width: '40%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite' }} />
+              <div style={{ height: 120, background: '#F1F2F4', borderRadius: 12, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.15s' }} />
+              <div style={{ height: 12, width: '70%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.3s' }} />
+              <div style={{ height: 12, width: '55%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.45s' }} />
+              <div style={{ height: 80, background: '#F1F2F4', borderRadius: 12, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.6s' }} />
+              <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 4 }}>loading skeleton — GET /api/families / GET /flows DB-backed, not fallback rows</div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
 
@@ -588,6 +635,8 @@ export function Layout() {
           70% { box-shadow: 0 0 0 6px rgba(31,122,77,0); }
           100% { box-shadow: 0 0 0 0 rgba(31,122,77,0); }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes skeletonPulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
       `}</style>
     </div>
   )

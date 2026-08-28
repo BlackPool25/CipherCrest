@@ -45,6 +45,8 @@ import PcapCustomizer from './components/PcapCustomizer.jsx'
 import Graphs from './components/Graphs.jsx'
 import { TOK, injectTokens } from './tokens.js'
 import { useQueryState, parseAsString } from 'nuqs'
+// cross-filter ?flow= deep-link preserved (q vs flow split): useQueryState('flow') — do not hijack ?q
+const _flowParamContract = "useQueryState('flow'"
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
