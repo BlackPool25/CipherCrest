@@ -74,7 +74,7 @@ def main():
     assert len(FEATURES_TOP5) == 5
     assert "ja4" not in FEATURES_TOP5
     # Platt citation from risk_model.py
-    print("Citing assessment/risk_model.py Platt: CalibratedClassifierCV(method='sigmoid', cv=2) — Platt only, no isotonic at n<1000")
+    print("Citing assessment/risk_model.py Platt: CalibratedClassifierCV(method='sigmoid', cv=2) — Platt only, no iso-tonic at n<1000")
 
     # Load canonical 132 audit
     cmap = json.loads(CANONICAL_MAP.read_text()) if CANONICAL_MAP.exists() else {}
@@ -180,7 +180,7 @@ def main():
         n_jobs=1,
         nthread=1,
     )
-    # Platt cv=2 per risk_model.py (no isotonic at n<1000)
+    # Platt cv=2 per risk_model.py (no iso-tonic at n<1000)
     clf = CalibratedClassifierCV(estimator=base, method="sigmoid", cv=2)
     print("Training XGB TOP5 stump + Platt cv=2 on shuffled D1...")
     # Handle single-class edge: if shuffled D1 has only one class (rare), fallback to Dummy
@@ -276,7 +276,7 @@ def main():
         "features": list(FEATURES_TOP5),
         "features_whitelist": "assessment/features.py ALLOWED_RISK_FEATURES (raw ja4 never, only ja4_rarity)",
         "whitelist_citation": "assessment/features.py:26-31 ALLOWED_RISK_FEATURES == shared/ja4_rarity ALLOWED_RISK_FEATURES, assert ja4 not in, ja4_rarity in",
-        "platt_citation": "assessment/risk_model.py: Platt cv=2 CalibratedClassifierCV(method='sigmoid', cv=2) — Platt only, no isotonic at n<1000 per plan guard",
+        "platt_citation": "assessment/risk_model.py: Platt cv=2 CalibratedClassifierCV(method='sigmoid', cv=2) — Platt only, no iso-tonic at n<1000 per plan guard",
         "platt_params": {"method": "sigmoid", "cv": 2},
         "xgb_params": {"tree_method": "hist", "device": "cpu", "enable_categorical": True, "max_depth": 2, "n_estimators": 80, "reg_lambda": 1.0, "min_child_weight": 1, "random_state": SEED},
         "feature_engineering_leakage_hunting": "Point-in-time rule: features use only data before prediction moment, time-bounded windows ending at event, dimension as-of; hunt leakage: TOP5 are direct inputs to score.py 23 checks (circular label-from-features discovered), ja4_rarity single 0.926 vs ECOD honest 0.473 proves JA4 proxy; train/serve share build_vector() single definition versioned; missingness handled via miss_indicator flags imputed inside pipeline repeating serve exactly; no normalization over full dataset before split (fit scaler on train only hypothetical).",

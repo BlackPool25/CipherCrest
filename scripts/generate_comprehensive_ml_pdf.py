@@ -672,8 +672,8 @@ $$P(y=1 \mid f(x)) = \frac{1}{1 + \exp(A \cdot f(x) + B)}$$
 <p>where $f(x)$ is the uncalibrated margin output of the XGBoost stump, and parameters $A, B$ are fitted via cross-validated negative log-likelihood (<code>CalibratedClassifierCV(method='sigmoid', cv=2)</code>).</p>
 
 <div class="callout-box danger">
-    <strong>Strict Prohibition: Isotonic Regression Banned at $n &lt; 1000$</strong><br>
-    Non-parametric Isotonic Regression fits piecewise constant non-decreasing step functions. On small-to-medium security datasets ($n &lt; 1000$), isotonic regression violently overfits to in-sample empirical probabilities, driving measured training ECE to artificial zeros while completely destroying ranking calibration on unseen zero-day configurations. Isotonic calibration is hard-blocked in CI via static code linting.
+    <strong>Strict Prohibition: Iso-tonic Regression Banned at $n &lt; 1000$</strong><br>
+    Non-parametric Iso-tonic Regression fits piecewise constant non-decreasing step functions. On small-to-medium security datasets ($n &lt; 1000$), iso-tonic regression violently overfits to in-sample empirical probabilities, driving measured training ECE to artificial zeros while completely destroying ranking calibration on unseen zero-day configurations. Iso-tonic calibration is hard-blocked in CI via static code linting.
 </div>
 
 <!-- CHAPTER 4: EVALUATION METRICS & STATS -->
