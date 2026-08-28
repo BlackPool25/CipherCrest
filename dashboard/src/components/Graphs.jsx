@@ -83,33 +83,37 @@ function Card({ title, subtitle, icon: IconComp, badge, children, minHeight = 28
 // Inline fallback SVG for calibration images if 404
 function FallbackCalibration() {
   return (
-    <svg viewBox="0 0 320 180" width="100%" height="180" role="img" aria-label="Calibration curve fallback — ECE 5-bin">
-      <rect width="320" height="180" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
-      <text x="16" y="22" fontSize="11" fill="#0F172A" fontWeight="700">Platt Calibration Curve (5-Bin)</text>
-      <text x="16" y="38" fontSize="9" fill="#64748B">ECE: 0.21 (5-bin) • Brier: 0.117 • Dashed = Perfect Reliability</text>
-      <line x1="40" y1="145" x2="290" y2="45" stroke="#1F7A4D" strokeDasharray="5 5" strokeWidth="1.5" />
-      <polyline points="40,145 90,120 145,100 205,70 290,45" fill="none" stroke="#0F172A" strokeWidth="2" />
-      {[40, 90, 145, 205, 290].map((x, i) => (
-        <circle key={x} cx={x} cy={[145, 120, 100, 70, 45][i]} r="4" fill="#1F7A4D" stroke="#fff" strokeWidth="1.5" />
-      ))}
-      <text x="40" y="165" fontSize="9" fill="#64748B">0.0</text>
-      <text x="275" y="165" fontSize="9" fill="#64748B">1.0</text>
-    </svg>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
+      <svg viewBox="0 0 460 200" width="100%" height="100%" style={{ maxHeight: 200 }} role="img" aria-label="Calibration curve fallback — ECE 5-bin">
+        <rect width="460" height="200" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
+        <text x="24" y="28" fontSize="13" fill="#0F172A" fontWeight="700">Platt Calibration Curve (5-Bin)</text>
+        <text x="24" y="48" fontSize="10" fill="#64748B">ECE: 0.21 (5-bin) • Brier: 0.117 • Dashed = Perfect Reliability</text>
+        <line x1="60" y1="160" x2="410" y2="60" stroke="#1F7A4D" strokeDasharray="5 5" strokeWidth="1.5" />
+        <polyline points="60,160 130,135 210,110 300,80 410,60" fill="none" stroke="#0F172A" strokeWidth="2.5" />
+        {[60, 130, 210, 300, 410].map((x, i) => (
+          <circle key={x} cx={x} cy={[160, 135, 110, 80, 60][i]} r="5" fill="#1F7A4D" stroke="#fff" strokeWidth="2" />
+        ))}
+        <text x="60" y="182" fontSize="10" fill="#64748B">0.0</text>
+        <text x="395" y="182" fontSize="10" fill="#64748B">1.0</text>
+      </svg>
+    </div>
   )
 }
 
 function FallbackPR() {
   return (
-    <svg viewBox="0 0 320 180" width="100%" height="180" role="img" aria-label="Risk PR curve fallback">
-      <rect width="320" height="180" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
-      <text x="16" y="22" fontSize="11" fill="#0F172A" fontWeight="700">Risk Precision-Recall Curve</text>
-      <text x="16" y="38" fontSize="9" fill="#64748B">Average Precision (AP): 0.97 • Optimal F1 Threshold Sweep</text>
-      <polyline points="40,145 75,55 140,45 210,40 290,38" fill="none" stroke="#1F7A4D" strokeWidth="2" />
-      <line x1="40" y1="145" x2="40" y2="30" stroke="#CBD5E1" />
-      <line x1="40" y1="145" x2="290" y2="145" stroke="#CBD5E1" />
-      <text x="14" y="45" fontSize="9" fill="#64748B">1.0</text>
-      <text x="14" y="148" fontSize="9" fill="#64748B">0.0</text>
-    </svg>
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
+      <svg viewBox="0 0 460 200" width="100%" height="100%" style={{ maxHeight: 200 }} role="img" aria-label="Risk PR curve fallback">
+        <rect width="460" height="200" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
+        <text x="24" y="28" fontSize="13" fill="#0F172A" fontWeight="700">Risk Precision-Recall Curve</text>
+        <text x="24" y="48" fontSize="10" fill="#64748B">Average Precision (AP): 0.97 • Optimal F1 Threshold Sweep</text>
+        <polyline points="60,160 110,70 190,55 290,48 410,45" fill="none" stroke="#1F7A4D" strokeWidth="2.5" />
+        <line x1="60" y1="160" x2="60" y2="40" stroke="#CBD5E1" />
+        <line x1="60" y1="160" x2="410" y2="160" stroke="#CBD5E1" />
+        <text x="28" y="55" fontSize="10" fill="#64748B">1.0</text>
+        <text x="28" y="163" fontSize="10" fill="#64748B">0.0</text>
+      </svg>
+    </div>
   )
 }
 
@@ -179,14 +183,18 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
   // Filter for only flows that actually ran / were analyzed (exclude un-run placeholder entries)
   const ranFlows = useMemo(() => {
     if (!Array.isArray(flows)) return []
-    return flows.filter(f => f && f.has_run !== false && (
-      f.assessment?.risk_score != null ||
-      (f.assessment?.findings && f.assessment.findings.length > 0) ||
-      (f.starttls_mode && f.starttls_mode !== 'unknown') ||
-      (f.tls?.version && f.tls.version !== 'unknown') ||
-      (f.policy?.action && f.policy.action !== 'none') ||
-      f.cert
-    ))
+    return flows.filter(f => {
+      if (!f || f.has_run === false) return false
+      // Distinctly identify real analyzed traffic vs seeded placeholders
+      const hasRealCert = Boolean(f.cert && (f.cert.leaf_present === true || f.cert.is_tls13_opaque === true || typeof f.cert.days_to_expiry === 'number' || f.cert.is_expired === true))
+      const hasRealFindings = Boolean(Array.isArray(f.assessment?.findings) && f.assessment.findings.length > 0)
+      const hasRealAnomaly = typeof f.assessment?.anomaly_score === 'number' || typeof f.assessment?.calibrated_prob === 'number'
+      const hasRealPolicy = Boolean(f.policy != null && f.policy.action != null && f.policy.action !== 'none')
+      const hasRealTls = Boolean(f.tls && f.tls.cipher_strength && f.tls.cipher_strength !== 'unknown')
+      const isLiveOrLab = f.source === 'live' || f.source === 'lab' || f.source === 'model'
+      const isExplicitRun = f.has_run === true
+      return hasRealCert || hasRealFindings || hasRealAnomaly || hasRealPolicy || hasRealTls || isLiveOrLab || isExplicitRun
+    })
   }, [flows])
 
   // 1. Protocol & Version Distribution (TLS 1.3 / 1.2 / 1.0-1.1 / Plaintext)
@@ -304,7 +312,7 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         if (c.days_to_expiry > 60) buckets[0].count++
         else if (c.days_to_expiry >= 30) buckets[1].count++
         else buckets[2].count++
-      } else if (f.tls?.version && f.tls.version !== 'none' && f.starttls_mode !== 'stripped') {
+      } else if (c.leaf_present || c.is_tls13_opaque) {
         buckets[0].count++
       }
     })
@@ -323,20 +331,23 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
   // 5. Posture Trend Evolution
   const trendData = useMemo(() => {
-    const sorted = [...ranFlows].sort((a, b) => String(a.capture_epoch || '').localeCompare(String(b.capture_epoch || '')))
-    if (sorted.length === 0) {
+    if (ranFlows.length === 0) {
       return [
-        { time: '09:00', posture: 75 },
-        { time: '11:00', posture: 72 },
-        { time: '13:00', posture: 85 },
-        { time: '15:00', posture: 89 },
-        { time: '17:00', posture: 88 },
+        { time: 'F-01', posture: 90, flow: 'family-01' },
+        { time: 'F-02', posture: 85, flow: 'family-02' },
+        { time: 'F-03', posture: 40, flow: 'family-03' },
+        { time: 'F-04', posture: 70, flow: 'family-04' },
+        { time: 'F-05', posture: 95, flow: 'family-05' },
       ]
     }
-    return sorted.map((f, i) => ({
-      time: (f.capture_epoch || '').slice(11, 16) || `Flow ${i + 1}`,
-      posture: f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50)),
-    }))
+    return ranFlows.map((f, i) => {
+      const timeLabel = f.flow_id ? f.flow_id.replace('family-', 'F-') : `#${i + 1}`
+      return {
+        time: timeLabel,
+        flow: f.flow_id,
+        posture: f.assessment?.posture_score ?? (100 - (f.assessment?.risk_score || 50)),
+      }
+    })
   }, [ranFlows])
 
   // 6. Policy Disposition & Gateway Action (Filter out 'none')
@@ -386,17 +397,27 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
   // 7. Anomaly Diagnostics Scatter Data
   const scatterData = useMemo(() => {
-    const list = ranFlows.map((f, i) => ({
-      x: i + 1,
-      y: typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : 10 + (i % 5) * 3,
-      flow: f.flow_id,
-      risk: f.assessment?.risk_level || 'Low',
-    }))
+    const list = ranFlows.map((f, i) => {
+      let score = typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : null
+      if (score == null) {
+        const rs = f.assessment?.risk_score ?? (100 - (f.assessment?.posture_score || 85))
+        score = Number((rs * 0.22 + 4.0).toFixed(1))
+      }
+      return {
+        x: i + 1,
+        y: Math.min(24, Math.max(1, score)),
+        flow: f.flow_id,
+        risk: f.assessment?.risk_level || (score >= 16.5 ? 'Critical' : score >= 14.9 ? 'High' : 'Low'),
+      }
+    })
+
     return list.length ? list : [
       { x: 1, y: 6.2, flow: 'family-01', risk: 'Low' },
       { x: 2, y: 15.8, flow: 'family-04', risk: 'High' },
       { x: 3, y: 22.4, flow: 'family-09', risk: 'Critical' },
       { x: 4, y: 5.1, flow: 'family-02', risk: 'Low' },
+      { x: 5, y: 8.3, flow: 'family-03', risk: 'Low' },
+      { x: 6, y: 17.1, flow: 'family-10', risk: 'High' },
     ]
   }, [ranFlows])
 
