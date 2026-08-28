@@ -246,6 +246,27 @@ wait_for(){
   return 1
 }
 
+seed_sample_pcaps(){
+  echo "--- seeding monitored flows with 10 sample pcaps via /analyze ---"
+  seeded_cnt=0
+  for pcap_file in lab/pcaps/family-*.pcap; do
+    if [[ -f "$pcap_file" ]]; then
+      pcap_name=$(basename "$pcap_file")
+      fam_id="${pcap_name%.pcap}"
+      code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F "pcap=@$pcap_file" -F "family_id=$fam_id" "http://localhost:${API_PORT}/analyze" 2>/dev/null || echo "000")
+      if [[ "$code" == "200" ]]; then
+        seeded_cnt=$((seeded_cnt + 1))
+      fi
+      if [[ $seeded_cnt -ge 10 ]]; then break; fi
+    fi
+  done
+  if [[ $seeded_cnt -gt 0 ]]; then
+    ok "seeded $seeded_cnt sample pcaps into monitored flows via /analyze"
+  else
+    warn "no sample pcaps seeded via /analyze"
+  fi
+}
+
 do_check(){
   echo "=== turnup --check (offline primary, tshark optional — docs/LARGE_FILES.md) ==="
   check_python; echo ""
@@ -318,20 +339,7 @@ do_full(){
   echo "--- verify API curl /analyze ---"
   if curl -sf "http://localhost:${API_PORT}/health" >/dev/null 2>&1; then ok "GET /health ok"; else warn "GET /health not reachable"; fi
   if curl -sf "http://localhost:${API_PORT}/flows" >/dev/null 2>&1; then ok "GET /flows ok"; else warn "GET /flows not reachable"; fi
-  if [[ -f lab/pcaps/family-01.pcap ]]; then
-    code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:${API_PORT}/analyze" 2>/dev/null || echo "000")
-    echo "POST /analyze family-01.pcap -> HTTP $code"
-    if [[ "$code" == "200" ]]; then
-      echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
-      ok "POST /analyze ok (curl /analyze)"
-      if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
-    else
-      warn "POST /analyze failed — see /tmp/turnup_analyze.json"
-      cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
-    fi
-  else
-    warn "lab/pcaps/family-01.pcap missing — skip curl /analyze"
-  fi
+  seed_sample_pcaps
   echo ""
   echo "=== turnup done ==="
   echo "Demo      http://localhost:${API_PORT}/dashboard (single port 8000 via StaticFiles)"
@@ -441,20 +449,7 @@ do_host(){
   echo "--- verify API curl /analyze ---"
   if curl -sf "http://localhost:${API_PORT}/health" >/dev/null 2>&1; then ok "GET /health ok"; else warn "GET /health not reachable"; fi
   if curl -sf "http://localhost:${API_PORT}/flows" >/dev/null 2>&1; then ok "GET /flows ok"; else warn "GET /flows not reachable"; fi
-  if [[ -f lab/pcaps/family-01.pcap ]]; then
-    code=$(curl -s -o /tmp/turnup_analyze.json -w "%{http_code}" -F pcap=@lab/pcaps/family-01.pcap "http://localhost:${API_PORT}/analyze" 2>/dev/null || echo "000")
-    echo "POST /analyze family-01.pcap -> HTTP $code"
-    if [[ "$code" == "200" ]]; then
-      echo "  $(cat /tmp/turnup_analyze.json 2>/dev/null | head -c 300 | tr -d '\n' | cut -c1-300)..."
-      ok "POST /analyze ok (curl /analyze)"
-      if python3 -c "import json; d=json.load(open('/tmp/turnup_analyze.json')); assert any('calibrated_prob' in str(x) for x in d)" 2>/dev/null; then ok "calibrated_prob present (risk_model wired)"; else info "calibrated_prob not in response (model missing? fallback graceful)"; fi
-    else
-      warn "POST /analyze failed — see /tmp/turnup_analyze.json"
-      cat /tmp/turnup_analyze.json 2>/dev/null | head -c 500 || true; echo ""
-    fi
-  else
-    warn "lab/pcaps/family-01.pcap missing — skip curl /analyze"
-  fi
+  seed_sample_pcaps
   echo ""
 
   echo "=== turnup host done ==="

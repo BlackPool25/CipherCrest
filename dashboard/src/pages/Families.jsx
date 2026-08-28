@@ -37,7 +37,7 @@ import {
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
 import { fetchFlows, fetchFamilies } from '../services/api.js'
-import { DrillDown } from '../App.jsx'
+import { DrillDown, PolicyRecommendationsView } from '../App.jsx'
 import HoverPlayCard from '../components/HoverPlayCard.jsx'
 
 // Cache for manifest data — kept as fallback only when DB unreachable
@@ -472,11 +472,23 @@ export default function Families() {
     return () => { alive = false }
   }, [drawerOpen, selectedId, flows])
 
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    setSelectedId(null)
+    setFlowParam(null)
+  }, [setFlowParam])
+
   // Deep link sync with query param ?flow=family-01 (NOT ?q — q is search only)
+  const lastParamRef = useRef(null)
   useEffect(() => {
-    if (flowParam && families.some(f => (f.family_id || f.id) === flowParam || f.flow_id === flowParam)) {
-      setSelectedId(flowParam)
-      setDrawerOpen(true)
+    if (flowParam && flowParam !== lastParamRef.current) {
+      if (families.some(f => (f.family_id || f.id) === flowParam || f.flow_id === flowParam) || flowParam.startsWith('family-')) {
+        setSelectedId(flowParam)
+        setDrawerOpen(true)
+        lastParamRef.current = flowParam
+      }
+    } else if (!flowParam) {
+      lastParamRef.current = null
     }
   }, [flowParam, families])
 
@@ -1459,7 +1471,7 @@ export default function Families() {
         >
           {/* Backdrop */}
           <div
-            onClick={() => setDrawerOpen(false)}
+            onClick={handleCloseDrawer}
             style={{
               position: 'absolute',
               inset: 0,
@@ -1505,7 +1517,7 @@ export default function Families() {
                   )}
                 </div>
                 <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 4 }}>
-                  Comprehensive inspection across 5 protocol tabs + Matrix (23 checks)
+                  Comprehensive inspection across protocol tabs, recommendations, and 23 checks
                 </div>
               </div>
 
@@ -1530,7 +1542,8 @@ export default function Families() {
                   <span>Analyze</span>
                 </button>
                 <button
-                  onClick={() => setDrawerOpen(false)}
+                  onClick={handleCloseDrawer}
+                  title="Close inspection drawer"
                   style={{
                     width: 32,
                     height: 32,
@@ -1549,21 +1562,21 @@ export default function Families() {
               </div>
             </div>
 
-            {/* Drawer Body with DrillDown + Matrix Tab */}
+            {/* Drawer Body with DrillDown + Recommendations + Matrix Tab */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Tab switcher for Inspect: Details vs Matrix */}
+              {/* Tab switcher for Inspect: Details vs Recommendations vs Matrix */}
               <div style={{ display: 'flex', background: '#F1F2F4', borderRadius: 10, padding: 3, gap: 4 }}>
                 <button
                   onClick={() => setMatrixTab('Details')}
                   style={{
                     flex: 1,
-                    padding: '7px 12px',
+                    padding: '7px 10px',
                     borderRadius: 8,
                     border: 'none',
                     background: matrixTab === 'Details' ? '#FFFFFF' : 'transparent',
                     color: matrixTab === 'Details' ? TOK.ink : TOK.inkMuted,
                     fontWeight: matrixTab === 'Details' ? 700 : 500,
-                    fontSize: 13,
+                    fontSize: 12,
                     cursor: 'pointer',
                     boxShadow: matrixTab === 'Details' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   }}
@@ -1571,26 +1584,47 @@ export default function Families() {
                   Details
                 </button>
                 <button
+                  onClick={() => setMatrixTab('Recommendations')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: matrixTab === 'Recommendations' ? '#FFFFFF' : 'transparent',
+                    color: matrixTab === 'Recommendations' ? TOK.ink : TOK.inkMuted,
+                    fontWeight: matrixTab === 'Recommendations' ? 700 : 500,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    boxShadow: matrixTab === 'Recommendations' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  Recommendations
+                </button>
+                <button
                   onClick={() => setMatrixTab('Matrix')}
                   style={{
                     flex: 1,
-                    padding: '7px 12px',
+                    padding: '7px 10px',
                     borderRadius: 8,
                     border: 'none',
                     background: matrixTab === 'Matrix' ? '#FFFFFF' : 'transparent',
                     color: matrixTab === 'Matrix' ? TOK.ink : TOK.inkMuted,
                     fontWeight: matrixTab === 'Matrix' ? 700 : 500,
-                    fontSize: 13,
+                    fontSize: 12,
                     cursor: 'pointer',
                     boxShadow: matrixTab === 'Matrix' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   }}
                 >
-                  Matrix (23 checks)
+                  Matrix (23)
                 </button>
               </div>
 
               {matrixTab === 'Details' ? (
-                <DrillDown flow={activeFlowObj} />
+                <DrillDown flow={activeFlowObj} onDeselect={handleCloseDrawer} />
+              ) : matrixTab === 'Recommendations' ? (
+                <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: '16px', boxShadow: TOK.shadow }}>
+                  <PolicyRecommendationsView flow={activeFlowObj} />
+                </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {!matrixFlow ? (

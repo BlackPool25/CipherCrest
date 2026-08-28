@@ -655,6 +655,7 @@ export function ThreatMatrix({ flows = [], onSelect, selectedId }) {
 export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPacket }) {
   const [search, setSearch] = useState('')
   const [riskFilter, setRiskFilter] = useState('All')
+  const [sortBy, setSortBy] = useState('recent')
   const [page, setPage] = useState(1)
 
   const filtered = useMemo(() => {
@@ -664,8 +665,13 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
       out = out.filter(f => String(f.flow_id).toLowerCase().includes(q))
     }
     if (riskFilter !== 'All') out = out.filter(f => (f.assessment?.risk_level) === riskFilter)
+    if (sortBy === 'risk_desc') {
+      out.sort((a, b) => (b.assessment?.risk_score ?? 0) - (a.assessment?.risk_score ?? 0))
+    } else if (sortBy === 'posture_asc') {
+      out.sort((a, b) => (a.assessment?.posture_score ?? 100) - (b.assessment?.posture_score ?? 100))
+    }
     return out
-  }, [flows, search, riskFilter])
+  }, [flows, search, riskFilter, sortBy])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / 6))
   const safePage = Math.min(page, totalPages)
@@ -707,13 +713,14 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input
             placeholder="Search flow ID..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
             style={{
               flex: 1,
+              minWidth: 120,
               padding: '8px 12px',
               borderRadius: 8,
               border: `1px solid ${TOK.border}`,
@@ -725,7 +732,7 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
           />
           <select
             value={riskFilter}
-            onChange={e => setRiskFilter(e.target.value)}
+            onChange={e => { setRiskFilter(e.target.value); setPage(1) }}
             style={{
               padding: '8px 10px',
               borderRadius: 8,
@@ -741,6 +748,23 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
             <option>High</option>
             <option>Medium</option>
             <option>Low</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={e => { setSortBy(e.target.value); setPage(1) }}
+            style={{
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: `1px solid ${TOK.border}`,
+              background: TOK.surface,
+              color: TOK.ink,
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <option value="recent">Recent Traffic</option>
+            <option value="risk_desc">Highest Risk</option>
+            <option value="posture_asc">Lowest Posture</option>
           </select>
         </div>
       </div>
@@ -829,7 +853,252 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
   )
 }
 
-export function DrillDown({ flow }) {
+export function getRemediationForCheck(checkId, flow) {
+  const map = {
+    '01': 'Upgrade MTA to support TLS 1.2 and TLS 1.3. Disable legacy TLS 1.0/1.1 protocols.',
+    '02': 'Configure strong AEAD cipher suites (e.g. ECDHE-RSA-AES128-GCM-SHA256, TLS_AES_128_GCM_SHA256).',
+    '03': 'Enable Ephemeral Diffie-Hellman (ECDHE) key exchange to guarantee Forward Secrecy.',
+    '04': 'Renew expired TLS certificate via ACME/certbot and configure automated renewal cron.',
+    '05': 'Replace self-signed certificate with a trusted public WebPKI CA certificate.',
+    '06': 'Deploy full certificate chain including intermediate CA certificates (fullchain.pem).',
+    '07': 'Re-issue certificate with Subject Alternative Names (SAN) matching server hostnames.',
+    '08': 'Upgrade RSA public key size to at least 2048 bits or use ECDSA P-256.',
+    '09': 'Re-issue certificate using SHA-256 or stronger signature hash algorithm.',
+    '10': 'Replace weak RSA key (<2048 bits) with 2048/4096-bit RSA or ECDSA.',
+    '11': 'Enable OCSP stapling on mail server to provide client-side revocation verification.',
+    '12': 'Configure STARTTLS support on port 587/25 to enable opportunistic/mandatory encryption.',
+    '13': 'Deprecate TLS 1.0/1.1 in compliance with RFC 8996.',
+    '14': 'Align Client Hello ALPN/JA4 parameters with modern mail client baselines.',
+    '15a': 'Enforce mandatory STARTTLS (smtpd_tls_security_level = encrypt) to prevent downgrade.',
+    '15c': 'Disable 3DES / DES-CBC3 ciphers to mitigate SWEET32 64-bit birthday attacks.',
+    '16a': 'Publish MTA-STS policy at _mta-sts.yourdomain.com in enforce mode.',
+    '17': 'Configure DANE TLSA DNS records secured with DNSSEC per RFC 7672.',
+    '18': 'Ensure certificate revocation list (CRL) distribution points are reachable.',
+    '19': 'Enforce authenticated encryption (AEAD) ciphers per Mozilla Intermediate guidelines.',
+  }
+  return map[checkId] || 'Apply modern TLS/SSL security hardening per Mozilla SSL Configuration guidelines.'
+}
+
+export function PolicyRecommendationsView({ flow }) {
+  if (!flow) return null
+  const findings = flow.assessment?.findings || []
+  const policy = flow.policy || {}
+  const posture = typeof flow.assessment?.posture_score === 'number' ? flow.assessment.posture_score : (100 - (flow.assessment?.risk_score ?? 10))
+  const riskLevel = flow.assessment?.risk_level || 'Low'
+
+  const recs = useMemo(() => {
+    const list = []
+    findings.forEach(f => {
+      list.push({
+        id: f.check || f.label || 'VULN',
+        title: f.spec || f.evidence || 'Security Hardening Needed',
+        severity: f.severity || 'High',
+        evidence: f.evidence || f.spec || '',
+        remediation: f.remediation || getRemediationForCheck(f.check, flow),
+      })
+    })
+
+    if (flow.tls?.is_deprecated && !list.some(r => r.id === '01' || r.id === '13' || r.title.includes('deprecated'))) {
+      list.push({
+        id: '01/13',
+        title: `Deprecated TLS Protocol (${flow.tls.version})`,
+        severity: 'Critical',
+        evidence: `Protocol negotiated is ${flow.tls.version}, which is deprecated per RFC 8996.`,
+        remediation: 'Disable TLS 1.0 and TLS 1.1 across all MTAs. Enforce TLS 1.2+ (recommend TLS 1.3). In Postfix: smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1',
+      })
+    }
+    if (flow.starttls_mode === 'stripped' && !list.some(r => r.id === '15a' || r.title.includes('stripped') || r.title.includes('downgrade'))) {
+      list.push({
+        id: '15a',
+        title: 'STARTTLS Stripping Downgrade Detected',
+        severity: 'Critical',
+        evidence: 'Server offered STARTTLS but session proceeded unencrypted in cleartext.',
+        remediation: 'Enforce mandatory STARTTLS (smtpd_tls_security_level = encrypt) and configure MTA-STS (RFC 8461) in enforce mode with TLS reporting (TLSRPT RFC 8460).',
+      })
+    }
+    if ((flow.tls?.cipher_strength === 'weak' || (flow.tls?.cipher_suite && (flow.tls.cipher_suite.includes('RC4') || flow.tls.cipher_suite.includes('3DES') || flow.tls.cipher_suite.includes('DES-CBC')))) && !list.some(r => r.id === '02' || r.id === '15c' || r.title.includes('cipher') || r.title.includes('3DES'))) {
+      list.push({
+        id: '02/15c',
+        title: `Weak / Vulnerable Cipher Suite (${flow.tls?.cipher_suite})`,
+        severity: flow.tls?.cipher_suite?.includes('3DES') ? 'High' : 'Critical',
+        evidence: `Cipher suite ${flow.tls?.cipher_suite} is susceptible to cryptanalytic attacks (e.g. SWEET32 CVE-2016-2183 or RC4 biases).`,
+        remediation: 'Deprecate 64-bit block ciphers, RC4, and CBC-mode suites. Prioritize modern AEAD ciphers: TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384, ECDHE-RSA-AES128-GCM-SHA256.',
+      })
+    }
+    if (flow.cert?.is_self_signed && !list.some(r => r.id === '05' || r.title.includes('Self-signed'))) {
+      list.push({
+        id: '05',
+        title: 'Self-Signed Certificate in Use',
+        severity: 'Critical',
+        evidence: 'Certificate chain consists of a self-signed leaf without a trusted root anchor.',
+        remediation: 'Deploy a certificate signed by a public WebPKI Certificate Authority (e.g. Let\'s Encrypt / ACME automation) with valid SAN domain entries.',
+      })
+    }
+    if (flow.cert?.is_expired && !list.some(r => r.id === '04' || r.title.includes('expired'))) {
+      list.push({
+        id: '04',
+        title: 'Expired TLS Certificate',
+        severity: 'Critical',
+        evidence: `Certificate expired (${flow.cert?.days_to_expiry} days past validity window).`,
+        remediation: 'Renew and deploy TLS certificate immediately. Implement automated ACME renewal with alerts for certs expiring within 30 days.',
+      })
+    }
+    if (flow.cert?.pubkey_bits && flow.cert.pubkey_bits < 2048 && !list.some(r => r.id === '08' || r.id === '10')) {
+      list.push({
+        id: '08/10',
+        title: `Weak RSA Public Key Size (${flow.cert.pubkey_bits} bits)`,
+        severity: 'High',
+        evidence: `RSA key size of ${flow.cert.pubkey_bits} bits falls below the NIST SP 800-57 2048-bit requirement.`,
+        remediation: 'Re-issue certificate with at least RSA 2048-bit key or ECDSA P-256 / P-384 key pair.',
+      })
+    }
+    if (flow.cert?.chain_valid === false && !flow.cert?.is_self_signed && !list.some(r => r.id === '06' || r.title.includes('chain'))) {
+      list.push({
+        id: '06',
+        title: 'Incomplete Certificate Chain',
+        severity: 'High',
+        evidence: 'Intermediate CA certificates are missing from the server handshake.',
+        remediation: 'Bundle the intermediate CA certificates with the leaf cert (e.g. fullchain.pem) so connecting clients can construct the trust path.',
+      })
+    }
+    if (flow.tls?.fs_flag === false && !list.some(r => r.id === '03' || r.title.includes('Forward Secrecy'))) {
+      list.push({
+        id: '03',
+        title: 'Static RSA Key Exchange (No Forward Secrecy)',
+        severity: 'High',
+        evidence: `Key exchange is ${flow.tls?.kex || 'RSA'} without ephemeral Diffie-Hellman keys.`,
+        remediation: 'Enable ephemeral ECDHE or DHE key exchange to ensure forward secrecy per RFC 7525 §6.3.',
+      })
+    }
+    return list
+  }, [flow, findings])
+
+  const action = policy.action || (riskLevel === 'Critical' ? 'block' : riskLevel === 'High' ? 'quarantine' : riskLevel === 'Medium' ? 'flag' : 'allow')
+  const actionColor = action === 'allow' ? TOK.primary : action === 'flag' ? TOK.warning : action === 'quarantine' ? TOK.high : TOK.danger
+  const actionBg = action === 'allow' ? TOK.primaryLight : action === 'flag' ? TOK.warningLight : action === 'quarantine' ? '#FDEEE3' : TOK.dangerLight
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, color: TOK.ink }}>
+      {/* Policy Disposition Decision Card */}
+      <div style={{
+        background: actionBg,
+        border: `1.5px solid ${actionColor}40`,
+        borderRadius: 12,
+        padding: '16px 20px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              background: actionColor,
+              color: '#FFFFFF',
+              padding: '3px 10px',
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}>
+              Policy Action: {action}
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: TOK.ink }}>
+              Risk Level: {riskLevel} ({flow.assessment?.risk_score ?? 0}/100)
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: TOK.ink, marginTop: 8, lineHeight: 1.4 }}>
+            <b>Disposition:</b> {policy.disposition_reason || `${riskLevel} risk assessment for ${flow.flow_id}`}
+          </div>
+          {policy.banner_text && (
+            <div style={{ fontSize: 11, fontFamily: TOK.fontMono, color: actionColor, marginTop: 6, background: 'rgba(255,255,255,0.7)', padding: '4px 8px', borderRadius: 6, border: `1px solid ${actionColor}30` }}>
+              {policy.banner_text}
+            </div>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 800, color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger }}>
+            {posture}<span style={{ fontSize: 13, fontWeight: 500, color: TOK.inkMuted }}>/100</span>
+          </div>
+          <div style={{ fontSize: 11, color: TOK.inkMuted }}>posture score</div>
+        </div>
+      </div>
+
+      {/* Recommendations List */}
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: TOK.ink, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>Security Hardening &amp; Remediation Plan</span>
+          <span style={{ fontSize: 11, color: TOK.inkMuted, fontWeight: 500 }}>{recs.length} actionable item{recs.length === 1 ? '' : 's'}</span>
+        </div>
+
+        {recs.length === 0 ? (
+          <div style={{
+            background: TOK.primaryLight,
+            border: `1px solid ${TOK.primary}30`,
+            borderRadius: 10,
+            padding: '20px',
+            textAlign: 'center',
+          }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: TOK.primary, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+              <CheckCircle2 size={20} />
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: TOK.primary }}>Optimal Encryption Posture</div>
+            <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 4, maxWidth: 420, margin: '4px auto 0' }}>
+              All 23 cryptographic &amp; transport protocol checks passed. TLS 1.2/1.3 with forward secrecy, strong AEAD cipher suites, and valid certificates are active. No remediation required.
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {recs.map((r, i) => {
+              const bg = sevColor(r.severity)
+              const icon = sevIcon(r.severity)
+              return (
+                <div
+                  key={i}
+                  style={{
+                    background: TOK.canvas,
+                    border: `1px solid ${TOK.border}`,
+                    borderRadius: 10,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 22, height: 22, borderRadius: 6, background: bg, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                        {icon}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: TOK.ink }}>{r.title}</span>
+                    </div>
+                    <span style={{ background: bg, color: '#fff', padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                      {r.severity}
+                    </span>
+                  </div>
+
+                  {r.evidence && (
+                    <div style={{ fontSize: 12, color: TOK.inkMuted, background: TOK.surface, padding: '6px 10px', borderRadius: 6, border: `1px solid ${TOK.border}` }}>
+                      <b style={{ color: TOK.ink }}>Evidence:</b> {r.evidence}
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: 12, color: TOK.ink, lineHeight: 1.45, paddingLeft: 2 }}>
+                    <b style={{ color: TOK.primary }}>Remediation:</b> {r.remediation}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function DrillDown({ flow, onDeselect }) {
   const [tab, setTab] = useState('Handshake')
   if (!flow) {
     return (
@@ -839,11 +1108,11 @@ export function DrillDown({ flow }) {
     )
   }
   const isOpaque = !!flow.cert?.is_tls13_opaque
-  const tabs = ['Handshake', 'Cert', 'AI', 'Coverage', 'History']
+  const tabs = ['Handshake', 'Cert', 'AI', 'Recommendations', 'Coverage', 'History']
 
   return (
     <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, padding: '24px', boxShadow: TOK.shadow }}>
-      {/* Header with badges */}
+      {/* Header with badges & deselect button */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 700, color: TOK.ink }}>
@@ -853,7 +1122,7 @@ export function DrillDown({ flow }) {
             Ground truth vs parsed telemetry • tshark -T json 4-prefs parity validated
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{
             background: TOK.primaryLight,
             color: TOK.primary,
@@ -874,6 +1143,28 @@ export function DrillDown({ flow }) {
           }}>
             tshark -T json 4-prefs
           </span>
+          {onDeselect && (
+            <button
+              onClick={onDeselect}
+              title="Close inspector / Deselect flow"
+              style={{
+                padding: '4px 8px',
+                borderRadius: 8,
+                border: `1px solid ${TOK.border}`,
+                background: TOK.canvas,
+                color: TOK.inkMuted,
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <X size={13} />
+              <span>Unselect</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -989,6 +1280,10 @@ export function DrillDown({ flow }) {
             </div>
           </div>
         </div>
+      )}
+
+      {tab === 'Recommendations' && (
+        <PolicyRecommendationsView flow={flow} />
       )}
 
       {tab === 'Coverage' && <CoverageTable flows={[flow]} />}
@@ -1132,13 +1427,24 @@ export default function App() {
     setSelectedId(newId)
   }
 
+  const handleToggleSelectFlow = useCallback((flowOrId) => {
+    const id = typeof flowOrId === 'string' ? flowOrId : flowOrId?.flow_id
+    if (!id) {
+      setSelectedFlowId(null)
+      return
+    }
+    setSelectedFlowId(prev => (prev === id ? null : id))
+  }, [setSelectedFlowId])
+
   const selectedFlow = flows.find(f => f.flow_id === selectedId) || flows[0] || null
 
   const displayFlows = selectedFlowId ? filteredFlows : flows
   const postureScores = displayFlows.map(f => f.assessment?.posture_score).filter(v => typeof v === 'number')
   const avgPosture = postureScores.length ? Math.round(postureScores.reduce((a, b) => a + b, 0) / postureScores.length) : 85
 
-  const highRiskCount = displayFlows.filter(f => f.assessment?.risk_level === 'High' || f.assessment?.risk_level === 'Critical').length
+  const totalCritical = flows.filter(f => f.assessment?.risk_level === 'Critical').length
+  const totalHigh = flows.filter(f => f.assessment?.risk_level === 'High').length
+  const totalHighRiskThreats = totalCritical + totalHigh
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
@@ -1297,8 +1603,8 @@ export default function App() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: highRiskCount > 0 ? TOK.dangerLight : TOK.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AlertTriangle size={16} color={highRiskCount > 0 ? TOK.danger : TOK.primary} />
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: totalHighRiskThreats > 0 ? TOK.dangerLight : TOK.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={16} color={totalHighRiskThreats > 0 ? TOK.danger : TOK.primary} />
               </div>
               <span style={{ fontSize: 13, fontWeight: 600, color: TOK.inkMuted }}>High-Risk Threats</span>
             </div>
@@ -1307,11 +1613,16 @@ export default function App() {
             </div>
           </div>
           <div>
-            <div className="tabular-nums" style={{ fontSize: 30, fontWeight: 800, color: highRiskCount > 0 ? TOK.danger : TOK.ink, lineHeight: 1 }}>
-              {highRiskCount}
+            <div className="tabular-nums" style={{ fontSize: 30, fontWeight: 800, color: totalHighRiskThreats > 0 ? TOK.danger : TOK.ink, lineHeight: 1 }}>
+              {totalHighRiskThreats}
             </div>
-            <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 6 }}>
-              Critical: {flows.filter(f => f.assessment?.risk_level === 'Critical').length} • High: {flows.filter(f => f.assessment?.risk_level === 'High').length}
+            <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+              <span>Critical: {totalCritical} • High: {totalHigh}</span>
+              {selectedFlowId && (
+                <span style={{ fontSize: 10, background: TOK.primaryLight, color: TOK.primary, padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                  Global Total
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1319,12 +1630,16 @@ export default function App() {
 
       {selectedFlowId && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: TOK.primaryLight, border: `1px solid ${TOK.primary}30`, borderRadius: 10, padding: '10px 14px' }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: TOK.primary }}>Filtered: {selectedFlowId}</span>
-          <span style={{ fontSize: 12, color: TOK.inkMuted }}>Showing {displayFlows.length} flow</span>
-          <button onClick={() => setSelectedFlowId(null)} style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: `1px solid ${TOK.border}`, background: TOK.surface, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Clear filter — Show global</button>
+          <span style={{ fontSize: 13, fontWeight: 700, color: TOK.primary }}>Cross-filtered to flow: {selectedFlowId}</span>
+          <span style={{ fontSize: 12, color: TOK.inkMuted }}>DrillDown &amp; Matrix scope limited to this flow</span>
+          <button onClick={() => setSelectedFlowId(null)} style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: `1px solid ${TOK.primary}`, background: '#FFFFFF', color: TOK.primary, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <X size={13} />
+            <span>Clear filter (Show all {flows.length} flows)</span>
+          </button>
           <span style={{ fontSize: 11, color: TOK.inkFaint, fontFamily: TOK.fontMono }}>URL ?flow={selectedFlowId}</span>
         </div>
       )}
+
       {/* Middle Row: Protocol Analytics, Progress Gauge, Triage Reminders */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
         <AnalyticsCapsuleChart flows={displayFlows} selectedFlowId={selectedFlowId} protocolStats={protocolStats} />
@@ -1342,36 +1657,51 @@ export default function App() {
           minHeight: 280,
         }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Triage Reminders</div>
-            <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2 }}>Priority tasks for analyst review</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Priority Triage (Highest Risk First)</div>
+            <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2 }}>Ranked by vulnerability severity for immediate analyst review</div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '14px 0' }}>
-            {flowsSorted.map((f) => (
-              <div
-                key={f.flow_id}
-                onClick={() => setSelectedId(f.flow_id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '8px 12px',
-                  borderRadius: 10,
-                  background: selectedId === f.flow_id ? TOK.primaryLight : TOK.canvas,
-                  cursor: 'pointer',
-                  border: `1px solid ${selectedId === f.flow_id ? TOK.primary : TOK.border}`,
-                }}
-              >
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: sevColor(f.assessment?.risk_level) }} />
-                <span className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12, fontWeight: 700, color: TOK.ink, flex: 1 }}>
-                  {f.flow_id}
-                </span>
-                <span style={{ fontSize: 11, color: TOK.inkMuted }}>
-                  {f.starttls_mode}
-                </span>
-                <ChevronRight size={14} color={TOK.inkFaint} />
-              </div>
-            ))}
+            {flowsSorted.map((f) => {
+              const isSel = selectedId === f.flow_id
+              return (
+                <div
+                  key={f.flow_id}
+                  onClick={() => handleToggleSelectFlow(f.flow_id)}
+                  title={isSel ? "Click to unselect" : "Click to inspect flow"}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    background: isSel ? TOK.primaryLight : TOK.canvas,
+                    cursor: 'pointer',
+                    border: `1px solid ${isSel ? TOK.primary : TOK.border}`,
+                    transition: 'all 120ms ease',
+                  }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: sevColor(f.assessment?.risk_level) }} />
+                  <span className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12, fontWeight: 700, color: TOK.ink, flex: 1 }}>
+                    {f.flow_id}
+                  </span>
+                  <span style={{ fontSize: 11, color: TOK.inkMuted }}>
+                    {f.starttls_mode}
+                  </span>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    background: sevColor(f.assessment?.risk_level),
+                    color: '#fff',
+                  }}>
+                    {f.assessment?.risk_level || 'Low'}
+                  </span>
+                  <ChevronRight size={14} color={TOK.inkFaint} />
+                </div>
+              )
+            })}
           </div>
 
           <button
@@ -1403,16 +1733,13 @@ export default function App() {
         <MasterList
           flows={flows}
           selectedId={selectedFlowId}
-          onSelect={(flowOrId) => {
-            const id = typeof flowOrId === 'string' ? flowOrId : flowOrId?.flow_id
-            if (id) setSelectedFlowId(id)
-          }}
+          onSelect={handleToggleSelectFlow}
           onInjectRandomPacket={handleInjectRandomPacket}
         />
-        <DrillDown flow={selectedFlow} />
+        <DrillDown flow={selectedFlow} onDeselect={() => setSelectedFlowId(null)} />
       </div>
 
-      <ThreatMatrix flows={displayFlows} onSelect={(id) => setSelectedFlowId(id)} selectedId={selectedFlowId} selectedFlowId={selectedFlowId} />
+      <ThreatMatrix flows={displayFlows} onSelect={handleToggleSelectFlow} selectedId={selectedFlowId} selectedFlowId={selectedFlowId} />
       <Graphs flows={displayFlows} selectedFlowId={selectedFlowId} metrics={metrics} protocolStats={protocolStats} />
       <CoverageTable flows={displayFlows} selectedFlowId={selectedFlowId} />
     </div>
