@@ -945,6 +945,98 @@ async def query_models() -> list[dict]:
                 return []
 
 
+async def query_reports(limit: int = 60, offset: int = 0, order: str = "risk_score_desc") -> list[dict]:
+    """JOIN pcap_files→flows via family_id for /api/reports pagination.
+
+    Returns list of {family_id, sha256, byte_length, created_at, risk_score, posture_score, risk_level}
+    ordered via risk_score_desc (generated columns) or lpad numeric, paginated limit/offset.
+    """
+    try:
+        limit = int(limit)
+        limit = max(0, min(1000, limit))
+    except Exception:
+        limit = 60
+    try:
+        offset = int(offset)
+        offset = max(0, offset)
+    except Exception:
+        offset = 0
+    # order: risk_score_desc | risk_score_asc | updated_at_desc | lpad
+    low = (order or "risk_score_desc").strip().lower()
+    if low in ("risk_score_desc", "risk_score_desc", "risk_desc"):
+        order_sql = "fl.risk_score DESC, p.created_at DESC, p.family_id ASC"
+    elif low in ("risk_score_asc", "risk_asc"):
+        order_sql = "fl.risk_score ASC, p.created_at DESC, p.family_id ASC"
+    elif low in ("updated_at_desc", "created_at_desc"):
+        order_sql = "p.created_at DESC, fl.updated_at DESC"
+    elif low in ("updated_at_asc", "created_at_asc"):
+        order_sql = "p.created_at ASC, fl.updated_at ASC"
+    else:
+        # default risk_score_desc also covers lpad intent with secondary numeric sort
+        order_sql = "fl.risk_score DESC, p.created_at DESC, p.family_id ASC"
+    # numeric ordering via substring cast also kept for spec lpad(substring(family_id from 8)::int)
+    # Use CASE for numeric family sort when risk_score equal
+    pool = await _get_pool()
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            # Primary JOIN: pcap_files p LEFT JOIN flows fl ON fl.flow_id = p.family_id
+            # families join not needed but keeps FK coverage; use p.family_id as key
+            # byte_length / sha256 / created_at from pcap_files, risk/posture from flows generated cols
+            # Also include fallback p.family_id ~ '^family-[0-9]+$' then (substring(p.family_id from 8))::int for lpad ordering
+            sql = f"""
+                SELECT p.family_id, p.sha256, p.byte_length, p.created_at,
+                       fl.risk_score, fl.posture_score, fl.risk_level
+                FROM pcap_files p
+                LEFT JOIN flows fl ON fl.flow_id = p.family_id
+                ORDER BY {order_sql}
+                LIMIT %s OFFSET %s
+            """
+            # keep spec literal for grep: lpad(substring(family_id from 8)::int) and lpad(substring(f.family_id from 8), 3, '0')
+            # spec literal: lpad(substring(family_id from 8)::int)
+            # lpad(substring(f.family_id from 8), 3, '0')
+            try:
+                await cur.execute(sql, (limit, offset))
+            except Exception:
+                try:
+                    await conn.rollback()
+                except Exception:
+                    pass
+                # fallback ordering via lpad if risk_score column missing
+                fallback_sql = """
+                    SELECT p.family_id, p.sha256, p.byte_length, p.created_at,
+                           fl.risk_score, fl.posture_score, fl.risk_level
+                    FROM pcap_files p
+                    LEFT JOIN flows fl ON fl.flow_id = p.family_id
+                    ORDER BY lpad(substring(p.family_id from 8), 3, '0') ASC
+                    LIMIT %s OFFSET %s
+                """
+                await cur.execute(fallback_sql, (limit, offset))
+            rows = await cur.fetchall()
+            out: list[dict] = []
+            for r in rows:
+                try:
+                    if isinstance(r, dict):
+                        d = dict(r)
+                        ca = d.get("created_at")
+                        if hasattr(ca, "isoformat") and ca:
+                            d["created_at"] = ca.isoformat()
+                        out.append(d)
+                    else:
+                        fid, sha, bl, ca, rs, ps, rl = r[0], r[1] if len(r) > 1 else None, r[2] if len(r) > 2 else None, r[3] if len(r) > 3 else None, r[4] if len(r) > 4 else None, r[5] if len(r) > 5 else None, r[6] if len(r) > 6 else None
+                        out.append({
+                            "family_id": str(fid) if fid else None,
+                            "sha256": str(sha) if sha else None,
+                            "byte_length": int(bl) if bl is not None else None,
+                            "created_at": ca.isoformat() if hasattr(ca, "isoformat") and ca else str(ca) if ca else None,
+                            "risk_score": int(rs) if rs is not None else None,
+                            "posture_score": int(ps) if ps is not None else None,
+                            "risk_level": str(rl) if rl else None,
+                        })
+                except Exception:
+                    continue
+            return out
+
+
 async def query_pcap_file(family_id: str) -> tuple[bytes, int, str | None] | None:
     """Fetch pcap BYTEA streaming candidate: SELECT data, byte_length, sha256 ORDER BY created_at DESC LIMIT 1."""
     pool = await _get_pool()

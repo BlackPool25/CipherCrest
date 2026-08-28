@@ -8,7 +8,7 @@ if not hasattr(np, "NAN"): np.NAN = np.nan  # type: ignore
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from api.db_pg import query_all, query_history, query_all_history, upsert_flows, query_families, query_flows_filtered, query_metrics_filtered, query_protocol_stats, query_models, query_pcap_file
+from api.db_pg import query_all, query_history, query_all_history, upsert_flows, query_families, query_flows_filtered, query_metrics_filtered, query_protocol_stats, query_models, query_pcap_file, query_reports
 from api.helpers import attach_policy as _attach_policy, compute_summary as _compute_summary, is_malformed as _is_malformed
 import api.ml_enrich as _ml
 from api.ml_enrich import enrich_flows as _ml_enrich
@@ -554,6 +554,20 @@ async def download_pcap(family_id: str, request: Request) -> Any:
             for i in range(0, bl, chunk_size):
                 yield data[i: i + chunk_size]
     return StreamingResponse(_iter(), status_code=200, headers=headers, media_type="application/vnd.tcpdump.pcap")
+
+@app.get("/reports")
+@app.get("/api/reports")
+async def get_reports(
+    limit: int = Query(default=60, ge=0, le=1000),
+    offset: int = Query(default=0, ge=0),
+    order: str = Query(default="risk_score_desc"),
+) -> Any:
+    try:
+        rows = await query_reports(limit=limit, offset=offset, order=order)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return rows
+
 
 @app.get("/flows/history")
 @app.get("/api/flows/history")
