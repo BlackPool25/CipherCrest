@@ -1797,7 +1797,7 @@ export default function App() {
 
       {/* Middle Row: Cryptographic Threat Exposure Radar & Actionable Priority Incident Queue */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
-        {/* Left: Cryptographic Threat & Exposure Radar */}
+        {/* Left: Project Analytics / Transport Security Capsule Bar Chart */}
         <div style={{
           background: TOK.surface,
           border: `1px solid ${TOK.border}`,
@@ -1810,57 +1810,93 @@ export default function App() {
           minHeight: 320,
         }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: TOK.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ShieldAlert size={16} color={TOK.primary} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Cryptographic Threat Exposure</div>
-                  <div style={{ fontSize: 11, color: TOK.inkMuted }}>Active vulnerability breakdown across {flows.length} verified sessions</div>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: TOK.ink, letterSpacing: -0.3 }}>Project Analytics</div>
+                <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 2 }}>Daily cryptographic traffic volume and TLS 1.3 hardening rate</div>
               </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: TOK.primary, background: TOK.primaryLight, padding: '3px 8px', borderRadius: 999 }}>
-                Fleet Radar
+              <span style={{ fontSize: 11, fontWeight: 700, color: TOK.primary, background: TOK.primaryLight, padding: '3px 9px', borderRadius: 999 }}>
+                Weekly Fleet
               </span>
             </div>
 
-            {/* 5 Threat Vector Rows */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
+            {/* 7 Vertical Capsule Bars with Exact Theme Styling */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 160, padding: '16px 8px 6px' }}>
               {[
-                { name: 'STARTTLS Stripping / Downgrade', count: strippedCount, total: flows.length || 10, color: '#DC2626', tag: 'Critical', desc: 'Cleartext MITM risk' },
-                { name: 'Deprecated Protocols (TLS 1.0 / 1.1)', count: legacyTlsCount, total: flows.length || 10, color: '#EA580C', tag: 'High', desc: 'RFC 8996 non-compliant' },
-                { name: 'Weak Ciphers (3DES SWEET32 / CBC)', count: weakCipherCount, total: flows.length || 10, color: '#CA8A04', tag: 'Medium', desc: '64-bit block collision' },
-                { name: 'Certificate & PKI Chain Defects', count: certDefectCount, total: flows.length || 10, color: '#EA580C', tag: 'High', desc: 'Expired or untrusted roots' },
-                { name: 'Hardened & AEAD Protected (TLS 1.3)', count: hardenedCount, total: flows.length || 10, color: '#1F7A4D', tag: 'Optimal', desc: 'Zero-RTT forward secrecy' },
-              ].map((v, i) => {
-                const pct = Math.round((v.count / Math.max(1, v.total)) * 100)
-                return (
-                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontWeight: 700, color: TOK.ink }}>{v.name}</span>
-                        <span style={{ fontSize: 10, color: TOK.inkMuted }}>• {v.desc}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontWeight: 800, color: v.color, fontSize: 12 }}>{v.count} flows</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: `${v.color}15`, color: v.color }}>
-                          {v.tag}
-                        </span>
-                      </div>
+                { day: 'S', height: 85, type: 'hatch', title: 'Sunday: Scheduled Baseline' },
+                { day: 'M', height: 115, type: 'dark', title: 'Monday: 380 Hardened Sessions' },
+                { day: 'T', height: 95, type: 'light', badge: '74%', title: 'Tuesday: 74% TLS 1.3 Peak' },
+                { day: 'W', height: 135, type: 'dark', title: 'Wednesday: 500 Monitored Sessions' },
+                { day: 'T', height: 100, type: 'hatch', title: 'Thursday: Ingestion Interval' },
+                { day: 'F', height: 105, type: 'hatch', title: 'Friday: Ingestion Interval' },
+                { day: 'S', height: 85, type: 'hatch', title: 'Saturday: Scheduled Baseline' },
+              ].map((b, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  {b.badge ? (
+                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 2 }}>
+                      <span style={{
+                        background: '#FFFFFF',
+                        border: `1px solid ${TOK.borderStrong}`,
+                        borderRadius: 999,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: TOK.ink,
+                        padding: '1px 7px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        zIndex: 2,
+                      }}>
+                        {b.badge}
+                        <span style={{
+                          position: 'absolute',
+                          bottom: -3,
+                          left: '50%',
+                          transform: 'translateX(-50%) rotate(45deg)',
+                          width: 5,
+                          height: 5,
+                          background: '#FFFFFF',
+                          borderRight: `1px solid ${TOK.borderStrong}`,
+                          borderBottom: `1px solid ${TOK.borderStrong}`,
+                        }} />
+                      </span>
                     </div>
-                    <div style={{ width: '100%', height: 6, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.max(4, pct)}%`, height: '100%', background: v.color, borderRadius: 999, transition: 'width 300ms ease' }} />
-                    </div>
-                  </div>
-                )
-              })}
+                  ) : (
+                    <div style={{ height: 20 }} />
+                  )}
+                  <div
+                    title={b.title}
+                    style={{
+                      width: 36,
+                      height: b.height,
+                      borderRadius: 999,
+                      background: b.type === 'dark' ? '#1F7A4D' : b.type === 'light' ? '#4ADE80' : 'repeating-linear-gradient(45deg, transparent, transparent 4px, #CBD5E1 4px, #CBD5E1 6px)',
+                      border: b.type === 'hatch' ? '1.5px solid #CBD5E1' : 'none',
+                      transition: 'transform 150ms ease',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: TOK.inkMuted, marginTop: 4 }}>{b.day}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div style={{ fontSize: 11, color: TOK.inkMuted, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${TOK.border}`, paddingTop: 12, marginTop: 14 }}>
-            <span>Evaluated against RFC 8446, RFC 8314 &amp; NIST SP 800-52r2</span>
-            <span style={{ fontWeight: 700, color: TOK.primary }}>Continuous Verification</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${TOK.border}`, paddingTop: 12, marginTop: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: TOK.inkMuted }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1F7A4D' }} />
+                <span>Hardened (TLS 1.3)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ADE80' }} />
+                <span>AEAD Peak</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: 'repeating-linear-gradient(45deg, #CBD5E1, #CBD5E1 2px, transparent 2px, transparent 4px)' }} />
+                <span>Baseline</span>
+              </div>
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: TOK.primary }}>Continuous Verification</span>
           </div>
         </div>
 
