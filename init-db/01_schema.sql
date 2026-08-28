@@ -48,14 +48,19 @@ CREATE TABLE IF NOT EXISTS flows (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- flows_history: versioned history, PK (flow_id,version), FOR UPDATE pattern
+-- flows_history: versioned history, PK (flow_id,version), FOR UPDATE pattern + source differentiation (task8)
 CREATE TABLE IF NOT EXISTS flows_history (
     flow_id TEXT REFERENCES flows(flow_id) ON DELETE CASCADE,
     version INT NOT NULL,
     data JSONB,
+    source TEXT DEFAULT 'synthetic' CHECK (source IN ('synthetic','live','lab','model')),
     created_at TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (flow_id, version)
 );
+-- idempotent migration for existing DBs (task8): add source column if missing from pre-task8 installs
+ALTER TABLE flows_history ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'synthetic' CHECK (source IN ('synthetic','live','lab','model'));
+CREATE INDEX IF NOT EXISTS idx_flows_history_source ON flows_history(source);
+CREATE INDEX IF NOT EXISTS flows_history_source ON flows_history(source);
 
 -- live_captures: live WS captures
 CREATE TABLE IF NOT EXISTS live_captures (
@@ -178,6 +183,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_pcap_family_conc ON pcap_files(famil
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_flows_risk_score_conc ON flows(risk_score DESC, updated_at DESC);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_flows_posture_conc ON flows(posture_score);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_history_flow_version_conc ON flows_history(flow_id, version);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_flows_history_source_conc ON flows_history(source);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_live_created_conc ON live_captures(created_at DESC);
 
 -- Materialized views
