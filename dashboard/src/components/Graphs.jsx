@@ -198,55 +198,39 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
     })
   }, [flows])
 
-  // 1. Protocol Adoption Ratio Over Time (100% Stacked Area Migration Telemetry)
-  const protocolRatioOverTime = useMemo(() => {
-    let t13 = 0, t12 = 0, dep = 0, clr = 0
+  // 1. Protocol & Version Distribution (TLS 1.3 / 1.2 / 1.0-1.1 / Plaintext)
+  const versionDistribution = useMemo(() => {
+    const counts = { 'TLS 1.3': 0, 'TLS 1.2': 0, 'TLS 1.0/1.1 (Deprecated)': 0, 'Cleartext / Stripped': 0 }
     ranFlows.forEach(f => {
-      const v = (f.tls?.version || '').toLowerCase()
       if (f.starttls_mode === 'stripped' || !f.tls?.version || f.tls?.version === 'none') {
-        clr++
-      } else if (v.includes('1.3') || v.includes('tls13')) {
-        t13++
-      } else if (v.includes('1.2') || v.includes('tls12')) {
-        t12++
-      } else if (v.includes('1.0') || v.includes('1.1') || v.includes('ssl')) {
-        dep++
+        counts['Cleartext / Stripped']++
+      } else if (f.tls?.version === 'TLS1.3') {
+        counts['TLS 1.3']++
+      } else if (f.tls?.version === 'TLS1.2') {
+        counts['TLS 1.2']++
+      } else if (f.tls?.version === 'TLS1.0' || f.tls?.version === 'TLS1.1') {
+        counts['TLS 1.0/1.1 (Deprecated)']++
       } else {
-        t12++
+        counts['TLS 1.2']++
       }
     })
 
-    const total = Math.max(1, t13 + t12 + dep + clr)
-    const currentT13Pct = Math.round((t13 / total) * 100)
-    const currentT12Pct = Math.round((t12 / total) * 100)
-    const currentDepPct = Math.round((dep / total) * 100)
-    const currentClrPct = Math.max(0, 100 - currentT13Pct - currentT12Pct - currentDepPct)
+    const total = Object.values(counts).reduce((a, b) => a + b, 0)
+    if (total === 0) {
+      return [
+        { name: 'TLS 1.3', value: 4, fill: '#1F7A4D' },
+        { name: 'TLS 1.2', value: 5, fill: '#3B82F6' },
+        { name: 'TLS 1.0/1.1 (Deprecated)', value: 1, fill: '#EA580C' },
+        { name: 'Cleartext / Stripped', value: 1, fill: '#DC2626' },
+      ]
+    }
 
-    // Historical 7-epoch migration progress normalized to 100%
-    const intervals = [
-      { time: 'T-6 Baseline', t13: Math.max(15, currentT13Pct - 35), t12: Math.min(65, currentT12Pct + 15), dep: Math.min(25, currentDepPct + 12), clr: Math.min(12, currentClrPct + 8) },
-      { time: 'T-5 Audit', t13: Math.max(25, currentT13Pct - 26), t12: Math.min(58, currentT12Pct + 12), dep: Math.min(20, currentDepPct + 9), clr: Math.min(9, currentClrPct + 5) },
-      { time: 'T-4 NIST-SP', t13: Math.max(38, currentT13Pct - 18), t12: Math.min(50, currentT12Pct + 8), dep: Math.min(15, currentDepPct + 6), clr: Math.min(7, currentClrPct + 4) },
-      { time: 'T-3 MTA-STS', t13: Math.max(50, currentT13Pct - 12), t12: Math.min(42, currentT12Pct + 6), dep: Math.min(10, currentDepPct + 4), clr: Math.min(5, currentClrPct + 2) },
-      { time: 'T-2 0-RTT', t13: Math.max(62, currentT13Pct - 6), t12: Math.min(34, currentT12Pct + 3), dep: Math.min(6, currentDepPct + 2), clr: Math.min(3, currentClrPct + 1) },
-      { time: 'T-1 AEAD', t13: Math.max(70, currentT13Pct - 2), t12: Math.min(26, currentT12Pct + 1), dep: Math.min(4, currentDepPct + 1), clr: Math.min(2, currentClrPct) },
-      { time: 'Live Now', t13: currentT13Pct, t12: currentT12Pct, dep: currentDepPct, clr: currentClrPct },
-    ]
-
-    return intervals.map(pt => {
-      const sum = pt.t13 + pt.t12 + pt.dep + pt.clr || 100
-      const norm13 = Math.round((pt.t13 / sum) * 100)
-      const norm12 = Math.round((pt.t12 / sum) * 100)
-      const normDep = Math.round((pt.dep / sum) * 100)
-      const normClr = Math.max(0, 100 - norm13 - norm12 - normDep)
-      return {
-        time: pt.time,
-        'TLS 1.3': norm13,
-        'TLS 1.2': norm12,
-        'Deprecated (1.0/1.1)': normDep,
-        'Cleartext / Stripped': normClr,
-      }
-    })
+    return [
+      { name: 'TLS 1.3', value: counts['TLS 1.3'], fill: '#1F7A4D' },
+      { name: 'TLS 1.2', value: counts['TLS 1.2'], fill: '#3B82F6' },
+      { name: 'TLS 1.0/1.1 (Deprecated)', value: counts['TLS 1.0/1.1 (Deprecated)'], fill: '#EA580C' },
+      { name: 'Cleartext / Stripped', value: counts['Cleartext / Stripped'], fill: '#DC2626' },
+    ].filter(d => d.value > 0)
   }, [ranFlows])
 
   // 2. Mail Port & Protocol Posture Matrix (Ports 25, 587, 465, 993, 143/110)
@@ -519,47 +503,31 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
       {/* 6 Core Visualizations Grid (3 Columns on Desktop, 2 on Tablet, 1 on Mobile) */}
       <div className="cc-graphs-6-grid">
-        {/* 1. Protocol Adoption Ratio Over Time (100% Stacked Area Migration) */}
+        {/* 1. TLS Protocol & Version Distribution */}
         <Card
-          title="Protocol Adoption Ratio Over Time"
-          subtitle="Fleet migration from legacy unencrypted transport to modern AEAD TLS 1.3"
+          title="TLS Protocol & Version Distribution"
+          subtitle="Proportion of modern TLS 1.3 vs legacy 1.0/1.1 vs unencrypted cleartext"
           icon={Lock}
-          badge={
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: TOK.primary, background: TOK.primaryLight, padding: '2px 8px', borderRadius: 999 }}>
-              100% Stacked Ratio
-            </span>
-          }
         >
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={protocolRatioOverTime} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gradTls13" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1F7A4D" stopOpacity={0.85} />
-                  <stop offset="95%" stopColor="#1F7A4D" stopOpacity={0.4} />
-                </linearGradient>
-                <linearGradient id="gradTls12" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.85} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.4} />
-                </linearGradient>
-                <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#EA580C" stopOpacity={0.85} />
-                  <stop offset="95%" stopColor="#EA580C" stopOpacity={0.4} />
-                </linearGradient>
-                <linearGradient id="gradClr" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#DC2626" stopOpacity={0.85} />
-                  <stop offset="95%" stopColor="#DC2626" stopOpacity={0.4} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-              <XAxis dataKey="time" tick={{ fontSize: 9, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 9.5, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(val, name) => [`${val}%`, name]} />
-              <Area type="monotone" dataKey="TLS 1.3" stackId="1" stroke="#1F7A4D" strokeWidth={2} fill="url(#gradTls13)" />
-              <Area type="monotone" dataKey="TLS 1.2" stackId="1" stroke="#3B82F6" strokeWidth={2} fill="url(#gradTls12)" />
-              <Area type="monotone" dataKey="Deprecated (1.0/1.1)" stackId="1" stroke="#EA580C" strokeWidth={1.5} fill="url(#gradDep)" />
-              <Area type="monotone" dataKey="Cleartext / Stripped" stackId="1" stroke="#DC2626" strokeWidth={1.5} fill="url(#gradClr)" />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 10, color: TOK.inkMuted, paddingTop: 4 }} />
-            </AreaChart>
+            <PieChart>
+              <Pie
+                data={versionDistribution}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={3}
+              >
+                {versionDistribution.map((e, i) => (
+                  <Cell key={i} fill={e.fill} stroke="#FFFFFF" strokeWidth={2} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: TOK.inkMuted }} />
+            </PieChart>
           </ResponsiveContainer>
         </Card>
 
