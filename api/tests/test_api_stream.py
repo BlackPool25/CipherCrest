@@ -26,22 +26,25 @@ class FakePcap:
         self._idx += 1
         return c
 
-@pytest.mark.asyncio
-async def test_chunk_read_413_direct():
-    chunk_1m = b"\xd4\xc3\xb2\xa1" + b"\x00" * (1024*1024 - 4)
-    chunks = [chunk_1m for _ in range(101)]
-    fake = FakePcap("large.pcap", chunks)
-    with pytest.raises(HTTPException) as exc:
-        await analyze(pcap=fake)
-    assert exc.value.status_code == 413
+def test_chunk_read_413_direct():
+    async def _run():
+        chunk_1m = b"\xd4\xc3\xb2\xa1" + b"\x00" * (1024*1024 - 4)
+        chunks = [chunk_1m for _ in range(101)]
+        fake = FakePcap("large.pcap", chunks)
+        with pytest.raises(HTTPException) as exc:
+            await analyze(pcap=fake)
+        assert exc.value.status_code == 413
+    asyncio.run(_run())
 
-@pytest.mark.asyncio
-async def test_chunk_read_under_limit_ok():
-    chunk_1m = b"\xd4\xc3\xb2\xa1" + b"\x00" * (1024*1024 - 4)
-    fake = FakePcap("small.pcap", [chunk_1m])
-    res = await analyze(pcap=fake)
-    assert isinstance(res, list)
-    assert any(r.get("flow_id") != "error" or "error" in r for r in res)
+
+def test_chunk_read_under_limit_ok():
+    async def _run():
+        chunk_1m = b"\xd4\xc3\xb2\xa1" + b"\x00" * (1024*1024 - 4)
+        fake = FakePcap("small.pcap", [chunk_1m])
+        res = await analyze(pcap=fake)
+        assert isinstance(res, list)
+        assert any(r.get("flow_id") != "error" or "error" in r for r in res)
+    asyncio.run(_run())
 
 def test_chunk_read_413_via_monkeypatch():
     from starlette.datastructures import UploadFile as StarletteUpload

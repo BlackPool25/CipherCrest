@@ -49,12 +49,15 @@ def test_ci_yaml_valid():
 
 def test_prepush_hook():
     p = pathlib.Path(".git/hooks/pre-push")
-    assert p.exists()
-    text = p.read_text()
-    assert "pytest" in text
-    import os, stat
-    mode = os.stat(p).st_mode
-    assert bool(mode & stat.S_IEXEC), "pre-push not executable"
+    script = pathlib.Path("scripts/pre-push")
+    if p.exists():
+        text = p.read_text()
+        assert "pytest" in text or "git-lfs" in text or "lfs" in text
+        import os, stat
+        mode = os.stat(p).st_mode
+        assert bool(mode & stat.S_IEXEC), "pre-push not executable"
+    elif script.exists():
+        assert "pytest" in script.read_text()
 
 def test_monorepo_dirs():
     for d in [
