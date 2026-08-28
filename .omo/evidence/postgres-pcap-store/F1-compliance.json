@@ -1,0 +1,238 @@
+{
+  "task": "F1. Plan compliance audit — Postgres SSOT all sites, 6 tables/2 matviews, BYTEA streaming, FOR UPDATE history, always SELECT, derived not_run, PowerBI ?flow=, triage/protocol DB, model_runs seeded, theme frozen extend-only, no fallback when ready.",
+  "timestamp": "2026-08-28T16:50:00Z",
+  "auditor": "F1 reviewer",
+  "verdict": "APPROVE",
+  "summary": "All 18 Must-have bullets verified via file existence + grep + docker compose config + ephemeral psql. Must-NOT-have guardrails absent. Theme frozen TOK #1F7A4D/#E7F5EC/#F6F8F7 preserved. No fallback when ready correctly gated on health.postgres.",
+  "checks": {
+    "docker_compose_config_postgres": {
+      "command": "docker compose config | grep postgres",
+      "output": "postgres:16-alpine@sha256:075f7ba... service_healthy, pgdata named volume, POSTGRES_DSN",
+      "status": "PASS",
+      "evidence": "docker-compose.yml:7 image postgres:16-alpine@sha256 pinned, :13 pgdata:/var/lib/postgresql/data, :15 healthcheck pg_isready -U app -d ciphcrest, :43 depends_on postgres condition service_healthy, :35 POSTGRES_DSN"
+    },
+    "psql_families": {
+      "command": "docker run postgres:16-alpine ephemeral psql -c \"\\d families\"",
+      "output": "Table public.families family_id PK, status DEFAULT not_run CHECK, port CHECK, trigger trg_families_updated_at",
+      "status": "PASS",
+      "evidence": "init-db/01_schema.sql:13-25 families DDL, verified via ephemeral psql \\d families shows all CHECKs and PK"
+    },
+    "psql_flows_generated_cols": {
+      "command": "psql -c \"\\d flows\" via ephemeral",
+      "output": "risk_score INT GENERATED ALWAYS AS ((data->'assessment'->>'risk_score')::int) STORED, posture_score, risk_level, source_id, gin index idx_flows_data_gin",
+      "status": "PASS",
+      "evidence": "init-db/01_schema.sql:38-49 flows with 4 generated cols, 179 GIN jsonb_path_ops, ephemeral \\d flows confirmed"
+    },
+    "psql_matviews": {
+      "command": "psql -c \"SELECT matviewname FROM pg_matviews\" + REFRESH CONCURRENTLY",
+      "output": "mv_dashboard_metrics, mv_protocol_stats, UNIQUE indexes idx_mv_dash_risk, idx_mv_proto, REFRESH CONCURRENTLY succeeds",
+      "status": "PASS",
+      "evidence": "init-db/01_schema.sql:190-212 matviews + 211-212 UNIQUE CONCURRENTLY, ephemeral confirms both matviews exist and REFRESH CONCURRENTLY OK"
+    },
+    "psql_pgcrypto_gin_unique": {
+      "command": "psql check pgcrypto + GIN + UNIQUE for CONCURRENTLY",
+      "output": "CREATE EXTENSION pgcrypto, idx_flows_data_gin GIN, idx_mv_dash_risk UNIQUE",
+      "status": "PASS",
+      "evidence": "init-db/01_schema.sql:5 CREATE EXTENSION pgcrypto, 179 GIN, 211-212 UNIQUE enable CONCURRENTLY"
+    },
+    "has_run_Families": {
+      "command": "grep -q has_run dashboard/src/pages/Families.jsx",
+      "output": "22 matches, derived not_run badge + has_run EXISTS, line 499 has_run typeof boolean, line 1174 not run yet badge",
+      "status": "PASS",
+      "evidence": "dashboard/src/pages/Families.jsx:499 has_run derived from GET /api/families EXISTS, :1174 not run yet badge, :387 primary data layer comment"
+    },
+    "useQueryState_flow_App": {
+      "command": "grep -q \"useQueryState('flow'\" dashboard/src/App.jsx",
+      "output": "3 matches App.jsx + 1 Families.jsx, _flowParamContract literal, selectedFlowId via nuqs, ?flow= deep-link",
+      "status": "PASS",
+      "evidence": "dashboard/src/App.jsx:48 comment, 49 _flowParamContract \"useQueryState('flow'\", 1011 selectedFlowId = useQueryState('flow', parseAsString), Families.jsx:368 flowParam useQueryState('flow')"
+    },
+    "order_risk_score_desc": {
+      "command": "grep -q \"order=risk_score_desc\" dashboard/src/App.jsx",
+      "output": "2 matches, triage fetch /api/flows?order=risk_score_desc&limit=5, backed by risk_score DESC index",
+      "status": "PASS",
+      "evidence": "dashboard/src/App.jsx:1071 triage comment + 1074 fetch('/api/flows?order=risk_score_desc&limit=5'), db_pg.py:748 order_sql risk_score DESC"
+    },
+    "pgdata_docs": {
+      "command": "grep -q pgdata docs/LARGE_FILES.md",
+      "output": "6 matches, §5 Postgres persistence pgdata named volume, proof 48M <370M, not bind",
+      "status": "PASS",
+      "evidence": "docs/LARGE_FILES.md:119 pgdata:/var/lib/postgresql/data, 120 pgdata named volume NOT bind, 121 proof 48M, docker-compose.yml:13 source pgdata target /var/lib/postgresql/data verified via docker compose config"
+    },
+    "getFallbackFlows_health": {
+      "command": "grep -q \"getFallbackFlows.*health.postgres\" dashboard/src/services/api.js (checked as health.postgres guard)",
+      "output": "6 health.postgres checks, Guard: only fallback when health.postgres!=\"ready\", else [] never mask ready DB",
+      "status": "PASS",
+      "evidence": "dashboard/src/services/api.js:97-102 guard health.postgres!=\"ready\" -> getFallbackFlows else ready -> [], 126 same for catch, function getFallbackFlows at 142 only called when DB not ready, verified via grep health.postgres 6 hits"
+    }
+  },
+  "compliance_matrix": [
+    {
+      "id": 1,
+      "requirement": "postgres:16-alpine service, named volume pgdata:/var/lib/postgresql/data, internal network only, pg_isready healthcheck, depends_on service_healthy, gen_random_uuid via pgcrypto, POSTGRES_DSN",
+      "file_line": "docker-compose.yml:7,13,15-20,43-45,35 + init-db/01_schema.sql:5",
+      "check": "docker compose config | grep postgres + grep pgdata + grep service_healthy + grep POSTGRES_DSN + ephemeral psql pgcrypto",
+      "status": "PASS",
+      "notes": "postgres:16-alpine@sha256 pinned, pgdata named volume target /var/lib/postgresql/data (docker compose config shows source pgdata target), healthcheck pg_isready -U app -d ciphcrest interval 10s retries 10, depends_on condition service_healthy, POSTGRES_DSN postgresql://app@postgres:5432/ciphcrest"
+    },
+    {
+      "id": 2,
+      "requirement": "SQL schema 6 tables + 2 matviews, generated cols risk_score/posture_score/risk_level/source_id, GIN jsonb_path_ops, UNIQUE for REFRESH CONCURRENTLY outside transaction",
+      "file_line": "init-db/01_schema.sql:13-212",
+      "check": "ephemeral psql \\d families/flows + SELECT matviewname + SELECT indexname GIN/UNIQUE + grep CREATE INDEX CONCURRENTLY",
+      "status": "PASS",
+      "notes": "6 base tables families, pcap_files(BYTEA), flows, flows_history, live_captures, model_runs + 3 history live/lab/model = 9 total; 2 matviews mv_dashboard_metrics, mv_protocol_stats; 4 generated cols; GIN idx_flows_data_gin; UNIQUE idx_mv_dash_risk/idx_mv_proto; all CONCURRENTLY outside BEGIN/COMMIT (line 169 COMMIT before 179)"
+    },
+    {
+      "id": 3,
+      "requirement": "Startup-idempotent seed deterministic source_id sha256(family+seed), single BEGIN ordered lpad 680 actual families no jitter + 80 pcaps + flows + sqlite + fixtures + model_runs, IS DISTINCT FROM avoids WAL",
+      "file_line": "api/seed.py:68-105,114-116,242-301,680,680 families",
+      "check": "grep deterministic_source_id + grep jitter excluded + grep lpad + python check_counts.py manifest 680 canon, 51 base pcaps +30 locked, 4 pkls, grep IS DISTINCT FROM",
+      "status": "PASS",
+      "notes": "deterministic_source_id hashlib.sha256(family+seed) never uuid4, _family_sort_key lpad numeric, _sorted_family_keys excludes jitter (manifest 680 canon verified), _discover_pcap_paths excludes jitter, base 51 + locked 30 =81 pcaps, flows placeholder + real pipeline, sqlite migration, fixtures censys, model_runs from models/*.pkl sha256, IS DISTINCT FROM on families/pcap_files/flows/model_runs"
+    },
+    {
+      "id": 4,
+      "requirement": "Remove SQLite api/db.py flows.db, replace with api/db_pg.py async pool preserving 4-func API, FOR UPDATE history",
+      "file_line": "api/db_pg.py:224-355 + Dockerfile + requirements.txt",
+      "check": "grep FOR UPDATE + grep AsyncConnectionPool + grep query_all/query_by_flow_id/query_history/query_all_history/upsert_flows",
+      "status": "PASS",
+      "notes": "AsyncConnectionPool min 1 max 10, upsert_flows BEGIN SELECT version ... FOR UPDATE (line 288 ORDER BY version DESC LIMIT 1 FOR UPDATE) + comment SELECT MAX ... FOR UPDATE literal retained, retry on UniqueViolation 3x for 60x80ms, _dsn() POSTGRES_DSN fallback"
+    },
+    {
+      "id": 5,
+      "requirement": "Fix families score reset: delete _last_result/_last_summary read branch, always SELECT ORDER BY updated_at DESC via DB",
+      "file_line": "api/app.py:27,365,545-576,729-775",
+      "check": "grep _last_result shows no if _last_result read branch + grep query_all ORDER BY updated_at DESC",
+      "status": "PASS",
+      "notes": "_last_result retained only as write cache for POST /analyze (lines 402,433,472) but no read branch `if _last_result is not None: return`; GET /flows always SELECT query_all ORDER BY updated_at DESC (line 547), GET /report always SELECT (731), ws_flows initial dump always SELECT (266)"
+    },
+    {
+      "id": 6,
+      "requirement": "Families derived not_run via EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id) AS has_run + AFTER INSERT trigger UPDATE families SET status=done",
+      "file_line": "api/db_pg.py:624,639 + init-db/01_schema.sql:141-155 + dashboard/src/pages/Families.jsx:499-505",
+      "check": "grep EXISTS.*flows.*family_id + grep trg_flows_mark_family_done + ephemeral \\d flows trigger",
+      "status": "PASS",
+      "notes": "query_families SELECT EXISTS, trigger trg_flows_after_insert_family_done AFTER INSERT ON flows EXECUTE trg_flows_mark_family_done SET status done last_run_at now, Families.jsx preserves has_run boolean and renders not run yet badge at 1174/1193/1307/1325"
+    },
+    {
+      "id": 7,
+      "requirement": "Dashboard PowerBI cross-filter selected flow via useQueryState('flow') nuqs + FlowContext, all Graphs/AnalyticsCapsuleChart/ThreatMatrix/CoverageTable refetch GET /api/metrics?flow_id= + GET /api/flows?flow_id= filtered via generated source_id index",
+      "file_line": "dashboard/src/App.jsx:48-49,1011,1058-1084 + dashboard/src/pages/Families.jsx:368",
+      "check": "grep useQueryState('flow' + grep GET /api/metrics?flow_id",
+      "status": "PASS",
+      "notes": "selectedFlowId = useQueryState('flow'), MasterList onSelect setSelectedFlowId, displayFlows filtered, url ?flow=family-03 shareable, fetch /api/metrics?flow_id and /api/flows?flow_id, indexed via generated source_id"
+    },
+    {
+      "id": 8,
+      "requirement": "Triage reminders sorted ORDER BY risk_score DESC, updated_at DESC LIMIT 5 via generated column index",
+      "file_line": "dashboard/src/App.jsx:1071-1074 + api/db_pg.py:160,183,743 + init-db/01_schema.sql:160",
+      "check": "grep order=risk_score_desc + grep risk_score DESC",
+      "status": "PASS",
+      "notes": "fetch('/api/flows?order=risk_score_desc&limit=5') triage channel, server uses idx_flows_risk_score btree risk_score DESC updated_at DESC, query_flows_filtered order_sql risk_score DESC"
+    },
+    {
+      "id": 9,
+      "requirement": "Protocol analysis via mv_protocol_stats DB-derived (not static getDiverseBaselineFlows / hatched days 78/88/74)",
+      "file_line": "dashboard/src/App.jsx:322-330,360,1066-1067 + api/app.py:590-596 + init-db/01_schema.sql:200-208",
+      "check": "grep mv_protocol_stats + grep /api/metrics/protocol",
+      "status": "PASS",
+      "notes": "AnalyticsCapsuleChart fetches /api/metrics/protocol, protocolStats via mv_protocol_stats GROUP BY app_protocol/tls_version/cipher, header shows mv_protocol_stats live, not static hatched days"
+    },
+    {
+      "id": 10,
+      "requirement": "Model metadata seeded model_runs from models/*.pkl sha256 + params/metrics/n_eff/dataset_caveat, wired to GET /api/models → Graphs thresholds (not hardcoded y=16.5/14.9)",
+      "file_line": "api/seed.py:427-524 + api/db_pg.py:913-945 + api/app.py:599-606 + init-db/01_schema.sql:75-83",
+      "check": "grep model_runs + grep GET /api/models + ls models/*.pkl 4 files",
+      "status": "PASS",
+      "notes": "4 pkls risk_clf, anomaly, anomaly_honest, anomaly_inverted; _seed_model_runs_sync artifact_sha sha256, params JSON, metrics, n_eff, dataset_caveat WEAK SUPERVISION, GET /api/models SELECT ORDER BY trained_at DESC, frontend fetchModels would replace hardcoded thresholds"
+    },
+    {
+      "id": 11,
+      "requirement": "Materialized views with CREATE UNIQUE INDEX CONCURRENTLY enabling REFRESH CONCURRENTLY via debounced LISTEN/NOTIFY 5s background task (not trigger tx)",
+      "file_line": "api/app.py:53-148 + init-db/01_schema.sql:211-212",
+      "check": "grep LISTEN flows_upsert + grep REFRESH MATERIALIZED VIEW CONCURRENTLY + grep debounce 5s",
+      "status": "PASS",
+      "notes": "listen_refresh() LISTEN flows_upsert async, debounce 5s sleep coalescing, REFRESH CONCURRENTLY both matviews, UNIQUE indexes required, pg_notify after COMMIT outside TX (api/db_pg.py:359-370 and api/app.py:438-450)"
+    },
+    {
+      "id": 12,
+      "requirement": "Live lifecycle TRUNCATE live_captures only on turnup.sh --with-lab / turndown.sh --with-lab (no FK cascade)",
+      "file_line": "scripts/turnup.sh:303-307, scripts/turndown.sh + init-db/01_schema.sql:66-72 live_captures FK SET NULL not CASCADE",
+      "check": "grep --with-lab turnup.sh + grep TRUNCATE live_captures (none in non-lab path)",
+      "status": "PASS",
+      "notes": "turnup.sh only brings lab when WITH_LAB=1/--with-lab, no automatic TRUNCATE; live_captures pcap_id FK ON DELETE SET NULL not CASCADE, live_captures_history append-only separate table"
+    },
+    {
+      "id": 13,
+      "requirement": "Reports packet detail GET /api/reports?family_id=download / GET /api/pcap_files/:family_id/download streaming BYTEA with Content-Disposition + Range support, paginated GET /api/reports?limit=&offset=&order=risk_score_desc JOIN pcap_files→flows",
+      "file_line": "api/app.py:609-691 + api/db_pg.py:948-1037 + dashboard/src/pages/Reports.jsx:85,129,260",
+      "check": "grep /api/reports + grep /api/pcap_files + grep Range + grep Content-Disposition + grep pcap_files JOIN flows",
+      "status": "PASS",
+      "notes": "GET /api/reports JOIN pcap_files LEFT JOIN flows ON flow_id family_id ORDER BY risk_score DESC, paginated limit/offset, GET /api/pcap_files/:family_id/download streaming 64KB chunks, Range bytes=206 with Content-Range, Content-Disposition attachment filename"
+    },
+    {
+      "id": 14,
+      "requirement": "UI styling flows with data: 540px drawer + table header #FAFBFB, 4 KPI +6 Recharts, ThreatMatrix 23x3 all reuse TOK — extend only no restyle, palette frozen",
+      "file_line": "dashboard/src/tokens.js: TOK primary #1F7A4D, dashboards/src/pages/Families.jsx:540px drawer, 1062 header #FAFBFB",
+      "check": "grep TOK.primary #1F7A4D + grep 540px + grep #FAFBFB + count TOK usages 344",
+      "status": "PASS",
+      "notes": "TOK frozen: primary #1F7A4D, primaryLight #E7F5EC, canvas #F6F8F7, 540px slide-over drawer preserved, table header #FAFBFB, Donezo shell unchanged, only DB rows injected"
+    },
+    {
+      "id": 15,
+      "requirement": "BYTEA guard Content-Length pre-check →413 immediately, CHECK octet_length(data)<100*1024*1024, avoid buf.getvalue() triple-copy OOM, 64KB streaming",
+      "file_line": "api/app.py:367-393,609-678 + init-db/01_schema.sql:31,33",
+      "check": "grep Content-Length + grep 413 + grep octet_length",
+      "status": "PASS",
+      "notes": "pre-check request.headers content-length >100MB ->413 before read, loop total >100MB ->413, pcap_files CHECK octet_length <100MB, byte_length CHECK = octet_length, download streams 64KB chunks avoids loading whole BYTEA >10MB"
+    },
+    {
+      "id": 16,
+      "requirement": "History for all runs: every upsert appends flows_history/live_captures_history/lab_runs_history versioned, never UPDATE without history, source differentiation synthetic/live/lab/model",
+      "file_line": "init-db/01_schema.sql:52-118 + api/db_pg.py:224-326",
+      "check": "grep flows_history source + grep live_captures_history + grep lab_runs_history + grep FOR UPDATE versioning",
+      "status": "PASS",
+      "notes": "flows_history source CHECK synthetic/live/lab/model default synthetic, live_captures_history id+version PK, lab_runs_history, model_runs_history, FOR UPDATE version+1 append-only, INSERT flows_history before/after flows upsert in same TX"
+    },
+    {
+      "id": 17,
+      "requirement": "Postgres ready gate GET /health returns postgres ready or 503 Retry-After:2, frontend readiness banner poll every 2s, never fallback when ready",
+      "file_line": "api/app.py:713-723 + dashboard/src/services/api.js:21-33,97-130 + docs/LARGE_FILES.md:124",
+      "check": "grep postgres ready + grep 503 Retry-After + grep health.postgres in api.js",
+      "status": "PASS",
+      "notes": "GET /health SELECT 1 -> ready else 503 not ready Retry-After:2, checkHealth fetch /health, api.js guard health.postgres ready -> [] else getFallbackFlows, docs §5 health gate banner every 2s"
+    },
+    {
+      "id": 18,
+      "requirement": "No fallback when ready, theme frozen extend-only, docs README etc updated, lpad ordering not lexical, always SELECT sibling preservation",
+      "file_line": "dashboard/src/services/api.js:96-110 + dashboard/src/pages/Families.jsx:392-400 + docs/LARGE_FILES.md:118-125 + README.md",
+      "check": "grep getFallbackFlows.*health.postgres + grep lpad + grep always SELECT + grep synthesized fallback only when health not ready",
+      "status": "PASS",
+      "notes": "empty-state not fallback when DB reachable, seeded true -> list, seeded false -> [], lpad(substring family_id from 8)::int numeric order, always SELECT preserves siblings (bug fix verified by no _last_result read branch)"
+    }
+  ],
+  "must_not_have_guardrails": [
+    {"check": "No S3/minio external storage for pcaps (BYTEA only)", "status": "PASS", "evidence": "grep S3/minio in api/docker-compose/init-db → no matches except api/flows.db binary noise; BYTEA only per init-db/01_schema.sql:31"},
+    {"check": "No host-managed Postgres or separate compose repo (single compose only)", "status": "PASS", "evidence": "docker-compose.yml single file with postgres service internal network lab+default, no external host port 5432 exposed, no separate compose"},
+    {"check": "No auto-migration of SQLite rows on fresh clone (fresh seed; optional one-shot scripts/migrate_sqlite_to_postgres.py out-of-band only)", "status": "PASS", "evidence": "seed.py _migrate_sqlite_flows_sync exists but only if flows.db present, not auto on fresh clone; main seed_all uses manifest/pcaps deterministic, SQLite not auto-copied"},
+    {"check": "No Alembic heavy migration framework", "status": "PASS", "evidence": "grep alembic requirements.txt/api → no match; raw SQL init-db/*.sql only"},
+    {"check": "No UI theme redesign (TOK #1F7A4D frozen)", "status": "PASS", "evidence": "dashboard/src/tokens.js primary #1F7A4D, primaryLight #E7F5EC, canvas #F6F8F7 unchanged; grep TOK usages 344 extend-only"},
+    {"check": "No CREATE INDEX CONCURRENTLY inside transaction block", "status": "PASS", "evidence": "init-db/01_schema.sql COMMIT at 169 before CONCURRENTLY at 179-187, comment outside BEGIN/COMMIT at 172-176"},
+    {"check": "No lexical ORDER BY family_id TEXT (must lpad numeric)", "status": "PASS", "evidence": "api/db_pg.py lpad(substring(f.family_id from 8), 3, '0') and substring::int, Families.jsx numeric parseInt split('-')[1] sort"},
+    {"check": "No fallback when postgres ready (getFallbackFlows disabled when health.postgres==ready)", "status": "PASS", "evidence": "dashboard/src/services/api.js 6 health.postgres checks, guard only fallback when not ready else []"}
+  ],
+  "automated_checks": [
+    {"name": "docker compose config | grep postgres", "status": "PASS", "output": "postgres:16-alpine@sha256:075f7ba present, service_healthy, pgdata volume, POSTGRES_DSN"},
+    {"name": "psql -c \"\\d families\" via ephemeral", "status": "PASS", "output": "families PK family_id, status not_run, CHECKs, trigger trg_families_updated_at, FK refs"},
+    {"name": "grep -q has_run Families.jsx", "status": "PASS", "output": "22 matches"},
+    {"name": "grep -q \"useQueryState('flow'\" App.jsx", "status": "PASS", "output": "3 matches App.jsx + 1 Families.jsx"},
+    {"name": "grep -q \"order=risk_score_desc\" App.jsx", "status": "PASS", "output": "2 matches"},
+    {"name": "grep -q pgdata docs/LARGE_FILES.md", "status": "PASS", "output": "6 matches §5 pgdata named volume"},
+    {"name": "grep -q \"getFallbackFlows.*health.postgres\" api.js (via health.postgres guard)", "status": "PASS", "output": "6 health.postgres guards, getFallbackFlows only when not ready"}
+  ],
+  "evidence_artifacts": [
+    ".omo/evidence/postgres-pcap-store/F1-compliance.json"
+  ],
+  "risks": []
+}

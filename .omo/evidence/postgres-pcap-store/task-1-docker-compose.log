@@ -1,0 +1,35 @@
+=== docker compose config grep evidence ===
+      postgres:
+        condition: service_healthy
+      POSTGRES_DSN: postgresql://app:app_dev_only@postgres:5432/ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+  postgres:
+      POSTGRES_DB: ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+      POSTGRES_USER: app
+        - pg_isready -U app -d ciphcrest -h 127.0.0.1
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
+        source: pgdata
+        target: /var/lib/postgresql/data
+  pgdata:
+    name: ciphercrest_pgdata
+
+=== docker-compose.yml grep evidence ===
+6:  postgres:
+7:    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571 # pinned 2026-08-13T19:16:04Z postgres:16-alpine amd64 (manifest digest), fallback postgres:16-alpine
+13:      - pgdata:/var/lib/postgresql/data
+14:      - ./init-db:/docker-entrypoint-initdb.d:ro
+16:      test: ["CMD-SHELL", "pg_isready -U app -d ciphcrest -h 127.0.0.1"]
+35:      - POSTGRES_DSN=postgresql://app:${POSTGRES_PASSWORD:-app_dev_only}@postgres:5432/ciphcrest
+44:      postgres:
+45:        condition: service_healthy
+51:  pgdata:
+
+=== verification checks ===
+PASS: docker compose config | grep -q postgres
+PASS: grep -q pgdata:/var/lib/postgresql/data docker-compose.yml
+PASS: docker compose config has pgdata volume pgdata->/var/lib/postgresql/data
+PASS: grep -q service_healthy docker-compose.yml
+PASS: grep -q POSTGRES_DSN docker-compose.yml
+PASS: docker compose config exit 0
+turnup --check exit: 0

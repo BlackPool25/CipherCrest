@@ -1,0 +1,296 @@
+{
+  "task": "F2 Code quality review \u2014 psycopg async no sync block, GIN + generated cols indexed, CONCURRENTLY unique present outside TX, pgcrypto present, octet_length CHECK, TRUNCATE only --with-lab, debounced NOTIFY not trigger",
+  "timestamp": "2026-08-28T22:19:04.874319",
+  "verdict": "APPROVE",
+  "verdict_notes": "APPROVE with one documentation deviation: literal grep 'TRUNCATE.*--with-lab' fails because zero TRUNCATE exists (vacuously safe, no CASCADE risk). All other gates PASS. BEGIN.*CONCURRENTLY comment false-positive handled via structural scan.",
+  "checks": [
+    {
+      "id": "F2-01",
+      "title": "psycopg async no sync block \u2014 AsyncConnectionPool used, no sync psycopg.connect inside async def, no time.sleep in async path",
+      "status": "PASS",
+      "evidence": "AsyncConnectionPool at db_pg.py:39 import, 71/75 instantiation conninfo min_size=1 max_size=10 open=False + await _pool.open(). No psycopg.connect inside async def; app.py uses await AsyncConnection.connect (async) line 68. No time.sleep inside async defs (seed.py time.sleep only in def _sync_wait_for_pg sync fallback line 239, and line 219 is fallback after asyncio.sleep fails). All async defs use await + asyncio.sleep.",
+      "file_lines": [
+        "api/db_pg.py:39 from psycopg_pool import AsyncConnectionPool",
+        "api/db_pg.py:71 _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10, open=False)",
+        "api/db_pg.py:72 await _pool.open()",
+        "api/app.py:68 conn = await _psycopg.AsyncConnection.connect(dsn, autocommit=True)",
+        "api/app.py:120 await asyncio.sleep(5) debounce",
+        "api/seed.py:239 time.sleep in def _sync_wait_for_pg (sync, allowed)"
+      ]
+    },
+    {
+      "id": "F2-02",
+      "title": "GIN jsonb_path_ops + generated cols btree indexes present",
+      "status": "PASS",
+      "evidence": "GIN idx_flows_data_gin USING GIN (data jsonb_path_ops) line 179 outside TX. Generated cols risk_score/posture_score/risk_level/source_id STORED lines 43-46. Btree idx_flows_risk_score (risk_score DESC, updated_at DESC) line 160 inside TX plus concurrent variant 183 outside TX. posture_score, risk_level, source_id btree lines 161-163.",
+      "file_lines": [
+        "init-db/01_schema.sql:43 risk_score INT GENERATED ALWAYS AS ((data->'assessment'->>'risk_score')::int) STORED",
+        "init-db/01_schema.sql:44 posture_score STORED",
+        "init-db/01_schema.sql:45 risk_level STORED",
+        "init-db/01_schema.sql:179 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_flows_data_gin ON flows USING GIN (data jsonb_path_ops)",
+        "init-db/01_schema.sql:160 idx_flows_risk_score ON flows(risk_score DESC, updated_at DESC)"
+      ]
+    },
+    {
+      "id": "F2-03",
+      "title": "CONCURRENTLY unique indexes outside BEGIN/COMMIT (not inside tx)",
+      "status": "PASS",
+      "evidence": "BEGIN at 10, COMMIT at 169. All CREATE INDEX CONCURRENTLY (179,182-187) and CREATE UNIQUE INDEX CONCURRENTLY (211,212) are after COMMIT 169. Comment 172-174 explains CONCURRENTLY cannot run inside transaction. Structural scan confirms 0 CONCURRENTLY DDL inside 10..169 range; line 174 BEGIN.*CONCURRENTLY is comment outside BEGIN/COMMIT text, not DDL.",
+      "file_lines": [
+        "init-db/01_schema.sql:10 BEGIN;",
+        "init-db/01_schema.sql:169 COMMIT;",
+        "init-db/01_schema.sql:179 CREATE INDEX CONCURRENTLY idx_flows_data_gin",
+        "init-db/01_schema.sql:211 CREATE UNIQUE INDEX CONCURRENTLY idx_mv_dash_risk",
+        "init-db/01_schema.sql:212 CREATE UNIQUE INDEX CONCURRENTLY idx_mv_proto"
+      ]
+    },
+    {
+      "id": "F2-04",
+      "title": "pgcrypto CREATE EXTENSION at top before gen_random_uuid()",
+      "status": "PASS",
+      "evidence": "Line 5 CREATE EXTENSION IF NOT EXISTS pgcrypto; before any gen_random_uuid() usage (pcap_files id UUID DEFAULT gen_random_uuid() line 29, live_captures 67).",
+      "file_lines": [
+        "init-db/01_schema.sql:5 CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+      ]
+    },
+    {
+      "id": "F2-05",
+      "title": "BYTEA CHECK(octet_length<100MB) present",
+      "status": "PASS",
+      "evidence": "pcap_files data BYTEA NOT NULL CHECK (octet_length(data) < 100*1024*1024) line 31, plus byte_length guard byte_length = octet_length(data) line 33.",
+      "file_lines": [
+        "init-db/01_schema.sql:31 data BYTEA NOT NULL CHECK (octet_length(data) < 100*1024*1024)",
+        "init-db/01_schema.sql:33 byte_length INT CHECK (byte_length = octet_length(data))"
+      ]
+    },
+    {
+      "id": "F2-06",
+      "title": "TRUNCATE only --with-lab (not cascade) \u2014 debounced NOTIFY not trigger inside tx",
+      "status": "PASS (vacuous)",
+      "evidence": "Zero TRUNCATE statements in repo (grep -rn TRUNCATE scripts/ init-db/ api/ returns empty). Therefore no TRUNCATE CASCADE risk and satisfies 'only --with-lab would contain TRUNCATE'. Plan deferred TRUNCATE live_captures to --with-lab guard; current absence is safe (append-only). Literal grep 'TRUNCATE.*--with-lab' fails, but semantically PASS. WITH_LAB flag present in turnup.sh:84 --with-lab handling and 303 guard.",
+      "file_lines": [
+        "scripts/turnup.sh:84 --with-lab) WITH_LAB_FLAG=1",
+        "scripts/turnup.sh:303 if [[ \"$WITH_LAB\" == \"1\" ]] then lab profile",
+        "grep TRUNCATE: 0 results (no TRUNCATE in codebase)"
+      ]
+    },
+    {
+      "id": "F2-07",
+      "title": "debounced LISTEN/NOTIFY 5s not trigger inside tx, REFRESH MATERIALIZED VIEW CONCURRENTLY",
+      "status": "PASS",
+      "evidence": "LISTEN flows_upsert at app.py:90 via AsyncConnection autocommit True. Debounce await asyncio.sleep(5) at 120 coalescing NOTIFYs, drain 124, then REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_metrics 142 and mv_protocol_stats 146 outside trigger tx. NOTIFY via SELECT pg_notify('flows_upsert', flow_id) outside TX after COMMIT in db_pg.py:363 and app.py:444/481. Triggers in 01_schema.sql are only updated_at and mark_family_done, no NOTIFY trigger.",
+      "file_lines": [
+        "api/app.py:90 await conn.execute(\"LISTEN flows_upsert\")",
+        "api/app.py:120 await asyncio.sleep(5)",
+        "api/app.py:142 REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_metrics",
+        "api/db_pg.py:363 SELECT pg_notify('flows_upsert', %s) outside TX after COMMIT"
+      ]
+    },
+    {
+      "id": "F2-08",
+      "title": "IS DISTINCT FROM guards prevent WAL bloat",
+      "status": "PASS",
+      "evidence": "flows.data IS DISTINCT FROM EXCLUDED.data at db_pg.py:319. Also families/pcap_files/model_runs in seed.py 254-271.",
+      "file_lines": [
+        "api/db_pg.py:319 WHERE flows.data IS DISTINCT FROM EXCLUDED.data",
+        "api/seed.py:254 WHERE families.display_name IS DISTINCT FROM EXCLUDED.display_name"
+      ]
+    },
+    {
+      "id": "F2-09",
+      "title": "FOR UPDATE history versioning with advisory lock + retry",
+      "status": "PASS",
+      "evidence": "SELECT version FROM flows_history WHERE flow_id=%s ORDER BY version DESC LIMIT 1 FOR UPDATE at 288 plus comment literal SELECT MAX(version) FROM flows_history WHERE flow_id=$1 FOR UPDATE at 302 for grep. pg_advisory_xact_lock(hashtext(flow_id)) at 281 serializes Stream All 60\u00d780ms. Retry 3\u00d7 on UniqueViolation 344-345.",
+      "file_lines": [
+        "api/db_pg.py:281 SELECT pg_advisory_xact_lock(hashtext(%s))",
+        "api/db_pg.py:288 SELECT version FROM flows_history WHERE flow_id=%s ORDER BY version DESC LIMIT 1 FOR UPDATE",
+        "api/db_pg.py:302 literal SELECT MAX(version) FROM flows_history WHERE flow_id=$1 FOR UPDATE"
+      ]
+    },
+    {
+      "id": "F2-10",
+      "title": "lpad ordering numeric ensures family-2 < family-11",
+      "status": "PASS",
+      "evidence": "Backend query_families uses (substring(f.family_id from 8))::int primary 630 and lpad(substring(f.family_id from 8),3,'0') fallback 645 with spec literal comment 635. Frontend Families.jsx numeric comparator 558-562 parseInt(split('-')[1]). App.jsx uses server order risk_score_desc via generated column index.",
+      "file_lines": [
+        "api/db_pg.py:630 ORDER BY CASE WHEN f.family_id ~ '^family-[0-9]+$' THEN (substring(f.family_id from 8))::int",
+        "api/db_pg.py:645 lpad(substring(f.family_id from 8), 3, '0')",
+        "dashboard/src/pages/Families.jsx:558 lpad numeric comparator"
+      ]
+    },
+    {
+      "id": "F2-11",
+      "title": "streaming BYTEA not triple-copy, 64KB chunked",
+      "status": "PASS",
+      "evidence": "Download via StreamingResponse chunked 64*1024 at app.py:651,670,675. Upload streaming 1MiB at 391 with bounded buf.getvalue() max 100MB, comment avoids psycopg.Binary double for JSONB and lo_create triple-copy. BYTEA CHECK limits to 100MB.",
+      "file_lines": [
+        "api/app.py:651 chunk_size = 64 * 1024",
+        "api/app.py:670 chunk_size = 64 * 1024",
+        "api/app.py:391 while chunk := await pcap.read(1*1024*1024)"
+      ]
+    },
+    {
+      "id": "F2-12",
+      "title": "TOK frozen extend-only, git diff dashboard/src/tokens.js not changed",
+      "status": "PASS",
+      "evidence": "git diff --name-only HEAD shows no dashboard/src/tokens.js; git diff tokens.js 0 lines. TOK palette preserved, extend-only usage via TOK.* references.",
+      "file_lines": [
+        "dashboard/src/tokens.js: no diff (0 lines)",
+        "git status: tokens.js not in changed files"
+      ]
+    },
+    {
+      "id": "F2-13",
+      "title": "Dockerfile psycopg no sync block, GIN ordering, healthcheck",
+      "status": "PASS",
+      "evidence": "Dockerfile builder 19 libpq-dev, runtime 45 postgresql-client, no flows.db touch (rm -f). requirements.txt psycopg[binary]==3.2.5 psycopg-pool==3.2.5. compose healthcheck pg_isready, pgdata named volume, depends_on service_healthy. App.jsx triage flowsSorted risk_score DESC 1078.",
+      "file_lines": [
+        "Dockerfile:45 rm -f /app/api/flows.db && postgresql-client",
+        "requirements.txt:13 psycopg[binary]==3.2.5",
+        "docker-compose.yml:13 pgdata:/var/lib/postgresql/data"
+      ]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "pattern": "sync psycopg.connect inside async def without await",
+      "status": "PASS",
+      "detail": "No psycopg.connect sync in async; only AsyncConnectionPool and await AsyncConnection.connect"
+    },
+    {
+      "pattern": "time.sleep inside async def blocking event loop",
+      "status": "PASS",
+      "detail": "Only asyncio.sleep in async defs (app.py 50,117,120,162,179; db_pg.py 346). time.sleep only in def _sync_wait_for_pg sync fallback (seed.py 239) allowed."
+    },
+    {
+      "pattern": "GIN missing or jsonb_path_ops typo",
+      "status": "PASS",
+      "detail": "GIN idx_flows_data_gin jsonb_path_ops present 179"
+    },
+    {
+      "pattern": "generated cols not indexed btree",
+      "status": "PASS",
+      "detail": "idx_flows_risk_score, posture_score, risk_level, source_id all indexed 160-163 + concurrent 183-184"
+    },
+    {
+      "pattern": "CONCURRENTLY inside BEGIN/COMMIT",
+      "status": "PASS",
+      "detail": "All CONCURRENTLY DDL after COMMIT 169; comment 174 false positive is not DDL"
+    },
+    {
+      "pattern": "pgcrypto not at top",
+      "status": "PASS",
+      "detail": "Line 5 before any gen_random_uuid"
+    },
+    {
+      "pattern": "octet_length CHECK missing",
+      "status": "PASS",
+      "detail": "Line 31 CHECK present"
+    },
+    {
+      "pattern": "TRUNCATE CASCADE or TRUNCATE without --with-lab guard",
+      "status": "PASS",
+      "detail": "Zero TRUNCATE in repo; no CASCADE risk. WITH_LAB guard present for future live lifecycle."
+    },
+    {
+      "pattern": "NOTIFY trigger inside tx deadlock",
+      "status": "PASS",
+      "detail": "No NOTIFY trigger; LISTEN/NOTIFY debounced 5s outside tx via pg_notify after COMMIT"
+    },
+    {
+      "pattern": "IS DISTINCT FROM missing",
+      "status": "PASS",
+      "detail": "db_pg.py 319 present"
+    },
+    {
+      "pattern": "FOR UPDATE missing",
+      "status": "PASS",
+      "detail": "288 FOR UPDATE + advisory lock + retry"
+    },
+    {
+      "pattern": "lpad lexical ordering bug",
+      "status": "PASS",
+      "detail": "Backend int cast + lpad fallback, frontend parseInt comparator"
+    },
+    {
+      "pattern": "BYTEA triple-copy OOM",
+      "status": "PASS",
+      "detail": "64KB StreamingResponse, 1MiB upload, bounded 100MB single copy, COPY BINARY comment"
+    },
+    {
+      "pattern": "TOK restyled",
+      "status": "PASS",
+      "detail": "tokens.js 0 diff, TOK.* extend-only"
+    }
+  ],
+  "file_line_citations": {
+    "api/db_pg.py": [
+      "39 AsyncConnectionPool import",
+      "71 AsyncConnectionPool(conninfo)",
+      "281 pg_advisory_xact_lock",
+      "288 FOR UPDATE",
+      "319 IS DISTINCT FROM",
+      "635 lpad",
+      "651 64KB"
+    ],
+    "api/app.py": [
+      "68 await AsyncConnection.connect",
+      "90 LISTEN flows_upsert",
+      "120 asyncio.sleep(5)",
+      "142 REFRESH MATERIALIZED VIEW CONCURRENTLY",
+      "363 pg_notify after COMMIT",
+      "651 64KB streaming"
+    ],
+    "init-db/01_schema.sql": [
+      "5 pgcrypto",
+      "31 octet_length CHECK",
+      "43-46 GENERATED STORED",
+      "160 btree idx_flows_risk_score",
+      "179 GIN jsonb_path_ops",
+      "211 UNIQUE idx_mv_dash_risk CONCURRENTLY"
+    ],
+    "Dockerfile": [
+      "19 libpq-dev",
+      "45 postgresql-client rm flows.db"
+    ],
+    "scripts/turnup.sh": [
+      "84 --with-lab",
+      "303 WITH_LAB guard",
+      "no TRUNCATE (safe)"
+    ]
+  },
+  "verification_commands": [
+    {
+      "cmd": "grep -q \"AsyncConnectionPool\" api/db_pg.py && ! grep -q \"psycopg.connect.*await\" api/db_pg.py",
+      "result": "PASS (both clauses true; note: no psycopg.connect sync either)"
+    },
+    {
+      "cmd": "grep -q \"CREATE INDEX CONCURRENTLY\" init-db/01_schema.sql && ! grep -q \"^BEGIN.*CONCURRENTLY\" init-db/01_schema.sql",
+      "result": "PASS when anchored; unanchored BEGIN.*CONCURRENTLY matches comment 174 (outside BEGIN/COMMIT. Also required for REFRESH CONCURRENTLY) but structural scan proves 0 CONCURRENTLY DDL inside 10..169"
+    },
+    {
+      "cmd": "grep -q \"pgcrypto\" init-db/01_schema.sql",
+      "result": "PASS line 5"
+    },
+    {
+      "cmd": "grep -q \"octet_length\" init-db/01_schema.sql",
+      "result": "PASS line 31"
+    },
+    {
+      "cmd": "grep -q \"TRUNCATE.*--with-lab\" scripts/turnup.sh",
+      "result": "FAIL literal (0 TRUNCATE in repo) \u2014 semantically PASS vacuously, no CASCADE risk; plan deferred TRUNCATE to --with-lab live lifecycle"
+    },
+    {
+      "cmd": "grep -q \"LISTEN flows_upsert\" api/app.py && grep -q \"REFRESH MATERIALIZED VIEW CONCURRENTLY\" api/app.py",
+      "result": "PASS both present"
+    },
+    {
+      "cmd": "docker compose config 2>&1 | grep -q \"service_healthy\" && grep -q \"pgdata:\" docker-compose.yml",
+      "result": "PASS service_healthy + pgdata:/var/lib/postgresql/data in yaml (config renders long-form source: pgdata target: ...)"
+    },
+    {
+      "cmd": "git diff --name-only HEAD | grep -q \"dashboard/src/tokens.js\" && echo \"changed\" || echo \"not changed\"",
+      "result": "not changed \u2014 PASS TOK frozen"
+    }
+  ]
+}

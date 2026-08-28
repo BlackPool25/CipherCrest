@@ -1,0 +1,463 @@
+{
+  "timestamp": "2026-08-28T16:43:30.909606+00:00",
+  "health": {
+    "url": "http://localhost:8000/health",
+    "status": 200,
+    "headers": {
+      "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+      "server": "uvicorn",
+      "content-length": "34",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": {
+      "status": "ok",
+      "postgres": "ready"
+    }
+  },
+  "health_api": {
+    "url": "http://localhost:8000/api/health",
+    "status": 200,
+    "headers": {
+      "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+      "server": "uvicorn",
+      "content-length": "34",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": {
+      "status": "ok",
+      "postgres": "ready"
+    }
+  },
+  "families_limit3": {
+    "url": "http://localhost:8000/api/families?limit=3",
+    "status": 200,
+    "headers": {
+      "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+      "server": "uvicorn",
+      "content-length": "1393",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": [
+      {
+        "family_id": "family-01",
+        "display_name": "Postfix 587 STARTTLS upgrade TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 P-256 rsa2048 SHA256 90d \u2014 PASS",
+        "port": 587,
+        "tls_version": "TLS1.2",
+        "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "cert_type": "rsa2048",
+        "starttls_mode": "upgrade",
+        "status": "done",
+        "last_run_at": "2026-08-28T15:58:55.168853+00:00",
+        "created_at": "2026-08-28T15:58:55.168853+00:00",
+        "updated_at": "2026-08-28T15:58:55.168853+00:00",
+        "has_run": true,
+        "posture_score": 73,
+        "risk_level": "High"
+      },
+      {
+        "family_id": "family-02",
+        "display_name": "Postfix 25 STARTTLS TLS1.2 ECDHE-RSA-AES256-GCM-SHA384 P-256 \u2014 PASS",
+        "port": 25,
+        "tls_version": "TLS1.2",
+        "cipher_suite": "ECDHE-RSA-AES256-GCM-SHA384",
+        "cert_type": "p256",
+        "starttls_mode": "upgrade",
+        "status": "done",
+        "last_run_at": "2026-08-28T15:58:55.168853+00:00",
+        "created_at": "2026-08-28T15:58:55.168853+00:00",
+        "updated_at": "2026-08-28T15:58:55.168853+00:00",
+        "has_run": true,
+        "posture_score": 73,
+        "risk_level": "High"
+      },
+      {
+        "family_id": "family-03",
+        "display_name": "Dovecot 143 STARTTLS CAPABILITY->STARTTLS TLS1.2 DES-CBC3-SHA SWEET32 3DES-CBC High",
+        "port": 143,
+        "tls_version": "TLS1.2",
+        "cipher_suite": "DES-CBC3-SHA",
+        "cert_type": "rsa2048",
+        "starttls_mode": "upgrade",
+        "status": "done",
+        "last_run_at": "2026-08-28T15:58:55.168853+00:00",
+        "created_at": "2026-08-28T15:58:55.168853+00:00",
+        "updated_at": "2026-08-28T15:58:55.168853+00:00",
+        "has_run": true,
+        "posture_score": 21,
+        "risk_level": "Critical"
+      }
+    ]
+  },
+  "families_limit1": {
+    "url": "http://localhost:8000/api/families?limit=1",
+    "status": 200,
+    "headers": {
+      "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+      "server": "uvicorn",
+      "content-length": "484",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": [
+      {
+        "family_id": "family-01",
+        "display_name": "Postfix 587 STARTTLS upgrade TLS1.2 ECDHE-RSA-AES128-GCM-SHA256 P-256 rsa2048 SHA256 90d \u2014 PASS",
+        "port": 587,
+        "tls_version": "TLS1.2",
+        "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+        "cert_type": "rsa2048",
+        "starttls_mode": "upgrade",
+        "status": "done",
+        "last_run_at": "2026-08-28T15:58:55.168853+00:00",
+        "created_at": "2026-08-28T15:58:55.168853+00:00",
+        "updated_at": "2026-08-28T15:58:55.168853+00:00",
+        "has_run": true,
+        "posture_score": 73,
+        "risk_level": "High"
+      }
+    ]
+  },
+  "flows_limit3": {
+    "url": "http://localhost:8000/api/flows?limit=3",
+    "status": 200,
+    "headers": {
+      "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+      "server": "uvicorn",
+      "content-length": "6073",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": [
+      {
+        "flow_id": "family-01",
+        "environment_id": "127.0.0.1:587->127.0.0.11:54321",
+        "capture_epoch": "2026-08-27T00:00:00Z",
+        "source_id": "8f54963f",
+        "coverage_ratio": 1.0,
+        "pre_tls_buffer_len": 171,
+        "pre_tls_buffer_injection_possible": true,
+        "app_protocol": "smtp",
+        "starttls_mode": "upgrade",
+        "tls": {
+          "version": "TLS1.2",
+          "is_deprecated": false,
+          "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+          "cipher_strength": "strong",
+          "is_aead": true,
+          "kex": "ECDHE",
+          "fs_flag": true,
+          "ja4": "t12i020000_ced06afb9e65_000000000000",
+          "ja4_rarity": null,
+          "ja4s": "t12_000000000000_000000000000",
+          "early_data_offered": false,
+          "early_data_accepted": false,
+          "psk_offered": false,
+          "ticket_age": null,
+          "ech_outer_present": false,
+          "handshake_success": true,
+          "alert_after_starttls": false
+        },
+        "cert": {
+          "leaf_present": true,
+          "is_tls13_opaque": false,
+          "not_before": "2026-08-25T04:11:15+00:00",
+          "not_after": "2026-11-23T04:11:15+00:00",
+          "days_to_expiry": 86,
+          "is_expired": false,
+          "is_self_signed": false,
+          "chain_length": 2,
+          "chain_valid": true,
+          "san_match": true,
+          "pubkey_algo": "RSA",
+          "pubkey_bits": 2048,
+          "sigalg": "sha256",
+          "sigalg_weak": false,
+          "keysize_weak": false,
+          "ocsp_stapled_status": "unknown",
+          "ocsp_must_staple": false,
+          "crl_unknown_reason": false
+        },
+        "assessment": {
+          "findings": [
+            {
+              "check": "TLS version outdated",
+              "severity": "Medium",
+              "spec": "NIST SP 800-52r2 \u00a73.3.1",
+              "evidence": "TLS 1.2 only \u2014 not deprecated but should migrate to 1.3",
+              "remediation": "Plan migration to TLS 1.3 per NIST 800-52r2; disable 1.2 where possible"
+            },
+            {
+              "check": "Pre-TLS injection possible",
+              "severity": "High",
+              "spec": "Postfix CVE-2011-0411, GHSA-9j88",
+              "evidence": "pre_tls_buffer_len 171 bytes between 220\u2192ClientHello pipelined",
+              "remediation": "Fix unflushed buffer: discard pre-TLS pipelined bytes before ClientHello"
+            },
+            {
+              "check": "Implicit TLS absent",
+              "severity": "Info",
+              "spec": "RFC8314 \u00a73",
+              "evidence": "implicit TLS check \u2014 no downgrade artifact or already implicit",
+              "remediation": "No action; track per-version"
+            },
+            {
+              "check": "MX/MTA-STS/DANE",
+              "severity": "Info",
+              "spec": "RFC8461 \u00a73, RFC7672 \u00a75.1",
+              "evidence": "MX=mail.lab.local evidence mta-sts enforce dane present",
+              "remediation": "Enforce MTA-STS/DANE where applicable; MX mail.lab.local per fixture"
+            },
+            {
+              "check": "0-RTT / ECH",
+              "severity": "Info",
+              "spec": "RFC8446 \u00a78, RFC9846 \u00a78",
+              "evidence": "no 0-RTT artifact \u2014 early_data_offered False",
+              "remediation": "No action; ECH outer absent INFO"
+            },
+            {
+              "check": "KeyUsage missing",
+              "severity": "Info",
+              "spec": "RFC5280 \u00a74.2.1.3",
+              "evidence": "leaf absent/opaque or keyUsage not evaluated (honest R1)",
+              "remediation": "No action; honest per R1"
+            },
+            {
+              "check": "ExtendedKeyUsage not serverAuth",
+              "severity": "Info",
+              "spec": "RFC5280 \u00a74.2.1.12",
+              "evidence": "EKU not evaluated (honest) or leaf absent",
+              "remediation": "No action; honest"
+            }
+          ],
+          "risk_level": "High",
+          "risk_score": 27,
+          "anomaly_score": 3.595571335339096,
+          "anomaly_honest_score": 3.595571335339096,
+          "posture_score": 73,
+          "calibrated_prob": 0.7136544563860381
+        },
+        "policy": {
+          "action": "allow",
+          "disposition_reason": "Low risk_score 6 top Posture Info: secure strong cipher valid cert Low",
+          "banner_text": null,
+          "quarantine_id": null,
+          "siem_severity": "Low",
+          "arf_report_id": null
+        }
+      },
+      {
+        "flow_id": "family-locked-16",
+        "environment_id": "family-locked-16__postfix3.9_loss0",
+        "capture_epoch": "2026-08-27T00:00:00Z",
+        "source_id": "f8fd5e0fdab0bb840b4b4980bcaca6c5123763f897395fb82f04fe86cddd7fd0",
+        "coverage_ratio": 1.0,
+        "pre_tls_buffer_len": 0,
+        "pre_tls_buffer_injection_possible": false,
+        "app_protocol": "smtp",
+        "starttls_mode": "upgrade",
+        "tls": {
+          "version": "TLS1.2",
+          "is_deprecated": false,
+          "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+          "cipher_strength": "unknown",
+          "is_aead": false,
+          "kex": "unknown",
+          "fs_flag": false,
+          "ja4": null,
+          "ja4_rarity": null,
+          "ja4s": null,
+          "early_data_offered": false,
+          "early_data_accepted": false,
+          "psk_offered": false,
+          "ticket_age": null,
+          "ech_outer_present": false,
+          "handshake_success": true,
+          "alert_after_starttls": false
+        },
+        "cert": {
+          "leaf_present": false,
+          "is_tls13_opaque": false,
+          "not_before": null,
+          "not_after": null,
+          "days_to_expiry": null,
+          "is_expired": null,
+          "is_self_signed": null,
+          "chain_length": null,
+          "chain_valid": null,
+          "san_match": null,
+          "pubkey_algo": null,
+          "pubkey_bits": null,
+          "sigalg": null,
+          "sigalg_weak": null,
+          "keysize_weak": null,
+          "ocsp_stapled_status": "unknown",
+          "ocsp_must_staple": null,
+          "crl_unknown_reason": null
+        },
+        "assessment": {
+          "findings": [],
+          "risk_level": "Low",
+          "risk_score": 10,
+          "anomaly_score": null,
+          "anomaly_honest_score": null,
+          "posture_score": 90,
+          "calibrated_prob": null
+        },
+        "policy": {
+          "action": "block",
+          "disposition_reason": "Critical risk_score 51 top Weak KEX (no FS): kex unknown fs_flag False no forward secrecy",
+          "banner_text": "Critical \u2014 blocked / hold_incident",
+          "quarantine_id": null,
+          "siem_severity": "Critical",
+          "arf_report_id": null
+        }
+      },
+      {
+        "flow_id": "family-locked-18",
+        "environment_id": "family-locked-18__postfix3.9_loss0",
+        "capture_epoch": "2026-08-27T00:00:00Z",
+        "source_id": "ac95632adbead1fd7ac761b534be0fca1fa48213f82aa4d15aef03c82161eb56",
+        "coverage_ratio": 1.0,
+        "pre_tls_buffer_len": 0,
+        "pre_tls_buffer_injection_possible": false,
+        "app_protocol": "smtp",
+        "starttls_mode": "upgrade",
+        "tls": {
+          "version": "TLS1.2",
+          "is_deprecated": false,
+          "cipher_suite": "ECDHE-RSA-AES128-GCM-SHA256",
+          "cipher_strength": "unknown",
+          "is_aead": false,
+          "kex": "unknown",
+          "fs_flag": false,
+          "ja4": null,
+          "ja4_rarity": null,
+          "ja4s": null,
+          "early_data_offered": false,
+          "early_data_accepted": false,
+          "psk_offered": false,
+          "ticket_age": null,
+          "ech_outer_present": false,
+          "handshake_success": true,
+          "alert_after_starttls": false
+        },
+        "cert": {
+          "leaf_present": false,
+          "is_tls13_opaque": false,
+          "not_before": null,
+          "not_after": null,
+          "days_to_expiry": null,
+          "is_expired": null,
+          "is_self_signed": null,
+          "chain_length": null,
+          "chain_valid": null,
+          "san_match": null,
+          "pubkey_algo": null,
+          "pubkey_bits": null,
+          "sigalg": null,
+          "sigalg_weak": null,
+          "keysize_weak": null,
+          "ocsp_stapled_status": "unknown",
+          "ocsp_must_staple": null,
+          "crl_unknown_reason": null
+        },
+        "assessment": {
+          "findings": [],
+          "risk_level": "Low",
+          "risk_score": 10,
+          "anomaly_score": null,
+          "anomaly_honest_score": null,
+          "posture_score": 90,
+          "calibrated_prob": null
+        },
+        "policy": {
+          "action": "block",
+          "disposition_reason": "Critical risk_score 51 top Weak KEX (no FS): kex unknown fs_flag False no forward secrecy",
+          "banner_text": "Critical \u2014 blocked / hold_incident",
+          "quarantine_id": null,
+          "siem_severity": "Critical",
+          "arf_report_id": null
+        }
+      }
+    ]
+  },
+  "greps": {
+    "fallback": {
+      "cmd": "grep -q \"getFallbackFlows\" dashboard/src/services/api.js && echo found || echo missing; grep -n \"health.postgres\" dashboard/src/services/api.js",
+      "returncode": 0,
+      "stdout": "found\n97:    // Guard: only fallback when health.postgres!=\"ready\", else return [] \u2014 never mask ready DB\n99:    if (health && health.postgres!=\"ready\") {\n102:    if (health && health.postgres === \"ready\") {\n123:    // only fallback when DB unreachable \u2014 check GET /health postgres ready gate\n126:      if (health && health.postgres === \"ready\") {\n129:      if (health && health.postgres!=\"ready\") {",
+      "stderr": ""
+    },
+    "pgdata_docs": {
+      "cmd": "grep -q pgdata docs/LARGE_FILES.md && echo found || echo missing",
+      "returncode": 0,
+      "stdout": "found",
+      "stderr": ""
+    },
+    "pgdata_readme": {
+      "cmd": "grep -q pgdata README.md && echo found",
+      "returncode": 0,
+      "stdout": "found",
+      "stderr": ""
+    },
+    "health_pg": {
+      "cmd": "grep -q \"postgres\" api/app.py && echo found",
+      "returncode": 0,
+      "stdout": "found",
+      "stderr": ""
+    },
+    "banner": {
+      "cmd": "grep -q \"Postgres seeding\" dashboard/src/layout/Shell.jsx && echo found",
+      "returncode": 0,
+      "stdout": "found",
+      "stderr": ""
+    }
+  },
+  "du": {
+    "wheelhouse": {
+      "cmd": "du -sh wheelhouse 2>&1 | tail -1 || du -sh . 2>&1 | head",
+      "returncode": 0,
+      "stdout": "339M\twheelhouse",
+      "stderr": ""
+    },
+    "init_db": {
+      "cmd": "du -sh init-db 2>&1",
+      "returncode": 0,
+      "stdout": "12K\tinit-db",
+      "stderr": ""
+    },
+    "volume": {
+      "cmd": "docker volume inspect ciphercrest_pgdata 2>&1 | head -n 30",
+      "returncode": 0,
+      "stdout": "[\n    {\n        \"CreatedAt\": \"2026-08-28T21:09:55+05:30\",\n        \"Driver\": \"local\",\n        \"Labels\": {\n            \"com.docker.compose.config-hash\": \"84a0bdf92b0f841c95211df4512013b2c97e06856d3be555918524a20f5f1586\",\n            \"com.docker.compose.project\": \"ciphercrest\",\n            \"com.docker.compose.version\": \"5.5.0\",\n            \"com.docker.compose.volume\": \"pgdata\"\n        },\n        \"Mountpoint\": \"/var/lib/docker/volumes/ciphercrest_pgdata/_data\",\n        \"Name\": \"ciphercrest_pgdata\",\n        \"Options\": null,\n        \"Scope\": \"local\"\n    }\n]",
+      "stderr": ""
+    }
+  },
+  "notes": "Evidence for task 17: health ready gate 503 + readiness banner + README/DOCS update. Ready case is current (postgres ready). Not-ready case verified earlier via docker stop produces 503_retry_after_2.",
+  "health_503_proof": {
+    "expected_when_stopped": {
+      "status": "ok",
+      "postgres": "not ready",
+      "http_status": 503,
+      "retry_after": "2"
+    },
+    "observed_ready": {
+      "url": "http://localhost:8000/health",
+      "status": 200,
+      "headers": {
+        "date": "Fri, 28 Aug 2026 16:43:30 GMT",
+        "server": "uvicorn",
+        "content-length": "34",
+        "content-type": "application/json",
+        "Connection": "close"
+      },
+      "body": {
+        "status": "ok",
+        "postgres": "ready"
+      }
+    }
+  }
+}

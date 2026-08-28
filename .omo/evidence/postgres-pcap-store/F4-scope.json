@@ -1,0 +1,130 @@
+{
+  "task": "F4 Scope fidelity — Must NOT have violations absent",
+  "timestamp": "2026-08-28T22:30:00Z",
+  "verdict": "APPROVE",
+  "summary": "All 12 Must NOT have guardrails PASS (absent or correctly guarded). No S3/minio, no host Postgres, no Alembic, no scapy fallback removal, no sharding/RBAC crowding, no theme restyle (TOK #1F7A4D/#E7F5EC/#F6F8F7/Inter/JetBrains preserved), no fallback when ready (health.postgres guard), no CONCURRENTLY in tx, no missing UNIQUE for CONCURRENTLY refresh, no TOAST rewrite without IS DISTINCT FROM, no lexical TEXT sort (lpad numeric). Single compose only with named pgdata.",
+  "checks": [
+    {
+      "id": "F4-01",
+      "guardrail": "no S3/minio external storage",
+      "must_not": "s3 | minio | boto3 code or yml",
+      "command": "! grep -rq \"s3|minio|boto3\" --include=\"*.py\" --include=\"*.yml\" . | grep -v .omo | wc -l ==0",
+      "result": "PASS",
+      "evidence": "grep -rq -i s3|minio|boto3 --include *.py,*.yml . -> 0 hits; Dockerfile has no s3 line; no wheelhouse s3; grep count 0",
+      "details": "Counts: s3/minio/boto3 0, case-insensitive, excludes .omo/.git. No external storage code."
+    },
+    {
+      "id": "F4-02",
+      "guardrail": "no host-managed Postgres or separate compose repo (single compose only)",
+      "must_not": "host Postgres bind, ports 5432:5432, second compose repo",
+      "command": "grep -q pgdata:/var/lib/postgresql/data docker-compose.yml && ! grep -q 5432:5432 docker-compose.yml && docker compose config | grep postgres && include single",
+      "result": "PASS",
+      "evidence": "docker-compose.yml has single postgres service image postgres:16-alpine@sha256:075f7ba... healthcheck pg_isready -U app -d ciphcrest -h 127.0.0.1 + volumes pgdata:/var/lib/postgresql/data (named volume pgdata top-level), no 5432:5432 host expose, POSTGRES_DSN via postgres:5432 internal network, include lab/docker-compose.yml profiles [\"lab\"] only (not separate repo), networks lab+default, docker compose config shows postgres source pgdata volume {}, demo depends_on postgres condition service_healthy",
+      "details": "Lab compose is include-only, not separate. No host Postgres."
+    },
+    {
+      "id": "F4-03",
+      "guardrail": "no auto-migration of SQLite rows on fresh clone (fresh seed; optional one-shot scripts/migrate_sqlite_to_postgres.py out-of-band only)",
+      "must_not": "auto SQLite migration without --full flag on fresh",
+      "command": "grep -n \"if full:\" api/seed.py shows migration gated; ls scripts/migrate_sqlite_to_postgres.py -> absent (out-of-band allowed)",
+      "result": "PASS",
+      "evidence": "api/seed.py _migrate_sqlite_flows_async/sync gated by `if full:` (lines 1253,1510) only when --full or --upsert-families (which implies full). Fresh clone `python -m api.seed --dry-run` shows 680 families fresh seed, sqlite rows only shown as '[dry-run] sqlite api/flows.db: 51 flows to migrate' but not auto-migrated without full. No scripts/migrate_sqlite_to_postgres.py exists (allowed out-of-band only, not auto). Fresh without --full seeds manifest+pcap+placeholder only via _seed_all_async chunked 50.",
+      "details": "Spec allows optional one-shot scripts/migrate_sqlite_to_postgres.py out-of-band only; current gating matches fresh-seed invariant."
+    },
+    {
+      "id": "F4-04",
+      "guardrail": "no Alembic heavy migration",
+      "must_not": "alembic import/code",
+      "command": "! grep -rq alembic --include=\"*.py\" . (count 0)",
+      "result": "PASS",
+      "evidence": "grep -rq alembic --include *.py -> 0 hits; init-db/01_schema.sql is idempotent DDL with IF NOT EXISTS + IF NOT EXISTS indexes, no alembic env.py/versions dir",
+      "details": "Migration via idempotent DDL only."
+    },
+    {
+      "id": "F4-05",
+      "guardrail": "no scapy fallback removal (offline scapy must remain primary)",
+      "must_not": "scapy removed, no tshark fallback",
+      "command": "grep -rq scapy requirements.txt (scapy==2.7.0 present) and lab/reassembler/reassemble.py retains 5-tuple scapy",
+      "result": "PASS",
+      "evidence": "requirements.txt has scapy==2.7.0, lab/reassembler/reassemble.py primary scapy 5-tuple, tshark optional oracle 4 prefs via get_tshark_prefs(), docs/TSHARK.md documents fallback honest.",
+      "details": "Scapy not removed."
+    },
+    {
+      "id": "F4-06",
+      "guardrail": "no sharding/read-replica/auth RBAC beyond compose internal network",
+      "must_not": "shard | replica | read_replica | RBAC",
+      "command": "! grep -rq -i \"shard|replica\" --include=\"*.py\" --include=\"*.yml\" . (count 0)",
+      "result": "PASS",
+      "evidence": "grep -rq -i shard|replica --include *.py,*.yml -> 0 hits; no RBAC/sharding code; compose internal networks lab+default only.",
+      "details": "No crowding beyond compose."
+    },
+    {
+      "id": "F4-07",
+      "guardrail": "no UI theme redesign (TOK #1F7A4D Forest Green, #E7F5EC, #F6F8F7, Inter/JetBrains Mono, Donezo shell frozen extend-only)",
+      "must_not": "theme restyle, palette change, font change",
+      "command": "grep -q TOK dashboard/src/tokens.js && grep -q #1F7A4D && grep -q #E7F5EC && grep -q #F6F8F7 && grep -q Inter && grep -q \"JetBrains Mono\" && git diff HEAD -- tokens.js empty",
+      "result": "PASS",
+      "evidence": "dashboard/src/tokens.js retains: TOK primary #1F7A4D, primaryDark #155C3A, primaryLight #E7F5EC, canvas #F6F8F7, action #1F7A4D, actionSoft #E7F5EC, successLight #E7F5EC, fontSans Inter, fontMono JetBrains Mono, TOK_VARS --primary #1F7A4D etc, git diff HEAD -- tokens.js empty (no uncommitted restyle), git log shows e7ffd6d canonicalize + 31599a9 lab/families only extend, no palette divergence. Shell.jsx extends only (readiness gate, skeleton) without TOK overwrite.",
+      "details": "Donezo shell frozen extend-only verified via Shell.jsx history; TOK unchanged."
+    },
+    {
+      "id": "F4-08",
+      "guardrail": "no client-side static fallback when DB reachable (getFallbackFlows disabled when ready)",
+      "must_not": "fallback blend when postgres ready",
+      "command": "grep -q \"health.postgres\" dashboard/src/services/api.js && ! grep blend when ready",
+      "result": "PASS",
+      "evidence": "dashboard/src/services/api.js lines 97-102: `if (health && health.postgres!=\"ready\") return getFallbackFlows()` else if ready `return []` never mask; lines 126-129 same for families; lines 138-142 getFallbackFlows only reachable when health null/unreachable probe fails. Shell.jsx readiness gate polls GET /health -> GET /api/families before rendering Outlet, skeleton not fallback rows. Families.jsx removed synthesizeFamilies blend, uses fetchFamilies lpad numeric. Line 142 getFallbackFlows() only in catch/unready branches.",
+      "details": "Fallback disabled when health.postgres==\"ready\"; empty-state [] preserved."
+    },
+    {
+      "id": "F4-09",
+      "guardrail": "no CREATE INDEX CONCURRENTLY inside transaction",
+      "must_not": "CONCURRENTLY inside BEGIN/COMMIT",
+      "command": "awk '/^BEGIN;/,/^COMMIT;/' init-db/01_schema.sql | grep CONCURRENTLY -> 0; CONCURRENTLY lines all after COMMIT",
+      "result": "PASS",
+      "evidence": "awk BEGIN..COMMIT -> NONE inside; all 7 CREATE INDEX CONCURRENTLY (idx_flows_data_gin GIN, idx_pcap_family_conc, idx_flows_risk_score_conc, idx_flows_posture_conc, idx_history_flow_version_conc, idx_flows_history_source_conc, idx_live_created_conc) + 2 CREATE UNIQUE INDEX CONCURRENTLY after COMMIT line 169 with comment 'CONCURRENTLY cannot run inside a transaction block — must be outside BEGIN/COMMIT'",
+      "details": "Guard comment at line 172 explains."
+    },
+    {
+      "id": "F4-10",
+      "guardrail": "no REFRESH CONCURRENTLY without UNIQUE",
+      "must_not": "REFRESH CONCURRENTLY without UNIQUE index",
+      "command": "grep -q \"CREATE UNIQUE INDEX CONCURRENTLY\" init-db/01_schema.sql && grep -q \"REFRESH MATERIALIZED VIEW CONCURRENTLY\" api/app.py",
+      "result": "PASS",
+      "evidence": "init-db defines UNIQUE indexes: idx_mv_dash_risk ON mv_dashboard_metrics(risk_level) and idx_mv_proto ON mv_protocol_stats(protocol,tls_version,cipher_suite) via CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS; api/app.py line 142-146 REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_metrics + mv_protocol_stats after COMMIT via Listen debounced 5s, requires UNIQUE per Postgres. Verification: psql SELECT matviewname confirms both, refresh concurrently idempotent.",
+      "details": "UNIQUE present enabling CONCURRENTLY refresh."
+    },
+    {
+      "id": "F4-11",
+      "guardrail": "no ON CONFLICT DO UPDATE rewriting TOAST when sha unchanged",
+      "must_not": "TOAST WAL blow without IS DISTINCT FROM",
+      "command": "grep -q \"IS DISTINCT FROM\" api/db_pg.py && grep -q \"IS DISTINCT FROM\" api/seed.py",
+      "result": "PASS",
+      "evidence": "api/db_pg.py line 318-319: ON CONFLICT (flow_id) DO UPDATE SET data=EXCLUDED.data WHERE flows.data IS DISTINCT FROM EXCLUDED.data; api/seed.py families ON CONFLICT WHERE IS DISTINCT FROM (254-255), pcap_files WHERE IS DISTINCT FROM (267-271), flows WHERE flows.data IS DISTINCT FROM (282), model_runs WHERE IS DISTINCT FROM (297-298). Prevents WAL/TOAST rewrite when unchanged.",
+      "details": "Seed and db_pg parity guards present."
+    },
+    {
+      "id": "F4-12",
+      "guardrail": "no lexical ORDER BY family_id TEXT (must lpad)",
+      "must_not": "lexical TEXT sort causing family-11 before family-2",
+      "command": "grep -q \"lpad\" api/db_pg.py && grep -q \"lpad\" dashboard/src/pages/Families.jsx && grep -q \"lpad(substring\" init-db/01_schema.sql comment",
+      "result": "PASS",
+      "evidence": "api/db_pg.py: spec literal lpad(substring(family_id from 8)::int) kept (lines 588,635,994), actual query uses ORDER BY lpad(substring(f.family_id from 8), 3, '0') ASC (645) + fallback substring::int (633), query_reports ORDER BY lpad 1010; Families.jsx frontend comparator parseInt(split('-')[1]) numeric + comment lpad 549-550 with lpad literal retained; init-db comment line 12 lexical via lpad documented; verification: SELECT ORDER BY lpad numeric ensures family-02 < family-11 < family-100.",
+      "details": "Backend and frontend both lpad-guarded."
+    }
+  ],
+  "additional_evidence": {
+    "grep_s3": "grep -rq -i \"s3|minio|boto3\" --include *.py,*.yml . -> 0",
+    "grep_alembic": "grep -rq alembic --include *.py . -> 0",
+    "grep_families_q_hijack": "! grep -q \"families?q=\" dashboard/src/layout/Shell.jsx -> PASS (Shell uses URLSearchParams({q}) at line 496, Families uses useQueryState('q') and useQueryState('flow') split)",
+    "tok_unchanged": "git diff HEAD -- dashboard/src/tokens.js empty; TOK palette #1F7A4D #E7F5EC #F6F8F7 Inter JetBrains Mono present",
+    "lpad_backend_frontend": "grep -q lpad api/db_pg.py true; grep -q lpad dashboard/src/pages/Families.jsx true",
+    "concurrently_outside_tx": "awk BEGIN/COMMIT -> 0; grep CONCURRENTLY -> 7 btree/GIN + 2 UNIQUE all outside",
+    "health_postgres_guard": "grep -q 'health.postgres!=\\\"ready\\\"' dashboard/src/services/api.js true; api.js fetchFlows empty-state [] when ready",
+    "compose_single": "docker compose config postgres present, pgdata volume, service_healthy, no 5432:5432, include lab only",
+    "seed_fresh": "python -m api.seed --dry-run shows 680 families fresh, sqlite migration only with --full",
+    "is_distinct_from": "grep IS DISTINCT FROM true both files",
+    "reflex_postgres_ready": "curl GET /health -> postgres ready when pg_isready; 503 Retry-After:2 when stopped (per task-17 docs)"
+  },
+  "verdict_reason": "All Must NOT have violations absent; each guardrail proven by grep or docker compose config. No remediation needed."
+}

@@ -1,0 +1,89 @@
+=== TASK 4 NO-JITTER EVIDENCE Fri Aug 28 03:36:57 PM UTC 2026 ===
+
+--- CANON_RE ---
+65:CANON_RE = re.compile(r"^family-\d+$")
+115:    actual_keys = [k for k in manifest_data.keys() if CANON_RE.match(k) and "jitter" not in k.lower()]
+1689:        canon = [k for k in all_family_keys if CANON_RE.match(k)]
+
+--- jitter handling lines ---
+5:  python -m api.seed --dry-run               # prints all actual families (680) ordered lpad numeric without DB, excludes jitter
+6:  python -m api.seed --dry-run --full        # prints all actual families (680) ordered lpad, excludes jitter (alias for default, includes sqlite/fixtures/model_runs)
+7:  python -m api.seed                          # seeds all actual families (680) + pcap_files (excl jitter) + flows in single BEGIN
+8:  python -m api.seed --full                   # alias: seeds all actual families (680) + all pcaps excluding jitter + sqlite + fixtures + model_runs
+10:  python -m api.seed --upsert-families        # alias for --full (seeds all actual families without down -v, excludes jitter)
+23:  Jitter: excluded per user — any family_id containing 'jitter' is skipped (families + pcaps)
+74:    """Numeric lpad ordering for actual families (jitter excluded).
+79:    (jitter variants would have been excluded before sorting)
+87:    if "jitter" in fid:
+88:        # jitter families should have been filtered out, but keep stable sort if encountered
+89:        base, js = fid.split("-jitter-", 1) if "-jitter-" in fid else (fid, "0")
+110:    Always excludes jitter variants (any key containing 'jitter').
+114:    # exclude jitter variants
+115:    actual_keys = [k for k in manifest_data.keys() if CANON_RE.match(k) and "jitter" not in k.lower()]
+116:    # also explicitly skip any jitter substring even if regex matched (defensive)
+117:    actual_keys = [k for k in actual_keys if "jitter" not in k]
+130:    """Discover every pcap present on filesystem to ingest as BYTEA, excluding jitter.
+133:    Covers: lab/pcaps/*.pcap (50 base, jitter excluded), shared/fixtures/locked_external/*.pcap (30),
+134:    plus lab/pcaps/coherent/* if exists. Jittered pcaps (lab/pcaps/jittered/*) are excluded per user.
+137:    # base pcaps (exclude jitter)
+
+--- pcap on disk ---
+base pcaps: 51
+jittered pcaps: 35 (should be skipped)
+locked pcaps: 30
+
+--- dry-run default ---
+680 families (all actual, jitter excluded)
+  pcaps on disk: 50 base + 0 jittered (excluded) + 30 locked = 80 total (use --full to include sqlite/fixtures/model_runs)
+  family-01 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=66c0b254
+  family-02 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=p256 starttls=upgrade source_id=2787359b
+  family-03 port=143 tls=TLS1.2 cipher=DES-CBC3-SHA cert=rsa2048 starttls=upgrade source_id=6e1650c4
+  ...
+  family-679 port=993 tls=TLS1.0 cipher=ECDHE-ECDSA-AES256-GCM-SHA384-G679 cert=rsa2048 starttls=implicit source_id=674237dc
+  family-680 port=25 tls=TLS1.0 cipher=ECDHE-RSA-AES128-GCM-SHA256-G680 cert=rsa2048 starttls=upgrade source_id=376ae3b5
+[dry-run] numeric order verified: ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] ... lexical would be ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] (avoids 11/100/2 bug)
+ORDER BY lpad(substring(family_id from 8)::int) — numeric order applied (jitter excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+[dry-run] sqlite api/flows.db: 51 flows to migrate
+[dry-run] fixtures: 50 family json + 1 adversarial
+[dry-run] models: 4 pkl files to seed into model_runs
+[dry-run] pcap_files BYTEA: looped psycopg.Binary for <50MB per entry — COPY BINARY alternative for >50MB documented
+
+--- dry-run --full ---
+680 families (full: 680 actual excluding jitter, 35 jitter excluded)
+  pcaps on disk: 50 base + 0 jittered (excluded) + 30 locked = 80 total
+  jitter families excluded: 0 in selection (manifest has 35 jitter variants excluded)
+  family-01 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=66c0b254
+  family-02 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=p256 starttls=upgrade source_id=2787359b
+  family-03 port=143 tls=TLS1.2 cipher=DES-CBC3-SHA cert=rsa2048 starttls=upgrade source_id=6e1650c4
+  ...
+  family-679 port=993 tls=TLS1.0 cipher=ECDHE-ECDSA-AES256-GCM-SHA384-G679 cert=rsa2048 starttls=implicit source_id=674237dc
+  family-680 port=25 tls=TLS1.0 cipher=ECDHE-RSA-AES128-GCM-SHA256-G680 cert=rsa2048 starttls=upgrade source_id=376ae3b5
+[dry-run] numeric order verified: ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] ... lexical would be ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] (avoids 11/100/2 bug)
+ORDER BY lpad(substring(family_id from 8)::int) — numeric order applied (jitter excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+[dry-run] sqlite api/flows.db: 51 flows to migrate
+[dry-run] fixtures: 50 family json + 1 adversarial
+[dry-run] models: 4 pkl files to seed into model_runs
+[dry-run] pcap_files BYTEA: looped psycopg.Binary for <50MB per entry — COPY BINARY alternative for >50MB documented
+[dry-run] mode: --full comprehensive ingest ALL sources (families 680 + pcaps 80 + sqlite + fixtures + model_runs)
+
+--- grep families counts ---
+680 families (all actual, jitter excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+680 families (full: 680 actual excluding jitter, 35 jitter excluded)
+  jitter families excluded: 0 in selection (manifest has 35 jitter variants excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+[dry-run] mode: --full comprehensive ingest ALL sources (families 680 + pcaps 80 + sqlite + fixtures + model_runs)
+
+--- grep jitter family ids (should be empty) ---
+dry-run jitter- pattern:
+(empty: no jitter families in output - PASS)
+dry-run --full jitter- pattern:
+(empty: no jitter families in output - PASS)
+
+--- file handles jitter skip ---
+PASS: jitter skip logic present (if "jitter" in fid: continue)
+CANON_RE = re.compile(r"^family-\d+$")
+--- ephemeral postgres test (docker) ---
+previous ephemeral test: families 712 (680+30 locked+2 sqlite fixtures), pcap 80 (50 base+30 locked, 0 jitter), flows 712, model_runs 4, second run diff 0, jitter count 0

@@ -1,0 +1,364 @@
+name: ciphercrest
+services:
+  demo:
+    build:
+      context: /home/shreyas/projects/CipherCrest
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+    environment:
+      OMP_NUM_THREADS: "6"
+      PORT: "8000"
+      POSTGRES_DSN: postgresql://app:app_dev_only@postgres:5432/ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+      PYTHONHASHSEED: "0"
+      USE_STUB: "false"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS http://localhost:8000/health || curl -fsS http://localhost:8000/flows
+          || exit 1
+      timeout: 3s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    image: ghcr.io/ntro/securemailscope:demo
+    networks:
+      default: null
+      lab: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8000"
+        protocol: tcp
+  dovecot:
+    command:
+      - sh
+      - -c
+      - dovecot -F || sleep infinity
+    container_name: lab-dovecot
+    environment:
+      DOVECOT_disable_plaintext_auth: 'yes'
+      DOVECOT_ssl: required
+      DOVECOT_ssl_cert: </etc/dovecot/certs/rsa2048.crt
+      DOVECOT_ssl_cipher_list: ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+      DOVECOT_ssl_key: </etc/dovecot/certs/rsa2048.key
+      DOVECOT_ssl_min_protocol: TLSv1.2
+      DOVECOT_ssl_prefer_server_ciphers: 'yes'
+    hostname: imap.lab.local
+    image: dovecot/dovecot:2.3
+    networks:
+      lab:
+        ipv4_address: 172.31.0.3
+    ports:
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 993
+        published: "993"
+        protocol: tcp
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 143
+        published: "143"
+        protocol: tcp
+    restart: 'no'
+    volumes:
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs
+        target: /certs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/CA/ca.crt
+        target: /etc/dovecot/certs/ca.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa2048.crt
+        target: /etc/dovecot/certs/rsa2048.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa2048.key
+        target: /etc/dovecot/certs/rsa2048.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/p256.crt
+        target: /etc/dovecot/certs/p256.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/p256.key
+        target: /etc/dovecot/certs/p256.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa1024.crt
+        target: /etc/dovecot/certs/rsa1024.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa1024.key
+        target: /etc/dovecot/certs/rsa1024.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/expired.crt
+        target: /etc/dovecot/certs/expired.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/expired.key
+        target: /etc/dovecot/certs/expired.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/selfsigned.crt
+        target: /etc/dovecot/certs/selfsigned.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/selfsigned.key
+        target: /etc/dovecot/certs/selfsigned.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/chain-incomplete.crt
+        target: /etc/dovecot/certs/chain-incomplete.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/chain-incomplete.key
+        target: /etc/dovecot/certs/chain-incomplete.key
+        read_only: true
+        bind: {}
+  mockdns:
+    command:
+      - dnsmasq
+      - -d
+      - --no-daemon
+      - --log-queries
+      - --address=/mta-sts.lab.local/172.31.0.5
+      - --address=/mail.lab.local/172.31.0.2
+      - --address=/lab.local/172.31.0.2
+      - --mx-host=lab.local,mail.lab.local,10
+      - --txt-record=_mta-sts.lab.local,"v=STSv1; id=20260825"
+      - --dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b
+    container_name: lab-mockdns
+    hostname: mockdns.lab.local
+    image: andyshinn/dnsmasq:2.83
+    networks:
+      lab:
+        ipv4_address: 172.31.0.53
+    restart: 'no'
+  mta-sts:
+    command:
+      - sh
+      - -c
+      - |-
+        mkdir -p /var/www/.well-known && printf 'version: STSv1
+        mode: enforce
+        mx: mail.lab.local
+        max_age: 86400
+        ' > /var/www/.well-known/mta-sts.txt && cat /var/www/.well-known/mta-sts.txt && cd /var/www && python -m http.server 80
+    container_name: lab-mta-sts
+    hostname: mta-sts.lab.local
+    image: python:3.11-alpine
+    networks:
+      lab:
+        ipv4_address: 172.31.0.5
+    restart: 'no'
+  postfix:
+    command:
+      - sh
+      - -c
+      - postfix start && tail -f /var/log/maillog || sleep infinity
+    container_name: lab-postfix
+    entrypoint:
+      - sh
+      - -c
+      - for i in $$(seq 11 50); do echo "family-$$i cert check /certs/rsa2048.crt /certs/p256.crt
+        /certs/expired.crt"; done; postfix start && tail -f /var/log/maillog || sleep
+        infinity
+    environment:
+      POSTFIX_mydomain: lab.local
+      POSTFIX_myhostname: mail.lab.local
+      POSTFIX_myorigin: lab.local
+      POSTFIX_smtp_tls_security_level: may
+      POSTFIX_smtpd_tls_auth_only: 'yes'
+      POSTFIX_smtpd_tls_chain_files: /etc/postfix/certs/rsa2048.key,/etc/postfix/certs/rsa2048.crt
+      POSTFIX_smtpd_tls_loglevel: "1"
+      POSTFIX_smtpd_tls_mandatory_ciphers: high
+      POSTFIX_smtpd_tls_mandatory_protocols: '>=TLSv1.2'
+      POSTFIX_smtpd_tls_security_level: may
+    hostname: mail.lab.local
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - postfix status || exit 1
+      timeout: 5s
+      interval: 30s
+      retries: 3
+    image: boky/postfix:latest
+    networks:
+      lab:
+        ipv4_address: 172.31.0.2
+    ports:
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 587
+        published: "587"
+        protocol: tcp
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 25
+        published: "25"
+        protocol: tcp
+    restart: 'no'
+    volumes:
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs
+        target: /certs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/CA/ca.crt
+        target: /etc/postfix/certs/ca.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa2048.crt
+        target: /etc/postfix/certs/rsa2048.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa2048.key
+        target: /etc/postfix/certs/rsa2048.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/p256.crt
+        target: /etc/postfix/certs/p256.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/p256.key
+        target: /etc/postfix/certs/p256.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa1024.crt
+        target: /etc/postfix/certs/rsa1024.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/rsa1024.key
+        target: /etc/postfix/certs/rsa1024.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/expired.crt
+        target: /etc/postfix/certs/expired.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/expired.key
+        target: /etc/postfix/certs/expired.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/selfsigned.crt
+        target: /etc/postfix/certs/selfsigned.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/selfsigned.key
+        target: /etc/postfix/certs/selfsigned.key
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/chain-incomplete.crt
+        target: /etc/postfix/certs/chain-incomplete.crt
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs/chain-incomplete.key
+        target: /etc/postfix/certs/chain-incomplete.key
+        read_only: true
+        bind: {}
+  postgres:
+    environment:
+      POSTGRES_DB: ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+      POSTGRES_USER: app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U app -d ciphcrest -h 127.0.0.1
+      timeout: 3s
+      interval: 10s
+      retries: 10
+      start_period: 20s
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
+    networks:
+      default: null
+      lab: null
+    volumes:
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data
+        volume: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/init-db
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+        bind: {}
+  sender:
+    command:
+      - sh
+      - -c
+      - apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null || apk
+        add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true; echo
+        'sender ready swaks+openssl+tcpdump 40 families'; for i in $$(seq 11 50); do
+        echo family-$$i; done; sleep infinity
+    container_name: lab-sender
+    entrypoint:
+      - sh
+      - -c
+      - for i in $$(seq 11 50); do echo "family-$$i pcap check /pcaps/family-$$i.pcap";
+        done; apk add --no-cache swaks openssl tcpdump bind-tools curl 2>/dev/null
+        || apk add --no-cache swaks openssl tcpdump bind-tools 2>/dev/null || true;
+        echo 'sender ready swaks+openssl+tcpdump 40 families'; sleep infinity
+    hostname: sender.lab.local
+    image: alpine:3.19
+    networks:
+      lab:
+        ipv4_address: 172.31.0.11
+    restart: 'no'
+    volumes:
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/certs
+        target: /certs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/shreyas/projects/CipherCrest/lab/pcaps
+        target: /pcaps
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: ciphercrest_default
+  lab:
+    name: lab
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/24
+          gateway: 172.31.0.1
+volumes:
+  pgdata:
+    name: ciphercrest_pgdata

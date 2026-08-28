@@ -1,0 +1,190 @@
+=== Task 15 matview refresh debounced LISTEN/NOTIFY + UNIQUE indexes + pg_isready gate ===
+timestamp: 2026-08-28T16:35:08Z
+
+--- 1. grep LISTEN flows_upsert + REFRESH CONCURRENTLY ---
+56:    LISTEN flows_upsert via psycopg.AsyncConnection + debounce 5s coalescing
+90:            await conn.execute("LISTEN flows_upsert")
+57:    multiple NOTIFYs into single REFRESH MATERIALIZED VIEW CONCURRENTLY
+140:                # REFRESH MATERIALIZED VIEW CONCURRENTLY — requires UNIQUE indexes
+142:                    await conn.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_dashboard_metrics")
+146:                    await conn.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_protocol_stats")
+[pass] LISTEN
+[pass] REFRESH
+
+--- 2. listen_refresh def + debounce + coalescing ---
+53:async def listen_refresh():
+120:                await asyncio.sleep(5)
+183:        _listen_refresh_task = asyncio.create_task(listen_refresh())
+93:                    # psycopg3 AsyncConnection.notifies is async generator; psycopg2 style is queue.get()
+94:                    if hasattr(conn, "notifies") and callable(getattr(conn, "notifies")):
+96:                        notifies_attr = getattr(conn, "notifies")
+98:                        if hasattr(notifies_attr, "get") or hasattr(conn.notifies, "get"):
+99:                            # queue path — await conn.notifies.get() with debounce
+101:                                await conn.notifies.get()  # type: ignore
+104:                                async for _ in conn.notifies():  # type: ignore
+108:                            async for _ in conn.notifies():  # type: ignore
+111:                        async for _ in conn.notifies():  # type: ignore
+124:                    async for _ in conn.notifies(timeout=0):  # type: ignore
+
+--- 3. pg_matviews UNIQUE indexes ---
+     matviewname      
+----------------------
+ mv_dashboard_metrics
+(1 row)
+
+    indexname     
+------------------
+ idx_mv_dash_risk
+(1 row)
+
+  indexname   
+--------------
+ idx_mv_proto
+(1 row)
+
+REFRESH MATERIALIZED VIEW
+ ?column? 
+----------
+ ok
+(1 row)
+
+
+--- 4. turnup.sh wait_for_postgres ---
+230:wait_for_postgres(){
+310:  echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+311:  if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check (postgres may still be starting)"; fi
+423:    echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+424:    if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check"; fi
+232:    if pg_isready -h postgres -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
+310:  echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+311:  if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check (postgres may still be starting)"; fi
+423:    echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
+424:    if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check"; fi
+231:  for i in $(seq 1 20); do
+
+--- 5. Shell.jsx readiness skeleton ---
+86:          // empty DB still seeding — show Postgres seeding… skeleton not fallback rows
+612:            Postgres seeding… — GET /api/families 503 retry every 2s until 200
+74:    // GET /api/families readiness gate — 503 retry every 2s until 200
+612:            Postgres seeding… — GET /api/families 503 retry every 2s until 200
+624:              <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 4 }}>loading skeleton — GET /api/families / GET /flows DB-backed, not fallback rows</div>
+86:          // empty DB still seeding — show Postgres seeding… skeleton not fallback rows
+618:            <div aria-label="loading skeleton" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+619:              <div style={{ height: 18, width: '40%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite' }} />
+620:              <div style={{ height: 120, background: '#F1F2F4', borderRadius: 12, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.15s' }} />
+621:              <div style={{ height: 12, width: '70%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.3s' }} />
+622:              <div style={{ height: 12, width: '55%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.45s' }} />
+623:              <div style={{ height: 80, background: '#F1F2F4', borderRadius: 12, animation: 'skeletonPulse 1.2s ease-in-out infinite 0.6s' }} />
+624:              <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 4 }}>loading skeleton — GET /api/families / GET /flows DB-backed, not fallback rows</div>
+639:        @keyframes skeletonPulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+--- 6. curl metrics baseline ---
+[
+    {
+        "risk_level": "High",
+        "cnt": 15,
+        "avg_posture": 71.6
+    },
+    {
+        "risk_level": "Critical",
+        "cnt": 27,
+        "avg_posture": 17.296296296296298
+    },
+    {
+        "risk_level": "Medium",
+        "cnt": 4,
+        "avg_posture": 80.0
+    },
+    {
+        "risk_level": "Low",
+        "cnt": 665,
+        "avg_posture": 90.02409638554217
+ risk_level | cnt |    avg_posture     
+------------+-----+--------------------
+ High       |  15 |               71.6
+ Critical   |  27 | 17.296296296296298
+ Medium     |   4 |                 80
+ Low        | 665 |  90.02409638554217
+(4 rows)
+
+
+--- 7. Single NOTIFY debounced refresh test ---
+Low cnt before: 665
+INSERT 0 1
+ pg_notify 
+-----------
+ 
+(1 row)
+
+notified, matview still stale before debounce:
+ risk_level | cnt |    avg_posture    
+------------+-----+-------------------
+ Low        | 665 | 90.02409638554217
+(1 row)
+
+[{'risk_level': 'Low', 'cnt': 665, 'avg_posture': 90.02409638554217}]
+after 7s debounced refresh:
+ risk_level | cnt |    avg_posture    
+------------+-----+-------------------
+ Low        | 666 | 90.02406015037594
+(1 row)
+
+Low cnt after: 666 (expected 666)
+[pass] single notify refresh updated cnt
+DELETE 1
+ pg_notify 
+-----------
+ 
+(1 row)
+
+ risk_level | cnt |    avg_posture    
+------------+-----+-------------------
+ Low        | 665 | 90.02409638554217
+(1 row)
+
+
+--- 8. 5 rapid NOTIFYs coalesced into 1 refresh ---
+total cnt before 5 inserts: 711
+
+
+
+
+
+5 notifies sent rapidly, immediate matview should be stale:
+ risk_level | cnt | avg_posture 
+------------+-----+-------------
+ Medium     |   4 |          80
+(1 row)
+
+after 7s coalesced refresh:
+ risk_level | cnt |    avg_posture     
+------------+-----+--------------------
+ Medium     |   9 | 63.333333333333336
+(1 row)
+
+total cnt after: 716 (expected 716)
+[pass] 5 coalesced into 1 refresh, total +5
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+DELETE 1
+ pg_notify 
+-----------
+ 
+(1 row)
+
+ risk_level | cnt |    avg_posture     
+------------+-----+--------------------
+ High       |  15 |               71.6
+ Critical   |  27 | 17.296296296296298
+ Low        | 665 |  90.02409638554217
+ Medium     |   4 |                 80
+(4 rows)
+
+
+--- 9. NOT inside trigger + no cron ---
+[ok] no refresh inside trigger
+[ok] no cron
+
+=== done ===

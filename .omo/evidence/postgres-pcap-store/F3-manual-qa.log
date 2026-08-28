@@ -1,0 +1,387 @@
+=== F3 Real Manual QA — 2026-08-28T16:48:00Z ===
+PWD=/home/shreyas/projects/CipherCrest
+python=Python 3.12.9 node=v24.19.0 npm=11.17.0 docker=Docker version 29.7.2, build a7dcaa6 compose=Docker Compose version v5.5.0
+
+== 1 docker compose config validation ==
+docker compose config exit=0
+PASS postgres image pinned
+PASS healthcheck pg_isready
+PASS pgdata volume
+PASS depends_on service_healthy
+PASS POSTGRES_DSN
+--- docker compose config | grep postgres ---
+      postgres:
+      POSTGRES_DSN: postgresql://app:app_dev_only@postgres:5432/ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+  postgres:
+      POSTGRES_DB: ciphcrest
+      POSTGRES_PASSWORD: app_dev_only
+      POSTGRES_USER: app
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
+        target: /var/lib/postgresql/data
+
+== 2 python -m api.seed --dry-run | grep families ==
+680 families (all actual, jitter excluded)
+  pcaps on disk: 50 base + 0 jittered (excluded) + 30 locked = 80 total (use --full to include sqlite/fixtures/model_runs)
+  family-01 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=66c0b254
+  family-02 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=p256 starttls=upgrade source_id=2787359b
+  family-03 port=143 tls=TLS1.2 cipher=DES-CBC3-SHA cert=rsa2048 starttls=upgrade source_id=6e1650c4
+  ...
+  family-679 port=993 tls=TLS1.0 cipher=ECDHE-ECDSA-AES256-GCM-SHA384-G679 cert=rsa2048 starttls=implicit source_id=674237dc
+  family-680 port=25 tls=TLS1.0 cipher=ECDHE-RSA-AES128-GCM-SHA256-G680 cert=rsa2048 starttls=upgrade source_id=376ae3b5
+[dry-run] numeric order verified: ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] ... lexical would be ['family-01', 'family-02', 'family-03', 'family-04', 'family-05'] (avoids 11/100/2 bug)
+ORDER BY lpad(substring(family_id from 8)::int) — numeric order applied (jitter excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+[dry-run] sqlite api/flows.db: 51 flows to migrate
+[dry-run] fixtures: 50 family json + 1 adversarial
+[dry-run] models: 4 pkl files to seed into model_runs
+[dry-run] pcap_files BYTEA: looped psycopg.Binary for <50MB per entry — COPY BINARY alternative for >50MB documented
+PASS seed dry-run families found
+680 families (all actual, jitter excluded)
+[dry-run] jitter excluded verified: 0 jitter families in selection
+
+== 3 docker ephemeral postgres:16-alpine@sha256:075f... ==
+513999bc637d0038656bff5f781827c90701af7c246dacee909ab9f72660b625
+waiting pg_isready 20s on 5439
+pg_isready ok at 3 s
+
+== 4 psql -f init-db/01_schema.sql ==
+CREATE EXTENSION
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+psql:init-db/01_schema.sql:61: NOTICE:  column "source" of relation "flows_history" already exists, skipping
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE FUNCTION
+psql:init-db/01_schema.sql:130: NOTICE:  trigger "trg_families_updated_at" for relation "families" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+psql:init-db/01_schema.sql:135: NOTICE:  trigger "trg_flows_updated_at" for relation "flows" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:init-db/01_schema.sql:152: NOTICE:  trigger "trg_flows_after_insert_family_done" for relation "flows" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+COMMIT
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+SELECT 0
+SELECT 0
+CREATE INDEX
+CREATE INDEX
+psql 01_schema exit=0
+
+== 5 POSTGRES_DSN seed ephemeral ==
+[seed] real pipeline family-05.pcap → 1 FlowVerdicts
+[seed] real pipeline family-06.pcap → 1 FlowVerdicts
+[seed] real pipeline family-07.pcap → 1 FlowVerdicts
+[seed] real pipeline family-08.pcap → 1 FlowVerdicts
+[seed] real pipeline family-09.pcap → 1 FlowVerdicts
+[seed] real pipeline family-10.pcap → 1 FlowVerdicts
+[seed] real pipeline family-11.pcap → 1 FlowVerdicts
+[seed] real pipeline family-12.pcap → 1 FlowVerdicts
+[seed] real pipeline family-13.pcap → 1 FlowVerdicts
+[seed] real pipeline family-14.pcap → 1 FlowVerdicts
+[seed] real pipeline family-15.pcap → 1 FlowVerdicts
+[seed] real pipeline family-16.pcap → 1 FlowVerdicts
+[seed] real pipeline family-17.pcap → 1 FlowVerdicts
+[seed] real pipeline family-18.pcap → 1 FlowVerdicts
+[seed] real pipeline family-19.pcap → 1 FlowVerdicts
+[seed] real pipeline family-20.pcap → 1 FlowVerdicts
+[seed] real pipeline family-21.pcap → 1 FlowVerdicts
+[seed] real pipeline family-22.pcap → 1 FlowVerdicts
+[seed] real pipeline family-23.pcap → 1 FlowVerdicts
+[seed] real pipeline family-24.pcap → 1 FlowVerdicts
+[seed] real pipeline family-25.pcap → 1 FlowVerdicts
+[seed] real pipeline family-26.pcap → 1 FlowVerdicts
+[seed] real pipeline family-27.pcap → 1 FlowVerdicts
+[seed] real pipeline family-28.pcap → 1 FlowVerdicts
+[seed] real pipeline family-29.pcap → 1 FlowVerdicts
+[seed] real pipeline family-30.pcap → 1 FlowVerdicts
+[seed] real pipeline family-31.pcap → 1 FlowVerdicts
+[seed] real pipeline family-32.pcap → 1 FlowVerdicts
+[seed] real pipeline family-33.pcap → 1 FlowVerdicts
+[seed] real pipeline family-34.pcap → 1 FlowVerdicts
+[seed] real pipeline family-35.pcap → 1 FlowVerdicts
+[seed] real pipeline family-36.pcap → 1 FlowVerdicts
+[seed] real pipeline family-37.pcap → 1 FlowVerdicts
+[seed] real pipeline family-38.pcap → 1 FlowVerdicts
+[seed] real pipeline family-39.pcap → 1 FlowVerdicts
+[seed] real pipeline family-40.pcap → 1 FlowVerdicts
+[seed] real pipeline family-41.pcap → 1 FlowVerdicts
+[seed] real pipeline family-42.pcap → 1 FlowVerdicts
+[seed] real pipeline family-43.pcap → 1 FlowVerdicts
+[seed] real pipeline family-44.pcap → 1 FlowVerdicts
+[seed] real pipeline family-45.pcap → 1 FlowVerdicts
+[seed] real pipeline family-46.pcap → 1 FlowVerdicts
+[seed] real pipeline family-47.pcap → 1 FlowVerdicts
+[seed] real pipeline family-48.pcap → 1 FlowVerdicts
+[seed] real pipeline family-49.pcap → 1 FlowVerdicts
+[seed] real pipeline family-50.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-01.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-02.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-03.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-04.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-05.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-06.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-07.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-08.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-09.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-10.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-11.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-12.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-13.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-14.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-15.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-16.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-17.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-18.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-19.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-20.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-21.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-22.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-23.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-24.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-25.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-26.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-27.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-28.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-29.pcap → 1 FlowVerdicts
+[seed] real pipeline family-locked-30.pcap → 1 FlowVerdicts
+[seed] families: before=0 after=710 diff=710 (0 diff means idempotent)
+[seed] pcap_files: before=0 after=80 diff=80 (0 diff means idempotent)
+[seed] flows: before=0 after=710 diff=710 (0 diff means idempotent)
+[seed] model_runs: before=0 after=0 diff=0 (0 diff means idempotent)
+seed exit=0
+
+== 6 psql counts after seed ==
+ families 
+----------
+      710
+(1 row)
+
+ status | count 
+--------+-------
+ done   |   710
+(1 row)
+
+ pcap_files 
+------------
+         80
+(1 row)
+
+ flows 
+-------
+   710
+(1 row)
+
+ flows_history 
+---------------
+           740
+(1 row)
+
+ not_run 
+---------
+       0
+(1 row)
+
+ count 
+-------
+     1
+(1 row)
+
+
+== 7 TestClient POST /api/analyze family-01 -> GET history version 2 (ephemeral DSN 5439) ==
+tshark prefs 4: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE tshark_used=True fallback=scapy
+tshark prefs 4: tcp.desegment_tcp_streams:TRUE tcp.reassemble_out_of_order:TRUE tls.desegment_ssl_records:TRUE tls.desegment_ssl_application_data:TRUE tshark_used=True fallback=scapy
+before history family-01: 1
+POST /api/analyze status 200
+[{"flow_id":"family-01","environment_id":"127.0.0.1:587->127.0.0.11:54321","capture_epoch":"2026-08-27T00:00:00Z","source_id":"8f54963f","coverage_ratio":1.0,"pre_tls_buffer_len":171,"pre_tls_buffer_injection_possible":true,"app_protocol":"smtp","starttls_mode":"upgrade","tls":{"version":"TLS1.2","is_deprecated":false,"cipher_suite":"ECDHE-RSA-AES128-GCM-SHA256","cipher_strength":"strong","is_aead":true,"kex":"ECDHE","fs_flag":true,"ja4":"t12i020000_ced06afb9e65_000000000000","ja4_rarity":null,"ja4s":"t12_000000000000_000000000000","early_data_offered":false,"early_data_accepted":false,"psk_offered":false,"ticket_age":null,"ech_outer_present":false,"handshake_success":true,"alert_after_starttls":false},"cert":{"leaf_present":true,"is_tls13_opaque":false,"not_before":"2026-08-25T04:11:15+00
+history rows family-01: [(1, 'synthetic'), (2, 'synthetic')] count 2
+live source count 0
+second POST status 200
+after second: [(1, 'synthetic'), (2, 'synthetic'), (3, 'synthetic')]
+GET /api/flows/history status 200 len 3
+[{'flow_id': 'family-01', 'version': 3, 'created_at': '2026-08-28T16:48:18.008508+00:00', 'data': {'tls': {'ja4': 't12i020000_ced06afb9e65_000000000000', 'kex': 'ECDHE', 'ja4s': 't12_000000000000_000000000000', 'fs_flag': True, 'is_aead': True, 'version': 'TLS1.2', 'ja4_rarity': None, 'ticket_age': None, 'psk_offered': False, 'cipher_suite': 'ECDHE-RSA-AES128-GCM-SHA256', 'is_deprecated': False, 'cipher_strength': 'strong', 'ech_outer_present': False, 'handshake_success': True, 'early_data_offered': False, 'early_data_accepted': False, 'alert_after_starttls': False}, 'cert': {'sigalg': 'sha256', 'not_after': '2026-11-23T04:11:15+00:00', 'san_match': True, 'is_expired': False, 'not_before': '2026-08-25T04:11:15+00:00', 'chain_valid': True, 'pubkey_algo': 'RSA', 'pubkey_bits': 2048, 'sigalg_weak': False, 'chain_length': 2, 'keysize_weak': False, 'leaf_present': True, 'days_to_expiry': 86, 'is_self_signed': False, 'is_tls13_opaque': False, 'ocsp_must_staple': False, 'crl_unknown_reason': False, 'ocsp_stapled_status': 'unknown'}, 'policy': {'action': 'allow', 'banner_text': None, 'arf_report_id': None, 'quarantine_id': None, 'siem_severity': 'Low', 'disposition_reason': 'Low risk_score 6 top Posture Info: secure strong cipher valid cert Low'}, 'flow_id': 'family-01', 'source_id': '8f54963f', 'assessment': {'findings': [{'spec': 'NIST SP 800-52r2 §3.3.1', 'check': 'TLS version outdated', 'evidence': 'TLS 1.2 only — not deprecated but should migrate to 1.3', 'severity': 'Medium', 'remediation': 'Plan migration to TLS 1.3 per NIST 800-52r2; disable 1.2 where possible'}, {'spec': 'Postfix CVE-2011-0411, GHSA-9j88', 'check': 'Pre-TLS injection possible', 'evidence': 'pre_tls_buffer_len 171 bytes between 220→ClientHello pipelined', 'severity': 'High', 'remediation': 'Fix unflushed buffer: discard pre-TLS pipelined bytes before ClientHello'}, {'spec': 'RFC8314 §3', 'check': 'Implicit TLS absent', 'evidence': 'implicit TLS check — no downgrade artifact or already implicit', 'severity': 'Info', 'remediation': 'No action; track per-version'}, {'spec': 'RFC8461 §3, RFC7672 §5.1', 'check': 'MX/MTA-STS/DANE', 'evidence': 'MX=mail.lab.local evidence mta-sts enforce dane present', 'severity': 'Info', 'remediation': 'Enforce MTA-STS/DANE where applicable; MX mail.lab.local per fixture'}, {'spec': 'RFC8446 §8, RFC9846 §8', 'check': '0-RTT / ECH', 'evidence': 'no 0-RTT artifact — early_data_offered False', 'severity': 'Info', 'remediation': 'No action; ECH outer absent INFO'}, {'spec': 'RFC5280 §4.2.1.3', 'check': 'KeyUsage missing', 'evidence': 'leaf absent/opaque or keyUsage not evaluated (honest R1)', 'severity': 'Info', 'remediation': 'No action; honest per R1'}, {'spec': 'RFC5280 §4.2.1.12', 'check': 'ExtendedKeyUsage not serverAuth', 'evidence': 'EKU not evaluated (honest) or leaf absent', 'severity': 'Info', 'remediation': 'No action; honest'}], 'risk_level': 'High', 'risk_score': 27, 'anomaly_score': 3.595571335339096, 'posture_score': 73, 'calibrated_prob': 0.7136544563860381, 'anomaly_honest_score': 3.595571335339096}, 'app_protocol': 'smtp', 'capture_epoch': '2026-08-27T00:00:00Z', 'starttls_mode': 'upgrade', 'coverage_ratio': 1.0, 'environment_id': '127.0.0.1:587->127.0.0.11:54321', 'pre_tls_buffer_len': 171, 'pre_tls_buffer_injection_possible': True}}]
+GET /api/families status 200 len 60
+not_run among first 60: 0
+GET /api/reports status 200 len 5
+orig family-01 sha 8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd len 1020
+GET pcap download status 200 len 1020 headers {'content-disposition': 'attachment; filename="family-01.pcap"', 'content-type': 'application/vnd.tcpdump.pcap', 'accept-ranges': 'bytes', 'content-length': '1020'}
+download sha 8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd match True
+Range 0-9 status 206 Content-Range bytes 0-9/1020 len 10 match slice True
+GET /api/metrics flow_id family-01 200 {"flow_id":"family-01","cnt":1,"avg_posture":73.0}
+
+== 8 ws same-origin grep ==
+96:      ws = new WebSocket(`${location.protocol==="https:" ? "wss:" : "ws:"}//${location.host}/ws/flows`)
+PASS ws same-origin location.host
+253:@app.websocket("/ws/flows")
+254:@app.websocket("/api/ws/flows")
+PASS ws same-origin literal
+PASS no hardcoded :8000/ws
+
+== 9 psql pcap sha match family-01 ==
+ family_id |                              sha256                              | byte_length | octet_length 
+-----------+------------------------------------------------------------------+-------------+--------------
+ family-01 | 8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd |        1020 |         1020
+(1 row)
+
+8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd
+
+== 10 dashboard cross-filter click family-01 -> all graphs filter (code evidence) ==
+353:  const [selectedId, setSelectedId] = useState(null)
+464:        const found = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
+469:      const found = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
+478:      setSelectedId(flowParam)
+597:    setSelectedId(id)
+717:    if (matrixFlow && (matrixFlow.flow_id === selectedId || matrixFlow.family_id === selectedId)) return matrixFlow
+718:    const matched = flows.find(f => f.flow_id === selectedId || f.family_id === selectedId)
+720:    const fItem = families.find(f => (f.family_id || f.id) === selectedId)
+1502:                    activeFlowObj?.has_run === false || (families.find(f => (f.family_id || f.id) === selectedId)?.has_run === false)
+1514:                  onClick={() => handleStreamSingle({ family_id: selectedId, id: selectedId })}
+1598:                      {families.find(f => (f.family_id || f.id) === selectedId)?.has_run === false
+48:// cross-filter ?flow= deep-link preserved (q vs flow split): useQueryState('flow') — do not hijack ?q
+dashboard/src/components/Graphs.jsx:187:    {x:1,y:6,flow:'family-01',risk:'Low'},{x:2,y:16,flow:'family-06',risk:'Low'},{x:3,y:22,flow:'family-09',risk:'Critical'},
+dashboard/src/components/Graphs.jsx:188:    {x:4,y:4,flow:'family-02',risk:'Low'},{x:5,y:18,flow:'family-03',risk:'High'},
+dashboard/src/services/api.js:73:  // normalized: opts may be {limit, flow_id, family_id, risk_level, order} or legacy limit number
+dashboard/src/services/api.js:75:  let flow_id, family_id, risk_level, order
+dashboard/src/services/api.js:145:      flow_id: 'family-01',
+dashboard/src/services/api.js:156:      flow_id: 'family-02',
+dashboard/src/services/api.js:167:      flow_id: 'family-06',
+dashboard/src/services/api.js:178:      flow_id: 'family-03',
+dashboard/src/services/api.js:189:      flow_id: 'family-04',
+dashboard/src/services/api.js:200:      flow_id: 'family-05',
+dashboard/src/services/api.js:211:      flow_id: 'family-07',
+dashboard/src/services/api.js:222:      flow_id: 'family-08',
+dashboard/src/services/api.js:233:      flow_id: 'family-09',
+dashboard/src/services/api.js:244:      flow_id: 'family-10',
+dashboard/src/pages/Lab.jsx:326:  // GET /api/families determines has_run via EXISTS(SELECT 1 FROM flows WHERE flow_id=f.family_id)
+dashboard/src/pages/Lab.jsx:641:                    <div>reassembled/{selectedFlow.flow_id}.bin 120B · sha256:{(selectedFlow.source_id||'e828b0ab').slice(0,8)} · coverage {selectedFlow.coverage_ratio ?? '1.0'} · has_run {String(families.find(f=> f.family_id===selectedFlow.flow_id)?.has_run ?? true)}</div>
+dashboard/src/pages/Live.jsx:121:      flow_id: raw.flow_id || raw.id || 'family-01',
+dashboard/src/pages/Live.jsx:715:                <div>Flow: <b className="mono">{activePipelineItem?.flow_id || 'family-01'}</b></div>
+dashboard/src/pages/Reports.jsx:10: * Task13 add: GET /api/reports?limit=&offset=&order=risk_score_desc JOIN pcap_files→flows via family_id + paginated table family_id sha256 byte_length created_at risk_score posture_score + GET /api/pcap_files/:family_id/download Range streaming + export iterating paginated rows
+dashboard/src/pages/Reports.jsx:100:            // hydrate flows via /api/flows filtered by family_ids from reports rows for detailed cards
+
+== 11 pytest gate ==
+.s............................                                           [100%]
+=============================== warnings summary ===============================
+api/tests/test_app_always_select.py: 16 warnings
+api/tests/test_history_all_runs.py: 16 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:386: DeprecationWarning: is_sparse is deprecated and will be removed in a future version. Check `isinstance(dtype, pd.SparseDtype)` instead.
+    or is_sparse(dtype)
+
+api/tests/test_app_always_select.py: 48 warnings
+api/tests/test_history_all_runs.py: 48 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:336: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    return is_int or is_bool or is_float or is_categorical_dtype(dtype)
+
+api/tests/test_app_always_select.py: 16 warnings
+api/tests/test_history_all_runs.py: 16 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:387: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    or (is_nullable_dtype(dtype) and not is_categorical_dtype(dtype))
+
+api/tests/test_app_always_select.py: 16 warnings
+api/tests/test_history_all_runs.py: 16 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:388: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    or (is_categorical_dtype(dtype) and enable_categorical)
+
+api/tests/test_app_always_select.py: 32 warnings
+api/tests/test_history_all_runs.py: 32 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:312: DeprecationWarning: is_sparse is deprecated and will be removed in a future version. Check `isinstance(dtype, pd.SparseDtype)` instead.
+    if is_sparse(dtype):
+
+api/tests/test_app_always_select.py: 32 warnings
+api/tests/test_history_all_runs.py: 32 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:314: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    elif is_categorical_dtype(dtype) and enable_categorical:
+
+api/tests/test_app_always_select.py: 32 warnings
+api/tests/test_history_all_runs.py: 32 warnings
+  /home/shreyas/.pyenv/versions/3.12.9/lib/python3.12/site-packages/xgboost/data.py:345: DeprecationWarning: is_categorical_dtype is deprecated and will be removed in a future version. Use isinstance(dtype, pd.CategoricalDtype) instead
+    if is_categorical_dtype(dtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+29 passed, 1 skipped, 384 warnings in 3.56s
+pytest exit=0
+
+== 12 npm build gzip <3670016 ==
+dist/assets/jetbrains-mono-cyrillic-wght-normal-D73BlboJ.woff2     12.11 kB
+dist/assets/ibm-plex-sans-cyrillic-ext-400-normal-g30qAdWV.woff2   12.15 kB
+dist/assets/ibm-plex-sans-cyrillic-ext-500-normal-Cs5J6C77.woff2   12.31 kB
+dist/assets/inter-cyrillic-ext-400-normal-DQukG94-.woff            13.34 kB
+dist/assets/inter-cyrillic-ext-700-normal-LO58E6JB.woff            13.41 kB
+dist/assets/inter-cyrillic-ext-500-normal-BmqWE9Dz.woff            13.45 kB
+dist/assets/inter-cyrillic-ext-600-normal-Bcila6Z-.woff            13.46 kB
+dist/assets/ibm-plex-sans-cyrillic-400-normal-BTotfTJu.woff        13.51 kB
+dist/assets/ibm-plex-sans-cyrillic-500-normal-ByOcLdNv.woff        13.86 kB
+dist/assets/ibm-plex-sans-latin-ext-400-normal-RBey6euL.woff       14.36 kB
+dist/assets/ibm-plex-sans-latin-ext-500-normal-D0aIdm-b.woff       14.74 kB
+dist/assets/ibm-plex-sans-cyrillic-400-normal-DZqxrq2p.woff2       14.80 kB
+dist/assets/ibm-plex-sans-cyrillic-500-normal-CocWQlwt.woff2       15.00 kB
+dist/assets/jetbrains-mono-latin-ext-wght-normal-DBQx-q_a.woff2    15.20 kB
+dist/assets/ibm-plex-sans-latin-ext-400-normal-C5H60-Va.woff2      15.98 kB
+dist/assets/ibm-plex-sans-latin-ext-500-normal-DakdToA3.woff2      16.46 kB
+dist/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff           22.10 kB
+dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2          22.59 kB
+dist/assets/inter-latin-400-normal-C38fXH4l.woff2                  23.66 kB
+dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff           23.92 kB
+dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2          24.18 kB
+dist/assets/inter-latin-500-normal-Cerq10X2.woff2                  24.27 kB
+dist/assets/inter-latin-700-normal-Yt3aPRUw.woff2                  24.36 kB
+dist/assets/inter-latin-600-normal-LgqL8muc.woff2                  24.45 kB
+dist/assets/inter-latin-400-normal-CyCys3Eg.woff                   30.70 kB
+dist/assets/inter-latin-600-normal-CiBQ2DWP.woff                   31.26 kB
+dist/assets/inter-latin-500-normal-BL9OpVg8.woff                   31.28 kB
+dist/assets/inter-latin-700-normal-BLAVimhd.woff                   31.32 kB
+dist/assets/inter-latin-ext-400-normal-C1nco2VV.woff2              35.00 kB
+dist/assets/inter-latin-ext-500-normal-CV4jyFjo.woff2              36.02 kB
+dist/assets/inter-latin-ext-700-normal-Ca8adRJv.woff2              36.24 kB
+dist/assets/inter-latin-ext-600-normal-D2bJ5OIk.woff2              36.26 kB
+dist/assets/jetbrains-mono-latin-wght-normal-B9CIFXIH.woff2        40.40 kB
+dist/assets/inter-latin-ext-400-normal-77YHD8bZ.woff               47.56 kB
+dist/assets/inter-latin-ext-500-normal-BxGbmqWO.woff               48.49 kB
+dist/assets/inter-latin-ext-700-normal-TidjK2hL.woff               48.63 kB
+dist/assets/inter-latin-ext-600-normal-CIVaiw4L.woff               48.67 kB
+dist/assets/Families-D1A9gUVe.css                                  18.37 kB │ gzip:   3.88 kB
+dist/assets/purify.es-BnINGy_Y.js                                  28.93 kB │ gzip:  11.14 kB
+dist/assets/index.es-CbC_mwcg.js                                  150.88 kB │ gzip:  51.63 kB
+dist/assets/Families-DQZWiwnv.js                                  212.12 kB │ gzip:  54.69 kB
+dist/assets/manifest-ZX2WPk4H.js                                  421.32 kB │ gzip:  34.72 kB
+dist/assets/recharts-CRJ5XuCi.js                                  565.23 kB │ gzip: 158.56 kB
+dist/assets/index-CVNftYPU.js                                     714.41 kB │ gzip: 208.37 kB
+
+(!) Some chunks are larger than 600 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.04s
+--- gzip check ---
+516529 bytes
+PASS gzip <3670016
+
+== 13 /health check via TestClient (postgres ready) ==

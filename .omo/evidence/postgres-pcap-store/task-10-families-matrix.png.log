@@ -1,0 +1,5 @@
+Evidence for task 10 families matrix — headless fallback log
+- Families.jsx uses GET /api/families primary + has_run badge via TOK.warningLight/TOK.inkFaint
+- api.js fetchFamilies/fetchMetrics etc, fetchFlows blend removed when DB reachable (isSeeded via GET /api/families)
+- Matrix 23 checks grouped TLS/Cert/STARTTLS/MTA/Info reusing severityFor, sourced from GET /api/flows?flow_id=
+- Play refetches families to flip badge

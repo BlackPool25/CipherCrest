@@ -1,0 +1,127 @@
+{
+  "families_limit3": {
+    "status": 200,
+    "length": 3,
+    "ids": [
+      "family-01",
+      "family-02",
+      "family-03"
+    ],
+    "curl": "curl -s \"http://localhost:8000/api/families?limit=3\" | jq 'length==3' -> true"
+  },
+  "families_not_run": {
+    "status": 200,
+    "data": [
+      {
+        "family_id": "family-678",
+        "display_name": "ECDHE-ECDSA-AES128-SHA256-G678 curated High TLS1.1 ECDHE GREASE-filtered JARM+JA4 distinct family family-678 \u2014 balanced synthesis High 44/45 G678 distinct",
+        "port": 110,
+        "tls_version": "TLS1.1",
+        "cipher_suite": "ECDHE-ECDSA-AES128-GCM-SHA256-G678",
+        "cert_type": "p256",
+        "starttls_mode": "upgrade",
+        "status": "not_run",
+        "last_run_at": "2026-08-28T15:48:41.671602+00:00",
+        "created_at": "2026-08-28T15:48:41.671602+00:00",
+        "updated_at": "2026-08-28T15:49:01.096323+00:00",
+        "has_run": false,
+        "posture_score": null,
+        "risk_level": null
+      },
+      {
+        "family_id": "family-679",
+        "display_name": "ECDHE-RSA-CHACHA20-POLY1305-G679 curated High TLS1.0 ECDHE GREASE-filtered JARM+JA4 distinct family family-679 \u2014 balanced synthesis High 45/45 G679 distinct",
+        "port": 993,
+        "tls_version": "TLS1.0",
+        "cipher_suite": "ECDHE-ECDSA-AES256-GCM-SHA384-G679",
+        "cert_type": "rsa2048",
+        "starttls_mode": "implicit",
+        "status": "not_run",
+        "last_run_at": "2026-08-28T15:48:41.671602+00:00",
+        "created_at": "2026-08-28T15:48:41.671602+00:00",
+        "updated_at": "2026-08-28T15:49:01.096323+00:00",
+        "has_run": false,
+        "posture_score": null,
+        "risk_level": null
+      }
+    ],
+    "has_run_values": [
+      false,
+      false,
+      false
+    ],
+    "grep_false": true
+  },
+  "metrics_family03": {
+    "status": 200,
+    "body": {
+      "flow_id": "family-03",
+      "cnt": 1,
+      "avg_posture": 21.0
+    },
+    "has_cnt": true
+  },
+  "models": {
+    "status": 200,
+    "length": 4,
+    "has_ge1": true
+  },
+  "flows_filtered": {
+    "status": 200,
+    "count": 5,
+    "risk_levels": [
+      "Low"
+    ]
+  },
+  "pcap_download": {
+    "status": 200,
+    "headers": {
+      "content-disposition": "attachment; filename=\"family-01.pcap\"",
+      "content-type": "application/vnd.tcpdump.pcap",
+      "accept-ranges": "bytes",
+      "content-length": "1020"
+    },
+    "length": 1020,
+    "sha256": "8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd"
+  },
+  "pcap_range": {
+    "status": 206,
+    "headers": {
+      "content-disposition": "attachment; filename=\"family-01.pcap\"",
+      "content-type": "application/vnd.tcpdump.pcap",
+      "accept-ranges": "bytes",
+      "content-range": "bytes 0-9/1020",
+      "content-length": "10"
+    },
+    "content_hex": "d4c3b2a1020004000000"
+  },
+  "ordering": {
+    "ids": [
+      "family-01",
+      "family-02",
+      "family-03",
+      "family-04",
+      "family-05",
+      "family-06",
+      "family-07",
+      "family-08",
+      "family-09",
+      "family-10",
+      "family-11",
+      "family-12"
+    ]
+  },
+  "sha_match": {
+    "file_sha": "8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd",
+    "db_sha": "8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd",
+    "match": true
+  },
+  "grep_checks": {
+    "has_run_EXISTS": true,
+    "lpad_literal": true,
+    "data_at_gin": true,
+    "byte_length_stream": true,
+    "families_order_lpad": true,
+    "order_by_lpad_substring": true
+  }
+}

@@ -1,0 +1,135 @@
+=== dry-run ===
+60 families
+  family-01 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=66c0b254
+  family-02 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=p256 starttls=upgrade source_id=2787359b
+  family-03 port=143 tls=TLS1.2 cipher=DES-CBC3-SHA cert=rsa2048 starttls=upgrade source_id=6e1650c4
+  family-04 port=110 tls=TLS1.0 cipher=RC4-SHA cert=rsa2048 starttls=upgrade source_id=452c608a
+  family-05 port=587 tls=TLS1.1 cipher=AES128-SHA cert=selfsigned starttls=upgrade source_id=9524e660
+  family-06 port=993 tls=TLS1.3 cipher=TLS_AES_128_GCM_SHA256 cert=opaque starttls=implicit source_id=d2f4bb84
+  family-07 port=587 tls=TLS1.2 cipher=AES128-SHA256 cert=expired starttls=upgrade source_id=47289577
+  family-08 port=587 tls=TLS1.2 cipher=DES-CBC-SHA cert=rsa1024 starttls=upgrade source_id=0e95724f
+  family-09 port=587 tls=none cipher=none cert=none starttls=cleartext source_id=6fcdc69b
+  family-10 port=587 tls=TLS1.2 cipher=RSA-AES256-SHA cert=chain-incomplete starttls=upgrade source_id=0a3a3252
+  family-11 port=587 tls=TLS1.2 cipher=RSA-AES128-GCM-SHA256 cert=chain-incomplete starttls=upgrade source_id=3876c679
+  family-12 port=587 tls=TLS1.2 cipher=RC4-MD5 cert=selfsigned starttls=upgrade source_id=288e40e9
+  family-13 port=143 tls=none cipher=none cert=none starttls=cleartext source_id=43b30599
+  family-14 port=25 tls=none cipher=none cert=none starttls=cleartext source_id=376071ac
+  family-15 port=143 tls=TLS1.2 cipher=DHE-RSA-AES256-GCM-SHA384 cert=rsa2048 starttls=upgrade source_id=ada0a3b9
+  family-16 port=110 tls=TLS1.2 cipher=DHE-RSA-CHACHA20-POLY1305 cert=selfsigned starttls=upgrade source_id=8b38a706
+  family-17 port=993 tls=TLS1.2 cipher=RSA-AES128-SHA256-RSA cert=p256 starttls=implicit source_id=5a22720c
+  family-18 port=587 tls=TLS1.2 cipher=DHE-RSA-AES128-CCM cert=p256 starttls=upgrade source_id=f68dfba9
+  family-19 port=587 tls=TLS1.2 cipher=DHE-RSA-AES256-CCM cert=rsa2048 starttls=upgrade source_id=03239824
+  family-20 port=993 tls=TLS1.2 cipher=ECDHE-RSA-AES128-CBC-SHA256 cert=rsa2048 starttls=implicit source_id=fd42639c
+  family-21 port=587 tls=TLS1.2 cipher=ECDHE-ECDSA-AES256-SHA384 cert=rsa2048 starttls=upgrade source_id=39c65023
+  family-22 port=25 tls=TLS1.3 cipher=TLS_AES_128_CCM_SHA256 cert=p256 starttls=upgrade source_id=24c65e31
+  family-23 port=110 tls=TLS1.3 cipher=TLS_AES_128_CCM_8_SHA256 cert=p256 starttls=upgrade source_id=047d0ebb
+  family-24 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES256-SHA384 cert=rsa2048 starttls=upgrade source_id=69933c7f
+  family-25 port=25 tls=TLS1.2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=3d55212a
+  family-26 port=587 tls=TLS1.2 cipher=ECDHE-ECDSA-AES128-SHA256 cert=p256 starttls=upgrade source_id=d5dce919
+  family-27 port=587 tls=TLS1.3 cipher=TLS_AES_256_GCM_SHA384 cert=p256 starttls=upgrade source_id=33f1db81
+  family-28 port=587 tls=TLS1.3 cipher=TLS_CHACHA20_POLY1305_SHA256 cert=p256 starttls=upgrade source_id=79f4fa0a
+  family-29 port=587 tls=TLS1.2 cipher=RSA-AES256-CCM cert=p256 starttls=upgrade source_id=f9c5fb68
+  family-30 port=587 tls=TLS1.2 cipher=RSA-AES128-CCM cert=rsa2048 starttls=upgrade source_id=46576110
+  family-31 port=993 tls=TLS1.2 cipher=DHE-RSA-AES128-SHA256 cert=rsa2048 starttls=implicit source_id=a9a8c23e
+  family-32 port=993 tls=TLS1.2 cipher=DHE-RSA-AES256-SHA256 cert=rsa2048 starttls=implicit source_id=075d917b
+  family-33 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES256-CCM cert=selfsigned starttls=upgrade source_id=e92652f6
+  family-34 port=25 tls=TLS1.2 cipher=ECDHE-ECDSA-AES256-GCM-SHA384 cert=p256 starttls=upgrade source_id=cb35d364
+  family-35 port=587 tls=TLS1.2 cipher=DHE-RSA-AES128-GCM-SHA256 cert=rsa2048 starttls=upgrade source_id=2bc90e9c
+  family-36 port=587 tls=TLS1.2 cipher=RSA-AES256-GCM-SHA384 cert=rsa2048 starttls=upgrade source_id=4d7b7b5e
+  family-37 port=587 tls=TLS1.0 cipher=AES256-SHA cert=expired starttls=upgrade source_id=c721410d
+  family-38 port=587 tls=TLS1.1 cipher=ECDHE-ECDSA-AES128-SHA cert=selfsigned starttls=upgrade source_id=6bf8d2fe
+  family-39 port=143 tls=TLS1.2 cipher=ECDHE-ECDSA-AES128-CCM cert=p256 starttls=upgrade source_id=90a9075b
+  family-40 port=587 tls=TLS1.2 cipher=ECDHE-ECDSA-AES256-CCM cert=chain-incomplete starttls=upgrade source_id=683593b8
+  family-41 port=25 tls=TLS1.2 cipher=ECDHE-ECDSA-AES128-SHA cert=chain-incomplete starttls=upgrade source_id=f248ad8f
+  family-42 port=587 tls=TLS1.0 cipher=ECDHE-RSA-CHACHA20-POLY1305 cert=selfsigned starttls=upgrade source_id=e335dd81
+  family-43 port=25 tls=TLS1.3 cipher=TLS_AES_256_CCM_SHA384 cert=expired starttls=upgrade source_id=d147957d
+  family-44 port=993 tls=TLS1.2 cipher=ECDHE-RSA-CHACHA20-POLY1305 cert=expired starttls=implicit source_id=dee3aa10
+  family-45 port=143 tls=TLS1.2 cipher=AES128-SHA cert=p256 starttls=upgrade source_id=4cf4b00f
+  family-46 port=143 tls=TLS1.0 cipher=ECDHE-ECDSA-AES256-GCM-SHA384 cert=chain-incomplete starttls=upgrade source_id=24fa773d
+  family-47 port=25 tls=TLS1.2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 cert=chain-incomplete starttls=upgrade source_id=5d4787c2
+  family-48 port=993 tls=TLS1.2 cipher=DHE-RSA-AES128-GCM-SHA256 cert=rsa1024 starttls=implicit source_id=23143ac6
+  family-49 port=993 tls=TLS1.3 cipher=TLS_AES_256_GCM_SHA384 cert=chain-incomplete starttls=implicit source_id=fa087a4b
+  family-50 port=25 tls=TLS1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 cert=rsa1024 starttls=upgrade source_id=8459865b
+  family-51 port=993 tls=TLS1.3 cipher=TLS_AES_128_GCM_SHA256 cert=selfsigned starttls=implicit source_id=7689f853
+  family-52 port=25 tls=TLS1.2 cipher=DES-CBC-SHA cert=p256 starttls=upgrade source_id=9d334761
+  family-53 port=587 tls=TLS1.3 cipher=TLS_AES_256_GCM_SHA384 cert=chain-incomplete starttls=upgrade source_id=33d78290
+  family-54 port=993 tls=TLS1.2 cipher=DES-CBC3-SHA cert=rsa1024 starttls=implicit source_id=9598be8e
+  family-55 port=587 tls=TLS1.2 cipher=RSA-AES128-GCM-SHA256 cert=p256 starttls=upgrade source_id=a328e0e5
+  family-56 port=993 tls=TLS1.1 cipher=RC4-SHA cert=rsa1024 starttls=implicit source_id=7b752803
+  family-57 port=110 tls=TLS1.1 cipher=DES-CBC-SHA cert=rsa2048 starttls=upgrade source_id=1f5ef780
+  family-58 port=993 tls=TLS1.0 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=p256 starttls=implicit source_id=05e36ae1
+  family-59 port=587 tls=TLS1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 cert=chain-incomplete starttls=upgrade source_id=1a6248af
+  family-60 port=110 tls=TLS1.0 cipher=AES128-SHA256 cert=expired starttls=upgrade source_id=c2173878
+ORDER BY lpad(substring(family_id from 8)::int) — numeric order applied
+
+=== dry-run grep check ===
+PASS: dry-run 60 families
+
+=== first seed ===
+[seed] seeding 60 families ordered lpad(substring(family_id from 8)::int) — ['family-01', 'family-02', 'family-03'] ... ['family-59', 'family-60']
+[seed] families: before=0 after=60 diff=60 (0 diff means idempotent)
+[seed] pcap_files: before=0 after=50 diff=50 (0 diff means idempotent)
+[seed] flows: before=0 after=60 diff=60 (0 diff means idempotent)
+
+=== psql counts after first seed ===
+ count 
+-------
+    60
+(1 row)
+
+ count 
+-------
+    50
+(1 row)
+
+ count 
+-------
+    60
+(1 row)
+
+
+=== second seed (idempotent) ===
+[seed] seeding 60 families ordered lpad(substring(family_id from 8)::int) — ['family-01', 'family-02', 'family-03'] ... ['family-59', 'family-60']
+[seed] families: before=60 after=60 diff=0 (0 diff means idempotent)
+[seed] pcap_files: before=50 after=50 diff=0 (0 diff means idempotent)
+[seed] flows: before=60 after=60 diff=0 (0 diff means idempotent)
+
+=== lpad ordering check ===
+  flow_id  
+-----------
+ family-01
+ family-02
+ family-03
+ family-04
+ family-05
+(5 rows)
+
+PASS: lpad ordering family-01
+
+=== help check ===
+PASS: --run-dashboard in help
+PASS: --dry-run in help
+PASS: --upsert-families in help
+
+=== run-dashboard check (families 01-10) ===
+[seed] seeding 60 families ordered lpad(substring(family_id from 8)::int) — ['family-01', 'family-02', 'family-03'] ... ['family-59', 'family-60']
+[seed] families: before=60 after=60 diff=0 (0 diff means idempotent)
+[seed] pcap_files: before=50 after=50 diff=0 (0 diff means idempotent)
+[seed] flows: before=60 after=60 diff=0 (0 diff means idempotent)
+[seed] --run-dashboard processing 10 families 01-10
+[seed] dashboard upsert flow_id=family-01 family=family-01
+[seed] dashboard upsert flow_id=family-02 family=family-02
+[seed] dashboard upsert flow_id=family-03 family=family-03
+[seed] dashboard upsert flow_id=family-04 family=family-04
+[seed] dashboard upsert flow_id=family-05 family=family-05
+[seed] dashboard upsert flow_id=family-06 family=family-06
+[seed] dashboard upsert flow_id=family-07 family=family-07
+[seed] dashboard upsert flow_id=family-08 family=family-08
+[seed] dashboard upsert flow_id=family-09 family=family-09
+[seed] dashboard upsert flow_id=family-10 family=family-10
+  flow_id  |   sid    
+-----------+----------
+ family-01 | 8f54963f
+ family-10 | ec37b0a7
+(2 rows)
+
