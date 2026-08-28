@@ -247,14 +247,14 @@ export default function Reports() {
     }
   }, [])
 
-  // Export PDF Handler
+  // Export Multi-Page A4 PDF Handler
   const handleExportPDF = useCallback(async () => {
     const el = reportRef.current
     if (!el) return
     setBusy('pdf')
     try {
       if (document.fonts && document.fonts.ready) await document.fonts.ready
-      await new Promise(r => setTimeout(r, 300))
+      await new Promise(r => setTimeout(r, 400))
 
       const canvas = await html2canvas(el, {
         scale: 2,
@@ -268,17 +268,53 @@ export default function Reports() {
         },
       })
 
-      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageW = pdf.internal.pageSize.getWidth()
-      const pageH = pdf.internal.pageSize.getHeight()
-      const margin = 10
-      const imgW = pageW - (margin * 2)
-      const imgH = (canvas.height * imgW) / canvas.width
+      const pageW = pdf.internal.pageSize.getWidth()   // 210mm
+      const pageH = pdf.internal.pageSize.getHeight()  // 297mm
+      const margin = 12                                // 12mm margin
+      const imgW = pageW - (margin * 2)               // 186mm usable width
+      const usableH = pageH - (margin * 2)            // 273mm usable height
 
-      pdf.addImage(imgData, 'PNG', margin, margin, imgW, Math.min(imgH, pageH - 20), undefined, 'FAST')
+      // Slicing logic: calculate canvas pixel height corresponding to one A4 usable height
+      const pageCanvasHeight = Math.floor(canvas.width * (usableH / imgW))
+      const totalPages = Math.max(1, Math.ceil(canvas.height / pageCanvasHeight))
+      let currentY = 0
+
+      for (let p = 0; p < totalPages; p++) {
+        const sliceH = Math.min(pageCanvasHeight, canvas.height - currentY)
+        const pageCanvas = document.createElement('canvas')
+        pageCanvas.width = canvas.width
+        pageCanvas.height = sliceH
+
+        const ctx = pageCanvas.getContext('2d')
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height)
+        ctx.drawImage(
+          canvas,
+          0, currentY, canvas.width, sliceH,
+          0, 0, canvas.width, sliceH
+        )
+
+        const sliceImgData = pageCanvas.toDataURL('image/png')
+        const slicePdfH = (sliceH * imgW) / canvas.width
+
+        if (p > 0) pdf.addPage()
+        pdf.addImage(sliceImgData, 'PNG', margin, margin, imgW, slicePdfH, undefined, 'FAST')
+
+        // Clean page footer
+        pdf.setFontSize(8)
+        pdf.setTextColor(130, 140, 150)
+        pdf.text(
+          `CipherCrest SecureMailScope • Page ${p + 1} of ${totalPages} • Cryptographic Posture Assurance`,
+          margin,
+          pageH - 4
+        )
+
+        currentY += sliceH
+      }
+
       pdf.save(`CipherCrest-${reportType.toUpperCase()}-Report-${new Date().toISOString().slice(0, 10)}.pdf`)
-      setToast({ type: 'success', msg: `Exported ${reportType} PDF report successfully.` })
+      setToast({ type: 'success', msg: `Exported multi-page A4 ${reportType} PDF (${totalPages} page${totalPages > 1 ? 's' : ''}) successfully.` })
     } catch (e) {
       setToast({ type: 'error', msg: `PDF export failed: ${String(e).slice(0, 100)}` })
     } finally {
@@ -363,16 +399,22 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
       {/* Printable CSS Rules */}
       <style>{`
         @media print {
-          aside, header, [data-print-hide] { display: none !important; }
+          aside, header, nav, [data-print-hide] { display: none !important; }
           body { background: #FFFFFF !important; color: #000000 !important; }
-          main { padding: 0 !important; }
+          main { padding: 0 !important; margin: 0 !important; }
           [data-report-document] {
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
             max-width: 100% !important;
+            width: 100% !important;
           }
-          @page { size: A4 portrait; margin: 15mm; }
+          .report-section {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 20px !important;
+          }
+          @page { size: A4 portrait; margin: 12mm 10mm 12mm 10mm; }
         }
       `}</style>
 
@@ -696,7 +738,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
         </div>
 
         {/* ── SECTION 1: EXECUTIVE SCORECARD (Level 1: 5-Second Read) ── */}
-        <div>
+        <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
             1. Executive Security Health &amp; Posture Scorecard
           </div>
@@ -783,7 +825,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 
         {/* ── SECTION 2: EXECUTIVE NARRATIVE & RISK DISTRIBUTION ── */}
         {(reportType === 'executive' || reportType === 'compliance') && (
-          <div>
+          <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
               2. Executive Summary &amp; Risk Distribution
             </div>
@@ -844,7 +886,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 
         {/* ── SECTION: VISUAL CRYPTOGRAPHIC & TRANSPORT ANALYTICS (Domain-Accurate Graphs) ── */}
         {includeCharts && (reportType === 'executive' || reportType === 'compliance') && (
-          <div>
+          <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
               {reportType === 'compliance' ? '2. Cryptographic Telemetry & Transport Distribution' : '3. Cryptographic Posture & Transport Telemetry Graphs'}
             </div>
@@ -854,7 +896,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 
         {/* ── SECTION 4: PRIORITY VULNERABILITIES & SOC ACTION PLAN (Actionable) ── */}
         {(reportType === 'executive' || reportType === 'triage') && (
-          <div>
+          <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {reportType === 'triage' ? '1. Urgent Incident & Vulnerability Action Plan' : '4. Priority Vulnerabilities & Remediation Steps'}
@@ -935,7 +977,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 
         {/* ── SECTION 4: FORENSIC FLOW DEEP DIVE (Forensic View) ── */}
         {reportType === 'forensic' && (
-          <div>
+          <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Forensic Analysis for Flow: <span className="mono" style={{ fontFamily: TOK.fontMono, color: TOK.primary }}>{activeFlow.flow_id}</span>
@@ -1044,7 +1086,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 
         {/* ── SECTION 5: CRYPTOGRAPHIC COMPLIANCE SCORECARD (Compliance View) ── */}
         {(reportType === 'executive' || reportType === 'compliance') && (
-          <div>
+          <div className="report-section" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>
               {reportType === 'compliance' ? '1. Cryptographic Standards Compliance Scorecard' : '4. Standards Compliance Scorecard'}
             </div>

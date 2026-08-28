@@ -514,21 +514,43 @@ function portForFlow(f) {
 
 export function ThreatMatrix({ flows = [], onSelect, selectedId }) {
   const [infoCollapsed, setInfoCollapsed] = useState(false)
-  if (!flows || flows.length === 0) {
+  const [page, setPage] = useState(1)
+  const pageSize = 10
+
+  const ranFlows = useMemo(() => {
+    if (!Array.isArray(flows)) return []
+    return flows.filter(f => f && f.has_run !== false && (f.assessment?.risk_score != null || (f.assessment?.findings && f.assessment.findings.length > 0) || f.starttls_mode || (f.tls && f.tls.version && f.tls.version !== 'unknown') || f.cert))
+  }, [flows])
+
+  if (ranFlows.length === 0) {
     return (
-      <div style={{ color: TOK.inkMuted, padding: 20, background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, boxShadow: TOK.shadow }}>
-        No flows available — loading lab fixtures…
+      <div style={{ color: TOK.inkMuted, padding: 32, textAlign: 'center', background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, boxShadow: TOK.shadow }}>
+        <Shield size={28} color={TOK.inkMuted} style={{ margin: '0 auto 8px', display: 'block' }} />
+        <div style={{ fontWeight: 700, fontSize: 14, color: TOK.ink }}>No Analyzed Flows Available</div>
+        <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 4 }}>
+          Threat matrix displays results for flows that have completed security analysis. Seed traffic or run analysis to populate matrix.
+        </div>
       </div>
     )
   }
+
+  const totalPages = Math.max(1, Math.ceil(ranFlows.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const pagedFlows = ranFlows.slice((safePage - 1) * pageSize, safePage * pageSize)
+
   const visibleChecks = infoCollapsed ? CHECKS.filter(c => !c.isInfo) : CHECKS
   const groupCols = GROUPS.map(g => ({ ...g, count: visibleChecks.filter(c => g.ids.includes(c.id)).length })).filter(g => g.count > 0)
 
   return (
     <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: TOK.radiusCard, padding: '24px', overflowX: 'auto', boxShadow: TOK.shadow }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Threat Matrix (23 Security Checks)</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Threat Matrix (23 Security Checks)</div>
+            <span className="tabular-nums" style={{ background: TOK.primaryLight, color: TOK.primary, padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+              {ranFlows.length} Analyzed Flows
+            </span>
+          </div>
           <div style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2 }}>Grouped across TLS, Cert, STARTTLS, MTA-STS, and Info rules</div>
         </div>
         <button
@@ -570,7 +592,7 @@ export function ThreatMatrix({ flows = [], onSelect, selectedId }) {
           </tr>
         </thead>
         <tbody>
-          {flows.map((flow) => {
+          {pagedFlows.map((flow) => {
             const isSel = selectedId === flow.flow_id
             return (
               <tr
@@ -622,6 +644,52 @@ export function ThreatMatrix({ flows = [], onSelect, selectedId }) {
           })}
         </tbody>
       </table>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, paddingTop: 12, borderTop: `1px solid ${TOK.border}`, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ fontSize: 12, color: TOK.inkMuted }}>
+            Showing <b style={{ color: TOK.ink }}>{(safePage - 1) * pageSize + 1}</b> to <b style={{ color: TOK.ink }}>{Math.min(safePage * pageSize, ranFlows.length)}</b> of <b style={{ color: TOK.ink }}>{ranFlows.length}</b> analyzed flows
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              disabled={safePage <= 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 8,
+                border: `1px solid ${TOK.border}`,
+                background: safePage <= 1 ? TOK.canvas : TOK.surface,
+                color: safePage <= 1 ? TOK.inkFaint : TOK.ink,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: safePage <= 1 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Previous
+            </button>
+            <span style={{ fontSize: 12, fontWeight: 700, color: TOK.ink }}>
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              disabled={safePage >= totalPages}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 8,
+                border: `1px solid ${TOK.border}`,
+                background: safePage >= totalPages ? TOK.canvas : TOK.surface,
+                color: safePage >= totalPages ? TOK.inkFaint : TOK.ink,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: safePage >= totalPages ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 14, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', borderTop: `1px solid ${TOK.border}`, paddingTop: 12 }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>

@@ -39,7 +39,7 @@ function fmt(n, d = 2) {
 
 function Card({ title, subtitle, icon: IconComp, badge, children, minHeight = 280 }) {
   return (
-    <div style={{
+    <div className="report-section" style={{
       background: TOK.surface,
       border: `1px solid ${TOK.border}`,
       borderRadius: TOK.radiusCard,
@@ -48,6 +48,8 @@ function Card({ title, subtitle, icon: IconComp, badge, children, minHeight = 28
       display: 'flex',
       flexDirection: 'column',
       minHeight,
+      pageBreakInside: 'avoid',
+      breakInside: 'avoid',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
