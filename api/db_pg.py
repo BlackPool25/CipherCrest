@@ -161,7 +161,7 @@ async def init_db() -> None:
                     )
                 except Exception:
                     pass
-            # flows_history
+            # flows_history with source differentiation (task8)
             try:
                 await cur.execute(
                     """
@@ -169,6 +169,7 @@ async def init_db() -> None:
                         flow_id TEXT REFERENCES flows(flow_id) ON DELETE CASCADE,
                         version INT NOT NULL,
                         data JSONB,
+                        source TEXT DEFAULT 'synthetic' CHECK (source IN ('synthetic','live','lab','model')),
                         created_at TIMESTAMPTZ DEFAULT now(),
                         PRIMARY KEY (flow_id, version)
                     )
@@ -182,6 +183,7 @@ async def init_db() -> None:
                             flow_id TEXT,
                             version INT NOT NULL,
                             data JSONB,
+                            source TEXT DEFAULT 'synthetic' CHECK (source IN ('synthetic','live','lab','model')),
                             created_at TIMESTAMPTZ DEFAULT now(),
                             PRIMARY KEY (flow_id, version)
                         )
@@ -189,11 +191,20 @@ async def init_db() -> None:
                     )
                 except Exception:
                     pass
+            # idempotent migration: add source column if missing from pre-task8 DBs
+            try:
+                await cur.execute(
+                    "ALTER TABLE flows_history ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'synthetic' CHECK (source IN ('synthetic','live','lab','model'))"
+                )
+            except Exception:
+                pass
             # helpful indexes if not exists (outside TX ok, but we are in implicit TX; use IF NOT EXISTS)
             for idx_sql in [
                 "CREATE INDEX IF NOT EXISTS idx_flows_risk_score ON flows(risk_score DESC, updated_at DESC)",
                 "CREATE INDEX IF NOT EXISTS idx_flows_history_flow_version ON flows_history(flow_id, version)",
                 "CREATE INDEX IF NOT EXISTS idx_flows_family_id ON flows(family_id)",
+                "CREATE INDEX IF NOT EXISTS idx_flows_history_source ON flows_history(source)",
+                "CREATE INDEX IF NOT EXISTS flows_history_source ON flows_history(source)",
             ]:
                 try:
                     await cur.execute(idx_sql)
@@ -210,7 +221,7 @@ async def init_db() -> None:
             pass
 
 
-async def upsert_flows(flows: list[FlowVerdict]) -> None:
+async def upsert_flows(flows: list[FlowVerdict], source: str | None = None) -> None:
     """Transactional upsert with FOR UPDATE history versioning and retry on PK conflict.
 
     For each flow in flows list, in SINGLE transaction per call:
@@ -220,12 +231,18 @@ async def upsert_flows(flows: list[FlowVerdict]) -> None:
       INSERT INTO flows ... ON CONFLICT DO UPDATE
     Retry on UniqueViolation (flow_id,version) PK conflict up to 3 times per flow
     for concurrent Stream All 60×80ms. After COMMIT, pg_notify outside TX.
+    Source differentiation (task8): source in ('synthetic','live','lab','model'), default 'synthetic'.
+    History is append-only: never UPDATE without prior INSERT, version via FOR UPDATE.
     """
     if not flows:
         return
     # hard-fail validation before any DB write
     for f in flows:
         FlowVerdict.model_validate(f.model_dump() if hasattr(f, "model_dump") else f)
+    # source normalization (task8): default synthetic, allow synthetic/live/lab/model
+    _src = str(source).strip().lower() if source is not None else "synthetic"
+    if _src not in ("synthetic", "live", "lab", "model"):
+        _src = "synthetic"
 
     pool = await _get_pool()
 
@@ -299,12 +316,13 @@ async def upsert_flows(flows: list[FlowVerdict]) -> None:
                                 INSERT INTO flows (flow_id, family_id, data)
                                 VALUES (%s,%s,%s::jsonb)
                                 ON CONFLICT (flow_id) DO UPDATE SET data=EXCLUDED.data, updated_at=now()
+                                WHERE flows.data IS DISTINCT FROM EXCLUDED.data
                                 """,
                                 (f.flow_id, _fid, payload),
                             )
                             await conn.execute(
-                                "INSERT INTO flows_history (flow_id, version, data) VALUES (%s,%s,%s::jsonb)",
-                                (f.flow_id, next_ver, payload),
+                                "INSERT INTO flows_history (flow_id, version, data, source) VALUES (%s,%s,%s::jsonb,%s)",
+                                (f.flow_id, next_ver, payload, _src),
                             )
                         inserted = True
                         break

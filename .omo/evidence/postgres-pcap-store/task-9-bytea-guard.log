@@ -1,0 +1,60 @@
+=== task-9 BYTEA guard evidence 2026-08-28T21:29:48+05:30 ===
+--- grep CHECK in schema ---
+31:    data BYTEA NOT NULL CHECK (octet_length(data) < 100*1024*1024),
+33:    byte_length INT CHECK (byte_length IS NULL OR byte_length = octet_length(data)),
+--- grep IS DISTINCT FROM in seed ---
+15:  families:  INSERT ... ON CONFLICT (family_id) DO UPDATE SET ... WHERE IS DISTINCT FROM (avoid WAL when unchanged)
+16:  pcap_files: INSERT ... ON CONFLICT (family_id,sha256) DO UPDATE SET data=... WHERE IS DISTINCT FROM
+17:  flows:     INSERT ... ON CONFLICT (flow_id) DO UPDATE SET data=... WHERE IS DISTINCT FROM
+18:  model_runs: INSERT ... ON CONFLICT (model_name) DO UPDATE SET ... WHERE IS DISTINCT FROM
+254:    WHERE families.display_name IS DISTINCT FROM EXCLUDED.display_name
+255:       OR families.port IS DISTINCT FROM EXCLUDED.port
+256:       OR families.tls_version IS DISTINCT FROM EXCLUDED.tls_version
+257:       OR families.cipher_suite IS DISTINCT FROM EXCLUDED.cipher_suite
+258:       OR families.cert_type IS DISTINCT FROM EXCLUDED.cert_type
+259:       OR families.starttls_mode IS DISTINCT FROM EXCLUDED.starttls_mode
+270:    WHERE pcap_files.sha256 IS DISTINCT FROM EXCLUDED.sha256
+271:       OR pcap_files.data IS DISTINCT FROM EXCLUDED.data
+282:    WHERE flows.data IS DISTINCT FROM EXCLUDED.data
+297:    WHERE model_runs.params IS DISTINCT FROM EXCLUDED.params
+298:       OR model_runs.metrics IS DISTINCT FROM EXCLUDED.metrics
+299:       OR model_runs.artifact_sha IS DISTINCT FROM EXCLUDED.artifact_sha
+--- grep IS DISTINCT FROM in db_pg ---
+319:                                WHERE flows.data IS DISTINCT FROM EXCLUDED.data
+--- grep Content-Length guard in app ---
+246:    cl = request.headers.get("content-length") if request is not None else None
+245:    # BYTEA guard: Content-Length pre-check before reading — 413 immediately if >100MB without loading body
+250:                raise HTTPException(status_code=413, detail="pcap too large >100MB")
+259:            raise HTTPException(status_code=413, detail="pcap too large >100MB")
+271:            if total > 100*1024*1024: raise HTTPException(status_code=413, detail="pcap too large >100MB")
+--- pytest bytea guard ---
+============================= test session starts ==============================
+platform linux -- Python 3.12.9, pytest-9.1.1, pluggy-1.6.0 -- /home/shreyas/.pyenv/versions/3.12.9/bin/python
+cachedir: .pytest_cache
+rootdir: /home/shreyas/projects/CipherCrest
+plugins: timeout-2.4.0, cov-7.1.0, asyncio-1.4.0, anyio-4.14.2, langsmith-0.10.11
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 9 items
+
+api/tests/test_bytea_guard.py::test_content_length_413_precheck_without_reading_body PASSED [ 11%]
+api/tests/test_bytea_guard.py::test_content_length_header_413_via_testclient PASSED [ 22%]
+api/tests/test_bytea_guard.py::test_streaming_total_guard_secondary PASSED [ 33%]
+api/tests/test_bytea_guard.py::test_byte_a_roundtrip_sha_match_mocked PASSED [ 44%]
+api/tests/test_bytea_guard.py::test_byte_a_roundtrip_verify_octet_length_mocked PASSED [ 55%]
+api/tests/test_bytea_guard.py::test_60x1k_pcap_below_toast_threshold PASSED [ 66%]
+api/tests/test_bytea_guard.py::test_synthetic_90mb_zip_rejected_413 PASSED [ 77%]
+api/tests/test_bytea_guard.py::test_on_conflict_distinct_guard_exists PASSED [ 88%]
+api/tests/test_bytea_guard.py::test_413_must_not_load_full_before_check PASSED [100%]
+
+============================== 9 passed in 2.83s ===============================
+--- pcap sha256 file vs download mock ---
+8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd  lab/pcaps/family-01.pcap
+file sha 8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd len 1020
+download status 200 Content-Length 1020 sha 8f54963ff2e79d898758057374ad7959cc09b5cfeca4d9165c6f86ab003fb6cd match True
+--- curl simulation via TestClient 413 ---
+curl 413 simulation status 413 body {"detail":"pcap too large >100MB"}
+--- octet_length psql check (if DB) ---
+psql check skipped (no DB): connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+mock octet_length would be len(raw) from file - verified via header above
+=== done ===

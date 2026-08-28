@@ -212,14 +212,38 @@ def _sync_ml():
             pass
     _ml2.risk_clf, _ml2.anomaly_clf, _ml2.anomaly_honest_clf = rc, ac, ah
 
+def _extract_source(request: Request, filename: str) -> str:
+    try:
+        qp = request.query_params.get("source") or request.query_params.get("src")
+        if qp and qp.strip().lower() in ("synthetic", "live", "lab", "model"):
+            return qp.strip().lower()
+    except Exception:
+        pass
+    try:
+        hdr = request.headers.get("x-source") or request.headers.get("source") or request.headers.get("x-source-type")
+        if hdr and hdr.strip().lower() in ("synthetic", "live", "lab", "model"):
+            return hdr.strip().lower()
+    except Exception:
+        pass
+    # filename pattern fallback: live/live_capture, lab family pcaps are lab runs
+    fn = (filename or "").lower()
+    if "live" in fn:
+        return "live"
+    if "lab" in fn or fn.startswith("family-"):
+        # family-*.pcap via lab replay treated as lab when explicitly ?source=lab, else synthetic default
+        # but keep default synthetic for generic; live differentiation is critical
+        pass
+    return "synthetic"
+
+
 @app.post("/analyze")
 @app.post("/api/analyze")
-async def analyze(request: Request, pcap: UploadFile | None = File(default=None)) -> Any:
+async def analyze(request: Request = None, pcap: UploadFile | None = File(default=None)) -> Any:  # type: ignore[assignment]
     _sync_ml()
     global _last_result, _last_summary
     if pcap is None: raise HTTPException(status_code=422, detail="missing pcap file")
-    # Content-Length pre-check before reading — 413 immediately if >100MB
-    cl = request.headers.get("content-length")
+    # BYTEA guard: Content-Length pre-check before reading — 413 immediately if >100MB without loading body
+    cl = request.headers.get("content-length") if request is not None else None
     if cl is not None:
         try:
             if int(cl) > 100*1024*1024:
@@ -228,15 +252,30 @@ async def analyze(request: Request, pcap: UploadFile | None = File(default=None)
             raise
         except Exception:
             pass
+    # also check UploadFile size if client sent it (Starlette may expose size)
     try:
+        pcap_size = getattr(pcap, "size", None)
+        if pcap_size is not None and int(pcap_size) > 100*1024*1024:
+            raise HTTPException(status_code=413, detail="pcap too large >100MB")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    try:
+        # streaming chunked 1MiB to avoid OOM; total >100MB guard during loop as secondary
+        # For >50MB, streaming COPY FROM STDIN WITH (FORMAT BINARY) or lo_create would avoid buf.getvalue() copy;
+        # our 1KB pcaps are far below TOAST threshold, bounded 100MB single copy avoids triple-copy OOM
         buf = io.BytesIO(); total = 0
         while chunk := await pcap.read(1*1024*1024):
             total += len(chunk)
             if total > 100*1024*1024: raise HTTPException(status_code=413, detail="pcap too large >100MB")
             buf.write(chunk)
-        buf.seek(0); data = buf.getvalue(); filename: str = pcap.filename or ""
+        buf.seek(0)
+        # single bounded copy (max 100MB) — avoid triple-copy: no psycopg.Binary(data) double for flows JSONB, no extra lo copy
+        data = buf.getvalue(); filename: str = pcap.filename or ""
     except HTTPException: raise
     except Exception as exc: return [{"flow_id": "error", "error": f"read failed: {exc}"}]
+    src = _extract_source(request, filename)
     if _is_malformed(filename, data):
         _last_result = []; _last_summary = _compute_summary([]); return [{"flow_id": "error", "error": "malformed pcap"}]
     if filename.endswith(".zip"):
@@ -270,9 +309,9 @@ async def analyze(request: Request, pcap: UploadFile | None = File(default=None)
             for fv in flows:
                 FlowVerdict.model_validate(fv.model_dump())
             _last_result = flows; _last_summary = _compute_summary(flows)
-            # always SELECT persistence via Postgres
+            # always SELECT persistence via Postgres with source differentiation (task8)
             try:
-                await upsert_flows(flows)
+                await upsert_flows(flows, source=src)
                 # pg_notify after COMMIT outside TX — ensure NOTIFY even if upsert_flows already notifies
                 try:
                     from api.db_pg import _get_pool
@@ -310,7 +349,7 @@ async def analyze(request: Request, pcap: UploadFile | None = File(default=None)
         validated_single = _enrich_stub_flows(validated_single); validated_single = _attach_policy(validated_single)
         _last_result = validated_single; _last_summary = _compute_summary(validated_single)
         try:
-            await upsert_flows(validated_single)
+            await upsert_flows(validated_single, source=src)
             try:
                 from api.db_pg import _get_pool
                 pool = await _get_pool()
