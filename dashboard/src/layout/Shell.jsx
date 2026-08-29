@@ -626,7 +626,7 @@ export function Layout() {
           </div>
         )}
         {/* Scrollable Page Body — Edge to Edge from sidebar */}
-        <main style={{ flex: 1, padding: '24px 32px', width: '100%', boxSizing: 'border-box' }}>
+        <main style={{ flex: 1, minWidth: 0, padding: '24px 32px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
           {readiness.loading || readiness.seeding ? (
             <div aria-label="loading skeleton" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ height: 18, width: '40%', background: '#E7EAEC', borderRadius: 8, animation: 'skeletonPulse 1.2s ease-in-out infinite' }} />
