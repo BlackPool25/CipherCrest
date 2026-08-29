@@ -240,14 +240,26 @@ function getFallbackFlows() {
 export async function fetchHistory(flow_id, opts = {}) {
   const limit = opts.limit ?? 50
   const offset = opts.offset ?? 0
-  const params = new URLSearchParams({ flow_id, limit: String(limit), offset: String(offset) })
-  // try /api/flows/history first
-  for (const base of ['/api/flows/history', '/flows/history']) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+  if (flow_id) {
+    params.set('flow_id', flow_id)
+  }
+  const candidates = flow_id
+    ? [
+        `/api/flows/${encodeURIComponent(flow_id)}/history?${params.toString()}`,
+        `/api/flows/history?${params.toString()}`,
+        `/flows/history?${params.toString()}`,
+      ]
+    : [
+        `/api/flows/history?${params.toString()}`,
+        `/flows/history?${params.toString()}`,
+      ]
+  for (const url of candidates) {
     try {
-      const res = await fetch(`${base}?${params.toString()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+      const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
       if (!res.ok) continue
       const data = await res.json()
-      if (Array.isArray(data)) return data
+      if (Array.isArray(data) && data.length > 0) return data
     } catch { /* try next */ }
   }
   return []

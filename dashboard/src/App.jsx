@@ -48,6 +48,7 @@ import Graphs from './components/Graphs.jsx'
 import FlowInspectorModal from './components/FlowInspectorModal.jsx'
 import AIDiagnosticsView from './components/AIDiagnosticsView.jsx'
 import PolicyRecommendationsView from './components/PolicyRecommendationsView.jsx'
+import RunHistoryTimeline from './components/RunHistoryTimeline.jsx'
 export { PolicyRecommendationsView }
 import { TOK, injectTokens } from './tokens.js'
 import { useQueryState, parseAsString } from 'nuqs'
@@ -1174,13 +1175,7 @@ export function DrillDown({ flow, onDeselect, onOpenReport }) {
         {tab === 'Coverage' && <CoverageTable flows={[flow]} />}
 
         {tab === 'History' && (
-          <div style={{ fontSize: 13, color: TOK.ink }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Timeline &amp; Version History</div>
-            <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 12, color: TOK.inkMuted }}>Version 1 • Initial Baseline Scan</div>
-              <div style={{ fontSize: 11, color: TOK.inkFaint, marginTop: 2 }}>5-tuple matched traffic • Reassembled payload 120B</div>
-            </div>
-          </div>
+          <RunHistoryTimeline flowId={flow.flow_id} currentFlow={flow} />
         )}
       </div>
     </div>

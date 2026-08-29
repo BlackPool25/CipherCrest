@@ -9,12 +9,13 @@ import React, { useState } from 'react'
 import {
   X, Printer, ShieldAlert, ShieldCheck, Lock, KeyRound, Calendar,
   Cpu, FileText, CheckCircle2, AlertTriangle, ArrowRight, Zap, ExternalLink,
-  ChevronRight, RefreshCw, Hash, Shield
+  ChevronRight, RefreshCw, Hash, Shield, History
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from './ThreatMatrix.jsx'
 import AIDiagnosticsView from './AIDiagnosticsView.jsx'
 import PolicyRecommendationsView from './PolicyRecommendationsView.jsx'
+import RunHistoryTimeline from './RunHistoryTimeline.jsx'
 
 export default function FlowInspectorModal({ flow, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('dual_ai')
@@ -219,6 +220,7 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
           {[
             { id: 'dual_ai', label: 'Dual ML Models (Risk & Anomaly)', icon: Cpu },
             { id: 'threat_matrix', label: '23 Threat Checks', icon: ShieldAlert },
+            { id: 'history', label: 'Historical Runs & Timeline', icon: History },
             { id: 'handshake', label: 'TLS Handshake Details', icon: Lock },
             { id: 'cert', label: 'X.509 Certificate & PKI', icon: Calendar },
             { id: 'policy', label: 'Remediation & Policy', icon: ShieldCheck },
@@ -362,6 +364,11 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <PolicyRecommendationsView flow={flow} />
             </div>
+          )}
+
+          {/* TAB 6: HISTORICAL RUNS & AUDIT TRAIL */}
+          {activeTab === 'history' && (
+            <RunHistoryTimeline flowId={flow.flow_id} currentFlow={flow} />
           )}
 
         </div>

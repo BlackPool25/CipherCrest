@@ -39,6 +39,7 @@ import { TOK } from '../tokens.js'
 import { fetchFlows, fetchFamilies } from '../services/api.js'
 import { DrillDown, PolicyRecommendationsView } from '../App.jsx'
 import HoverPlayCard from '../components/HoverPlayCard.jsx'
+import RunHistoryTimeline from '../components/RunHistoryTimeline.jsx'
 
 // Cache for manifest data — kept as fallback only when DB unreachable
 let _manifestCache = null
@@ -1617,6 +1618,23 @@ export default function Families() {
                 >
                   Matrix (23)
                 </button>
+                <button
+                  onClick={() => setMatrixTab('History')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: matrixTab === 'History' ? '#FFFFFF' : 'transparent',
+                    color: matrixTab === 'History' ? TOK.ink : TOK.inkMuted,
+                    fontWeight: matrixTab === 'History' ? 700 : 500,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    boxShadow: matrixTab === 'History' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  History
+                </button>
               </div>
 
               {matrixTab === 'Details' ? (
@@ -1624,6 +1642,10 @@ export default function Families() {
               ) : matrixTab === 'Recommendations' ? (
                 <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: '16px', boxShadow: TOK.shadow }}>
                   <PolicyRecommendationsView flow={activeFlowObj} />
+                </div>
+              ) : matrixTab === 'History' ? (
+                <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: '16px', boxShadow: TOK.shadow }}>
+                  <RunHistoryTimeline flowId={selectedId} currentFlow={activeFlowObj} />
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

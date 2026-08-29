@@ -707,6 +707,27 @@ async def get_flows_history(
     except Exception:
         return []
 
+
+@app.get("/flows/{flow_id}/history")
+@app.get("/api/flows/{flow_id}/history")
+async def get_flow_history_by_path(
+    flow_id: str,
+    limit: int = Query(default=50, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+) -> Any:
+    """Versioned history for specific flow_id via path parameter."""
+    try:
+        hist = await query_history(flow_id, limit=limit, offset=offset)
+        if hist:
+            return hist
+    except Exception:
+        pass
+    try:
+        from api.db import query_history as _sqlite_query_history
+        return _sqlite_query_history(flow_id, limit=limit, offset=offset)
+    except Exception:
+        return []
+
 @app.get("/health")
 @app.get("/api/health")
 async def health() -> Any:

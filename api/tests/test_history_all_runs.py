@@ -8,14 +8,10 @@ import pytest
 
 # ensure Test DSN points to seeded postgres (ciphercrest-postgres-1)
 TEST_DSN_CANDIDATES = [
-    "postgresql://app:app_dev_only@172.30.0.3:5432/ciphcrest",
-    "postgresql://app:app_dev_only@localhost:5434/ciphcrest",
+    os.environ.get("POSTGRES_DSN", "postgresql://app:app_dev_only@localhost:5432/ciphcrest"),
     "postgresql://app:app_dev_only@localhost:5432/ciphcrest",
+    "postgresql://app:app_dev_only@localhost:5434/ciphcrest",
 ]
-for _dsn in TEST_DSN_CANDIDATES:
-    # try quick connect at import time via env; final choice set below
-    pass
-os.environ["POSTGRES_DSN"] = TEST_DSN_CANDIDATES[0]
 os.environ.setdefault("POSTGRES_PASSWORD", "app_dev_only")
 
 from shared.schemas import FlowVerdict
@@ -38,7 +34,7 @@ def _can_connect() -> bool:
         # try each DSN quickly
         for dsn in TEST_DSN_CANDIDATES:
             try:
-                with psycopg.connect(dsn, connect_timeout=2) as conn:
+                with psycopg.connect(dsn, connect_timeout=1) as conn:
                     with conn.cursor() as cur:
                         cur.execute("SELECT 1 FROM information_schema.tables WHERE table_name='flows_history'")
                         if cur.fetchone() is None:
@@ -68,7 +64,7 @@ if CAN_PG:
     import psycopg  # type: ignore
     for dsn in TEST_DSN_CANDIDATES:
         try:
-            with psycopg.connect(dsn, connect_timeout=2) as conn:
+            with psycopg.connect(dsn, connect_timeout=1) as conn:
                 with conn.cursor() as cur:
                     cur.execute("SELECT 1")
                     cur.fetchone()
@@ -77,6 +73,8 @@ if CAN_PG:
             break
         except Exception:
             continue
+else:
+    os.environ["POSTGRES_DSN"] = "postgresql://app:app_dev_only@127.0.0.1:5432/ciphcrest?connect_timeout=1"
 
 
 def test_reruns_increment_version():
@@ -286,3 +284,44 @@ def test_history_never_pruned_and_append_only():
     # FOR UPDATE must be present for version collision handling
     assert "FOR UPDATE" in dbsrc
     assert "SELECT MAX(version) FROM flows_history WHERE flow_id=$1 FOR UPDATE" in dbsrc or "SELECT MAX(version) FROM flows_history" in dbsrc
+
+
+def test_sqlite_history_versioning_and_endpoints():
+    """Test SQLite store history versioning and FastAPI /flows/history endpoints."""
+    from fastapi.testclient import TestClient
+    from api.app import app
+    from api.db import query_history, upsert_flows
+
+    client = TestClient(app)
+    fid = "test-history-parity-flow"
+    flow = _load_flow(fid)
+
+    # Insert 3 runs into SQLite store
+    upsert_flows([flow])
+    upsert_flows([flow])
+    upsert_flows([flow])
+
+    # Query via db function
+    hist = query_history(fid)
+    assert len(hist) >= 3
+    versions = [h["version"] for h in hist]
+    assert versions[-3:] == [1, 2, 3] or 3 in versions
+
+    # Test GET /flows/history?flow_id=...
+    r1 = client.get(f"/flows/history?flow_id={fid}")
+    assert r1.status_code == 200
+    data1 = r1.json()
+    assert isinstance(data1, list)
+    assert len(data1) >= 1
+    assert data1[0]["flow_id"] == fid
+    assert "version" in data1[0]
+    assert "data" in data1[0]
+
+    # Test GET /flows/{flow_id}/history
+    r2 = client.get(f"/flows/{fid}/history")
+    assert r2.status_code == 200
+    data2 = r2.json()
+    assert isinstance(data2, list)
+    assert len(data2) >= 1
+    assert data2[0]["flow_id"] == fid
+
