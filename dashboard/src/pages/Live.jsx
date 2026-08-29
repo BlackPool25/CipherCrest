@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
 import { fetchFlows } from '../services/api.js'
+import FlowInspectorModal from '../components/FlowInspectorModal.jsx'
 
 // ── Hex Dump Helpers ──
 function bytesToHex(bytes) {
@@ -76,12 +77,11 @@ export default function Live() {
   const navigate = useNavigate()
 
   // Real-time Queue & Pipeline States
-  // Real-time Queue & Pipeline States — default to paused unless explicitly started, remember preference
   const [isStreaming, setIsStreaming] = useState(() => {
     try {
       return sessionStorage.getItem('ciphercrest_live_streaming') === 'true'
     } catch {
-      return false
+      return true
     }
   })
   const isStreamingRef = useRef(isStreaming)
@@ -96,6 +96,8 @@ export default function Live() {
   const [hoveredByte, setHoveredByte] = useState(null)
   const [totalIngested, setTotalIngested] = useState(148)
   const [activeTab, setActiveTab] = useState('pipeline') // 'pipeline' | 'hex' | 'continuum'
+  const [inspectorFlow, setInspectorFlow] = useState(null)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false)
 
   // WebSocket reference
   const wsRef = useRef(null)
@@ -106,24 +108,70 @@ export default function Live() {
     if (!force && !isStreamingRef.current) return
     const raw = flowData || SAMPLE_FLOWS[Math.floor(Math.random() * SAMPLE_FLOWS.length)]
     const packetId = `pkt-${Date.now().toString().slice(-5)}-${Math.floor(Math.random() * 900 + 100)}`
+    
+    // Construct standard FlowVerdict shape for rich inspection report
+    const flowId = raw.flow_id || raw.id || 'family-01'
+    const risk = raw.assessment?.risk_level || raw.risk || 'Low'
+    const posture = raw.assessment?.posture_score ?? raw.posture ?? (risk === 'Critical' ? 18 : risk === 'High' ? 48 : risk === 'Medium' ? 70 : 92)
+    const tlsVer = raw.tls?.version || raw.tls || 'TLS1.2'
+    const cipherSuite = raw.tls?.cipher_suite || raw.cipher || 'ECDHE-RSA-AES128-GCM-SHA256'
+    
+    const flowObj = raw.assessment ? raw : {
+      flow_id: flowId,
+      app_protocol: raw.app_protocol || (raw.proto?.toLowerCase().includes('imap') ? 'imap' : raw.proto?.toLowerCase().includes('pop') ? 'pop3' : 'smtp'),
+      port: raw.port || (raw.proto?.includes('993') ? 993 : raw.proto?.includes('110') ? 110 : raw.proto?.includes('25') ? 25 : 587),
+      starttls_mode: raw.starttls_mode || (risk === 'Critical' && raw.proto?.includes('Stripped') ? 'stripped' : 'upgrade'),
+      tls: {
+        version: tlsVer,
+        cipher_suite: cipherSuite,
+        cipher_strength: raw.tls?.cipher_strength || (risk === 'Critical' ? 'weak' : 'strong'),
+        kex: raw.tls?.kex || 'ECDHE',
+        fs_flag: raw.tls?.fs_flag !== false,
+        is_aead: raw.tls?.is_aead !== false,
+        ja4: raw.tls?.ja4 || 't12d0800_ced06afb9e65_000000000000',
+        ja4_rarity: raw.tls?.ja4_rarity ?? 0.05,
+      },
+      cert: raw.cert || {
+        leaf_present: true,
+        days_to_expiry: risk === 'Critical' ? -5 : 120,
+        is_expired: risk === 'Critical',
+        chain_valid: risk !== 'Critical',
+        chain_length: 2,
+        san_match: true,
+        pubkey_algo: 'RSA',
+        pubkey_bits: 2048,
+        sigalg: 'sha256WithRSAEncryption',
+      },
+      assessment: raw.assessment || {
+        findings: risk === 'Critical' ? [{ check: '15a', severity: 'Critical', spec: 'cleartext downgrade' }] : [],
+        risk_level: risk,
+        risk_score: raw.assessment?.risk_score ?? (risk === 'Critical' ? 90 : 15),
+        posture_score: posture,
+        calibrated_prob: risk === 'Critical' ? 0.92 : 0.08,
+        anomaly_score: risk === 'Critical' ? 17.5 : 1.5,
+      },
+      coverage_ratio: 1.0,
+    }
+
     const newPacket = {
       id: packetId,
-      flow_id: raw.flow_id || raw.id || 'family-01',
+      flow_id: flowId,
       proto: raw.app_protocol?.toUpperCase() || raw.proto || 'SMTP',
       src: raw.src || '192.168.1.100:' + Math.floor(Math.random() * 20000 + 40000),
       dst: raw.dst || '10.0.0.25:587',
-      cipher: raw.tls?.cipher_suite || raw.cipher || 'ECDHE-RSA-AES128-GCM-SHA256',
-      tls: raw.tls?.version || raw.tls || 'TLS1.2',
-      risk: raw.assessment?.risk_level || raw.risk || 'Low',
-      posture: raw.assessment?.posture_score ?? raw.posture ?? 85,
-      verdict: (raw.assessment?.risk_level === 'Critical' || raw.risk === 'Critical') ? 'Block' : (raw.assessment?.risk_level === 'High' || raw.risk === 'High') ? 'Quarantine' : 'Allow',
+      cipher: cipherSuite,
+      tls: tlsVer,
+      risk: risk,
+      posture: posture,
+      verdict: (risk === 'Critical') ? 'Block' : (risk === 'High') ? 'Quarantine' : 'Allow',
       timestamp: new Date().toLocaleTimeString(),
       stage: 1, // 1: Ingress -> 2: Reassembly -> 3: TLS/JA4 -> 4: Threat/ML -> 5: Done
       status: 'Ingested',
       size: `${Math.floor(Math.random() * 800 + 120)} B`,
+      flowObj: flowObj,
     }
 
-    setPacketsQueue(prev => [newPacket, ...prev.slice(0, 19)])
+    setPacketsQueue(prev => [newPacket, ...prev.slice(0, 24)])
     setActivePipelineItem(newPacket)
     setTotalIngested(c => c + 1)
   }, [])
@@ -152,18 +200,18 @@ export default function Live() {
     }
   }, [handleNewPacketArrival])
 
-  // isStreaming synthetic timer when ws disconnected
+  // Continuous streaming interval when stream is active
   useEffect(() => {
-    if (!isStreaming || wsConnected) return
+    if (!isStreaming) return
     const iv = setInterval(() => {
-      if (isStreamingRef.current && !wsConnected) {
+      if (isStreamingRef.current) {
         handleNewPacketArrival()
       }
     }, speedMs)
     return () => clearInterval(iv)
-  }, [isStreaming, wsConnected, speedMs, handleNewPacketArrival])
+  }, [isStreaming, speedMs, handleNewPacketArrival])
 
-  // poll fallback GET /api/live_captures or GET /api/flows?source=live when WS disconnected every 2s
+  // Poll fallback GET /api/live_captures or GET /api/flows?source=live when WS disconnected
   useEffect(() => {
     if (wsConnected || !isStreaming) return
     let alive = true
@@ -521,23 +569,48 @@ export default function Live() {
           </div>
 
           {activePipelineItem && (
-            <button
-              onClick={() => navigate('/reports')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: TOK.primary,
-                fontWeight: 700,
-                fontSize: 12,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <span>View Full Report</span>
-              <ExternalLink size={13} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => {
+                  setInspectorFlow(activePipelineItem.flowObj || activePipelineItem)
+                  setIsInspectorOpen(true)
+                }}
+                style={{
+                  background: TOK.primary,
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '6px 14px',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 8px rgba(31,122,77,0.25)',
+                }}
+              >
+                <FileText size={13} />
+                <span>Inspect Packet Report</span>
+              </button>
+              <button
+                onClick={() => navigate('/reports')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: TOK.inkMuted,
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>All Reports</span>
+                <ExternalLink size={12} />
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -558,7 +631,7 @@ export default function Live() {
           <div style={{ padding: '18px 20px 14px', borderBottom: `1px solid ${TOK.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: TOK.ink }}>Arriving Packets Stream</div>
-              <div style={{ fontSize: 12, color: TOK.inkMuted }}>FIFO buffer of recent network events</div>
+              <div style={{ fontSize: 12, color: TOK.inkMuted }}>FIFO buffer of recent network events (Click row to inspect)</div>
             </div>
             <span style={{
               background: TOK.primaryLight,
@@ -583,7 +656,10 @@ export default function Live() {
                 return (
                   <div
                     key={pkt.id}
-                    onClick={() => setActivePipelineItem(pkt)}
+                    onClick={() => {
+                      setActivePipelineItem(pkt)
+                      setInspectorFlow(pkt.flowObj || pkt)
+                    }}
                     style={{
                       padding: '12px 18px',
                       borderBottom: `1px solid ${TOK.border}`,
@@ -631,7 +707,7 @@ export default function Live() {
                       </div>
                     </div>
 
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                       <span style={{
                         background: sevBg(pkt.verdict),
                         color: sevColor(pkt.verdict),
@@ -642,6 +718,31 @@ export default function Live() {
                       }}>
                         {pkt.verdict}
                       </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setActivePipelineItem(pkt)
+                          setInspectorFlow(pkt.flowObj || pkt)
+                          setIsInspectorOpen(true)
+                        }}
+                        title="View Packet Threat & AI Dossier"
+                        style={{
+                          background: '#FFFFFF',
+                          border: `1px solid ${TOK.border}`,
+                          borderRadius: 6,
+                          padding: '3px 8px',
+                          color: TOK.primary,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <FileText size={12} />
+                        <span>Report</span>
+                      </button>
                     </div>
                   </div>
                 )
@@ -651,7 +752,7 @@ export default function Live() {
 
           <div style={{ padding: '12px 18px', background: '#FAFBFB', borderTop: `1px solid ${TOK.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 11, color: TOK.inkMuted }}>
-              Click any packet to replay in pipeline
+              Click any packet or &quot;Report&quot; button to view full dossier
             </span>
             <button
               onClick={() => setPacketsQueue([])}
@@ -726,20 +827,64 @@ export default function Live() {
             </div>
 
             {/* Decoded Field Summary */}
-            <div style={{ marginTop: 14, background: TOK.canvas, border: `1px solid ${TOK.border}`, borderRadius: 10, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: TOK.ink, marginBottom: 6 }}>
-                Parsed Protocol Fields (Decoded)
+            <div style={{ marginTop: 14, background: TOK.canvas, border: `1px solid ${TOK.border}`, borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: TOK.ink, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Parsed Protocol Fields (Decoded)</span>
+                <span style={{
+                  background: sevBg(activePipelineItem?.verdict || 'Allow'),
+                  color: sevColor(activePipelineItem?.verdict || 'Allow'),
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}>
+                  {activePipelineItem?.verdict || 'Allow'}
+                </span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, fontSize: 11 }}>
                 <div>Flow: <b className="mono">{activePipelineItem?.flow_id || 'family-01'}</b></div>
                 <div>TLS: <b>{activePipelineItem?.tls || 'TLS1.2'}</b></div>
                 <div>Cipher: <b className="mono">{activePipelineItem?.cipher?.slice(0, 18) || 'AES128-GCM'}</b></div>
-                <div>Policy: <b style={{ color: sevColor(activePipelineItem?.verdict) }}>{activePipelineItem?.verdict || 'Allow'}</b></div>
+                <div>Posture: <b>{activePipelineItem?.posture ?? 92}/100</b></div>
               </div>
+
+              <button
+                onClick={() => {
+                  setInspectorFlow(activePipelineItem?.flowObj || activePipelineItem || SAMPLE_FLOWS[0])
+                  setIsInspectorOpen(true)
+                }}
+                style={{
+                  background: TOK.primary,
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  marginTop: 12,
+                  width: '100%',
+                  boxShadow: '0 2px 6px rgba(31,122,77,0.2)',
+                }}
+              >
+                <FileText size={14} />
+                <span>Open Full Assessment Dossier &amp; Deep Report</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Deep-Dive Flow Inspector & Printable Security Dossier Modal */}
+      <FlowInspectorModal
+        flow={inspectorFlow}
+        isOpen={isInspectorOpen}
+        onClose={() => setIsInspectorOpen(false)}
+      />
     </div>
   )
 }

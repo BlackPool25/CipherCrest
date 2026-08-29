@@ -93,31 +93,14 @@ export async function fetchFlows(opts = {}) {
     if (!res.ok) throw new Error(`GET /api/flows ${res.status}`)
     const data = await res.json()
     const list = Array.isArray(data) ? data : (data && Array.isArray(data.flows) ? data.flows : [])
-    if (data.length === 0 || list.length === 0) return []; // empty-state not fallback
-    // Guard: only fallback when health.postgres!="ready", else return [] — never mask ready DB
-    const health = await checkHealth()
-    if (health && health.postgres!="ready") {
-      return getFallbackFlows()
-    }
-    if (health && health.postgres === "ready") {
-      // DB ready — never fallback to synthesizeFamilies/lab/manifest.json
-      const seeded = await checkIsSeeded()
-      isSeeded = seeded
-      if (seeded === true) return list
-      if (seeded === false) return []
-      if (list.length >= 1) return list
-      return []
-    }
-    // health null (unreachable) — use isSeeded guard as secondary
-    const seeded = await checkIsSeeded()
-    isSeeded = seeded
-    if (seeded === true) {
+    // Real DB results — return directly so freshly synthesized/analyzed flows appear immediately
+    if (Array.isArray(list) && list.length > 0) {
       return list
     }
-    if (seeded === false) {
+    if (data.length === 0 || list.length === 0) {
+      // If DB is empty, check if health indicates unseeded
       return []
     }
-    if (list.length >= 1) return list
     return list
   } catch (e) {
     // only fallback when DB unreachable — check GET /health postgres ready gate
