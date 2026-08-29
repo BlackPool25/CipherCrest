@@ -19,6 +19,7 @@ import {
   PieChart, Pie, ScatterChart, Scatter, ZAxis, LineChart, Line, ReferenceLine, Legend,
   AreaChart, Area
 } from 'recharts'
+import { chartTheme } from '../chartConfig.js'
 import {
   ShieldCheck,
   ShieldAlert,
@@ -509,26 +510,45 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           subtitle="Proportion of modern TLS 1.3 vs legacy 1.0/1.1 vs unencrypted cleartext"
           icon={Lock}
         >
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={versionDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={3}
-              >
-                {versionDistribution.map((e, i) => (
-                  <Cell key={i} fill={e.fill} stroke="#FFFFFF" strokeWidth={2} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: TOK.inkMuted }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div style={{ position: 'relative', width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={versionDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={chartTheme.donut.innerRadius}
+                  outerRadius={chartTheme.donut.outerRadius}
+                  paddingAngle={chartTheme.donut.paddingAngle}
+                  cornerRadius={chartTheme.donut.cornerRadius}
+                >
+                  {versionDistribution.map((e, i) => (
+                    <Cell key={i} fill={e.fill} stroke="#FFFFFF" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={chartTheme.tooltip.contentStyle} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: TOK.inkMuted }} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Donut Center Stat */}
+            <div style={{
+              position: 'absolute',
+              top: '40%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}>
+              <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 800, color: TOK.ink, lineHeight: 1 }}>
+                {Math.round(((versionDistribution.find(d => d.name === 'TLS 1.3')?.value || 0) / (versionDistribution.reduce((a, b) => a + b.value, 0) || 1)) * 100)}%
+              </div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: TOK.primary, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 }}>
+                TLS 1.3
+              </div>
+            </div>
+          </div>
         </Card>
 
         {/* 2. Mail Port & Service Posture Matrix */}
@@ -539,11 +559,11 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={portPostureMatrix} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="posture" radius={[6, 6, 0, 0]} barSize={28}>
+              <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} vertical={false} />
+              <XAxis dataKey="name" tick={chartTheme.axis.tick} axisLine={chartTheme.axis.axisLine} />
+              <YAxis domain={[0, 100]} tick={chartTheme.axis.tick} axisLine={chartTheme.axis.axisLine} />
+              <Tooltip contentStyle={chartTheme.tooltip.contentStyle} />
+              <Bar dataKey="posture" radius={chartTheme.bar.radius} barSize={28}>
                 {portPostureMatrix.map((e, i) => (
                   <Cell key={i} fill={e.fill} />
                 ))}
@@ -560,10 +580,10 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={cipherStrengthData} layout="vertical" margin={{ top: 8, right: 20, left: 40, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10, fill: TOK.inkMuted }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: TOK.inkMuted }} width={130} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} horizontal={false} />
+              <XAxis type="number" allowDecimals={false} tick={chartTheme.axis.tick} />
+              <YAxis type="category" dataKey="name" tick={chartTheme.axis.tick} width={130} />
+              <Tooltip contentStyle={chartTheme.tooltip.contentStyle} />
               <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
                 {cipherStrengthData.map((e, i) => (
                   <Cell key={i} fill={e.fill} />
@@ -581,11 +601,11 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={certHealthData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={28}>
+              <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} vertical={false} />
+              <XAxis dataKey="name" tick={chartTheme.axis.tick} axisLine={chartTheme.axis.axisLine} />
+              <YAxis allowDecimals={false} tick={chartTheme.axis.tick} axisLine={chartTheme.axis.axisLine} />
+              <Tooltip contentStyle={chartTheme.tooltip.contentStyle} />
+              <Bar dataKey="count" radius={chartTheme.bar.radius} barSize={28}>
                 {certHealthData.map((e, i) => (
                   <Cell key={i} fill={e.fill} />
                 ))}
@@ -602,14 +622,14 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={postureDistData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 9.5, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: TOK.inkMuted }} axisLine={{ stroke: TOK.border }} />
+              <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} vertical={false} />
+              <XAxis dataKey="name" tick={{ ...chartTheme.axis.tick, fontSize: 9.5 }} axisLine={chartTheme.axis.axisLine} />
+              <YAxis allowDecimals={false} tick={chartTheme.axis.tick} axisLine={chartTheme.axis.axisLine} />
               <Tooltip
-                contentStyle={tooltipStyle}
+                contentStyle={chartTheme.tooltip.contentStyle}
                 formatter={(val, name, item) => [`${val} flows`, item?.payload?.range || name]}
               />
-              <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={28}>
+              <Bar dataKey="count" radius={chartTheme.bar.radius} barSize={28}>
                 {postureDistData.map((e, i) => (
                   <Cell key={i} fill={e.fill} />
                 ))}
@@ -624,26 +644,45 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           subtitle="Gateway enforcement actions (Allow / Quarantine / Block / Flag)"
           icon={ShieldCheck}
         >
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={policyDistData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={3}
-              >
-                {policyDistData.map((e, i) => (
-                  <Cell key={i} fill={e.fill} stroke="#FFFFFF" strokeWidth={2} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: TOK.inkMuted }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div style={{ position: 'relative', width: '100%', height: 220 }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={policyDistData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={chartTheme.donut.innerRadius}
+                  outerRadius={chartTheme.donut.outerRadius}
+                  paddingAngle={chartTheme.donut.paddingAngle}
+                  cornerRadius={chartTheme.donut.cornerRadius}
+                >
+                  {policyDistData.map((e, i) => (
+                    <Cell key={i} fill={e.fill} stroke="#FFFFFF" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={chartTheme.tooltip.contentStyle} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: TOK.inkMuted }} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Donut Center Stat */}
+            <div style={{
+              position: 'absolute',
+              top: '40%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}>
+              <div className="tabular-nums" style={{ fontSize: 18, fontWeight: 800, color: TOK.primary, lineHeight: 1 }}>
+                {Math.round(((policyDistData.find(d => d.name === 'Allow')?.value || 0) / (policyDistData.reduce((a, b) => a + b.value, 0) || 1)) * 100)}%
+              </div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: TOK.inkMuted, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 }}>
+                Allow
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
@@ -656,22 +695,22 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           icon={Cpu}
         >
           <ResponsiveContainer width="100%" height={200}>
-            <ScatterChart margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <ScatterChart margin={{ top: 10, right: 85, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} />
               <XAxis
                 type="number"
                 dataKey="x"
                 name="Flow Index"
                 domain={[0, Math.max(12, scatterData.length + 1)]}
                 tickCount={Math.min(14, scatterData.length + 2)}
-                tick={{ fontSize: 10, fill: TOK.inkMuted }}
+                tick={chartTheme.axis.tick}
               />
-              <YAxis type="number" dataKey="y" name="Anomaly Score" domain={[0, 25]} tick={{ fontSize: 10, fill: TOK.inkMuted }} />
-              <ZAxis range={[70, 70]} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v, n, p) => [fmt(v, 2), p?.payload?.flow || n]} />
+              <YAxis type="number" dataKey="y" name="Anomaly Score" domain={[0, 25]} tick={chartTheme.axis.tick} />
+              <ZAxis range={[110, 110]} />
+              <Tooltip contentStyle={chartTheme.tooltip.contentStyle} formatter={(v, n, p) => [fmt(v, 2), p?.payload?.flow || n]} />
               <Scatter name="Flows" data={scatterData} fill={TOK.primary} />
-              <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', position: 'right', fill: '#DC2626', fontSize: 10 }} />
-              <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', position: 'right', fill: '#CA8A04', fontSize: 10 }} />
+              <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', position: 'right', fill: '#DC2626', fontSize: 10, fontWeight: 600 }} />
+              <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', position: 'right', fill: '#CA8A04', fontSize: 10, fontWeight: 600 }} />
             </ScatterChart>
           </ResponsiveContainer>
         </Card>

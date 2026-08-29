@@ -156,8 +156,10 @@ export default function CoverageTable({ flows = [] }) {
           <thead>
             <tr style={{ background: TOK.canvas || '#F6F8F7', color: TOK.inkMuted, textAlign: 'left', borderBottom: `1px solid ${TOK.border}` }}>
               <th style={{ padding: '10px 14px', fontWeight: 700 }}>Port / Service</th>
-              <th style={{ padding: '10px 14px', fontWeight: 700 }}>Monitored Sessions</th>
-              <th style={{ padding: '10px 14px', fontWeight: 700 }}>Coverage Ratio</th>
+              <th style={{ padding: '10px 14px', fontWeight: 700, textAlign: 'right', cursor: 'pointer' }} title="Sort by sessions">
+                Monitored Sessions <span style={{ opacity: 0.6, fontSize: 11 }}>↕</span>
+              </th>
+              <th style={{ padding: '10px 14px', fontWeight: 700, textAlign: 'right' }}>Coverage Ratio</th>
               <th style={{ padding: '10px 14px', fontWeight: 700 }}>Pre-TLS Buffer</th>
               <th style={{ padding: '10px 14px', fontWeight: 700 }}>Primary RFC</th>
               <th style={{ padding: '10px 14px', fontWeight: 700 }}>M3AAWG Mandate</th>
@@ -174,11 +176,11 @@ export default function CoverageTable({ flows = [] }) {
                     <span>{r.label}</span>
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
-                  {r.port === 25 ? mxCount : byPort[String(r.port)] || 0} sessions
+                <td className="tabular-nums" style={{ padding: '10px 14px', fontWeight: 600, textAlign: 'right', fontFamily: TOK.fontMono }}>
+                  {r.port === 25 ? mxCount : byPort[String(r.port)] || 0}
                 </td>
-                <td style={{ padding: '10px 14px', fontFamily: TOK.fontMono || 'monospace', color: TOK.primary, fontWeight: 700 }}>
-                  {empty ? '—' : `${avgCoverage} coverage_ratio`}
+                <td className="tabular-nums" style={{ padding: '10px 14px', fontFamily: TOK.fontMono, color: TOK.primary, fontWeight: 700, textAlign: 'right' }}>
+                  {empty ? '—' : `${avgCoverage}`}
                 </td>
                 <td style={{ padding: '10px 14px', color: TOK.inkMuted, fontSize: 11 }}>
                   {r.port === 587 ? '0–171 pre_tls_buffer_len' : '0 bytes'}

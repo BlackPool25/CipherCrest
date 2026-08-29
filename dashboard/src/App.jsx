@@ -38,12 +38,14 @@ import {
   Info,
   Zap,
   Plus,
-  Lock
+  Lock,
+  Printer
 } from 'lucide-react'
 import { fetchFlows, fetchHistory, fetchMetrics } from './services/api.js'
 import CoverageTable from './components/CoverageTable.jsx'
 import PcapCustomizer from './components/PcapCustomizer.jsx'
 import Graphs from './components/Graphs.jsx'
+import FlowInspectorModal from './components/FlowInspectorModal.jsx'
 import { TOK, injectTokens } from './tokens.js'
 import { useQueryState, parseAsString } from 'nuqs'
 // cross-filter ?flow= deep-link preserved (q vs flow split): useQueryState('flow') — do not hijack ?q
@@ -1167,7 +1169,7 @@ export function PolicyRecommendationsView({ flow }) {
   )
 }
 
-export function DrillDown({ flow, onDeselect }) {
+export function DrillDown({ flow, onDeselect, onOpenReport }) {
   const [tab, setTab] = useState('Handshake')
   if (!flow) {
     return (
@@ -1203,6 +1205,28 @@ export function DrillDown({ flow, onDeselect }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          {onOpenReport && (
+            <button
+              onClick={onOpenReport}
+              title="Print Packet Report"
+              style={{
+                padding: '5px 10px',
+                borderRadius: 8,
+                background: TOK.primary,
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              <Printer size={13} />
+              <span>Print Report</span>
+            </button>
+          )}
           <span style={{
             background: TOK.primaryLight,
             color: TOK.primary,
@@ -1344,23 +1368,110 @@ export function DrillDown({ flow, onDeselect }) {
         )}
 
         {tab === 'AI' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: TOK.ink }}>
-            <div style={{ background: TOK.primaryLight, padding: 14, borderRadius: 10, border: `1px solid ${TOK.primary}30` }}>
-              <div style={{ fontWeight: 700, color: TOK.primary }}>Machine Learning Assessment</div>
-              <div style={{ fontSize: 12, color: TOK.ink, marginTop: 4 }}>
-                Risk Level: <b>{flow.assessment?.risk_level || 'Low'}</b> • Posture Score: <b>{flow.assessment?.posture_score ?? 85}/100</b>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, color: TOK.ink }}>
+            {/* Dual ML Model Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+              
+              {/* Model 1: Calibrated Risk Classifier */}
+              <div style={{ background: TOK.canvas, padding: 14, borderRadius: 10, border: `1px solid ${TOK.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: TOK.primary }} />
+                    <span style={{ fontSize: 12, fontWeight: 800, color: TOK.ink }}>Model 1: Risk Classifier</span>
+                  </div>
+                  <span style={{
+                    background: sevColor(flow.assessment?.risk_level),
+                    color: '#FFFFFF',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    fontSize: 10,
+                    fontWeight: 800,
+                  }}>
+                    {flow.assessment?.risk_level || 'Low'} Risk
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 6, border: `1px solid ${TOK.border}` }}>
+                    <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Calibrated Prob</div>
+                    <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: TOK.ink, marginTop: 2 }}>
+                      {(flow.assessment?.calibrated_prob ?? 0.08).toFixed(3)}
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 6, border: `1px solid ${TOK.border}` }}>
+                    <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Confidence</div>
+                    <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: TOK.primary, marginTop: 2 }}>
+                      {((1 - (flow.assessment?.calibrated_prob ?? 0.08)) * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11, color: TOK.inkMuted, lineHeight: 1.4 }}>
+                  <b>Decision Rationale:</b> {flow.tls?.is_deprecated ? 'Critical TLS version deprecation penalty (+35)' : flow.starttls_mode === 'stripped' ? 'STARTTLS command stripping MITM penalty (+40)' : 'Traffic satisfies TLS 1.2/1.3 baseline with compliant cipher suites.'}
+                </div>
+              </div>
+
+              {/* Model 2: Anomaly Detector (ECOD & JA4) */}
+              <div style={{ background: TOK.canvas, padding: 14, borderRadius: 10, border: `1px solid ${TOK.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB' }} />
+                    <span style={{ fontSize: 12, fontWeight: 800, color: TOK.ink }}>Model 2: Anomaly Detector</span>
+                  </div>
+                  <span style={{
+                    background: (flow.assessment?.anomaly_score ?? 12.3) >= 16.5 ? '#DC2626' : '#16A34A',
+                    color: '#FFFFFF',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    fontSize: 10,
+                    fontWeight: 800,
+                  }}>
+                    {(flow.assessment?.anomaly_score ?? 12.3) >= 16.5 ? 'Anomaly Outlier' : 'Normal Baseline'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 6, border: `1px solid ${TOK.border}` }}>
+                    <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Anomaly Score</div>
+                    <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: (flow.assessment?.anomaly_score ?? 12.3) >= 16.5 ? '#DC2626' : TOK.ink, marginTop: 2 }}>
+                      {(flow.assessment?.anomaly_score ?? 12.3).toFixed(2)}
+                    </div>
+                  </div>
+                  <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 6, border: `1px solid ${TOK.border}` }}>
+                    <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>JA4 Rarity</div>
+                    <div className="tabular-nums" style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', marginTop: 2 }}>
+                      0.926
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11, color: TOK.inkMuted, lineHeight: 1.4 }}>
+                  <b>JA4 Fingerprint:</b> <span className="mono" style={{ fontFamily: TOK.fontMono, color: TOK.primary, fontSize: 10.5 }}>{flow.tls?.ja4 || 't13d0300_000000000000_000000000000'}</span>
+                </div>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Calibrated Probability</div>
-                <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.calibrated_prob ?? '0.12'}</div>
-              </div>
-              <div style={{ background: TOK.canvas, padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}` }}>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 600 }}>Anomaly Score (ECOD)</div>
-                <div className="tabular-nums" style={{ fontWeight: 700, marginTop: 4, fontSize: 14 }}>{flow.assessment?.anomaly_score ?? '4.2'}</div>
-              </div>
-            </div>
+
+            {onOpenReport && (
+              <button
+                onClick={onOpenReport}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  background: TOK.primaryLight,
+                  border: `1px solid ${TOK.primary}40`,
+                  color: TOK.primary,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <span>View Full Dual AI Diagnostics &amp; Print Dossier →</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -1392,6 +1503,8 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [metrics, setMetrics] = useState(null)
   const [protocolStats, setProtocolStats] = useState(null)
+  const [inspectorFlow, setInspectorFlow] = useState(null)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false)
 
   // Merge server flows with baseline so monitored flows are always rich
   const mergeFlows = useCallback((serverFlows) => {
@@ -1974,8 +2087,10 @@ export default function App() {
                     onClick={() => {
                       handleToggleSelectFlow(f.flow_id)
                       setSelectedId(f.flow_id)
+                      setInspectorFlow(f)
+                      setIsInspectorOpen(true)
                     }}
-                    title={isSel ? "Click to unselect" : "Click to inspect flow"}
+                    title="Click to inspect packet details & print dossier"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -2059,12 +2174,28 @@ export default function App() {
           onSelect={handleToggleSelectFlow}
           onInjectRandomPacket={handleInjectRandomPacket}
         />
-        <DrillDown flow={selectedFlow} onDeselect={() => setSelectedFlowId(null)} />
+        <DrillDown
+          flow={selectedFlow}
+          onDeselect={() => setSelectedFlowId(null)}
+          onOpenReport={() => {
+            if (selectedFlow) {
+              setInspectorFlow(selectedFlow)
+              setIsInspectorOpen(true)
+            }
+          }}
+        />
       </div>
 
       <ThreatMatrix flows={displayFlows} onSelect={handleToggleSelectFlow} selectedId={selectedFlowId} selectedFlowId={selectedFlowId} />
       <Graphs flows={displayFlows} selectedFlowId={selectedFlowId} metrics={metrics} protocolStats={protocolStats} />
       <CoverageTable flows={displayFlows} selectedFlowId={selectedFlowId} />
+
+      {/* Deep-Dive Flow Inspector & Printable Dossier Modal */}
+      <FlowInspectorModal
+        flow={inspectorFlow || selectedFlow}
+        isOpen={isInspectorOpen}
+        onClose={() => setIsInspectorOpen(false)}
+      />
     </div>
   )
 }
