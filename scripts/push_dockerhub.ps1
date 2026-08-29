@@ -12,8 +12,8 @@
 
 [CmdletBinding()]
 param (
-    [string]$Tag = "demo",
-    [switch]$NoLatest,
+    [string]$Tag = "latest",
+    [switch]$NoAlias,
     [switch]$NoBuild,
     [switch]$DryRun,
     [string]$User = "blackpool25",
@@ -24,15 +24,17 @@ param (
 $ErrorActionPreference = "Stop"
 
 if ($Help) {
-    Write-Host "Usage: .\scripts\push_dockerhub.ps1 [-Tag <tag>] [-NoLatest] [-NoBuild] [-DryRun] [-User <user>] [-Repo <repo>]" -ForegroundColor Cyan
-    Write-Host "  -Tag <tag>   Specify image tag (default: demo, also pushes latest)"
-    Write-Host "  -NoLatest    Do not push :latest alias tag"
+    Write-Host "Usage: .\scripts\push_dockerhub.ps1 [-Tag <tag>] [-NoAlias] [-NoBuild] [-DryRun] [-User <user>] [-Repo <repo>]" -ForegroundColor Cyan
+    Write-Host "  -Tag <tag>   Specify image tag (default: latest, also pushes :demo)"
+    Write-Host "  -NoAlias     Do not push alias tag"
     Write-Host "  -NoBuild     Skip image build and only push existing local image"
     Write-Host "  -DryRun      Verify Docker Hub credentials and image without pushing"
     Write-Host "  -User <user> Expected Docker Hub username (default: blackpool25)"
     Write-Host "  -Repo <repo> Target repository (default: blackpool25/ciphercrest)"
     exit 0
 }
+
+$aliasTag = if ($Tag -eq "latest") { "demo" } else { "latest" }
 
 $RootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $RootDir
@@ -45,7 +47,7 @@ function Write-Header($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan 
 Write-Header "CipherCrest Docker Hub Publisher (Windows)"
 Write-Host "Target Repository : $Repo"
 Write-Host "Primary Tag       : $Tag"
-Write-Host "Alias Tag         : $(if ($NoLatest) { 'none' } else { 'latest' })"
+Write-Host "Alias Tag         : $(if ($NoAlias) { 'none' } else { $aliasTag })"
 Write-Host "Target User       : $User"
 
 # ── 1. Docker Daemon Check ──
@@ -88,7 +90,7 @@ if ($detectedUser) {
 
 # ── 3. Build Multi-stage Image ──
 $primaryImage = "${Repo}:${Tag}"
-$latestImage = "${Repo}:latest"
+$aliasImage = "${Repo}:${aliasTag}"
 
 if ($NoBuild) {
     Write-Header "Step 3: Skipping Build (-NoBuild specified)"
@@ -99,9 +101,9 @@ if ($NoBuild) {
     Write-Ok "Image successfully built: $primaryImage"
 }
 
-if (-not $NoLatest) {
-    docker tag $primaryImage $latestImage
-    Write-Ok "Tagged alias: $latestImage"
+if (-not $NoAlias) {
+    docker tag $primaryImage $aliasImage
+    Write-Ok "Tagged alias: $aliasImage"
 }
 
 # ── 4. Dry Run Guard ──
@@ -110,7 +112,7 @@ if ($DryRun) {
     Write-Ok "Docker Hub identity verified ($User)"
     Write-Ok "Ready to push:"
     Write-Host "  - $primaryImage"
-    if (-not $NoLatest) { Write-Host "  - $latestImage" }
+    if (-not $NoAlias) { Write-Host "  - $aliasImage" }
     Write-Host "Dry-run mode: No images were pushed to Docker Hub."
     exit 0
 }
@@ -121,16 +123,16 @@ Write-Host "Pushing $primaryImage ..."
 docker push $primaryImage
 Write-Ok "Successfully pushed $primaryImage to Docker Hub!"
 
-if (-not $NoLatest) {
-    Write-Host "Pushing $latestImage ..."
-    docker push $latestImage
-    Write-Ok "Successfully pushed $latestImage to Docker Hub!"
+if (-not $NoAlias) {
+    Write-Host "Pushing $aliasImage ..."
+    docker push $aliasImage
+    Write-Ok "Successfully pushed $aliasImage to Docker Hub!"
 }
 
 # ── 6. Summary ──
 Write-Header "Docker Hub Push Succeeded!"
 Write-Host "Repository : https://hub.docker.com/r/$Repo"
-Write-Host "Pushed Tags: $Tag $(if (-not $NoLatest) { ', latest' })"
+Write-Host "Pushed Tags: $Tag $(if (-not $NoAlias) { ", $aliasTag" })"
 Write-Host ""
 Write-Host "To run CipherCrest directly from Docker Hub without building:"
 Write-Host "  .\scripts\turnup.ps1 -UseHub"

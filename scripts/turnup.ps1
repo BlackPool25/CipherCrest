@@ -15,7 +15,7 @@ param (
     [switch]$Check,
     [switch]$WithLab,
     [switch]$UseHub,
-    [string]$Image = "blackpool25/ciphercrest:demo",
+    [string]$Image = "blackpool25/ciphercrest:latest",
     [switch]$HostMode,
     [switch]$Docker,
     [int]$Port = 8000,
@@ -28,8 +28,8 @@ if ($Help) {
     Write-Host "Usage: .\scripts\turnup.ps1 [-Check] [-WithLab] [-UseHub] [-Image <image>] [-HostMode] [-Port 8000]" -ForegroundColor Cyan
     Write-Host "  -Check     Dry-run preflight verification only (no services started)"
     Write-Host "  -WithLab   Start full lab profile (mockdns, postfix, dovecot)"
-    Write-Host "  -UseHub    Pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:demo)"
-    Write-Host "  -Image     Specify custom Docker image (default: blackpool25/ciphercrest:demo)"
+    Write-Host "  -UseHub    Pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:latest)"
+    Write-Host "  -Image     Specify custom Docker image (default: blackpool25/ciphercrest:latest)"
     Write-Host "  -HostMode  Run natively on Windows host using Python / Uvicorn (no Docker required)"
     Write-Host "  -Docker    Run via Docker Desktop (default)"
     Write-Host "  -Port N    Port for Web Dashboard & API (default: 8000)"

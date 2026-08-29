@@ -18,7 +18,7 @@ export PYTHONHASHSEED=0
 export OMP_NUM_THREADS=6
 WITH_LAB="${WITH_LAB:-0}"
 USE_HUB="${USE_HUB:-0}"
-CIPHERCREST_IMAGE="${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:demo}"
+CIPHERCREST_IMAGE="${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:latest}"
 
 API_PORT="${API_PORT:-8000}"
 MODE="full"
@@ -53,8 +53,8 @@ do_help(){
   echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab] [--use-hub] [--image <image>] [--host|--wheelhouse]"
   echo "  --check               dry-run checks only (no servers) — CI-safe"
   echo "  --with-lab            also bring lab profile (WITH_LAB=1)"
-  echo "  --use-hub             pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:demo) instead of local build"
-  echo "  --image <image>       specify custom Docker image (default: blackpool25/ciphercrest:demo)"
+  echo "  --use-hub             pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:latest) instead of local build"
+  echo "  --image <image>       specify custom Docker image (default: blackpool25/ciphercrest:latest)"
   echo "  --host, --wheelhouse  run natively on host using wheelhouse dependencies (no Docker required for demo)"
   echo "  --docker              force pure Docker mode (default)"
   echo "  --port N              API port (default 8000, env API_PORT)"
@@ -63,7 +63,7 @@ do_help(){
   echo "Env: WITH_LAB=0  docker compose up -d --build demo (default, single service demo on 8000)"
   echo "     WITH_LAB=1  docker compose --profile lab up -d --build (also lab 5 services)"
   echo "     USE_HUB=1   pull image from Docker Hub instead of building locally"
-  echo "     CIPHERCREST_IMAGE=blackpool25/ciphercrest:demo"
+  echo "     CIPHERCREST_IMAGE=blackpool25/ciphercrest:latest"
   echo "     HOST_MODE=1 run host wheelhouse mode natively"
   echo "     PYTHONHASHSEED=0 OMP_NUM_THREADS=6  deterministic"
   echo "     API_PORT=8000"

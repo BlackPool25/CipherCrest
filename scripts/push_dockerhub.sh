@@ -19,10 +19,10 @@ DEFAULT_REPO="blackpool25/ciphercrest"
 TARGET_REPO="${DOCKER_REPO:-$DEFAULT_REPO}"
 DEFAULT_USER="blackpool25"
 TARGET_USER="${DOCKER_USER:-$DEFAULT_USER}"
-TAG="${TAG:-demo}"
+TAG="${TAG:-latest}"
 DRY_RUN=0
 NO_BUILD=0
-PUSH_LATEST=1
+PUSH_DEMO=1
 
 # Formatting
 if [[ -t 1 ]]; then
@@ -47,8 +47,8 @@ do_help(){
   echo "Usage: bash scripts/push_dockerhub.sh [OPTIONS]"
   echo ""
   echo "Options:"
-  echo "  --tag <tag>       Specify image tag (default: demo, also pushes latest)"
-  echo "  --no-latest       Do not push :latest alias tag"
+  echo "  --tag <tag>       Specify image tag (default: latest, also pushes :demo)"
+  echo "  --no-demo         Do not push :demo alias tag"
   echo "  --no-build        Skip image build and only push existing local image"
   echo "  --dry-run         Verify Docker Hub credentials and image without pushing"
   echo "  --user <name>     Expected Docker Hub username (default: blackpool25)"
@@ -58,14 +58,14 @@ do_help(){
   echo "Environment Variables:"
   echo "  DOCKER_REPO       Docker repository (default: blackpool25/ciphercrest)"
   echo "  DOCKER_USER       Docker Hub user (default: blackpool25)"
-  echo "  TAG               Image tag (default: demo)"
+  echo "  TAG               Image tag (default: latest)"
 }
 
 # Parse CLI arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --tag) TAG="$2"; shift 2 ;;
-    --no-latest) PUSH_LATEST=0; shift ;;
+    --no-demo|--no-alias) PUSH_DEMO=0; shift ;;
     --no-build) NO_BUILD=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     --user) TARGET_USER="$2"; shift 2 ;;
@@ -75,10 +75,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+ALIAS_TAG="demo"
+if [[ "$TAG" == "demo" ]]; then
+  ALIAS_TAG="latest"
+fi
+
 header "CipherCrest Docker Hub Publisher"
 echo "Target Repository : $TARGET_REPO"
 echo "Primary Tag       : $TAG"
-echo "Alias Tag         : $([[ $PUSH_LATEST -eq 1 ]] && echo 'latest' || echo 'none')"
+echo "Alias Tag         : $([[ $PUSH_DEMO -eq 1 ]] && echo "$ALIAS_TAG" || echo 'none')"
 echo "Target User       : $TARGET_USER"
 echo ""
 
@@ -155,7 +160,7 @@ echo ""
 
 # ── 3. Build Multi-stage Image ──
 PRIMARY_IMAGE="${TARGET_REPO}:${TAG}"
-LATEST_IMAGE="${TARGET_REPO}:latest"
+ALIAS_IMAGE="${TARGET_REPO}:${ALIAS_TAG}"
 
 if [[ "$NO_BUILD" -eq 1 ]]; then
   header "Step 3: Skipping Build (--no-build specified)"
@@ -177,10 +182,10 @@ else
   fi
 fi
 
-# Tag as latest if requested
-if [[ "$PUSH_LATEST" -eq 1 ]]; then
-  docker tag "$PRIMARY_IMAGE" "$LATEST_IMAGE"
-  ok "Tagged alias: $LATEST_IMAGE"
+# Tag alias if requested
+if [[ "$PUSH_DEMO" -eq 1 ]]; then
+  docker tag "$PRIMARY_IMAGE" "$ALIAS_IMAGE"
+  ok "Tagged alias: $ALIAS_IMAGE"
 fi
 echo ""
 
@@ -190,7 +195,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   ok "Docker Hub identity verified ($TARGET_USER)"
   ok "Local images ready to push:"
   echo "  - $PRIMARY_IMAGE"
-  [[ "$PUSH_LATEST" -eq 1 ]] && echo "  - $LATEST_IMAGE"
+  [[ "$PUSH_DEMO" -eq 1 ]] && echo "  - $ALIAS_IMAGE"
   echo "Dry-run mode: No images were pushed to Docker Hub."
   exit 0
 fi
@@ -205,13 +210,13 @@ else
   exit 1
 fi
 
-if [[ "$PUSH_LATEST" -eq 1 ]]; then
+if [[ "$PUSH_DEMO" -eq 1 ]]; then
   echo ""
-  echo "Pushing $LATEST_IMAGE ..."
-  if docker push "$LATEST_IMAGE"; then
-    ok "Successfully pushed $LATEST_IMAGE to Docker Hub!"
+  echo "Pushing $ALIAS_IMAGE ..."
+  if docker push "$ALIAS_IMAGE"; then
+    ok "Successfully pushed $ALIAS_IMAGE to Docker Hub!"
   else
-    warn "Failed to push $LATEST_IMAGE"
+    warn "Failed to push $ALIAS_IMAGE"
   fi
 fi
 echo ""
@@ -219,7 +224,7 @@ echo ""
 # ── 6. Completion Summary ──
 header "Docker Hub Push Succeeded!"
 echo "Repository : https://hub.docker.com/r/$TARGET_REPO"
-echo "Pushed Tags: $TAG $([[ $PUSH_LATEST -eq 1 ]] && echo ', latest' || echo '')"
+echo "Pushed Tags: $TAG $([[ "$PUSH_DEMO" -eq 1 ]] && echo ", $ALIAS_TAG" || echo '')"
 echo ""
 echo "To run CipherCrest directly from Docker Hub without building:"
 echo "  bash scripts/turnup.sh --use-hub"

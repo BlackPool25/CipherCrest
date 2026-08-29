@@ -17,7 +17,7 @@ param (
     [switch]$Wheelhouse,
     [switch]$Native,
     [switch]$UseHub,
-    [string]$Image = "blackpool25/ciphercrest:demo",
+    [string]$Image = "blackpool25/ciphercrest:latest",
     [int]$Port = 8000,
     [switch]$Help
 )

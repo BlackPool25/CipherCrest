@@ -26,7 +26,7 @@ services:
   demo:
     container_name: ciphercrest-demo
     build: .
-    image: ${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:demo}
+    image: ${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:latest}
     ports:
       - "8000:8000"
     environment:
