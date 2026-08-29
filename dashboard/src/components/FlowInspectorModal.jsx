@@ -114,26 +114,26 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
         }
       `}</style>
 
-      {/* Modal Container */}
+      {/* Modal Container — Spacious Widescreen Layout */}
       <div
         id="flow-report-printable"
         onClick={e => e.stopPropagation()}
         style={{
           background: '#FFFFFF',
           borderRadius: 16,
-          width: '100%',
-          maxWidth: 960,
-          maxHeight: '92vh',
+          width: '95vw',
+          maxWidth: 1440,
+          maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
-          border: `1px solid ${TOK.border}`,
+          boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+          border: `1.5px solid ${TOK.border}`,
           overflow: 'hidden',
         }}
       >
         {/* Modal Top Header */}
         <div style={{
-          padding: '18px 24px',
+          padding: '20px 28px',
           borderBottom: `1px solid ${TOK.border}`,
           display: 'flex',
           alignItems: 'center',
