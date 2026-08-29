@@ -71,7 +71,7 @@ def test_pre_tls_buffer_computed() -> None:
     res09 = reassemble("lab/pcaps/family-09.pcap")
     assert res09["pre_tls_buffer_len"] == 0
     assert res09["pre_tls_buffer_injection_possible"] is False
-    payload = b"220 mail.lab.local ESMTP\r\nEHLO client\r\n250-STARTTLS\r\nSTARTTLS\r\n220 Ready to start TLS\r\n\x16\x03\x01 Hello"
+    payload = b"220 mail.lab.local ESMTP\r\nEHLO client\r\n250-STARTTLS\r\nSTARTTLS\r\n220 Ready to start TLS\r\nPIPELINED_DATA\r\n\x16\x03\x01 Hello"
     plen, possible = _compute_pre_tls_buffer(payload)
     assert plen > 0 and possible is True
     payload2 = b"220 mail.lab.local ESMTP\r\n\x16\x03\x01"
