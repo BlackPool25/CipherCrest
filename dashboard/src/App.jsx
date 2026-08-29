@@ -881,11 +881,23 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
               }}>
                 {sevIcon(sev)}
               </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="mono tabular-nums" style={{ fontFamily: TOK.fontMono, fontSize: 13, fontWeight: 700, color: TOK.ink }}>
+              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                <div
+                  className="mono tabular-nums"
+                  title={flow.flow_id}
+                  style={{
+                    fontFamily: TOK.fontMono,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: TOK.ink,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
                   {flow.flow_id}
                 </div>
-                <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 2, display: 'flex', gap: 6 }}>
+                <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 2, display: 'flex', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   <span>{flow.tls?.version || 'unknown'}</span>
                   <span>•</span>
                   <span>Port {portForFlow(flow)}</span>
@@ -893,7 +905,7 @@ export function MasterList({ flows = [], selectedId, onSelect, onInjectRandomPac
                   <span>{flow.starttls_mode}</span>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
                 <div className="tabular-nums" style={{ fontSize: 13, fontWeight: 800, color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger }}>
                   {posture} <span style={{ fontSize: 10, fontWeight: 500, color: TOK.inkMuted }}>/100</span>
                 </div>
