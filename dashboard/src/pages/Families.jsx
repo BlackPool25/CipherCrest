@@ -404,8 +404,8 @@ export default function Families() {
   useEffect(() => {
     let alive = true
     setIsLoading(true)
-    // GET /api/families — primary data layer, has_run EXISTS already
-    fetchFamilies({ limit: 60, offset: 0 }).then(data => {
+    // GET /api/families — primary data layer, loads full catalog (1000 families)
+    fetchFamilies({ limit: 1000, offset: 0 }).then(data => {
       if (!alive) return
       if (Array.isArray(data) && data.length > 0) {
         // lpad numeric ordering via substring cast
@@ -455,7 +455,7 @@ export default function Families() {
     const iv = setInterval(() => {
       // 5s poll skeleton — preserve spacing, refetch both families and flows
       fetchFlows({ limit: 500 }).then(d => { if (alive && Array.isArray(d)) setFlows(d) }).catch(() => {})
-      fetchFamilies({ limit: 60, offset: 0 }).then(d => {
+      fetchFamilies({ limit: 1000, offset: 0 }).then(d => {
         if (!alive) return
         if (Array.isArray(d) && d.length > 0) {
           const sorted = [...d].sort((a, b) => {
@@ -522,6 +522,75 @@ export default function Families() {
     return m
   }, [flows])
 
+  // Deterministic RFC-grounded posture calculator for evaluated families
+  const computePosture = useCallback((fam, live) => {
+    if (live && typeof live.assessment?.posture_score === 'number') {
+      return live.assessment.posture_score
+    }
+    if (fam && typeof fam.posture_score === 'number') {
+      return fam.posture_score
+    }
+    if (live && typeof live.assessment?.risk_score === 'number' && live.assessment.risk_score > 0) {
+      return Math.max(0, 100 - live.assessment.risk_score)
+    }
+
+    const findings = live?.assessment?.findings || []
+    if (findings.length > 0) {
+      let deduction = 0
+      findings.forEach(f => {
+        const s = f.severity || f.risk_level
+        if (s === 'Critical') deduction += 25
+        else if (s === 'High') deduction += 15
+        else if (s === 'Medium') deduction += 7
+        else if (s === 'Low') deduction += 3
+      })
+      return Math.max(0, Math.min(100, 100 - deduction))
+    }
+
+    const st = (live?.starttls_mode || fam?.starttls_mode || fam?.starttls || '').toLowerCase()
+    const cs = (live?.tls?.cipher_suite || fam?.cipher_suite || fam?.cipher || '').toUpperCase()
+    const ver = (live?.tls?.version || fam?.tls_version || fam?.tls || '').toUpperCase()
+    const cert = (live?.cert?.cert_type || fam?.cert_type || fam?.cert || '').toLowerCase()
+    const kex = (live?.tls?.kex || fam?.kex || '').toUpperCase()
+
+    let deduction = 0
+    if (st === 'stripped' || st === 'cleartext') deduction += 45
+    if (ver === 'TLS1.0' || ver === '1.0') deduction += 35
+    else if (ver === 'TLS1.1' || ver === '1.1') deduction += 25
+    else if (ver === 'NONE') deduction += 50
+
+    if (cs.includes('RC4') || cs.includes('NULL') || cs.includes('DES-CBC-SHA')) deduction += 35
+    else if (cs.includes('3DES') || cs.includes('DES-CBC3')) deduction += 20
+    else if (cs.includes('AES128-SHA') || cs.includes('AES256-SHA') || (cs.includes('CBC') && !cs.includes('GCM'))) deduction += 10
+
+    if (kex === 'RSA' && !ver.includes('1.3') && ver !== 'NONE') deduction += 15
+    if (cert.includes('expired')) deduction += 35
+    else if (cert.includes('selfsigned') || cert.includes('self-signed')) deduction += 30
+    else if (cert.includes('incomplete')) deduction += 18
+    else if (cert.includes('rsa1024')) deduction += 20
+
+    if (deduction === 0) {
+      if (ver === 'TLS1.3' || ver.includes('1.3')) return 95
+      if (ver === 'TLS1.2' || ver.includes('1.2')) return 90
+      return 85
+    }
+    return Math.max(5, Math.min(100, 100 - deduction))
+  }, [])
+
+  const computeSeverity = useCallback((score, fam, live) => {
+    if (score == null) return 'Not Run'
+    if (live?.assessment?.risk_level && live.assessment.risk_level !== 'Low') {
+      return live.assessment.risk_level
+    }
+    if (fam?.risk_level && fam.risk_level !== 'Low' && fam.risk_level !== 'Not Run') {
+      return fam.risk_level
+    }
+    if (score < 40) return 'Critical'
+    if (score < 70) return 'High'
+    if (score < 85) return 'Medium'
+    return 'Low'
+  }, [])
+
   // Merge families with live flows — derive has_run from /api/families.has_run EXISTS, posture/risk from flows join
   const mergedFamilies = useMemo(() => {
     return families.map(fam => {
@@ -542,15 +611,19 @@ export default function Families() {
           coverage_ratio: null,
         }
       }
+
+      const calculatedPosture = computePosture(fam, live)
+      const calculatedSeverity = computeSeverity(calculatedPosture, fam, live)
+
       return {
         ...fam,
         family_id: fid,
         id: fid,
         has_run: true,
-        posture: live.assessment?.posture_score ?? (100 - (live.assessment?.risk_score ?? 10)),
-        posture_score: live.assessment?.posture_score ?? null,
-        severity: live.assessment?.risk_level || 'Low',
-        risk_level: live.assessment?.risk_level || 'Low',
+        posture: calculatedPosture,
+        posture_score: calculatedPosture,
+        severity: calculatedSeverity,
+        risk_level: calculatedSeverity,
         tls: live.tls?.version || fam.tls_version || fam.tls,
         tls_version: live.tls?.version || fam.tls_version || fam.tls,
         cipher: live.tls?.cipher_suite || fam.cipher_suite || fam.cipher,
@@ -562,7 +635,7 @@ export default function Families() {
         flow: live,
       }
     })
-  }, [families, flowsById])
+  }, [families, flowsById, computePosture, computeSeverity])
 
   // Filtered & Sorted items — lpad ordering preserved via numeric comparator, q only (flowParam not hijacked)
   const filtered = useMemo(() => {

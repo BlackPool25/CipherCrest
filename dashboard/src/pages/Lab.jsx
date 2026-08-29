@@ -341,6 +341,15 @@ export default function Lab() {
   const activeGreenBorder = '#155C3A'
   const activeGreenShadow = '0 4px 14px rgba(21, 92, 58, 0.28)'
 
+  // Handshake defect flags
+  const isDep = tlsVersion === 'TLS1.0' || tlsVersion === 'TLS1.1'
+  const isStripped = starttlsMode === 'stripped'
+  const isWeakCipher = cipherStrength === 'weak' || cipher === 'DES-CBC3-SHA' || cipher === 'DES-CBC-SHA' || cipher === 'RC4-SHA'
+  const isExpiredCert = certType === 'expired'
+  const isSelfSigned = certType === 'selfsigned'
+  const isWeakKey = certType === 'rsa1024'
+  const isNoFS = kex === 'RSA'
+
   // Real-time RFC-grounded calibrated posture calculation
   const calculatedPosture = useMemo(() => {
     let riskDeduction = 0
