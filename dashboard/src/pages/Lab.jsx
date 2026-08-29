@@ -2,10 +2,10 @@
  * Lab.jsx — High-Fidelity Interactive Cryptographic Lab & Packet Synthesizer Studio
  * 
  * Design System:
- *  - Edge-to-edge layout across full container width and height
+ *  - Full edge-to-edge scaling across entire viewport (both width and full vertical height)
  *  - Themed 32px icons on all option cards with pre-selection threat coloring
  *  - Small 18px icons in section headers for clear visual hierarchy
- *  - Auto-fit option grids (repeat(auto-fit, minmax(180px, 1fr)))
+ *  - Auto-fit option grids (repeat(auto-fit, minmax(180px, 1fr))) that flex-expand
  *  - Resizable & Collapsible Live Wire Blueprint panel with drag handle (min 280px, max 640px, double-click reset)
  *  - SIH Offline V1 forest green selected state: linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%) with white text
  *  - Full scapy binary synthesis, POST /api/analyze execution, and printable packet dossier
@@ -481,26 +481,29 @@ export default function Lab() {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: 20,
+      gap: 16,
       width: '100%',
       maxWidth: '100%',
-      minHeight: 'calc(100vh - 100px)',
+      flex: 1,
+      minHeight: 'calc(100vh - 120px)',
       boxSizing: 'border-box',
     }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
         .lab-opt-card {
-          min-width: 180px;
-          min-height: 96px;
-          padding: 16px;
+          min-width: 170px;
+          min-height: 100px;
+          padding: 16px 18px;
           border-radius: 12px;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
+          justifyContent: space-between;
           text-align: left;
           cursor: pointer;
           transition: all 120ms ease;
           position: relative;
+          flex: 1;
         }
         .lab-opt-card:hover {
           border-color: rgba(21, 92, 58, 0.4) !important;
@@ -539,15 +542,16 @@ export default function Lab() {
         flexWrap: 'wrap',
         gap: 14,
         background: TOK.surface,
-        padding: '16px 24px',
+        padding: '14px 24px',
         borderRadius: TOK.radiusCard,
         border: `1px solid ${TOK.border}`,
         boxShadow: TOK.shadow,
+        flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             borderRadius: 12,
             background: activeGreenBg,
             display: 'flex',
@@ -555,13 +559,13 @@ export default function Lab() {
             justifyContent: 'center',
             boxShadow: activeGreenShadow,
           }}>
-            <Zap size={22} color="#FFFFFF" />
+            <Zap size={20} color="#FFFFFF" />
           </div>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: TOK.ink, letterSpacing: -0.3, margin: 0 }}>
+            <h1 style={{ fontSize: 19, fontWeight: 800, color: TOK.ink, letterSpacing: -0.3, margin: 0 }}>
               Interactive Cryptographic Lab &amp; Packet Synthesizer
             </h1>
-            <p style={{ fontSize: 12.5, color: TOK.inkMuted, marginTop: 2, margin: 0 }}>
+            <p style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2, margin: 0 }}>
               Synthesize wire-compliant mail PCAPs, test RFC security policies, and evaluate dual ML diagnostics
             </p>
           </div>
@@ -611,10 +615,12 @@ export default function Lab() {
         </div>
       </div>
 
-      {/* ── TWO-PANE FULL-WIDTH WORKSPACE ── */}
+      {/* ── TWO-PANE FULL-VIEWPORT WORKSPACE (FLEX: 1 TO FILL ENTIRE HEIGHT) ── */}
       <div className="no-print" style={{
         display: 'flex',
         width: '100%',
+        flex: 1,
+        minHeight: 0,
         background: TOK.surface,
         border: `1px solid ${TOK.border}`,
         borderRadius: TOK.radiusCard,
@@ -623,14 +629,16 @@ export default function Lab() {
         alignItems: 'stretch',
       }}>
         
-        {/* MATRIX PANE (flex: 1, fills remaining space, edge-to-edge, 24px padding) */}
+        {/* MATRIX PANE (flex: 1, fills all remaining width & height, 24px padding) */}
         <div style={{
           flex: 1,
           minWidth: 0,
-          padding: 24,
+          padding: '24px 28px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 22,
+          justifyContent: 'space-between',
+          gap: 20,
+          overflowY: 'auto',
         }}>
           
           {/* Section 1: Mail Service Port & Protocol */}
@@ -643,7 +651,7 @@ export default function Lab() {
               <span style={{ fontSize: 11.5, color: TOK.inkMuted }}>Select transport options to simulate mail flow</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
               {PORTS.map(p => {
                 const isSel = port === p.port
                 const IconComp = p.icon
@@ -661,9 +669,11 @@ export default function Lab() {
                       boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
-                    <IconComp size={32} strokeWidth={1.5} color={isSel ? '#FFFFFF' : TOK.inkMuted} style={{ marginBottom: 8 }} />
-                    <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{p.label}</div>
-                    <div style={{ fontSize: 11.5, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 4, lineHeight: 1.3 }}>{p.desc}</div>
+                    <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : TOK.inkMuted} style={{ marginBottom: 6 }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{p.label}</div>
+                      <div style={{ fontSize: 11.5, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 3, lineHeight: 1.3 }}>{p.desc}</div>
+                    </div>
                   </button>
                 )
               })}
@@ -680,7 +690,7 @@ export default function Lab() {
               <span style={{ fontSize: 11.5, color: TOK.inkMuted }}>Enforce modern AEAD or test legacy downgrade risks</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
               {TLS_VERSIONS.map(v => {
                 const isSel = tlsVersion === v.value
                 const IconComp = v.icon
@@ -699,16 +709,18 @@ export default function Lab() {
                       boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
-                    <IconComp size={32} strokeWidth={1.5} color={isSel ? '#FFFFFF' : unselectedIconColor} style={{ marginBottom: 8 }} />
-                    <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{v.label}</div>
-                    <div style={{
-                      fontSize: 11.5,
-                      color: isSel ? '#D1FAE5' : (v.secure ? '#16A34A' : v.color),
-                      marginTop: 4,
-                      fontWeight: isSel ? 500 : 700,
-                      lineHeight: 1.3,
-                    }}>
-                      {v.desc}
+                    <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : unselectedIconColor} style={{ marginBottom: 6 }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{v.label}</div>
+                      <div style={{
+                        fontSize: 11.5,
+                        color: isSel ? '#D1FAE5' : (v.secure ? '#16A34A' : v.color),
+                        marginTop: 3,
+                        fontWeight: isSel ? 500 : 700,
+                        lineHeight: 1.3,
+                      }}>
+                        {v.desc}
+                      </div>
                     </div>
                   </button>
                 )
@@ -884,20 +896,20 @@ export default function Lab() {
           </div>
 
           {/* Full-Width Action Button */}
-          <div style={{ paddingTop: 4 }}>
+          <div style={{ paddingTop: 4, marginTop: 'auto' }}>
             <button
               type="button"
               onClick={handleSynthesizeAndAnalyze}
               disabled={busy}
               style={{
                 width: '100%',
-                padding: '15px 24px',
+                padding: '16px 24px',
                 borderRadius: 12,
                 background: busy ? TOK.borderStrong : activeGreenBg,
                 color: '#FFFFFF',
                 border: 'none',
                 fontWeight: 800,
-                fontSize: 14.5,
+                fontSize: 15,
                 cursor: busy ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -938,17 +950,19 @@ export default function Lab() {
           />
         )}
 
-        {/* WIRE BLUEPRINT PANE (resizable, default 340px) */}
+        {/* WIRE BLUEPRINT PANE (resizable, default 340px, full height) */}
         {showPreview && (
           <div style={{
             width: panelWidth,
             flexShrink: 0,
-            padding: 24,
+            padding: '24px',
             background: '#FAFAFA',
             display: 'flex',
             flexDirection: 'column',
-            gap: 16,
-            overflow: 'hidden',
+            gap: 14,
+            height: '100%',
+            boxSizing: 'border-box',
+            overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${TOK.border}`, paddingBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1038,17 +1052,30 @@ export default function Lab() {
               </div>
             </div>
 
-            {/* Synthesized PCAP Frame Hex Preview */}
-            <div style={{ background: '#0F172A', borderRadius: 10, padding: 12, color: '#94A3B8', fontFamily: TOK.fontMono, fontSize: 10.5, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#E2E8F0', borderBottom: '1px solid #334155', paddingBottom: 4 }}>
+            {/* Synthesized PCAP Frame Hex Preview (Flex: 1 to fill full remaining vertical height) */}
+            <div style={{
+              background: '#0F172A',
+              borderRadius: 10,
+              padding: 14,
+              color: '#94A3B8',
+              fontFamily: TOK.fontMono,
+              fontSize: 11,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+              flex: 1,
+              minHeight: 140,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#E2E8F0', borderBottom: '1px solid #334155', paddingBottom: 6 }}>
                 <span style={{ fontWeight: 700 }}>PCAP Frame (TLSRecord)</span>
                 <span style={{ fontSize: 9.5, color: '#10B981' }}>Wire Hex</span>
               </div>
-              <div style={{ overflowX: 'auto', whiteSpace: 'pre', lineHeight: 1.35, color: '#38BDF8' }}>
+              <div style={{ overflowX: 'auto', overflowY: 'auto', whiteSpace: 'pre', lineHeight: 1.4, color: '#38BDF8', flex: 1 }}>
                 {`0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00
 0010   00 68 12 34 00 00 40 06  7c a8 7f 00 00 0b 7f 00
 0020   00 01 d4 31 02 4b 00 00  00 01 00 00 00 64 50 18
-0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03`}
+0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03
+0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
               </div>
             </div>
           </div>
@@ -1069,6 +1096,7 @@ export default function Lab() {
             display: 'flex',
             flexDirection: 'column',
             gap: 24,
+            flexShrink: 0,
           }}
         >
           {/* Dossier Header */}
