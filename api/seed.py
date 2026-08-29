@@ -551,19 +551,16 @@ async def _seed_model_runs_async(conn) -> int:
                 if hasattr(obj, "get_params"):
                     try:
                         params = obj.get_params()
-                        safe_params = {}
-                        for k, v in params.items():
-                            try:
-                                json.dumps(v)
-                                safe_params[k] = v
-                            except Exception:
-                                safe_params[k] = str(v)
-                        params = safe_params
+                        params = _sanitize_json(params)
                     except Exception:
                         params = {"model_type": type(obj).__name__}
                 else:
                     params = {"model_type": type(obj).__name__}
-                if len(json.dumps(params)) > 4000:
+                params = _sanitize_json(params)
+                try:
+                    if len(json.dumps(params, allow_nan=False)) > 4000:
+                        params = {"model_type": type(obj).__name__, "truncated": True}
+                except Exception:
                     params = {"model_type": type(obj).__name__, "truncated": True}
             except Exception:
                 params = {"model_type": pkl_path.stem}
@@ -576,6 +573,7 @@ async def _seed_model_runs_async(conn) -> int:
                     metrics = metrics_data["anomaly"]
                 else:
                     metrics = metrics_data.get(model_name, metrics_data.get("risk", {}))
+            metrics = _sanitize_json(metrics) if metrics else {}
             n_eff = None
             try:
                 if isinstance(metrics, dict):
@@ -592,14 +590,14 @@ async def _seed_model_runs_async(conn) -> int:
                 trained_at = None
             await conn.execute(
                 _model_runs_upsert_sql(),
-                (model_name, trained_at, json.dumps(params) if params else "{}", json.dumps(metrics) if metrics else "{}", sha, n_eff, dataset_caveat),
+                (model_name, trained_at, json.dumps(params, allow_nan=False) if params else "{}", json.dumps(metrics, allow_nan=False) if metrics else "{}", sha, n_eff, dataset_caveat),
             )
             try:
                 await conn.execute(
                     "INSERT INTO model_runs_history (model_name, version, trained_at, params, metrics, artifact_sha, n_eff, dataset_caveat) "
                     "SELECT %s, COALESCE((SELECT MAX(version) FROM model_runs_history WHERE model_name=%s),0)+1, %s, %s::jsonb, %s::jsonb, %s, %s, %s "
                     "ON CONFLICT (model_name, version) DO NOTHING",
-                    (model_name, model_name, trained_at, json.dumps(params) if params else "{}", json.dumps(metrics) if metrics else "{}", sha, n_eff, dataset_caveat),
+                    (model_name, model_name, trained_at, json.dumps(params, allow_nan=False) if params else "{}", json.dumps(metrics, allow_nan=False) if metrics else "{}", sha, n_eff, dataset_caveat),
                 )
             except Exception:
                 pass
@@ -1023,7 +1021,7 @@ async def seed_all(dsn: str | None = None, with_dashboard_run: bool = False, ups
 
 
 async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths: list[tuple[str, pathlib.Path]], with_dashboard_run: bool, full: bool) -> dict:
-    conn = await AsyncConnection.connect(dsn)
+    conn = await AsyncConnection.connect(dsn, autocommit=True)
     try:
         counts_before = {}
         for tbl in ("families", "pcap_files", "flows", "model_runs"):
@@ -1282,7 +1280,8 @@ async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths
         if with_dashboard_run:
             await _run_dashboard_10_async(conn, families)
 
-        await conn.commit()
+        if not getattr(conn, "autocommit", False):
+            await conn.commit()
         return {"before": counts_before, "after": counts_after}
     finally:
         await conn.close()
