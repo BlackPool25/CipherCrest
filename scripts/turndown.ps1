@@ -16,6 +16,8 @@ param (
     [switch]$HostMode,
     [switch]$Wheelhouse,
     [switch]$Native,
+    [switch]$UseHub,
+    [string]$Image = "blackpool25/ciphercrest:demo",
     [int]$Port = 8000,
     [switch]$Help
 )

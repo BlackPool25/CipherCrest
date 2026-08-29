@@ -4,6 +4,7 @@ include:
 
 services:
   postgres:
+    container_name: ciphercrest-postgres
     image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571 # pinned 2026-08-13T19:16:04Z postgres:16-alpine amd64 (manifest digest), fallback postgres:16-alpine
     environment:
       POSTGRES_DB: ciphcrest
@@ -23,8 +24,9 @@ services:
       - default
 
   demo:
+    container_name: ciphercrest-demo
     build: .
-    image: ghcr.io/ntro/securemailscope:demo
+    image: ${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:demo}
     ports:
       - "8000:8000"
     environment:

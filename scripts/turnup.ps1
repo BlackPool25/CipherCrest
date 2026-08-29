@@ -14,6 +14,8 @@
 param (
     [switch]$Check,
     [switch]$WithLab,
+    [switch]$UseHub,
+    [string]$Image = "blackpool25/ciphercrest:demo",
     [switch]$HostMode,
     [switch]$Docker,
     [int]$Port = 8000,
@@ -23,9 +25,11 @@ param (
 $ErrorActionPreference = "Stop"
 
 if ($Help) {
-    Write-Host "Usage: .\scripts	urnup.ps1 [-Check] [-WithLab] [-HostMode] [-Port 8000]" -ForegroundColor Cyan
+    Write-Host "Usage: .\scripts\turnup.ps1 [-Check] [-WithLab] [-UseHub] [-Image <image>] [-HostMode] [-Port 8000]" -ForegroundColor Cyan
     Write-Host "  -Check     Dry-run preflight verification only (no services started)"
     Write-Host "  -WithLab   Start full lab profile (mockdns, postfix, dovecot)"
+    Write-Host "  -UseHub    Pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:demo)"
+    Write-Host "  -Image     Specify custom Docker image (default: blackpool25/ciphercrest:demo)"
     Write-Host "  -HostMode  Run natively on Windows host using Python / Uvicorn (no Docker required)"
     Write-Host "  -Docker    Run via Docker Desktop (default)"
     Write-Host "  -Port N    Port for Web Dashboard & API (default: 8000)"
@@ -152,12 +156,25 @@ if ($HostMode) {
 } else {
     Write-Host ""
     if (Get-Command docker -ErrorAction SilentlyContinue) {
-        if ($WithLab) {
-            Write-Host "Starting Docker containers with Lab profile on http://localhost:$Port ..." -ForegroundColor Cyan
-            docker compose --profile lab up -d --build
+        $env:CIPHERCREST_IMAGE = "$Image"
+        if ($UseHub -or ($env:USE_HUB -eq "1")) {
+            Write-Host "Pulling pre-built CipherCrest image from Docker Hub ($Image)..." -ForegroundColor Cyan
+            docker pull $Image
+            if ($WithLab) {
+                Write-Host "Starting Docker containers from Hub with Lab profile on http://localhost:$Port ..." -ForegroundColor Cyan
+                docker compose --profile lab up -d
+            } else {
+                Write-Host "Starting Docker demo container from Hub on http://localhost:$Port/dashboard ..." -ForegroundColor Cyan
+                docker compose up -d demo
+            }
         } else {
-            Write-Host "Starting Docker demo container on http://localhost:$Port/dashboard ..." -ForegroundColor Cyan
-            docker compose up -d --build demo
+            if ($WithLab) {
+                Write-Host "Starting Docker containers with Lab profile on http://localhost:$Port ..." -ForegroundColor Cyan
+                docker compose --profile lab up -d --build
+            } else {
+                Write-Host "Starting Docker demo container on http://localhost:$Port/dashboard ..." -ForegroundColor Cyan
+                docker compose up -d --build demo
+            }
         }
         Write-Ok "CipherCrest started! Open http://localhost:$Port in your browser."
     } else {

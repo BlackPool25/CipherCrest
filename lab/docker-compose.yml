@@ -30,7 +30,7 @@ services:
     image: boky/postfix:latest
     # Spec intended boky/postfix:3.9 but 3.9 tag not on Hub (max 5.x), using latest pullable; fallback catatnight/postfix
     # For CI without Docker, pcaps/certs are pre-generated; this service is optional.
-    container_name: lab-postfix
+    container_name: ciphercrest-postfix
     hostname: mail.lab.local
     networks:
       lab:
@@ -77,7 +77,7 @@ services:
   dovecot:
     image: dovecot/dovecot:2.3
     # Alt: instrumentisto/dovecot:2.3 — fallback if dovecot/dovecot:2.3 unavailable
-    container_name: lab-dovecot
+    container_name: ciphercrest-dovecot
     hostname: imap.lab.local
     networks:
       lab:
@@ -114,7 +114,7 @@ services:
   mockdns:
     image: andyshinn/dnsmasq:2.83
     # Fallback: coredns/coredns:1.11 — use if andyshinn/dnsmasq:2.83 unavailable (dnsmasq:2.90 also compatible)
-    container_name: lab-mockdns
+    container_name: ciphercrest-mockdns
     hostname: mockdns.lab.local
     networks:
       lab:
@@ -128,7 +128,7 @@ services:
 
   mta-sts:
     image: python:3.11-alpine
-    container_name: lab-mta-sts
+    container_name: ciphercrest-mta-sts
     hostname: mta-sts.lab.local
     networks:
       lab:
@@ -140,7 +140,7 @@ services:
 
   sender:
     image: alpine:3.19
-    container_name: lab-sender
+    container_name: ciphercrest-sender
     hostname: sender.lab.local
     networks:
       lab:

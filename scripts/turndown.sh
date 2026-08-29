@@ -18,6 +18,7 @@ while [[ $# -gt 0 ]]; do
     --check) MODE="check"; shift ;;
     --help|-h) MODE="help"; shift ;;
     --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
+    --use-hub|--hub) shift ;;
     *) echo "[warn] unknown arg $1"; shift ;;
   esac
 done

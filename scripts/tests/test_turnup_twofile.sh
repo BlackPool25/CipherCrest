@@ -63,6 +63,11 @@ check "turnup --help has host/wheelhouse" "bash \"$TURNUP\" --help 2>&1 | grep -
 check "turnup has pip find-links wheelhouse" "grep -q 'find-links wheelhouse' \"$TURNUP\""
 check "turndown --help has host/wheelhouse" "bash \"$TURNDOWN\" --help 2>&1 | grep -q 'host.*wheelhouse\|wheelhouse'"
 check "turndown has port termination" "grep -q 'fuser -k 8000\|lsof -ti :8000' \"$TURNDOWN\""
+check "turnup --help has use-hub" "bash \"$TURNUP\" --help 2>&1 | grep -q 'use-hub'"
+check "turnup has USE_HUB parsing" "grep -q 'USE_HUB' \"$TURNUP\""
+check "push_dockerhub.sh exists and executable" "test -x scripts/push_dockerhub.sh"
+check "push_dockerhub.ps1 exists" "test -f scripts/push_dockerhub.ps1"
+check "push_dockerhub.sh --help works" "bash scripts/push_dockerhub.sh --help 2>&1 | grep -q 'blackpool25/ciphercrest'"
 
 echo "=== result PASS=$PASS FAIL=$FAIL ==="
 if [[ $FAIL -gt 0 ]]; then echo "FAIL $FAIL tests"; exit 1; else echo "ALL PASS $PASS"; exit 0; fi

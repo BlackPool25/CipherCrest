@@ -17,6 +17,8 @@ cd "$ROOT"
 export PYTHONHASHSEED=0
 export OMP_NUM_THREADS=6
 WITH_LAB="${WITH_LAB:-0}"
+USE_HUB="${USE_HUB:-0}"
+CIPHERCREST_IMAGE="${CIPHERCREST_IMAGE:-blackpool25/ciphercrest:demo}"
 
 API_PORT="${API_PORT:-8000}"
 MODE="full"
@@ -48,9 +50,11 @@ log(){ echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG_FILE" >/dev/null 2>&1 || tru
 HOST_MODE="${HOST_MODE:-0}"
 
 do_help(){
-  echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab] [--host|--wheelhouse]"
+  echo "Usage: bash scripts/turnup.sh [--check|--help] [--port 8000] [--with-lab] [--use-hub] [--image <image>] [--host|--wheelhouse]"
   echo "  --check               dry-run checks only (no servers) — CI-safe"
   echo "  --with-lab            also bring lab profile (WITH_LAB=1)"
+  echo "  --use-hub             pull and use pre-built image from Docker Hub (blackpool25/ciphercrest:demo) instead of local build"
+  echo "  --image <image>       specify custom Docker image (default: blackpool25/ciphercrest:demo)"
   echo "  --host, --wheelhouse  run natively on host using wheelhouse dependencies (no Docker required for demo)"
   echo "  --docker              force pure Docker mode (default)"
   echo "  --port N              API port (default 8000, env API_PORT)"
@@ -58,17 +62,20 @@ do_help(){
   echo ""
   echo "Env: WITH_LAB=0  docker compose up -d --build demo (default, single service demo on 8000)"
   echo "     WITH_LAB=1  docker compose --profile lab up -d --build (also lab 5 services)"
+  echo "     USE_HUB=1   pull image from Docker Hub instead of building locally"
+  echo "     CIPHERCREST_IMAGE=blackpool25/ciphercrest:demo"
   echo "     HOST_MODE=1 run host wheelhouse mode natively"
   echo "     PYTHONHASHSEED=0 OMP_NUM_THREADS=6  deterministic"
   echo "     API_PORT=8000"
   echo ""
   echo "Pure Docker path — no native uvicorn/vite when Docker available"
-  echo "Lifecycle: bash scripts/turnup.sh [--with-lab] [--host]  # up"
-  echo "           bash scripts/turndown.sh [--host]             # down (ss check + rm pid + log rotation)"
+  echo "Lifecycle: bash scripts/turnup.sh [--with-lab] [--use-hub] [--host]  # up"
+  echo "           bash scripts/turndown.sh [--host]                         # down (ss check + rm pid + log rotation)"
   echo "Trap: INT TERM only (no auto-down on exit) — use turndown.sh to stop"
   echo ""
-  echo "Quick: git clone https://github.com/ntro/SecureMailScope.git && cd SecureMailScope"
+  echo "Quick: git clone https://github.com/BlackPool25/CipherCrest.git && cd CipherCrest"
   echo "       docker compose up -d --build              # demo on http://localhost:8000/dashboard"
+  echo "       bash scripts/turnup.sh --use-hub          # pull from Docker Hub without building"
   echo "       bash scripts/turnup.sh --check            # dry-run checks models/wheelhouse/frontend/tshark(optional)"
   echo "       bash scripts/turnup.sh --with-lab         # also lab profile"
   echo "       bash scripts/turnup.sh --host             # host install via wheelhouse & run natively"
@@ -83,6 +90,8 @@ while [[ $# -gt 0 ]]; do
     --help|-h) do_help; exit 0 ;;
     --port) API_PORT="$2"; shift 2 ;;
     --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
+    --use-hub|--hub) USE_HUB=1; shift ;;
+    --image) CIPHERCREST_IMAGE="$2"; shift 2 ;;
     --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
     --docker) HOST_MODE=0; shift ;;
     --frontend-port) warn "frontend-port ignored in pure Docker single-port 8000 mode"; shift 2 ;;
@@ -230,6 +239,7 @@ check_pcap(){
 wait_for_postgres(){
   for i in $(seq 1 20); do
     if pg_isready -h postgres -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
+    if docker exec ciphercrest-postgres pg_isready -h 127.0.0.1 -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
     if docker exec ciphercrest-postgres-1 pg_isready -h 127.0.0.1 -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
     if pg_isready -h 127.0.0.1 -U app -d ciphcrest >/dev/null 2>&1; then return 0; fi
     sleep 1
@@ -316,24 +326,51 @@ do_full(){
     ok "port $API_PORT free (ss/fuser preflight)"
   fi
   echo ""
-  echo "--- docker compose up -d --build ---"
+  echo "--- docker compose up -d ---"
   if ! command -v docker >/dev/null 2>&1; then fail "docker not found — pure Docker path requires docker"; exit 1; fi
+  export CIPHERCREST_IMAGE
   if ! docker compose config >/dev/null 2>&1; then fail "docker compose config invalid"; exit 1; fi
-  if [[ "$WITH_LAB" == "1" ]]; then
-    echo "WITH_LAB=1 — bringing up demo + lab: docker compose --profile lab up -d --build"
-    if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then
-      ok "docker compose --profile lab up -d --build"
+  if [[ "$USE_HUB" == "1" ]]; then
+    echo "USE_HUB=1 — pulling image from Docker Hub: $CIPHERCREST_IMAGE"
+    if docker pull "$CIPHERCREST_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
+      ok "docker pull $CIPHERCREST_IMAGE"
     else
-      fail "docker compose --profile lab up -d --build failed"
-      exit 1
+      warn "docker pull $CIPHERCREST_IMAGE failed — will attempt running or local fallback"
+    fi
+    if [[ "$WITH_LAB" == "1" ]]; then
+      echo "WITH_LAB=1 — bringing up demo + lab from Hub: docker compose --profile lab up -d"
+      if docker compose --profile lab up -d 2>&1 | tee -a "$LOG_FILE"; then
+        ok "docker compose --profile lab up -d"
+      else
+        fail "docker compose --profile lab up -d failed"
+        exit 1
+      fi
+    else
+      echo "bringing up demo from Hub: docker compose up -d demo"
+      if docker compose up -d demo 2>&1 | tee -a "$LOG_FILE"; then
+        ok "docker compose up -d demo"
+      else
+        fail "docker compose up -d demo failed"
+        exit 1
+      fi
     fi
   else
-    echo "bringing up demo: docker compose up -d --build demo"
-    if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then
-      ok "docker compose up -d --build demo"
+    if [[ "$WITH_LAB" == "1" ]]; then
+      echo "WITH_LAB=1 — bringing up demo + lab: docker compose --profile lab up -d --build"
+      if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then
+        ok "docker compose --profile lab up -d --build"
+      else
+        fail "docker compose --profile lab up -d --build failed"
+        exit 1
+      fi
     else
-      fail "docker compose up -d --build demo failed"
-      exit 1
+      echo "bringing up demo: docker compose up -d --build demo"
+      if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then
+        ok "docker compose up -d --build demo"
+      else
+        fail "docker compose up -d --build demo failed"
+        exit 1
+      fi
     fi
   fi
   echo ""
