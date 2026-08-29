@@ -98,6 +98,25 @@ function synthesizeFamilies() {
 }
 
 function sevBadge(sev) {
+  if (sev === 'Not Run' || sev === 'not_run' || sev === 'Not Run Yet' || !sev) {
+    return (
+      <span style={{
+        background: '#F1F5F9',
+        color: '#64748B',
+        padding: '3px 8px',
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 700,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        whiteSpace: 'nowrap',
+      }}>
+        <span aria-hidden="true" style={{ fontSize: 9 }}>○</span>
+        <span>Not Run</span>
+      </span>
+    )
+  }
   let bg = TOK.primaryLight, color = TOK.primary, icon = '◆'
   if (sev === 'Critical') { bg = '#FEECEC'; color = '#DC2626'; icon = '⬢' }
   else if (sev === 'High') { bg = '#FDEEE3'; color = '#EA580C'; icon = '▲' }
@@ -510,16 +529,28 @@ export default function Families() {
       const live = flowsById.get(fid)
       // has_run already from GET /api/families via EXISTS — preserve
       const has_run = typeof fam.has_run === 'boolean' ? fam.has_run : !!live
-      if (!live) return { ...fam, family_id: fid, id: fid, has_run, posture: fam.posture_score ?? fam.posture, severity: fam.risk_level || fam.severity || 'Low', risk_level: fam.risk_level || fam.severity || 'Low' }
+      if (!live || !has_run) {
+        return {
+          ...fam,
+          family_id: fid,
+          id: fid,
+          has_run: false,
+          posture: null,
+          posture_score: null,
+          severity: 'Not Run',
+          risk_level: 'Not Run',
+          coverage_ratio: null,
+        }
+      }
       return {
         ...fam,
         family_id: fid,
         id: fid,
-        has_run,
-        posture: live.assessment?.posture_score ?? fam.posture_score ?? fam.posture ?? (100 - (live.assessment?.risk_score ?? 10)),
-        posture_score: live.assessment?.posture_score ?? fam.posture_score,
-        severity: live.assessment?.risk_level || fam.risk_level || fam.severity || 'Low',
-        risk_level: live.assessment?.risk_level || fam.risk_level || 'Low',
+        has_run: true,
+        posture: live.assessment?.posture_score ?? (100 - (live.assessment?.risk_score ?? 10)),
+        posture_score: live.assessment?.posture_score ?? null,
+        severity: live.assessment?.risk_level || 'Low',
+        risk_level: live.assessment?.risk_level || 'Low',
         tls: live.tls?.version || fam.tls_version || fam.tls,
         tls_version: live.tls?.version || fam.tls_version || fam.tls,
         cipher: live.tls?.cipher_suite || fam.cipher_suite || fam.cipher,
@@ -527,7 +558,7 @@ export default function Families() {
         port: live.port || fam.port,
         starttls: live.starttls_mode || fam.starttls_mode || fam.starttls,
         starttls_mode: live.starttls_mode || fam.starttls_mode || fam.starttls,
-        coverage_ratio: live.coverage_ratio ?? fam.coverage_ratio ?? 1.0,
+        coverage_ratio: live.coverage_ratio ?? 1.0,
         flow: live,
       }
     })
@@ -1186,9 +1217,9 @@ export default function Families() {
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
                         {!has_run ? (
                           <span style={{
-                            background: TOK.warningLight,
-                            color: TOK.inkFaint,
-                            padding: '4px 8px',
+                            background: '#F1F5F9',
+                            color: '#64748B',
+                            padding: '4px 9px',
                             borderRadius: 999,
                             fontSize: 11,
                             fontWeight: 700,
@@ -1196,15 +1227,26 @@ export default function Families() {
                             alignItems: 'center',
                             gap: 4,
                           }}>
-                            not run yet
+                            <span aria-hidden="true" style={{ fontSize: 9 }}>○</span>
+                            <span>Not Run</span>
                           </span>
                         ) : sevBadge(sev)}
                       </td>
 
                       {/* Posture Score — from families.posture_score/risk_level joined from flows */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
-                        {!has_run ? (
-                          <span style={{ fontSize: 11, color: TOK.inkFaint, fontStyle: 'italic' }}>—</span>
+                        {!has_run || posture == null ? (
+                          <span style={{
+                            background: '#F1F5F9',
+                            color: '#64748B',
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            fontFamily: TOK.fontMono,
+                          }}>
+                            Not Run
+                          </span>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <span className="tabular-nums" style={{
@@ -1236,7 +1278,7 @@ export default function Families() {
                       {/* Coverage Ratio */}
                       <td style={{ padding: '14px 18px', whiteSpace: 'nowrap' }}>
                         <span className="tabular-nums" style={{ fontFamily: TOK.fontMono, fontSize: 12, fontWeight: 600 }}>
-                          {(item.coverage_ratio ?? 1.0).toFixed(2)}
+                          {!has_run ? '—' : (item.coverage_ratio ?? 1.0).toFixed(2)}
                         </span>
                       </td>
 
@@ -1318,7 +1360,7 @@ export default function Families() {
                       {fid}
                     </span>
                     {!has_run ? (
-                      <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700 }}>not run yet</span>
+                      <span style={{ background: '#F1F5F9', color: '#64748B', padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700 }}>Not Run</span>
                     ) : sevBadge(sev)}
                   </div>
                   <div className="mono" style={{ fontSize: 11, color: TOK.inkMuted, background: TOK.canvas, padding: '4px 8px', borderRadius: 6, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1335,8 +1377,8 @@ export default function Families() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, borderTop: `1px solid ${TOK.border}`, paddingTop: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 11, color: TOK.inkFaint }}>Posture:</span>
-                    {!has_run ? (
-                      <span style={{ background: TOK.warningLight, color: TOK.inkFaint, padding: '2px 6px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>not run yet</span>
+                    {!has_run || posture == null ? (
+                      <span style={{ background: '#F1F5F9', color: '#64748B', padding: '2px 7px', borderRadius: 6, fontSize: 11, fontWeight: 700, fontFamily: TOK.fontMono }}>Not Run</span>
                     ) : (
                       <span className="tabular-nums" style={{ fontWeight: 800, fontSize: 13, color: posture > 80 ? TOK.primary : posture >= 50 ? TOK.warning : TOK.danger }}>
                         {posture}/100

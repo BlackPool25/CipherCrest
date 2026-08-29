@@ -717,9 +717,44 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
                 tickCount={Math.min(14, scatterData.length + 2)}
                 tick={chartTheme.axis.tick}
               />
-              <YAxis type="number" dataKey="y" name="Anomaly Score" domain={[0, 25]} tick={chartTheme.axis.tick} />
-              <ZAxis range={[110, 110]} />
-              <Tooltip contentStyle={chartTheme.tooltip.contentStyle} formatter={(v, n, p) => [fmt(v, 2), p?.payload?.flow || n]} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null
+                  const pt = payload[0]?.payload
+                  if (!pt) return null
+                  const isAnomaly = pt.y >= 16.5
+                  const isElevated = pt.y >= 14.9
+                  const badgeColor = isAnomaly ? '#DC2626' : isElevated ? '#EA580C' : '#16A34A'
+                  const badgeBg = isAnomaly ? '#FEE2E2' : isElevated ? '#FFEDD5' : '#DCFCE7'
+                  const label = isAnomaly ? 'Anomaly Detected' : isElevated ? 'Elevated Score' : 'Compliant'
+                  return (
+                    <div style={{
+                      background: '#FFFFFF',
+                      border: `1px solid ${TOK.borderStrong}`,
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      fontSize: 12,
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
+                      minWidth: 160,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span className="mono" style={{ fontWeight: 800, color: TOK.ink, fontFamily: TOK.fontMono }}>{pt.flow}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: badgeBg, color: badgeColor }}>
+                          {pt.risk || label}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11.5, color: TOK.inkMuted, marginTop: 2 }}>
+                        <span>Anomaly Score:</span>
+                        <strong style={{ color: TOK.ink }}>{fmt(pt.y, 2)}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11, color: TOK.inkMuted }}>
+                        <span>Flow Index:</span>
+                        <span>#{pt.x}</span>
+                      </div>
+                    </div>
+                  )
+                }}
+              />
               <Scatter name="Flows" data={scatterData} fill={TOK.primary} />
               <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', position: 'right', fill: '#DC2626', fontSize: 10, fontWeight: 600 }} />
               <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', position: 'right', fill: '#CA8A04', fontSize: 10, fontWeight: 600 }} />
