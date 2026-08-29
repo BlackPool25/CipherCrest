@@ -760,11 +760,18 @@ export default function Families() {
           return
         }
       }
+      // Optimistically flip has_run immediately on current item so page never jumps or flashes
+      setFamilies(prev => prev.map(f => {
+        const fId = f.family_id || f.id || f.flow_id
+        if (fId === id) return { ...f, has_run: true }
+        return f
+      }))
+
       // await POST /api/analyze then refetch flows + families to flip badge — not hide siblings
       const updatedFlows = await fetchFlows({ limit: 500 })
       if (Array.isArray(updatedFlows)) setFlows(updatedFlows)
-      // GET /api/families refetch to flip has_run badge
-      const updatedFamilies = await fetchFamilies({ limit: 60, offset: 0 })
+      // GET /api/families refetch full catalog (1000) so pagination never shrinks or snaps to page 1
+      const updatedFamilies = await fetchFamilies({ limit: 1000, offset: 0 })
       if (Array.isArray(updatedFamilies) && updatedFamilies.length > 0) {
         const sorted = [...updatedFamilies].sort((a, b) => {
           const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
@@ -802,7 +809,7 @@ export default function Families() {
     try {
       const updated = await fetchFlows({ limit: 500 })
       if (Array.isArray(updated)) setFlows(updated)
-      const updatedFamilies = await fetchFamilies({ limit: 60, offset: 0 })
+      const updatedFamilies = await fetchFamilies({ limit: 1000, offset: 0 })
       if (Array.isArray(updatedFamilies) && updatedFamilies.length > 0) {
         const sorted = [...updatedFamilies].sort((a, b) => {
           const na = parseInt(String(a.family_id || a.id || '').split('-')[1] || '0', 10)
