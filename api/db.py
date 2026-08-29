@@ -177,7 +177,7 @@ def query_by_flow_id(flow_id: str) -> FlowVerdict | None:
             pass
 
 
-def query_history(flow_id: str) -> list[dict]:
+def query_history(flow_id: str, limit: int | None = None, offset: int = 0, *args, **kwargs) -> list[dict]:
     """Return versioned history for flow_id ordered by version ASC.
 
     Each entry: {flow_id, version, created_at, data: FlowVerdict dict}
@@ -200,10 +200,18 @@ def query_history(flow_id: str) -> list[dict]:
         except Exception:
             pass
         try:
-            rows = con.execute(
-                "SELECT version, data, created_at FROM flows_history WHERE flow_id=? ORDER BY version ASC",
-                (flow_id,),
-            ).fetchall()
+            if limit is not None:
+                limit_val = max(1, min(1000, int(limit)))
+                offset_val = max(0, int(offset))
+                rows = con.execute(
+                    "SELECT version, data, created_at FROM flows_history WHERE flow_id=? ORDER BY version ASC LIMIT ? OFFSET ?",
+                    (flow_id, limit_val, offset_val),
+                ).fetchall()
+            else:
+                rows = con.execute(
+                    "SELECT version, data, created_at FROM flows_history WHERE flow_id=? ORDER BY version ASC",
+                    (flow_id,),
+                ).fetchall()
         except Exception:
             return []
         out: list[dict] = []
