@@ -1,13 +1,13 @@
 /**
  * Lab.jsx — High-Fidelity Interactive Cryptographic Lab & Packet Synthesizer Studio
  * 
- * Design System:
- *  - Full edge-to-edge scaling across entire viewport (both width and full vertical height)
- *  - Themed 32px icons on all option cards with pre-selection threat coloring
- *  - Small 18px icons in section headers for clear visual hierarchy
- *  - Auto-fit option grids (repeat(auto-fit, minmax(180px, 1fr))) that flex-expand
- *  - Resizable & Collapsible Live Wire Blueprint panel with drag handle (min 280px, max 640px, double-click reset)
+ * Design Features:
+ *  - Maximized space usage with rich, multi-dimensional option tiles (minmax(220px, 1fr))
+ *  - Dynamic multi-row/multi-column grid that scales to viewport width and height
+ *  - Rich metadata on every tile: 32px themed icons, RFC specs, transport modes, security tiers
+ *  - Interactive Feature Toggle Cards for Early Data, PSK, and ECH
  *  - SIH Offline V1 forest green selected state: linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%) with white text
+ *  - Resizable & Collapsible Live Wire Blueprint panel with drag handle (min 280px, max 640px, double-click reset)
  *  - Full scapy binary synthesis, POST /api/analyze execution, and printable packet dossier
  * 
  * Verbatim contract preserved:
@@ -20,7 +20,7 @@ import {
   Sliders, Shield, ExternalLink, ChevronDown, Check, Info, UploadCloud,
   Terminal, Layers, Hash, Copy, Eye, EyeOff, Maximize2, Minimize2,
   PanelRightClose, PanelRightOpen, Send, MailPlus, Inbox, Download,
-  ArrowLeftRight, FileBadge, Ticket
+  ArrowLeftRight, FileBadge, Ticket, ToggleLeft, ToggleRight
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from '../components/ThreatMatrix.jsx'
@@ -46,20 +46,20 @@ const CIPHER_OPTIONS = [
 ]
 
 const PORTS = [
-  { port: 25, label: 'Port 25', desc: 'SMTP Relay (Opportunistic)', icon: Send, secure: true },
-  { port: 587, label: 'Port 587', desc: 'Submission (Mandatory)', icon: MailPlus, secure: true },
-  { port: 465, label: 'Port 465', desc: 'SMTPS (Direct TLS)', icon: Lock, secure: true },
-  { port: 143, label: 'Port 143', desc: 'IMAP (STARTTLS)', icon: Inbox, secure: true },
-  { port: 110, label: 'Port 110', desc: 'POP3 (STLS)', icon: Download, secure: true },
-  { port: 993, label: 'Port 993', desc: 'IMAPS (Direct TLS)', icon: ShieldCheck, secure: true },
+  { port: 25, label: 'Port 25', title: 'SMTP Relay', desc: 'Opportunistic STARTTLS upgrade', rfc: 'RFC 5321', icon: Send, secure: true },
+  { port: 587, label: 'Port 587', title: 'Submission', desc: 'Mandatory client STARTTLS', rfc: 'RFC 6409', icon: MailPlus, secure: true },
+  { port: 465, label: 'Port 465', title: 'SMTPS Direct', desc: 'Implicit TLS direct connection', rfc: 'RFC 8314', icon: Lock, secure: true },
+  { port: 143, label: 'Port 143', title: 'IMAP Mailbox', desc: 'STARTTLS mailbox retrieval', rfc: 'RFC 3501', icon: Inbox, secure: true },
+  { port: 110, label: 'Port 110', title: 'POP3 Mailbox', desc: 'STLS mailbox download', rfc: 'RFC 1939', icon: Download, secure: true },
+  { port: 993, label: 'Port 993', title: 'IMAPS Direct', desc: 'Implicit TLS encrypted mailbox', rfc: 'RFC 8314', icon: ShieldCheck, secure: true },
 ]
 
 const TLS_VERSIONS = [
-  { value: 'TLS1.3', label: 'TLS 1.3', desc: 'Modern AEAD Mandatory', icon: ShieldCheck, secure: true, color: '#16A34A' },
-  { value: 'TLS1.2', label: 'TLS 1.2', desc: 'Standard Compliant', icon: ShieldCheck, secure: true, color: '#16A34A' },
-  { value: 'TLS1.1', label: 'TLS 1.1', desc: 'Deprecated (RFC 8996)', icon: ShieldAlert, secure: false, color: '#EA580C' },
-  { value: 'TLS1.0', label: 'TLS 1.0', desc: 'Insecure (RFC 8996)', icon: ShieldAlert, secure: false, color: '#DC2626' },
-  { value: 'none', label: 'Plaintext', desc: 'Cleartext Unencrypted', icon: ShieldOff, secure: false, color: '#DC2626' },
+  { value: 'TLS1.3', label: 'TLS 1.3', title: 'Modern AEAD Standard', desc: 'Forward secrecy & 0-RTT ready', rfc: 'RFC 8446', status: 'AEAD Mandatory', icon: ShieldCheck, secure: true, badgeColor: '#16A34A' },
+  { value: 'TLS1.2', label: 'TLS 1.2', title: 'Standard Compliant', desc: 'ECDHE / DHE with PFS ciphers', rfc: 'RFC 5246', status: 'PFS Standard', icon: ShieldCheck, secure: true, badgeColor: '#16A34A' },
+  { value: 'TLS1.1', label: 'TLS 1.1', title: 'Deprecated Protocol', desc: 'Vulnerable to CBC timing attacks', rfc: 'RFC 8996', status: 'Deprecated', icon: ShieldAlert, secure: false, badgeColor: '#EA580C' },
+  { value: 'TLS1.0', label: 'TLS 1.0', title: 'Insecure Legacy', desc: 'Susceptible to BEAST & POODLE', rfc: 'RFC 8996', status: 'Critical Risk', icon: ShieldAlert, secure: false, badgeColor: '#DC2626' },
+  { value: 'none', label: 'Plaintext', title: 'Cleartext Transport', desc: 'No wire encryption negotiated', rfc: 'RFC 5321', status: 'Unencrypted', icon: ShieldOff, secure: false, badgeColor: '#DC2626' },
 ]
 
 const KEX_OPTIONS = [
@@ -490,22 +490,35 @@ export default function Lab() {
     }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-        .lab-opt-card {
-          min-width: 170px;
-          min-height: 100px;
+        .lab-opt-tile {
+          min-width: 220px;
+          min-height: 112px;
           padding: 16px 18px;
-          border-radius: 12px;
+          border-radius: 14px;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
           justifyContent: space-between;
           text-align: left;
           cursor: pointer;
-          transition: all 120ms ease;
+          transition: all 130ms cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
-          flex: 1;
         }
-        .lab-opt-card:hover {
+        .lab-opt-tile:hover {
+          border-color: rgba(21, 92, 58, 0.45) !important;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+          transform: translateY(-1px);
+        }
+        .lab-toggle-card {
+          padding: 16px 18px;
+          border-radius: 14px;
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          transition: all 130ms ease;
+          cursor: pointer;
+        }
+        .lab-toggle-card:hover {
           border-color: rgba(21, 92, 58, 0.4) !important;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
@@ -566,7 +579,7 @@ export default function Lab() {
               Interactive Cryptographic Lab &amp; Packet Synthesizer
             </h1>
             <p style={{ fontSize: 12, color: TOK.inkMuted, marginTop: 2, margin: 0 }}>
-              Synthesize wire-compliant mail PCAPs, test RFC security policies, and evaluate dual ML diagnostics
+              Configure transport parameters, synthesize wire-compliant PCAPs, and analyze security posture
             </p>
           </div>
         </div>
@@ -615,7 +628,7 @@ export default function Lab() {
         </div>
       </div>
 
-      {/* ── TWO-PANE FULL-VIEWPORT WORKSPACE (FLEX: 1 TO FILL ENTIRE HEIGHT) ── */}
+      {/* ── TWO-PANE FULL-VIEWPORT WORKSPACE ── */}
       <div className="no-print" style={{
         display: 'flex',
         width: '100%',
@@ -629,7 +642,7 @@ export default function Lab() {
         alignItems: 'stretch',
       }}>
         
-        {/* MATRIX PANE (flex: 1, fills all remaining width & height, 24px padding) */}
+        {/* MATRIX PANE (flex: 1, edge-to-edge, rich responsive 2D space layout) */}
         <div style={{
           flex: 1,
           minWidth: 0,
@@ -637,21 +650,25 @@ export default function Lab() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          gap: 20,
+          gap: 22,
           overflowY: 'auto',
         }}>
           
-          {/* Section 1: Mail Service Port & Protocol */}
+          {/* Section 1: Mail Service Port & Protocol Tiles */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Send size={18} color={TOK.inkMuted} />
-                <span style={{ fontSize: 14, fontWeight: 800, color: TOK.ink }}>Mail Service Port &amp; Protocol</span>
+                <span style={{ fontSize: 14.5, fontWeight: 800, color: TOK.ink }}>Mail Service Port &amp; Protocol</span>
               </div>
               <span style={{ fontSize: 11.5, color: TOK.inkMuted }}>Select transport options to simulate mail flow</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 12,
+            }}>
               {PORTS.map(p => {
                 const isSel = port === p.port
                 const IconComp = p.icon
@@ -661,7 +678,7 @@ export default function Lab() {
                     type="button"
                     onClick={() => setPort(p.port)}
                     disabled={busy}
-                    className="lab-opt-card"
+                    className="lab-opt-tile"
                     style={{
                       border: isSel ? 'none' : `1px solid ${TOK.border}`,
                       background: isSel ? activeGreenBg : '#FFFFFF',
@@ -669,10 +686,30 @@ export default function Lab() {
                       boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
-                    <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : TOK.inkMuted} style={{ marginBottom: 6 }} />
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{p.label}</div>
-                      <div style={{ fontSize: 11.5, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 3, lineHeight: 1.3 }}>{p.desc}</div>
+                    {/* Top row: Icon + RFC badge */}
+                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : TOK.inkMuted} />
+                      <span style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        background: isSel ? 'rgba(255,255,255,0.2)' : '#F1F5F9',
+                        color: isSel ? '#FFFFFF' : TOK.inkMuted,
+                      }}>
+                        {p.rfc}
+                      </span>
+                    </div>
+
+                    {/* Middle: Port & Title */}
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>{p.label}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: isSel ? '#D1FAE5' : TOK.ink, marginTop: 2 }}>{p.title}</div>
+                    </div>
+
+                    {/* Bottom: Sublabel Description */}
+                    <div style={{ fontSize: 11, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 4, lineHeight: 1.3, opacity: isSel ? 0.9 : 0.8 }}>
+                      {p.desc}
                     </div>
                   </button>
                 )
@@ -680,28 +717,32 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* Section 2: TLS Protocol Version */}
+          {/* Section 2: TLS Protocol Version Tiles */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Shield size={18} color={TOK.inkMuted} />
-                <span style={{ fontSize: 14, fontWeight: 800, color: TOK.ink }}>TLS Protocol Version</span>
+                <span style={{ fontSize: 14.5, fontWeight: 800, color: TOK.ink }}>TLS Protocol Version</span>
               </div>
               <span style={{ fontSize: 11.5, color: TOK.inkMuted }}>Enforce modern AEAD or test legacy downgrade risks</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 12,
+            }}>
               {TLS_VERSIONS.map(v => {
                 const isSel = tlsVersion === v.value
                 const IconComp = v.icon
-                const unselectedIconColor = v.secure ? '#16A34A' : v.color
+                const unselectedIconColor = v.secure ? '#16A34A' : v.badgeColor
                 return (
                   <button
                     key={v.value}
                     type="button"
                     onClick={() => setTlsVersion(v.value)}
                     disabled={busy}
-                    className="lab-opt-card"
+                    className="lab-opt-tile"
                     style={{
                       border: isSel ? 'none' : `1px solid ${TOK.border}`,
                       background: isSel ? activeGreenBg : '#FFFFFF',
@@ -709,18 +750,30 @@ export default function Lab() {
                       boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
-                    <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : unselectedIconColor} style={{ marginBottom: 6 }} />
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{v.label}</div>
-                      <div style={{
-                        fontSize: 11.5,
-                        color: isSel ? '#D1FAE5' : (v.secure ? '#16A34A' : v.color),
-                        marginTop: 3,
-                        fontWeight: isSel ? 500 : 700,
-                        lineHeight: 1.3,
+                    {/* Top row: Icon + Security Tier Badge */}
+                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <IconComp size={30} strokeWidth={1.5} color={isSel ? '#FFFFFF' : unselectedIconColor} />
+                      <span style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        background: isSel ? 'rgba(255,255,255,0.2)' : (v.secure ? '#DCFCE7' : '#FEE2E2'),
+                        color: isSel ? '#FFFFFF' : (v.secure ? '#16A34A' : v.badgeColor),
                       }}>
-                        {v.desc}
-                      </div>
+                        {v.status}
+                      </span>
+                    </div>
+
+                    {/* Middle: Version & Title */}
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>{v.label}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: isSel ? '#D1FAE5' : TOK.ink, marginTop: 2 }}>{v.title}</div>
+                    </div>
+
+                    {/* Bottom: Description */}
+                    <div style={{ fontSize: 11, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 4, lineHeight: 1.3, opacity: isSel ? 0.9 : 0.8 }}>
+                      {v.desc}
                     </div>
                   </button>
                 )
@@ -729,7 +782,7 @@ export default function Lab() {
           </div>
 
           {/* Section 3: Cipher Suite & Key Exchange (KEX) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
             {/* Cipher Suite */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -802,7 +855,7 @@ export default function Lab() {
           </div>
 
           {/* Section 4: Certificate Health & STARTTLS Negotiation */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
             {/* X.509 Certificate */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -862,41 +915,79 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* Section 5: Protocol Feature Toggles */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 20,
-            flexWrap: 'wrap',
-            padding: '14px 20px',
-            background: '#F8FAFC',
-            borderRadius: 12,
-            border: `1px solid ${TOK.border}`,
-          }}>
-            {[
-              { id: 'earlyData', label: 'TLS 1.3 Early Data (0-RTT)', icon: Zap, val: earlyData, set: setEarlyData },
-              { id: 'psk', label: 'Pre-Shared Key (PSK / Ticket)', icon: Ticket, val: psk, set: setPsk },
-              { id: 'ech', label: 'Encrypted Client Hello (ECH)', icon: EyeOff, val: ech, set: setEch },
-            ].map(t => {
-              const IconComp = t.icon
-              return (
-                <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: busy ? 'not-allowed' : 'pointer', fontSize: 12.5, fontWeight: 700, color: TOK.ink }}>
-                  <input
-                    type="checkbox"
-                    checked={t.val}
-                    onChange={e => !busy && t.set(e.target.checked)}
-                    disabled={busy}
-                    style={{ width: 17, height: 17, accentColor: '#155C3A', cursor: 'pointer' }}
-                  />
-                  <IconComp size={15} color={t.val ? '#155C3A' : TOK.inkMuted} />
-                  <span>{t.label}</span>
-                </label>
-              )
-            })}
+          {/* Section 5: Protocol Feature Toggle Cards (Rich 3-Column Layout) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: TOK.ink }}>
+              Advanced Cryptographic Protocol Extensions
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: 12,
+            }}>
+              {[
+                {
+                  id: 'earlyData',
+                  label: 'TLS 1.3 Early Data (0-RTT)',
+                  desc: 'Send application data on first flight for zero-RTT resumption.',
+                  icon: Zap,
+                  val: earlyData,
+                  set: setEarlyData,
+                },
+                {
+                  id: 'psk',
+                  label: 'Pre-Shared Key (PSK / Ticket)',
+                  desc: 'Resume TLS 1.3 sessions using pre-shared key tickets.',
+                  icon: Ticket,
+                  val: psk,
+                  set: setPsk,
+                },
+                {
+                  id: 'ech',
+                  label: 'Encrypted Client Hello (ECH)',
+                  desc: 'Encrypt SNI and ClientHello extensions against wire sniffers.',
+                  icon: EyeOff,
+                  val: ech,
+                  set: setEch,
+                },
+              ].map(t => {
+                const IconComp = t.icon
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => !busy && t.set(!t.val)}
+                    className="lab-toggle-card"
+                    style={{
+                      background: t.val ? '#F0FDF4' : '#FFFFFF',
+                      border: `1.5px solid ${t.val ? '#155C3A' : TOK.border}`,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <IconComp size={18} color={t.val ? '#155C3A' : TOK.inkMuted} />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: t.val ? '#155C3A' : TOK.ink }}>
+                          {t.label}
+                        </span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={t.val}
+                        onChange={() => {}}
+                        style={{ width: 17, height: 17, accentColor: '#155C3A', cursor: 'pointer' }}
+                      />
+                    </div>
+                    <div style={{ fontSize: 11, color: TOK.inkMuted, marginTop: 6, lineHeight: 1.35 }}>
+                      {t.desc}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Full-Width Action Button */}
-          <div style={{ paddingTop: 4, marginTop: 'auto' }}>
+          <div style={{ paddingTop: 6, marginTop: 'auto' }}>
             <button
               type="button"
               onClick={handleSynthesizeAndAnalyze}
