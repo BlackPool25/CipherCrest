@@ -94,9 +94,9 @@ export function getFlowModelExplainability(flow) {
     },
     {
       feature: 'Certificate Expiry Status',
-      value: isExpired ? 'Expired' : `${flow.cert?.days_to_expiry ?? 120} days left`,
-      impact: isExpired ? '+30 Expired Window' : (flow.cert?.days_to_expiry < 30) ? '+15 Renewal Warning' : '+0 Valid',
-      severity: isExpired ? 'Critical' : (flow.cert?.days_to_expiry < 30) ? 'Medium' : 'Low',
+      value: isExpired ? 'Expired' : `${typeof flow.cert?.days_to_expiry === 'number' ? flow.cert.days_to_expiry : 120} days left`,
+      impact: isExpired ? '+30 Expired Window' : (typeof flow.cert?.days_to_expiry === 'number' && flow.cert.days_to_expiry < 30) ? '+15 Renewal Warning' : '+0 Valid',
+      severity: isExpired ? 'Critical' : (typeof flow.cert?.days_to_expiry === 'number' && flow.cert.days_to_expiry < 30) ? 'Medium' : 'Low',
       category: 'Certificates',
     },
     {

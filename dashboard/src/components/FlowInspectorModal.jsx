@@ -68,9 +68,9 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
     },
     {
       feature: 'Certificate Expiry Status',
-      value: `${flow.cert?.days_to_expiry ?? 120} days remaining`,
-      impact: flow.cert?.is_expired ? '+30 (Expired)' : (flow.cert?.days_to_expiry < 30) ? '+15 (Renewal Warning)' : '+0 (Valid)',
-      severity: flow.cert?.is_expired ? 'Critical' : (flow.cert?.days_to_expiry < 30) ? 'Medium' : 'Low',
+      value: `${typeof flow.cert?.days_to_expiry === 'number' ? flow.cert.days_to_expiry : 120} days remaining`,
+      impact: flow.cert?.is_expired ? '+30 (Expired)' : (typeof flow.cert?.days_to_expiry === 'number' && flow.cert.days_to_expiry < 30) ? '+15 (Renewal Warning)' : '+0 (Valid)',
+      severity: flow.cert?.is_expired ? 'Critical' : (typeof flow.cert?.days_to_expiry === 'number' && flow.cert.days_to_expiry < 30) ? 'Medium' : 'Low',
     },
     {
       feature: 'JA4 Client Fingerprint Rarity',
