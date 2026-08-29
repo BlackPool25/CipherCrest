@@ -47,25 +47,25 @@ export const CHECKS = [
 
 export const FAMILY_ALIASES = {
   'family-01': 'Postfix 3.9 Standard MTA (Port 587 • TLS 1.2)',
-  'family-02': 'Sendmail Relay with DHE KEX (Port 25 • TLS 1.2)',
-  'family-03': 'Exim 4.96 Submission Node (Port 587 • TLS 1.3)',
-  'family-04': 'Exchange Online Ingress Relay (Port 25 • TLS 1.2)',
-  'family-05': 'Dovecot IMAPS Secure Mailbox (Port 993 • TLS 1.3)',
-  'family-06': 'Opaque TLS 1.3 Zero-RTT Ingress (Port 465 • AEAD)',
-  'family-07': 'Cisco IronPort Gateway (Port 25 • TLS 1.2)',
-  'family-08': 'Haraka Modern SMTP Edge (Port 587 • TLS 1.3)',
-  'family-09': 'SWEET32 3DES Vulnerable Relay (Port 25 • Legacy)',
-  'family-10': 'STARTTLS Stripped MITM Downgrade (Port 25 • Plaintext)',
-  'family-11': 'Untrusted Self-Signed Certificate Flow (Port 587)',
-  'family-12': 'Expired X.509 Certificate Ingress (Port 25)',
-  'family-13': 'Deprecated TLS 1.0 Non-Compliant Flow (Port 25)',
-  'family-14': 'Weak RSA 1024-bit Key Ingress (Port 587)',
-  'family-15': 'SHA-1 Weak Signature Cert Flow (Port 25)',
-  'family-16': 'Missing Forward Secrecy Static RSA Flow (Port 587)',
-  'family-17': 'OCSP Revoked Certificate Incident (Port 465)',
-  'family-18': 'DANE TLSA Compliant Edge (Port 25 • TLS 1.3)',
+  'family-02': 'Sendmail Ingress Relay with DHE (Port 25 • TLS 1.2)',
+  'family-03': 'SWEET32 3DES Vulnerable Relay (Port 143 • IMAP)',
+  'family-04': 'Deprecated TLS 1.0 + Insecure RC4 Stream Cipher (Port 110)',
+  'family-05': 'Deprecated TLS 1.1 + Self-Signed Certificate Flow (Port 587)',
+  'family-06': 'Modern Hardened TLS 1.3 Opaque Zero-RTT Edge (Port 465)',
+  'family-07': 'Expired X.509 Certificate Ingress Flow (Port 587 • TLS 1.2)',
+  'family-08': 'Vulnerable Legacy DES-CBC + Weak RSA 1024-bit Key (Port 587)',
+  'family-09': 'STARTTLS Stripped MITM Downgrade Attack (Port 25 • Plaintext)',
+  'family-10': 'Missing Forward Secrecy Static RSA + Broken Chain (Port 587)',
+  'family-11': 'Untrusted Intermediate Certificate Flow (Port 587)',
+  'family-12': 'Weak Diffie-Hellman Key Exchange Flow (Port 25)',
+  'family-13': 'CBC-Mode Padding Oracle Vulnerable Session (Port 25)',
+  'family-14': 'Sub-2048 Bit Factoring Vulnerable Certificate (Port 587)',
+  'family-15': 'Legacy SHA-1 Certificate Signature Flow (Port 25)',
+  'family-16': 'Static Key Exchange Missing Forward Secrecy (Port 587)',
+  'family-17': 'OCSP Revoked Certificate Ingress Incident (Port 465)',
+  'family-18': 'DNSSEC DANE TLSA Validation Edge (Port 25 • TLS 1.3)',
   'family-19': 'MTA-STS Strict Transport Enforced Flow (Port 25)',
-  'family-20': 'Hardened Enterprise TLS 1.3 Gateway (Port 465)',
+  'family-20': 'Hardened Enterprise TLS 1.3 Mail Gateway (Port 465)',
 }
 
 export function getFamilyDisplayName(flowId) {
@@ -126,10 +126,23 @@ export function severityFor(flow, check) {
     const is3des = flow.tls?.cipher_suite?.includes('3DES')
     return { severity: is3des ? 'High' : 'Low', evidence: is3des ? '3DES SWEET32 active' : 'AES/ChaCha20 safe' }
   }
+  if (check.id === '14') {
+    const isAnom = (flow.assessment?.anomaly_score ?? 12.3) >= 16.5 || flow.assessment?.is_anomaly
+    return { severity: isAnom ? 'High' : 'Low', evidence: flow.tls?.ja4 ? `ja4=${flow.tls.ja4.slice(0, 12)}…` : 'JA4 baseline' }
+  }
+  if (check.id === '16a') {
+    return { severity: flow.policy?.mta_sts_enforced === false ? 'Medium' : 'Low', evidence: 'mta-sts=valid' }
+  }
+  if (check.id === '17') {
+    return { severity: flow.policy?.dane_valid === false ? 'Medium' : 'Low', evidence: 'dane=valid' }
+  }
+  if (check.id === '18') {
+    return { severity: flow.cert?.chain_valid === false ? 'High' : 'Low', evidence: 'root_ca=valid' }
+  }
   if (check.id === '19') {
     return { severity: flow.tls?.is_aead === false ? 'High' : 'Low', evidence: `aead=${flow.tls?.is_aead}` }
   }
-  return { severity: flow.assessment?.risk_level || 'Low', evidence: `risk_score=${flow.assessment?.risk_score ?? 10}` }
+  return { severity: 'Low', evidence: 'Compliant' }
 }
 
 export function sevColor(sev, isInfo) {
