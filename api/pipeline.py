@@ -51,19 +51,38 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             except Exception: pass
             cert.setdefault("leaf_present", cert.get("leaf_present", False)); cert.setdefault("is_tls13_opaque", cert.get("is_tls13_opaque", False)); cert.setdefault("ocsp_stapled_status", cert.get("ocsp_stapled_status", "unknown"))
             _fam_proto = None
+            _fam_starttls = None
             try:
                 _mf = json.loads(pathlib.Path("lab/manifest.json").read_text()) if pathlib.Path("lab/manifest.json").exists() else {}
                 _fam = None
                 for _k, _v in _mf.items():
                     if _k in hint_name: _fam = _v; break
-                if _fam and _fam.get("port"):
-                    _pt = int(_fam.get("port"))
-                    if _pt in (25, 587, 465): _fam_proto = "smtp"
-                    elif _pt in (143, 993): _fam_proto = "imap"
-                    elif _pt in (110, 995): _fam_proto = "pop3"
-            except Exception: _fam_proto = None
-            _app_proto = _fam_proto if _fam_proto else ("smtp" if "smtp" in hint_name or "587" in hint_name or "25" in hint_name else ("imap" if "imap" in hint_name or "993" in hint_name or tls.get("version")=="TLS1.3" else "smtp"))
-            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": "implicit" if tls.get("version")=="TLS1.3" else ("upgrade" if reasm.get("starttls_detected") else "upgrade"),"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
+                if _fam:
+                    if _fam.get("port"):
+                        _pt = int(_fam.get("port"))
+                        if _pt in (25, 587, 465): _fam_proto = "smtp"
+                        elif _pt in (143, 993): _fam_proto = "imap"
+                        elif _pt in (110, 995): _fam_proto = "pop3"
+                    if _fam.get("starttls_mode"):
+                        _fam_starttls = _fam.get("starttls_mode")
+            except Exception: pass
+            
+            _app_proto = _fam_proto if _fam_proto else ("smtp" if any(x in hint_name for x in ["smtp", "587", "25", "465"]) else ("imap" if any(x in hint_name for x in ["imap", "143", "993"]) else ("pop3" if any(x in hint_name for x in ["pop3", "110", "995"]) else "smtp")))
+            
+            if _fam_starttls:
+                _mode = _fam_starttls
+            elif "stripped" in hint_name.lower():
+                _mode = "stripped"
+            elif "cleartext" in hint_name.lower():
+                _mode = "cleartext"
+            elif "implicit" in hint_name.lower() or any(x in hint_name for x in ["465", "993", "995"]):
+                _mode = "implicit"
+            elif "upgrade" in hint_name.lower() or reasm.get("starttls_detected") or any(x in hint_name for x in ["587", "25", "143", "110"]):
+                _mode = "upgrade"
+            else:
+                _mode = "upgrade" if reasm.get("starttls_detected") else ("implicit" if tls.get("version") not in (None, "", "none") else "cleartext")
+
+            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": _mode,"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
             try:
                 findings = real_evaluate(flow_dict); rs, rl, ps = real_score(findings)
                 flow_dict["assessment"] = {"findings": [f.model_dump() if hasattr(f, "model_dump") else f for f in findings], "risk_level": rl, "risk_score": rs, "posture_score": ps}

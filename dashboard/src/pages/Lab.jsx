@@ -1,13 +1,14 @@
 /**
  * Lab.jsx — High-Fidelity Interactive Cryptographic Lab & Packet Synthesizer Studio
  * 
- * Design Features:
+ * Features:
+ *  - LeetCode-style docked side rail: Hides smoothly into a slim, clickable vertical rail with active score pill
  *  - Maximized space usage with rich, multi-dimensional option tiles (minmax(220px, 1fr))
- *  - Dynamic multi-row/multi-column grid that scales to viewport width and height
- *  - Rich metadata on every tile: 32px themed icons, RFC specs, transport modes, security tiers
+ *  - Accurate STARTTLS mode propagation in synthesis payload and filename
+ *  - Rich metadata on every tile: 30px themed icons, RFC specs, transport modes, security tiers
  *  - Interactive Feature Toggle Cards for Early Data, PSK, and ECH
  *  - SIH Offline V1 forest green selected state: linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%) with white text
- *  - Resizable & Collapsible Live Wire Blueprint panel with drag handle (min 280px, max 640px, double-click reset)
+ *  - Resizable panel drag handle (min 280px, max 640px, double-click reset)
  *  - Full scapy binary synthesis, POST /api/analyze execution, and printable packet dossier
  * 
  * Verbatim contract preserved:
@@ -20,7 +21,7 @@ import {
   Sliders, Shield, ExternalLink, ChevronDown, Check, Info, UploadCloud,
   Terminal, Layers, Hash, Copy, Eye, EyeOff, Maximize2, Minimize2,
   PanelRightClose, PanelRightOpen, Send, MailPlus, Inbox, Download,
-  ArrowLeftRight, FileBadge, Ticket, ToggleLeft, ToggleRight
+  ArrowLeftRight, FileBadge, Ticket, ToggleLeft, ToggleRight, ChevronRight
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from '../components/ThreatMatrix.jsx'
@@ -323,7 +324,7 @@ export default function Lab() {
   const [psk, setPsk] = useState(false)
   const [ech, setEch] = useState(false)
 
-  // Resizable & Collapsible Panel
+  // LeetCode-Style Collapsible Sidebar
   const [showPreview, setShowPreview] = useState(true)
   const { width: panelWidth, onMouseDown: onResizeMouseDown, onDoubleClick: onResizeDoubleClick, isDragging } = useResizablePanel(340, 280, 640)
 
@@ -394,7 +395,7 @@ export default function Lab() {
     setBusy(true)
     try {
       const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData })
-      const name = `synth_${port}_${tlsVersion}_${cipher}_${certType}.pcap`
+      const name = `synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
 
       const fd = new FormData()
       fd.append('pcap', synthBlob, name)
@@ -420,7 +421,7 @@ export default function Lab() {
 
       if (!resultVerdict || !resultVerdict.flow_id) {
         resultVerdict = {
-          flow_id: `synth-${port}-${tlsVersion.toLowerCase()}`,
+          flow_id: `synth-${port}-${starttlsMode}-${tlsVersion.toLowerCase()}`,
           app_protocol: port === 993 || port === 143 ? 'imap' : port === 110 ? 'pop3' : 'smtp',
           port: port,
           starttls_mode: starttlsMode,
@@ -525,6 +526,9 @@ export default function Lab() {
         .lab-resize-handle:hover {
           background: rgba(21, 92, 58, 0.5) !important;
         }
+        .lab-docked-rail:hover {
+          background: #EEF2F6 !important;
+        }
         @media print {
           body * { visibility: hidden !important; }
           #lab-packet-dossier, #lab-packet-dossier * { visibility: visible !important; }
@@ -547,7 +551,7 @@ export default function Lab() {
         synth_families scapy drag-drop POST /api/analyze TLSRecord TLSHandshakes
       </span>
 
-      {/* ── TOP HEADER BAR ── */}
+      {/* ── TOP HEADER BAR (Clean, no preview toggle button) ── */}
       <div className="no-print" style={{
         display: 'flex',
         alignItems: 'center',
@@ -584,32 +588,8 @@ export default function Lab() {
           </div>
         </div>
 
-        {/* View Controls & Engine Status */}
+        {/* Engine Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            type="button"
-            onClick={() => setShowPreview(!showPreview)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 14px',
-              borderRadius: 10,
-              border: `1px solid ${TOK.border}`,
-              background: showPreview ? '#FFFFFF' : activeGreenBg,
-              color: showPreview ? TOK.ink : '#FFFFFF',
-              fontSize: 12.5,
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: showPreview ? 'none' : activeGreenShadow,
-              transition: 'all 120ms ease',
-            }}
-            title={showPreview ? 'Hide Live Wire Preview pane' : 'Show Live Wire Preview pane'}
-          >
-            {showPreview ? <EyeOff size={15} color={TOK.inkMuted} /> : <Eye size={15} color="#FFFFFF" />}
-            <span>{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
-          </button>
-
           <span style={{
             fontSize: 12,
             fontWeight: 700,
@@ -1020,7 +1000,7 @@ export default function Lab() {
           </div>
         </div>
 
-        {/* RESIZE HANDLE (between matrix and wire blueprint) */}
+        {/* RESIZE HANDLE (between matrix and wire blueprint when expanded) */}
         {showPreview && (
           <div
             role="separator"
@@ -1041,8 +1021,8 @@ export default function Lab() {
           />
         )}
 
-        {/* WIRE BLUEPRINT PANE (resizable, default 340px, full height) */}
-        {showPreview && (
+        {/* WIRE BLUEPRINT PANE (when expanded: resizable, default 340px, full height) */}
+        {showPreview ? (
           <div style={{
             width: panelWidth,
             flexShrink: 0,
@@ -1064,17 +1044,23 @@ export default function Lab() {
                 type="button"
                 onClick={() => setShowPreview(false)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
+                  background: '#FFFFFF',
+                  border: `1px solid ${TOK.border}`,
                   color: TOK.inkMuted,
                   cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: 6,
+                  padding: '5px 8px',
+                  borderRadius: 8,
                   display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  transition: 'all 120ms ease',
                 }}
-                title="Collapse Preview"
+                title="Collapse to side dock (LeetCode style)"
               >
-                <PanelRightClose size={16} />
+                <PanelRightClose size={15} />
+                <span>Collapse</span>
               </button>
             </div>
 
@@ -1143,7 +1129,7 @@ export default function Lab() {
               </div>
             </div>
 
-            {/* Synthesized PCAP Frame Hex Preview (Flex: 1 to fill full remaining vertical height) */}
+            {/* Synthesized PCAP Frame Hex Preview */}
             <div style={{
               background: '#0F172A',
               borderRadius: 10,
@@ -1168,6 +1154,76 @@ export default function Lab() {
 0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03
 0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
               </div>
+            </div>
+          </div>
+        ) : (
+          /* LEETCODE-STYLE DOCKED VERTICAL RAIL (visible when preview is collapsed) */
+          <div
+            onClick={() => setShowPreview(true)}
+            className="lab-docked-rail"
+            style={{
+              width: 44,
+              flexShrink: 0,
+              background: '#F8FAFC',
+              borderLeft: `1px solid ${TOK.border}`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 0',
+              cursor: 'pointer',
+              transition: 'all 120ms ease',
+              userSelect: 'none',
+            }}
+            title="Click to expand Wire Blueprint preview"
+          >
+            {/* Top Expand Icon Button */}
+            <div style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: '#FFFFFF',
+              border: `1px solid ${TOK.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#155C3A',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            }}>
+              <PanelRightOpen size={16} />
+            </div>
+
+            {/* Vertical Docked Label */}
+            <div style={{
+              writingMode: 'vertical-rl',
+              transform: 'rotate(180deg)',
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: '0.12em',
+              color: TOK.ink,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              <span>WIRE BLUEPRINT</span>
+              <Terminal size={13} color="#155C3A" />
+            </div>
+
+            {/* Bottom Live Score Pill */}
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: previewRisk === 'Critical' ? '#FEE2E2' : previewRisk === 'High' ? '#FFEDD5' : '#DCFCE7',
+              color: previewRisk === 'Critical' ? '#DC2626' : previewRisk === 'High' ? '#EA580C' : '#16A34A',
+              fontSize: 10.5,
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            }}>
+              {previewScore}
             </div>
           </div>
         )}
