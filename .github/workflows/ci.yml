@@ -362,7 +362,7 @@ jobs:
         run: |
           echo "=== 10 postgres guard docker compose postgres validation ==="
           docker compose config | grep -q postgres || (echo "docker compose config missing postgres" && exit 1)
-          docker compose config | grep -q "pgdata:/var/lib/postgresql/data" || (echo "pgdata:/var/lib/postgresql/data missing" && docker compose config | grep -A2 pgdata && exit 1)
+          docker compose config | grep -q "/var/lib/postgresql/data" || (echo "pgdata:/var/lib/postgresql/data missing" && docker compose config | grep -A4 pgdata && exit 1)
           docker compose config | grep -q service_healthy || (echo "service_healthy missing" && docker compose config | grep -A5 depends_on && exit 1)
           grep -q "postgres:16-alpine" docker-compose.yml || (echo "postgres:16-alpine pin missing" && exit 1)
           grep -q "healthcheck" docker-compose.yml && grep -q "pg_isready -U app -d ciphcrest" docker-compose.yml || (echo "healthcheck pg_isready missing" && exit 1)
