@@ -89,8 +89,10 @@ while [[ $# -gt 0 ]]; do
     --check) MODE="check"; shift ;;
     --help|-h) do_help; exit 0 ;;
     --port) API_PORT="$2"; shift 2 ;;
-    --with-lab) WITH_LAB_FLAG=1; WITH_LAB=1; shift ;;
+    --with-lab) WITH_LAB=1; shift ;;
+    --without-lab|--no-lab) WITH_LAB=0; shift ;;
     --use-hub|--hub) USE_HUB=1; shift ;;
+    --no-hub|--build|--local) USE_HUB=0; shift ;;
     --image) CIPHERCREST_IMAGE="$2"; shift 2 ;;
     --host|--wheelhouse|--native) HOST_MODE=1; shift ;;
     --docker) HOST_MODE=0; shift ;;
@@ -99,8 +101,6 @@ while [[ $# -gt 0 ]]; do
     *) warn "unknown arg $1"; shift ;;
   esac
 done
-# honor WITH_LAB env vs flag
-if [[ "$WITH_LAB_FLAG" -eq 1 ]]; then WITH_LAB=1; fi
 
 # port collision preflight via ss -ltn (fallback fuser)
 check_port_free(){
