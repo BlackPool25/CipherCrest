@@ -132,54 +132,66 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
 
   useEffect(() => {
     let alive = true
-    fetch('/api/report?format=json', { cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : null))
-      .then(j => { if (alive && j) setReport(j) })
-      .catch(() => {})
-    return () => { alive = false }
+    const loadReport = () => {
+      fetch('/api/report?format=json', { cache: 'no-store' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(j => { if (alive && j) setReport(j) })
+        .catch(() => {})
+    }
+    loadReport()
+    const iv = setInterval(loadReport, 8000)
+    return () => { alive = false; clearInterval(iv) }
   }, [])
 
   useEffect(() => {
     let alive = true
-    const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
-    fetch(url, { cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : null))
-      .then(j => { if (alive && j) setLocalMetrics(j) })
-      .catch(() => {})
-    return () => { alive = false }
+    const loadLocalMetrics = () => {
+      const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
+      fetch(url, { cache: 'no-store' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(j => { if (alive && j) setLocalMetrics(j) })
+        .catch(() => {})
+    }
+    loadLocalMetrics()
+    const iv = setInterval(loadLocalMetrics, 5000)
+    return () => { alive = false; clearInterval(iv) }
   }, [selectedFlowId])
 
   useEffect(() => {
     let alive = true
-    fetch('/api/models', { cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : null))
-      .then(j => {
-        if (!alive || !Array.isArray(j) || j.length === 0) return
-        let honest = null, inverted = null, ja4auc = null
-        for (const m of j) {
-          const metricsObj = m.metrics || {}
-          const paramsObj = m.params || {}
-          if (honest == null) {
-            honest = metricsObj.threshold_c10_honest ?? metricsObj.thresholds_honest?.c10 ?? paramsObj.threshold_c10_honest ?? null
-            if (honest == null && metricsObj.threshold_10) honest = metricsObj.threshold_10
+    const loadModels = () => {
+      fetch('/api/models', { cache: 'no-store' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(j => {
+          if (!alive || !Array.isArray(j) || j.length === 0) return
+          let honest = null, inverted = null, ja4auc = null
+          for (const m of j) {
+            const metricsObj = m.metrics || {}
+            const paramsObj = m.params || {}
+            if (honest == null) {
+              honest = metricsObj.threshold_c10_honest ?? metricsObj.thresholds_honest?.c10 ?? paramsObj.threshold_c10_honest ?? null
+              if (honest == null && metricsObj.threshold_10) honest = metricsObj.threshold_10
+            }
+            if (inverted == null) {
+              inverted = metricsObj.threshold_c10 ?? metricsObj.thresholds?.c10 ?? paramsObj.threshold_c10 ?? metricsObj.threshold_10 ?? null
+            }
+            if (ja4auc == null) {
+              ja4auc = metricsObj.ja4_rarity_auc ?? metricsObj.ja4_auc ?? paramsObj.ja4_rarity_auc ?? null
+            }
           }
-          if (inverted == null) {
-            inverted = metricsObj.threshold_c10 ?? metricsObj.thresholds?.c10 ?? paramsObj.threshold_c10 ?? metricsObj.threshold_10 ?? null
+          if (alive) {
+            setModelThresholds({
+              threshold_c10_honest: honest != null ? Number(honest) : 14.9,
+              threshold_c10: inverted != null ? Number(inverted) : 16.5,
+              ja4_rarity_auc: ja4auc != null ? Number(ja4auc) : 0.926,
+            })
           }
-          if (ja4auc == null) {
-            ja4auc = metricsObj.ja4_rarity_auc ?? metricsObj.ja4_auc ?? paramsObj.ja4_rarity_auc ?? null
-          }
-        }
-        if (alive) {
-          setModelThresholds({
-            threshold_c10_honest: honest != null ? Number(honest) : 14.9,
-            threshold_c10: inverted != null ? Number(inverted) : 16.5,
-            ja4_rarity_auc: ja4auc != null ? Number(ja4auc) : 0.926,
-          })
-        }
-      })
-      .catch(() => {})
-    return () => { alive = false }
+        })
+        .catch(() => {})
+    }
+    loadModels()
+    const iv = setInterval(loadModels, 10000)
+    return () => { alive = false; clearInterval(iv) }
   }, [])
 
   // Filter for only flows that actually ran / were analyzed (exclude un-run placeholder entries)

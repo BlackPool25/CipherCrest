@@ -1231,20 +1231,36 @@ export default function App() {
     }
   }, [mergeFlows])
 
+  // Continuous auto-reconnecting metrics & protocol stats polling (every 5s with SWR visibility handler)
   useEffect(() => {
     let alive = true
-    const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
-    // GET /api/metrics?flow_id filtered via generated source_id index
-    fetch(url, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive) setMetrics(j) }).catch(() => {})
-    return () => { alive = false }
-  }, [selectedFlowId])
+    const loadMetrics = () => {
+      const url = selectedFlowId ? `/api/metrics?flow_id=${encodeURIComponent(selectedFlowId)}` : '/api/metrics'
+      fetch(url, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(j => { if (alive && j) setMetrics(j) })
+        .catch(() => {})
 
-  useEffect(() => {
-    let alive = true
-    // GET /api/metrics/protocol from mv_protocol_stats (app_protocol/tls_version/cipher)
-    fetch('/api/metrics/protocol', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (alive && Array.isArray(j)) setProtocolStats(j) }).catch(() => {})
-    return () => { alive = false }
-  }, [])
+      fetch('/api/metrics/protocol', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(j => { if (alive && Array.isArray(j) && j.length > 0) setProtocolStats(j) })
+        .catch(() => {})
+    }
+
+    loadMetrics()
+    const iv = setInterval(loadMetrics, 5000)
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') loadMetrics()
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      alive = false
+      clearInterval(iv)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [selectedFlowId])
 
   // Triage: server-ordered channel GET /api/flows?order=risk_score_desc&limit=5 backed by risk_score DESC, updated_at DESC index
   useEffect(() => {
@@ -1262,8 +1278,8 @@ export default function App() {
   }, [flows, selectedFlowId])
 
   const handleInjectRandomPacket = () => {
-    const randomIdx = Math.floor(Math.random() * 80 + 11)
-    const newId = `family-${String(randomIdx).padStart(2, '0')}`
+    const randomIdx = Math.floor(Math.random() * 900 + 100)
+    const newId = `live-pkt-${randomIdx}`
     const ciphers = ['ECDHE-RSA-AES128-GCM-SHA256', 'RC4-SHA', 'DES-CBC3-SHA', 'TLS_AES_256_GCM_SHA384', 'AES128-SHA']
     const tlsVals = ['TLS1.2', 'TLS1.3', 'TLS1.0', 'TLS1.1']
     const ports = [587, 25, 993, 143, 110]
@@ -1272,6 +1288,9 @@ export default function App() {
 
     const newFlow = {
       flow_id: newId,
+      family_id: newId,
+      source: 'live',
+      has_run: true,
       app_protocol: ports[randomIdx % ports.length] === 993 ? 'imap' : 'smtp',
       port: ports[randomIdx % ports.length],
       starttls_mode: sev === 'Critical' ? 'stripped' : 'upgrade',
@@ -1304,10 +1323,13 @@ export default function App() {
         anomaly_score: sev === 'Critical' ? 12.0 : 1.5,
       },
       coverage_ratio: 1.0,
+      policy: {
+        action: sev === 'Critical' ? 'block' : sev === 'High' ? 'quarantine' : 'allow',
+      },
     }
 
     setFlows(prev => [newFlow, ...prev.filter(f => f.flow_id !== newId)])
-    setSelectedId(newId)
+    setSelectedFlowId(newId)
   }
 
   const handleToggleSelectFlow = useCallback((flowOrId) => {

@@ -341,36 +341,112 @@ export default function Lab() {
   const activeGreenBorder = '#155C3A'
   const activeGreenShadow = '0 4px 14px rgba(21, 92, 58, 0.28)'
 
-  // Real-time simulated projections
-  const isDep = tlsVersion === 'TLS1.0' || tlsVersion === 'TLS1.1'
-  const isStripped = starttlsMode === 'stripped'
-  const isWeakCipher = cipherStrength === 'weak' || cipher === 'DES-CBC3-SHA' || cipher === 'DES-CBC-SHA' || cipher === 'RC4-SHA'
-  const isExpiredCert = certType === 'expired'
-  const isSelfSigned = certType === 'selfsigned'
-  const isWeakKey = certType === 'rsa1024'
-  const isNoFS = kex === 'RSA'
+  // Real-time RFC-grounded calibrated posture calculation
+  const calculatedPosture = useMemo(() => {
+    let riskDeduction = 0
+    const findingsList = []
 
-  let previewRisk = 'Low'
-  let previewScore = 95
-  let previewProb = 0.05
-  let previewAnomaly = 5.2
+    if (starttlsMode === 'stripped') {
+      riskDeduction += 45
+      findingsList.push({ check: '15a', severity: 'Critical', spec: 'STARTTLS Downgrade / MITM Stripped (RFC 5321 §3.2)' })
+    } else if (starttlsMode === 'cleartext') {
+      riskDeduction += 50
+      findingsList.push({ check: '15a', severity: 'Critical', spec: 'Cleartext Transport (RFC 5321 §3.2)' })
+    }
 
-  if (isStripped || isDep || isExpiredCert || isSelfSigned) {
-    previewRisk = 'Critical'
-    previewScore = 15
-    previewProb = 0.96
-    previewAnomaly = 18.6
-  } else if (isWeakCipher || isWeakKey || isNoFS || certType === 'chain-incomplete') {
-    previewRisk = 'High'
-    previewScore = 48
-    previewProb = 0.74
-    previewAnomaly = 16.8
-  } else if (cipherStrength === 'medium' || earlyData) {
-    previewRisk = 'Medium'
-    previewScore = 72
-    previewProb = 0.38
-    previewAnomaly = 14.1
-  }
+    if (tlsVersion === 'none') {
+      riskDeduction += 50
+      findingsList.push({ check: '01', severity: 'Critical', spec: 'No TLS Transport Layer' })
+    } else if (tlsVersion === 'TLS1.0') {
+      riskDeduction += 35
+      findingsList.push({ check: '01', severity: 'Critical', spec: 'Deprecated TLS 1.0 (RFC 8996 §4)' })
+    } else if (tlsVersion === 'TLS1.1') {
+      riskDeduction += 25
+      findingsList.push({ check: '01', severity: 'High', spec: 'Deprecated TLS 1.1 (RFC 8996 §4)' })
+    }
+
+    if (cipher === 'none') {
+      riskDeduction += 40
+      findingsList.push({ check: '02', severity: 'Critical', spec: 'Unencrypted Cipher Suite' })
+    } else if (cipher === 'RC4-SHA') {
+      riskDeduction += 35
+      findingsList.push({ check: '02', severity: 'Critical', spec: 'Prohibited RC4 Stream Cipher (RFC 7465)' })
+    } else if (cipher === 'DES-CBC-SHA') {
+      riskDeduction += 35
+      findingsList.push({ check: '02', severity: 'Critical', spec: 'Insecure Single-DES Cipher' })
+    } else if (cipher === 'DES-CBC3-SHA') {
+      riskDeduction += 20
+      findingsList.push({ check: '02', severity: 'High', spec: 'SWEET32 3DES 64-Bit Collision (RFC 8446 §App.A)' })
+    } else if (cipher === 'AES128-SHA') {
+      riskDeduction += 12
+      findingsList.push({ check: '02', severity: 'Medium', spec: 'Legacy CBC Non-AEAD Mode' })
+    } else if (cipher === 'AES128-SHA256') {
+      riskDeduction += 8
+      findingsList.push({ check: '02', severity: 'Medium', spec: 'CBC Mode Non-AEAD' })
+    }
+
+    if (kex === 'RSA' && tlsVersion !== 'none' && cipher !== 'none') {
+      riskDeduction += 15
+      findingsList.push({ check: '03', severity: 'High', spec: 'Static RSA Key Exchange — No PFS (RFC 8996 §4)' })
+    }
+
+    if (certType === 'expired') {
+      riskDeduction += 35
+      findingsList.push({ check: '06', severity: 'Critical', spec: 'Expired X.509 Certificate (RFC 5280 §4.1.2.5)' })
+    } else if (certType === 'selfsigned') {
+      riskDeduction += 30
+      findingsList.push({ check: '07', severity: 'Critical', spec: 'Untrusted Self-Signed Certificate Anchor' })
+    } else if (certType === 'chain-incomplete') {
+      riskDeduction += 18
+      findingsList.push({ check: '08', severity: 'High', spec: 'Incomplete Certificate Chain — Missing Intermediate CA' })
+    } else if (certType === 'rsa1024') {
+      riskDeduction += 20
+      findingsList.push({ check: '09', severity: 'High', spec: 'Weak RSA 1024-Bit Public Key Factoring Vulnerability' })
+    }
+
+    if (earlyData && tlsVersion === 'TLS1.3') {
+      riskDeduction += 5
+      findingsList.push({ check: '21', severity: 'Medium', spec: '0-RTT Early Data Anti-Replay Exposure (RFC 8446 §8)' })
+    }
+
+    let finalScore = Math.max(5, Math.min(100, 100 - riskDeduction))
+    
+    // Pristine tier calibration when no vulnerabilities exist
+    if (riskDeduction === 0) {
+      if (tlsVersion === 'TLS1.3' && certType === 'p256') {
+        finalScore = ech ? 99 : 98
+      } else if (tlsVersion === 'TLS1.3') {
+        finalScore = 95
+      } else if (tlsVersion === 'TLS1.2') {
+        finalScore = 91
+      }
+    }
+
+    let riskLevel = 'Low'
+    if (finalScore < 50 || findingsList.some(f => f.severity === 'Critical')) {
+      riskLevel = 'Critical'
+    } else if (finalScore < 75 || findingsList.some(f => f.severity === 'High')) {
+      riskLevel = 'High'
+    } else if (finalScore < 90 || findingsList.some(f => f.severity === 'Medium')) {
+      riskLevel = 'Medium'
+    }
+
+    const prob = riskLevel === 'Critical' ? 0.94 : riskLevel === 'High' ? 0.74 : riskLevel === 'Medium' ? 0.42 : 0.08
+    const anomaly = riskLevel === 'Critical' ? 18.6 : riskLevel === 'High' ? 15.2 : riskLevel === 'Medium' ? 8.5 : 1.4
+
+    return {
+      score: finalScore,
+      risk: riskLevel,
+      prob: prob,
+      anomaly: anomaly,
+      findings: findingsList,
+    }
+  }, [starttlsMode, tlsVersion, cipher, kex, certType, earlyData, ech])
+
+  const previewScore = calculatedPosture.score
+  const previewRisk = calculatedPosture.risk
+  const previewProb = calculatedPosture.prob
+  const previewAnomaly = calculatedPosture.anomaly
 
   // Real-time synthesized JA4 preview
   const previewJA4 = useMemo(() => {
