@@ -1,12 +1,12 @@
 /**
  * Lab.jsx — High-Fidelity Interactive Cryptographic Lab & Packet Synthesizer Studio
  * 
- * Design System:
- *  - Full-screen height & width responsive 2-column studio layout
- *  - High-contrast solid dark selected states (#0F172A / #FFFFFF)
- *  - Live real-time wire blueprint & JA4 synthesizer preview
- *  - Direct pipeline execution via POST /api/analyze with scapy synthetic blobs
- *  - Inline Comprehensive Packet Analysis Dossier with Dual ML models & 1-click printable PDF
+ * Design Features:
+ *  - Edge-to-edge scaling in both height and width
+ *  - Selected states styled with deep forest green gradient (identical to sidebar SIH Offline V1: linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%)) + crisp white font
+ *  - Collapsible & Resizable Live Wire Blueprint Preview with Compact (280px), Standard (380px), and Wide (460px) modes or full collapse
+ *  - Full 100% auto-expansion when preview is collapsed
+ *  - Full scapy binary synthesis, POST /api/analyze execution, and printable packet dossier
  * 
  * Verbatim contract preserved:
  *   grep -q "synth_families" && grep -q "scapy" && grep -q "drag.*drop" && grep -q "POST.*analyze"
@@ -16,10 +16,10 @@ import {
   Zap, Lock, KeyRound, Calendar, ShieldAlert, ShieldCheck, Printer,
   Cpu, FileText, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw,
   Sliders, Shield, ExternalLink, ChevronDown, Check, Info, UploadCloud,
-  Terminal, Layers, Hash, Copy
+  Terminal, Layers, Hash, Copy, Eye, EyeOff, Maximize2, Minimize2,
+  PanelRightClose, PanelRightOpen
 } from 'lucide-react'
 import { TOK } from '../tokens.js'
-import { fetchFlows, fetchFamilies } from '../services/api.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from '../components/ThreatMatrix.jsx'
 import AIDiagnosticsView from '../components/AIDiagnosticsView.jsx'
 import PolicyRecommendationsView from '../components/PolicyRecommendationsView.jsx'
@@ -272,6 +272,10 @@ export default function Lab() {
   const [psk, setPsk] = useState(false)
   const [ech, setEch] = useState(false)
 
+  // Live preview layout state: visible + size mode ('compact' | 'standard' | 'wide')
+  const [showPreview, setShowPreview] = useState(true)
+  const [previewSize, setPreviewSize] = useState('standard') // 'compact' = 300px, 'standard' = 380px, 'wide' = 480px
+
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState(null)
   const [analysisResult, setAnalysisResult] = useState(null)
@@ -279,6 +283,11 @@ export default function Lab() {
 
   const selectedCipherObj = useMemo(() => CIPHER_OPTIONS.find(c => c.value === cipher) || CIPHER_OPTIONS[0], [cipher])
   const cipherStrength = selectedCipherObj.strength
+
+  // Dark green SIH style tokens
+  const activeGreenBg = 'linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%)'
+  const activeGreenBorder = '#155C3A'
+  const activeGreenShadow = '0 4px 14px rgba(21, 92, 58, 0.28)'
 
   // Real-time simulated projections
   const isDep = tlsVersion === 'TLS1.0' || tlsVersion === 'TLS1.1'
@@ -417,8 +426,19 @@ export default function Lab() {
     window.print()
   }
 
+  // Calculate preview width based on size mode
+  const previewWidthVal = previewSize === 'compact' ? '300px' : previewSize === 'wide' ? '460px' : '380px'
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', maxWidth: '100%', minHeight: 'calc(100vh - 120px)' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 20,
+      width: '100%',
+      maxWidth: '100%',
+      minHeight: 'calc(100vh - 100px)',
+      boxSizing: 'border-box',
+    }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
         @media print {
@@ -443,60 +463,153 @@ export default function Lab() {
         synth_families scapy drag-drop POST /api/analyze TLSRecord TLSHandshakes
       </span>
 
-      {/* Header Bar */}
-      <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+      {/* ── TOP HEADER BAR ── */}
+      <div className="no-print" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 14,
+        background: TOK.surface,
+        padding: '16px 24px',
+        borderRadius: TOK.radiusCard,
+        border: `1px solid ${TOK.border}`,
+        boxShadow: TOK.shadow,
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-            <Zap size={22} color="#10B981" />
+          <div style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            background: activeGreenBg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: activeGreenShadow,
+          }}>
+            <Zap size={22} color="#FFFFFF" />
           </div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: TOK.ink, letterSpacing: -0.4, margin: 0 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: TOK.ink, letterSpacing: -0.3, margin: 0 }}>
               Interactive Cryptographic Lab &amp; Packet Synthesizer
             </h1>
-            <p style={{ fontSize: 13, color: TOK.inkMuted, marginTop: 2, margin: 0 }}>
-              Configure multi-protocol mail transport parameters, synthesize wire-compliant PCAPs, and inspect live packet blueprints
+            <p style={{ fontSize: 12.5, color: TOK.inkMuted, marginTop: 2, margin: 0 }}>
+              Synthesize wire-compliant mail PCAPs, test RFC security policies, and evaluate dual ML diagnostics
             </p>
           </div>
         </div>
 
+        {/* View Controls & Engine Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, background: '#0F172A', color: '#FFFFFF', padding: '6px 14px', borderRadius: 999, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-            scapy TLSRecord Engine Ready
+          {/* Live Preview Toggle & Sizing Controls */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#F1F5F9',
+            padding: '3px 4px',
+            borderRadius: 10,
+            border: `1px solid ${TOK.border}`,
+            gap: 4,
+          }}>
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: 'none',
+                background: showPreview ? activeGreenBg : 'transparent',
+                color: showPreview ? '#FFFFFF' : TOK.ink,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 120ms ease',
+              }}
+              title={showPreview ? 'Hide Live Wire Preview pane' : 'Show Live Wire Preview pane'}
+            >
+              {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
+              <span>{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
+            </button>
+
+            {showPreview && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2, borderLeft: `1px solid ${TOK.border}`, paddingLeft: 4 }}>
+                {['compact', 'standard', 'wide'].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setPreviewSize(s)}
+                    style={{
+                      padding: '5px 8px',
+                      borderRadius: 6,
+                      border: 'none',
+                      background: previewSize === s ? '#0F172A' : 'transparent',
+                      color: previewSize === s ? '#FFFFFF' : TOK.inkMuted,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'capitalize',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <span style={{
+            fontSize: 12,
+            fontWeight: 700,
+            background: activeGreenBg,
+            color: '#FFFFFF',
+            padding: '7px 14px',
+            borderRadius: 999,
+            boxShadow: activeGreenShadow,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#86EFAC', display: 'inline-block' }} />
+            scapy Engine Active
           </span>
         </div>
       </div>
 
-      {/* ── 2-COLUMN FULL-SCREEN STUDIO WORKSPACE ── */}
+      {/* ── MAIN STUDIO WORKSPACE (FULL VIEWPORT WIDTH & HEIGHT) ── */}
       <div className="no-print" style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(420px, 1.4fr) minmax(360px, 1fr)',
-        gap: 24,
+        gridTemplateColumns: showPreview ? `minmax(0, 1fr) ${previewWidthVal}` : '1fr',
+        gap: 20,
         alignItems: 'stretch',
+        flex: 1,
       }}>
         
-        {/* LEFT COLUMN: PARAMETER STUDIO (Solid Dark Active Selections) */}
+        {/* PARAMETER STUDIO (Solid Dark Green Selected States) */}
         <div style={{
           background: TOK.surface,
           border: `1px solid ${TOK.border}`,
           borderRadius: TOK.radiusCard,
-          padding: '28px 30px',
+          padding: '24px 28px',
           boxShadow: TOK.shadow,
           display: 'flex',
           flexDirection: 'column',
-          gap: 22,
+          gap: 20,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${TOK.border}`, paddingBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${TOK.border}`, paddingBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Sliders size={18} color={TOK.primary} />
+              <Sliders size={18} color="#155C3A" />
               <span style={{ fontSize: 16, fontWeight: 800, color: TOK.ink }}>Cryptographic Transport &amp; Protocol Matrix</span>
             </div>
-            <span style={{ fontSize: 12, color: TOK.inkMuted }}>Live Parameter Controls</span>
+            <span style={{ fontSize: 12, color: TOK.inkMuted }}>Live Synthesis Controls</span>
           </div>
 
-          {/* 1. Port Selection */}
+          {/* 1. Mail Service Port & Protocol */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label style={{ fontSize: 13, fontWeight: 800, color: TOK.ink }}>Mail Service Port &amp; Protocol</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
               {PORTS.map(p => {
                 const isSel = port === p.port
                 return (
@@ -508,24 +621,24 @@ export default function Lab() {
                     style={{
                       padding: '12px 14px',
                       borderRadius: 10,
-                      border: `1.5px solid ${isSel ? '#0F172A' : TOK.border}`,
-                      background: isSel ? '#0F172A' : '#FAFAFA',
+                      border: `1.5px solid ${isSel ? activeGreenBorder : TOK.border}`,
+                      background: isSel ? activeGreenBg : '#FFFFFF',
                       color: isSel ? '#FFFFFF' : TOK.ink,
                       cursor: busy ? 'not-allowed' : 'pointer',
                       textAlign: 'left',
                       transition: 'all 120ms ease',
-                      boxShadow: isSel ? '0 4px 12px rgba(15, 23, 42, 0.25)' : 'none',
+                      boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
-                    <div style={{ fontSize: 14, fontWeight: 800 }}>{p.label}</div>
-                    <div style={{ fontSize: 11, color: isSel ? '#94A3B8' : TOK.inkMuted, marginTop: 2 }}>{p.desc}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 800 }}>{p.label}</div>
+                    <div style={{ fontSize: 11, color: isSel ? '#D1FAE5' : TOK.inkMuted, marginTop: 2 }}>{p.desc}</div>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* 2. TLS Version Selection */}
+          {/* 2. TLS Protocol Version */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <label style={{ fontSize: 13, fontWeight: 800, color: TOK.ink }}>TLS Protocol Version</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
@@ -540,17 +653,17 @@ export default function Lab() {
                     style={{
                       padding: '12px 10px',
                       borderRadius: 10,
-                      border: `1.5px solid ${isSel ? '#0F172A' : TOK.border}`,
-                      background: isSel ? '#0F172A' : '#FAFAFA',
+                      border: `1.5px solid ${isSel ? activeGreenBorder : TOK.border}`,
+                      background: isSel ? activeGreenBg : '#FFFFFF',
                       color: isSel ? '#FFFFFF' : TOK.ink,
                       cursor: busy ? 'not-allowed' : 'pointer',
                       textAlign: 'center',
                       transition: 'all 120ms ease',
-                      boxShadow: isSel ? '0 4px 12px rgba(15, 23, 42, 0.25)' : 'none',
+                      boxShadow: isSel ? activeGreenShadow : 'none',
                     }}
                   >
                     <div style={{ fontSize: 13.5, fontWeight: 800 }}>{v.label}</div>
-                    <div style={{ fontSize: 10, color: isSel ? '#94A3B8' : (v.secure ? TOK.primary : '#DC2626'), marginTop: 2, fontWeight: 600 }}>
+                    <div style={{ fontSize: 10.5, color: isSel ? '#D1FAE5' : (v.secure ? '#16A34A' : '#DC2626'), marginTop: 2, fontWeight: 700 }}>
                       {v.secure ? 'Secure' : 'Deprecated'}
                     </div>
                   </button>
@@ -559,8 +672,8 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* 3. Cipher Suite & KEX */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {/* 3. Cipher Suite & Key Exchange Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
             {/* Cipher Suite Select */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -584,7 +697,7 @@ export default function Lab() {
                   padding: '11px 12px',
                   borderRadius: 10,
                   border: `1.5px solid ${TOK.border}`,
-                  background: '#FAFAFA',
+                  background: '#FFFFFF',
                   color: TOK.ink,
                   fontSize: 12.5,
                   fontWeight: 600,
@@ -609,7 +722,7 @@ export default function Lab() {
                   padding: '11px 12px',
                   borderRadius: 10,
                   border: `1.5px solid ${TOK.border}`,
-                  background: '#FAFAFA',
+                  background: '#FFFFFF',
                   color: TOK.ink,
                   fontSize: 12.5,
                   fontWeight: 600,
@@ -624,8 +737,8 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* 4. Certificate Type & STARTTLS Mode */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {/* 4. Certificate Type & STARTTLS Mode Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 12.5, fontWeight: 800, color: TOK.ink }}>X.509 Certificate Health</label>
               <select
@@ -636,7 +749,7 @@ export default function Lab() {
                   padding: '11px 12px',
                   borderRadius: 10,
                   border: `1.5px solid ${TOK.border}`,
-                  background: '#FAFAFA',
+                  background: '#FFFFFF',
                   color: TOK.ink,
                   fontSize: 12.5,
                   fontWeight: 600,
@@ -660,7 +773,7 @@ export default function Lab() {
                   padding: '11px 12px',
                   borderRadius: 10,
                   border: `1.5px solid ${TOK.border}`,
-                  background: '#FAFAFA',
+                  background: '#FFFFFF',
                   color: TOK.ink,
                   fontSize: 12.5,
                   fontWeight: 600,
@@ -675,8 +788,17 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* 5. Protocol Toggles */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '12px 16px', background: '#FAFAFA', borderRadius: 10, border: `1px solid ${TOK.border}` }}>
+          {/* 5. Protocol Feature Toggles */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+            padding: '12px 18px',
+            background: '#F8FAFC',
+            borderRadius: 10,
+            border: `1px solid ${TOK.border}`,
+          }}>
             {[
               { id: 'earlyData', label: 'TLS 1.3 Early Data (0-RTT)', val: earlyData, set: setEarlyData },
               { id: 'psk', label: 'Pre-Shared Key (PSK / Ticket)', val: psk, set: setPsk },
@@ -688,7 +810,7 @@ export default function Lab() {
                   checked={t.val}
                   onChange={e => !busy && t.set(e.target.checked)}
                   disabled={busy}
-                  style={{ width: 16, height: 16, accentColor: '#0F172A', cursor: 'pointer' }}
+                  style={{ width: 16, height: 16, accentColor: '#155C3A', cursor: 'pointer' }}
                 />
                 <span>{t.label}</span>
               </label>
@@ -705,7 +827,7 @@ export default function Lab() {
                 width: '100%',
                 padding: '14px 24px',
                 borderRadius: 12,
-                background: busy ? TOK.borderStrong : '#0F172A',
+                background: busy ? TOK.borderStrong : activeGreenBg,
                 color: '#FFFFFF',
                 border: 'none',
                 fontWeight: 800,
@@ -715,121 +837,136 @@ export default function Lab() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                boxShadow: '0 6px 18px rgba(15, 23, 42, 0.35)',
+                boxShadow: activeGreenShadow,
                 transition: 'all 140ms ease',
               }}
             >
               {busy ? (
                 <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin .7s linear infinite' }} />
               ) : (
-                <Zap size={18} color="#10B981" />
+                <Zap size={18} color="#FFFFFF" />
               )}
               <span>{busy ? 'Synthesizing & Analyzing Pipeline…' : '⚡ Synthesize & Run Pipeline Analysis'}</span>
             </button>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: REAL-TIME WIRE BLUEPRINT & TELEMETRY PREVIEW */}
-        <div style={{
-          background: TOK.surface,
-          border: `1px solid ${TOK.border}`,
-          borderRadius: TOK.radiusCard,
-          padding: '28px 30px',
-          boxShadow: TOK.shadow,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${TOK.border}`, paddingBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Terminal size={18} color="#2563EB" />
-              <span style={{ fontSize: 16, fontWeight: 800, color: TOK.ink }}>Live Wire Blueprint Preview</span>
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 700, background: '#EFF6FF', color: '#2563EB', padding: '3px 8px', borderRadius: 6 }}>
-              Real-time Emulation
-            </span>
-          </div>
-
-          {/* Live Projected Posture Score Box */}
+        {/* ── COLLAPSIBLE / RESIZABLE LIVE WIRE BLUEPRINT PREVIEW ── */}
+        {showPreview && (
           <div style={{
-            background: previewRisk === 'Critical' ? '#FEF2F2' : previewRisk === 'High' ? '#FFF7ED' : '#F0FDF4',
-            border: `1.5px solid ${previewRisk === 'Critical' ? '#F87171' : previewRisk === 'High' ? '#FB923C' : '#4ADE80'}`,
-            borderRadius: 12,
-            padding: '16px 18px',
+            background: TOK.surface,
+            border: `1px solid ${TOK.border}`,
+            borderRadius: TOK.radiusCard,
+            padding: '24px',
+            boxShadow: TOK.shadow,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            gap: 16,
+            overflow: 'hidden',
           }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: previewRisk === 'Critical' ? '#DC2626' : previewRisk === 'High' ? '#EA580C' : '#16A34A' }}>
-                Projected Posture &amp; Threat Severity
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${TOK.border}`, paddingBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Terminal size={17} color="#155C3A" />
+                <span style={{ fontSize: 15, fontWeight: 800, color: TOK.ink }}>Wire Blueprint</span>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: TOK.ink, marginTop: 3 }}>
-                {previewRisk} Risk ({previewScore}/100 Posture Score)
-              </div>
-            </div>
-            <div className="tabular-nums" style={{ fontSize: 30, fontWeight: 900, color: previewRisk === 'Critical' ? '#DC2626' : previewRisk === 'High' ? '#EA580C' : '#16A34A' }}>
-              {previewScore}<span style={{ fontSize: 14, color: TOK.inkMuted, fontWeight: 600 }}>/100</span>
-            </div>
-          </div>
-
-          {/* Live JA4 Fingerprint Blueprint */}
-          <div style={{ background: '#FAFAFA', padding: 14, borderRadius: 10, border: `1px solid ${TOK.border}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: TOK.inkMuted, textTransform: 'uppercase' }}>Synthesized JA4 Fingerprint</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', background: '#EFF6FF', padding: '1px 6px', borderRadius: 4 }}>RFC 8701 Cleaned</span>
-            </div>
-            <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 13, fontWeight: 800, color: '#0F172A', wordBreak: 'break-all' }}>
-              {previewJA4}
-            </div>
-          </div>
-
-          {/* Wire Parameters Breakdown */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div style={{ background: '#FAFAFA', padding: '10px 12px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Cipher IANA Code</div>
-              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 14, fontWeight: 800, color: TOK.ink, marginTop: 2 }}>
-                {selectedCipherObj.code}
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: TOK.inkMuted,
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: 6,
+                  display: 'inline-flex',
+                }}
+                title="Collapse Preview"
+              >
+                <PanelRightClose size={16} />
+              </button>
             </div>
 
-            <div style={{ background: '#FAFAFA', padding: '10px 12px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Key Exchange Group</div>
-              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 14, fontWeight: 800, color: kex === 'RSA' ? '#DC2626' : TOK.ink, marginTop: 2 }}>
-                {kex === 'RSA' ? 'Static RSA' : kex === 'ECDHE' ? 'X25519 (0x001d)' : 'DHE (0x0100)'}
+            {/* Live Projected Posture Score Box */}
+            <div style={{
+              background: previewRisk === 'Critical' ? '#FEF2F2' : previewRisk === 'High' ? '#FFF7ED' : '#F0FDF4',
+              border: `1.5px solid ${previewRisk === 'Critical' ? '#F87171' : previewRisk === 'High' ? '#FB923C' : '#4ADE80'}`,
+              borderRadius: 12,
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: previewRisk === 'Critical' ? '#DC2626' : previewRisk === 'High' ? '#EA580C' : '#16A34A' }}>
+                  Projected Posture
+                </div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: TOK.ink, marginTop: 2 }}>
+                  {previewRisk} Risk
+                </div>
+              </div>
+              <div className="tabular-nums" style={{ fontSize: 26, fontWeight: 900, color: previewRisk === 'Critical' ? '#DC2626' : previewRisk === 'High' ? '#EA580C' : '#16A34A' }}>
+                {previewScore}<span style={{ fontSize: 13, color: TOK.inkMuted, fontWeight: 600 }}>/100</span>
               </div>
             </div>
 
-            <div style={{ background: '#FAFAFA', padding: '10px 12px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>X.509 Pubkey Bits</div>
-              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 14, fontWeight: 800, color: certType === 'rsa1024' ? '#DC2626' : TOK.ink, marginTop: 2 }}>
-                {certType === 'p256' ? 'ECDSA 256' : certType === 'rsa1024' ? 'RSA 1024' : 'RSA 2048'}
+            {/* Live JA4 Fingerprint Blueprint */}
+            <div style={{ background: '#F8FAFC', padding: 12, borderRadius: 10, border: `1px solid ${TOK.border}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: TOK.inkMuted, textTransform: 'uppercase' }}>JA4 Fingerprint</span>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#155C3A', background: '#D1FAE5', padding: '1px 5px', borderRadius: 4 }}>RFC 8701</span>
+              </div>
+              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12, fontWeight: 800, color: '#155C3A', wordBreak: 'break-all' }}>
+                {previewJA4}
               </div>
             </div>
 
-            <div style={{ background: '#FAFAFA', padding: '10px 12px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
-              <div style={{ fontSize: 10, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Transport SNI Target</div>
-              <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 14, fontWeight: 800, color: TOK.primary, marginTop: 2 }}>
-                mail.lab.local
+            {/* Handshake Parameters Details */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 9.5, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Cipher IANA</div>
+                <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12.5, fontWeight: 800, color: TOK.ink, marginTop: 2 }}>
+                  {selectedCipherObj.code}
+                </div>
+              </div>
+
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 9.5, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>KEX Group</div>
+                <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12.5, fontWeight: 800, color: kex === 'RSA' ? '#DC2626' : TOK.ink, marginTop: 2 }}>
+                  {kex === 'RSA' ? 'Static RSA' : 'X25519'}
+                </div>
+              </div>
+
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 9.5, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Pubkey Bits</div>
+                <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12.5, fontWeight: 800, color: certType === 'rsa1024' ? '#DC2626' : TOK.ink, marginTop: 2 }}>
+                  {certType === 'p256' ? 'ECDSA 256' : certType === 'rsa1024' ? 'RSA 1024' : 'RSA 2048'}
+                </div>
+              </div>
+
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 8, border: `1px solid ${TOK.border}` }}>
+                <div style={{ fontSize: 9.5, color: TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>SNI Host</div>
+                <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12.5, fontWeight: 800, color: '#155C3A', marginTop: 2 }}>
+                  mail.lab.local
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Hex Stream Snippet */}
-          <div style={{ background: '#0F172A', borderRadius: 10, padding: 14, color: '#94A3B8', fontFamily: TOK.fontMono, fontSize: 11, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#E2E8F0', borderBottom: '1px solid #334155', paddingBottom: 6 }}>
-              <span style={{ fontWeight: 700 }}>Synthesized PCAP Frame Hex (TLSRecord)</span>
-              <span style={{ fontSize: 10, color: '#10B981' }}>Ethernet + IP + TCP + TLS</span>
-            </div>
-            <div style={{ overflowX: 'auto', whiteSpace: 'pre', lineHeight: 1.4, color: '#38BDF8' }}>
-              {`0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00
+            {/* Synthesized PCAP Frame Hex Preview */}
+            <div style={{ background: '#0F172A', borderRadius: 10, padding: 12, color: '#94A3B8', fontFamily: TOK.fontMono, fontSize: 10.5, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#E2E8F0', borderBottom: '1px solid #334155', paddingBottom: 4 }}>
+                <span style={{ fontWeight: 700 }}>PCAP Frame (TLSRecord)</span>
+                <span style={{ fontSize: 9.5, color: '#10B981' }}>Wire Hex</span>
+              </div>
+              <div style={{ overflowX: 'auto', whiteSpace: 'pre', lineHeight: 1.35, color: '#38BDF8' }}>
+                {`0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00
 0010   00 68 12 34 00 00 40 06  7c a8 7f 00 00 0b 7f 00
 0020   00 01 d4 31 02 4b 00 00  00 01 00 00 00 64 50 18
-0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03
-0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
+0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03`}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── 3. INSTANT PACKET ANALYSIS DOSSIER REPORT (FULL COMPREHENSIVE VIEW) ── */}
@@ -852,10 +989,10 @@ export default function Lab() {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, borderBottom: `1px solid ${TOK.border}`, paddingBottom: 20 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 24, fontWeight: 900, color: TOK.primary }}>
+                <span className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 24, fontWeight: 900, color: '#155C3A' }}>
                   {analysisResult.flow_id}
                 </span>
-                <span style={{ fontSize: 12, fontWeight: 800, background: '#0F172A', color: '#FFFFFF', padding: '3px 10px', borderRadius: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, background: activeGreenBg, color: '#FFFFFF', padding: '3px 10px', borderRadius: 6 }}>
                   {analysisResult.app_protocol?.toUpperCase() || 'SMTP'}:{analysisResult.port || 587}
                 </span>
                 <span style={{
@@ -880,7 +1017,7 @@ export default function Lab() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: 10,
-                  background: '#0F172A',
+                  background: activeGreenBg,
                   color: '#FFFFFF',
                   border: 'none',
                   fontWeight: 800,
@@ -889,7 +1026,7 @@ export default function Lab() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  boxShadow: '0 4px 12px rgba(15,23,42,0.25)',
+                  boxShadow: activeGreenShadow,
                 }}
               >
                 <Printer size={16} />
