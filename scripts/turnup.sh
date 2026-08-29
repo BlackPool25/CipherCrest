@@ -329,47 +329,60 @@ do_full(){
   echo "--- docker compose up -d ---"
   if ! command -v docker >/dev/null 2>&1; then fail "docker not found — pure Docker path requires docker"; exit 1; fi
   export CIPHERCREST_IMAGE
-  if ! docker compose config >/dev/null 2>&1; then fail "docker compose config invalid"; exit 1; fi
-  if [[ "$USE_HUB" == "1" ]]; then
-    echo "USE_HUB=1 — pulling image from Docker Hub: $CIPHERCREST_IMAGE"
-    if docker pull "$CIPHERCREST_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
-      ok "docker pull $CIPHERCREST_IMAGE"
+
+  if [[ ! -f docker-compose.yml ]]; then
+    echo "Running in Zero-Clone Standalone Mode using Docker Hub image ($CIPHERCREST_IMAGE)..."
+    docker pull "$CIPHERCREST_IMAGE" 2>&1 | tee -a "$LOG_FILE" || true
+    docker rm -f ciphercrest 2>/dev/null || true
+    if docker run -d --name ciphercrest -p "${API_PORT}:8000" --restart unless-stopped "$CIPHERCREST_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
+      ok "standalone container started: ciphercrest on port ${API_PORT}"
     else
-      warn "docker pull $CIPHERCREST_IMAGE failed — will attempt running or local fallback"
-    fi
-    if [[ "$WITH_LAB" == "1" ]]; then
-      echo "WITH_LAB=1 — bringing up demo + lab from Hub: docker compose --profile lab up -d"
-      if docker compose --profile lab up -d 2>&1 | tee -a "$LOG_FILE"; then
-        ok "docker compose --profile lab up -d"
-      else
-        fail "docker compose --profile lab up -d failed"
-        exit 1
-      fi
-    else
-      echo "bringing up demo from Hub: docker compose up -d demo"
-      if docker compose up -d demo 2>&1 | tee -a "$LOG_FILE"; then
-        ok "docker compose up -d demo"
-      else
-        fail "docker compose up -d demo failed"
-        exit 1
-      fi
+      fail "failed to start standalone container"
+      exit 1
     fi
   else
-    if [[ "$WITH_LAB" == "1" ]]; then
-      echo "WITH_LAB=1 — bringing up demo + lab: docker compose --profile lab up -d --build"
-      if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then
-        ok "docker compose --profile lab up -d --build"
+    if ! docker compose config >/dev/null 2>&1; then fail "docker compose config invalid"; exit 1; fi
+    if [[ "$USE_HUB" == "1" ]]; then
+      echo "USE_HUB=1 — pulling image from Docker Hub: $CIPHERCREST_IMAGE"
+      if docker pull "$CIPHERCREST_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
+        ok "docker pull $CIPHERCREST_IMAGE"
       else
-        fail "docker compose --profile lab up -d --build failed"
-        exit 1
+        warn "docker pull $CIPHERCREST_IMAGE failed — will attempt running or local fallback"
+      fi
+      if [[ "$WITH_LAB" == "1" ]]; then
+        echo "WITH_LAB=1 — bringing up demo + lab from Hub: docker compose --profile lab up -d"
+        if docker compose --profile lab up -d 2>&1 | tee -a "$LOG_FILE"; then
+          ok "docker compose --profile lab up -d"
+        else
+          fail "docker compose --profile lab up -d failed"
+          exit 1
+        fi
+      else
+        echo "bringing up demo from Hub: docker compose up -d demo"
+        if docker compose up -d demo 2>&1 | tee -a "$LOG_FILE"; then
+          ok "docker compose up -d demo"
+        else
+          fail "docker compose up -d demo failed"
+          exit 1
+        fi
       fi
     else
-      echo "bringing up demo: docker compose up -d --build demo"
-      if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then
-        ok "docker compose up -d --build demo"
+      if [[ "$WITH_LAB" == "1" ]]; then
+        echo "WITH_LAB=1 — bringing up demo + lab: docker compose --profile lab up -d --build"
+        if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then
+          ok "docker compose --profile lab up -d --build"
+        else
+          fail "docker compose --profile lab up -d --build failed"
+          exit 1
+        fi
       else
-        fail "docker compose up -d --build demo failed"
-        exit 1
+        echo "bringing up demo: docker compose up -d --build demo"
+        if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then
+          ok "docker compose up -d --build demo"
+        else
+          fail "docker compose up -d --build demo failed"
+          exit 1
+        fi
       fi
     fi
   fi

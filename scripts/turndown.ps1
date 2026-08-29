@@ -2,12 +2,13 @@
 .SYNOPSIS
   scripts/turndown.ps1 — Clean down for pure Docker & Host lifecycle on Windows.
 .DESCRIPTION
-  Stops Docker containers, cleans host processes, verifies port 8000, removes PID files, rotates logs.
+  Stops Docker containers (standalone or compose), cleans host processes, verifies port 8000,
+  removes PID files, and rotates logs.
 .EXAMPLE
-  .\scripts	urndown.ps1
-  .\scripts	urndown.ps1 -Check
-  .\scripts	urndown.ps1 -HostMode
-  .\scripts	urndown.ps1 -Port 8000
+  .\scripts\turndown.ps1
+  .\scripts\turndown.ps1 -Check
+  .\scripts\turndown.ps1 -HostMode
+  .\scripts\turndown.ps1 -Port 8000
 #>
 
 [CmdletBinding()]
@@ -25,15 +26,24 @@ param (
 $ErrorActionPreference = "Continue"
 
 if ($Help) {
-    Write-Host "Usage: .\scripts	urndown.ps1 [-Check] [-HostMode] [-Port 8000]" -ForegroundColor Cyan
+    Write-Host "Usage: .\scripts\turndown.ps1 [-Check] [-HostMode] [-Port 8000]" -ForegroundColor Cyan
     Write-Host "  -Check     Dry-run idempotent verification only (no services stopped)"
     Write-Host "  -HostMode  Clean down host processes (PIDs and port 8000)"
     Write-Host "  -Port N    Port to verify/free (default: 8000)"
     exit 0
 }
 
-$RootDir = Split-Path -Parent $PSScriptRoot
+# Determine script & repository roots
+$ScriptDir = $PSScriptRoot
+if (-not $ScriptDir) { $ScriptDir = (Get-Location).Path }
+$RootDir = $ScriptDir
+if (Test-Path (Join-Path $ScriptDir "..\docker-compose.yml")) {
+    $RootDir = (Resolve-Path (Join-Path $ScriptDir "..")).Path
+} elseif (Test-Path (Join-Path $ScriptDir "docker-compose.yml")) {
+    $RootDir = $ScriptDir
+}
 Set-Location $RootDir
+$HasCompose = Test-Path (Join-Path $RootDir "docker-compose.yml")
 
 $LogDir = Join-Path $RootDir "logs"
 $TmpDir = Join-Path $RootDir ".tmp"
@@ -51,6 +61,7 @@ function Write-Info($msg) { Write-Host "[info] $msg" -ForegroundColor DarkGray }
 
 if ($Check) {
     Write-Host "=== turndown -Check (idempotent) ===" -ForegroundColor Cyan
+    Write-Ok "would run: docker rm -f ciphercrest (standalone container)"
     Write-Ok "would run: docker compose down"
     Write-Ok "would run: docker compose --profile lab down (if lab up)"
     
@@ -75,12 +86,18 @@ Write-Host "=== turndown clean ===" -ForegroundColor Cyan
 
 # ── 1. Docker down ──
 if (Get-Command docker -ErrorAction SilentlyContinue) {
-    Write-Host "docker compose down"
-    docker compose down 2>&1 | Out-Null
-    Write-Host "docker compose --profile lab down"
-    docker compose --profile lab down 2>&1 | Out-Null
+    # Clean standalone container if running
+    docker rm -f ciphercrest 2>$null | Out-Null
+    
+    if ($HasCompose) {
+        Write-Host "docker compose down"
+        docker compose down 2>&1 | Out-Null
+        Write-Host "docker compose --profile lab down"
+        docker compose --profile lab down 2>&1 | Out-Null
+    }
+    Write-Ok "docker containers stopped and removed"
 } else {
-    Write-Warn "docker not found — skip docker compose down"
+    Write-Warn "docker not found — skip docker down"
 }
 
 # ── 2. Clean PID files & Host Processes ──

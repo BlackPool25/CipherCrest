@@ -64,10 +64,14 @@ do_down(){
   echo "=== turndown clean ==="
   # docker compose down (demo)
   if command -v docker >/dev/null 2>&1; then
-    echo "docker compose down"
-    docker compose down 2>&1 || true
-    echo "docker compose --profile lab down"
-    docker compose --profile lab down 2>&1 || true
+    docker rm -f ciphercrest 2>/dev/null || true
+    if [[ -f docker-compose.yml ]]; then
+      echo "docker compose down"
+      docker compose down 2>&1 || true
+      echo "docker compose --profile lab down"
+      docker compose --profile lab down 2>&1 || true
+    fi
+    echo "[ok] docker containers stopped"
   else
     echo "[warn] docker not found — skip docker compose down"
   fi
