@@ -14,6 +14,7 @@ import {
 import { TOK } from '../tokens.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from './ThreatMatrix.jsx'
 import AIDiagnosticsView from './AIDiagnosticsView.jsx'
+import PolicyRecommendationsView from './PolicyRecommendationsView.jsx'
 
 export default function FlowInspectorModal({ flow, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('dual_ai')
@@ -254,7 +255,7 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
         <div style={{ padding: 24, overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
           
           {/* TAB 1: DUAL AI MODELS (Risk Classifier + Anomaly Detector) */}
-          {(activeTab === 'dual_ai' || typeof window !== 'undefined') && (
+          {activeTab === 'dual_ai' && (
             <AIDiagnosticsView flow={flow} />
           )}
 
@@ -359,19 +360,7 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
           {/* TAB 5: POLICY & REMEDIATION */}
           {activeTab === 'policy' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{
-                background: sevBg(riskLevel),
-                border: `1.5px solid ${sevColor(riskLevel)}40`,
-                borderRadius: 12,
-                padding: '16px 20px',
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: sevColor(riskLevel) }}>
-                  Gateway Policy Action: {riskLevel === 'Critical' ? 'QUARANTINE / BLOCK' : riskLevel === 'High' ? 'FLAG & AUDIT' : 'ALLOW TRAFFIC'}
-                </div>
-                <div style={{ fontSize: 12, color: TOK.ink, marginTop: 6, lineHeight: 1.5 }}>
-                  Based on calibrated risk score ({riskScore}/100) and anomaly detection telemetry, this flow requires {riskLevel === 'Critical' ? 'immediate cryptographic upgrade or connection termination.' : 'continuous verification against enterprise baselines.'}
-                </div>
-              </div>
+              <PolicyRecommendationsView flow={flow} />
             </div>
           )}
 
