@@ -429,22 +429,6 @@ async def analyze(request: Request = None, pcap: UploadFile | None = File(defaul
             # always SELECT persistence via Postgres with source differentiation (task8)
             try:
                 await upsert_flows(flows, source=src)
-                # pg_notify after COMMIT outside TX — ensure NOTIFY even if upsert_flows already notifies
-                try:
-                    from api.db_pg import _get_pool
-                    pool = await _get_pool()
-                    async with pool.connection() as nconn:
-                        for fv in flows:
-                            try:
-                                await nconn.execute("SELECT pg_notify('flows_upsert', %s)", (fv.flow_id,))
-                            except Exception:
-                                pass
-                        try:
-                            await nconn.commit()
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
             except Exception:
                 pass
             try:
@@ -472,21 +456,6 @@ async def analyze(request: Request = None, pcap: UploadFile | None = File(defaul
         _last_result = validated_single; _last_summary = _compute_summary(validated_single)
         try:
             await upsert_flows(validated_single, source=src)
-            try:
-                from api.db_pg import _get_pool
-                pool = await _get_pool()
-                async with pool.connection() as nconn:
-                    for fv in validated_single:
-                        try:
-                            await nconn.execute("SELECT pg_notify('flows_upsert', %s)", (fv.flow_id,))
-                        except Exception:
-                            pass
-                    try:
-                        await nconn.commit()
-                    except Exception:
-                        pass
-            except Exception:
-                pass
         except Exception:
             pass
         try:
@@ -514,9 +483,13 @@ async def get_families(
         raise HTTPException(status_code=400, detail=f"invalid status must be one of {sorted(allowed)}")
     try:
         rows = await query_families(status=status, limit=limit, offset=offset, q=q)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    return rows
+        return rows
+    except Exception:
+        try:
+            from api.db import query_families_sync
+            return query_families_sync(status=status, limit=limit, offset=offset, q=q)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/flows")
@@ -552,6 +525,12 @@ async def get_flows(
         flows = await query_all(order="updated_at DESC", limit=limit, offset=offset)
     except Exception:
         flows = []
+    if not flows:
+        try:
+            from api.db import query_all as _sqlite_query_all
+            flows = _sqlite_query_all()
+        except Exception:
+            pass
     if q is not None and str(q).strip():
         ql = str(q).strip().lower()
         filtered: list[FlowVerdict] = []

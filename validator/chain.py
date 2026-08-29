@@ -34,7 +34,13 @@ def _load_input_certs(path: pathlib.Path):
         # try pcap-like: try scapy extraction (not required for test)
         return []
 
+_cached_store: Store | None = None
+
+
 def _build_store():
+    global _cached_store
+    if _cached_store is not None:
+        return _cached_store
     certs = []
     for p in [PRIVATE_CA, OS_BUNDLE]:
         if p.exists():
@@ -45,7 +51,8 @@ def _build_store():
     # fallback to system bundle if empty
     if not certs and pathlib.Path("/etc/ssl/certs/ca-certificates.crt").exists():
         certs.extend(_load_pem_certs(pathlib.Path("/etc/ssl/certs/ca-certificates.crt")))
-    return Store(certs) if certs else Store([])
+    _cached_store = Store(certs) if certs else Store([])
+    return _cached_store
 
 def _per_link_verify(chain):
     for i in range(len(chain)-1):

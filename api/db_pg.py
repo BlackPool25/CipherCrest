@@ -45,40 +45,61 @@ except Exception:  # pragma: no cover
 
 
 def _dsn() -> str:
-    return (
+    base = (
         os.environ.get("POSTGRES_DSN")
         or os.environ.get("DATABASE_URL")
         or "postgresql://app:app_dev_only@localhost:5432/ciphcrest"
     )
+    if "connect_timeout" not in base:
+        sep = "&" if "?" in base else "?"
+        return f"{base}{sep}connect_timeout=2"
+    return base
 
 
 _pool: Any = None
 _pool_lock = asyncio.Lock()
+_has_pg_cached: bool | None = None
+_last_pg_check: float = 0
 
 
 async def _get_pool() -> Any:
-    global _pool
+    global _pool, _has_pg_cached, _last_pg_check
+    import time
+    now = time.time()
+    if _has_pg_cached is False and (now - _last_pg_check) < 3.0:
+        raise RuntimeError("PostgreSQL offline (cached)")
     if _pool is not None:
         return _pool
     async with _pool_lock:
         if _pool is not None:
             return _pool
         if not HAS_POOL or AsyncConnectionPool is None:
+            _has_pg_cached = False
+            _last_pg_check = now
             raise RuntimeError("psycopg_pool not installed")
         dsn = _dsn()
-        # psycopg_pool 3.2.x: AsyncConnectionPool(conninfo=..., min_size, max_size, open=False)
         try:
             _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10, open=False)
             await _pool.open()
+            _has_pg_cached = True
+            _last_pg_check = now
         except TypeError:
-            # fallback for versions without open param
-            _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10)
-            # some versions auto-open; ensure open if method exists
-            if hasattr(_pool, "open") and getattr(_pool, "open"):
-                try:
+            try:
+                _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10)
+                if hasattr(_pool, "open") and getattr(_pool, "open"):
                     await _pool.open()
-                except Exception:
-                    pass
+                _has_pg_cached = True
+                _last_pg_check = now
+            except Exception:
+                _pool = None
+                _has_pg_cached = False
+                _last_pg_check = now
+                raise
+        except Exception:
+            _pool = None
+            _has_pg_cached = False
+            _last_pg_check = now
+            raise
         return _pool
 
 

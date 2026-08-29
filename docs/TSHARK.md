@@ -61,9 +61,17 @@ tshark -v | head -1
 python lab/reassembler/reassemble.py lab/pcaps/family-01.pcap --json | jq .coverage_ratio  # 1.0
 # verify prefs
 python -c "from lab.reassembler.reassemble import get_tshark_prefs, build_tshark_cmd; print(get_tshark_prefs()); print(build_tshark_cmd('lab/pcaps/family-01.pcap'))"
+
+# Windows 10/11 (winget / Chocolatey)
+winget install WiresharkFoundation.Wireshark
+# or via Chocolatey
+choco install wireshark
+
+# Windows verification via PowerShell:
+.\scripts\turnup.ps1 -Check
 ```
 
-In air-gapped/offline bundle, **do not install** — use the scapy fallback. CI `pytest -q` and `turnup.sh --check` both pass with `which tshark` not found.
+In air-gapped/offline bundle, **do not install** — use the scapy fallback. CI `pytest -q`, `turnup.sh --check`, and `turnup.ps1 -Check` all pass with `which tshark` not found.
 
 ## 5. Turn-up script contract
 

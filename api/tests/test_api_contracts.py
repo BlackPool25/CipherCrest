@@ -24,7 +24,13 @@ def _has_postgres() -> bool:
             with c.cursor() as cur:
                 cur.execute("SELECT 1 FROM information_schema.tables WHERE table_name='families'")
                 has_fam = cur.fetchone() is not None
-                if not has_fam:
+                needs_seed = not has_fam
+                if has_fam:
+                    cur.execute("SELECT COUNT(*) FROM families")
+                    cnt = cur.fetchone()[0]
+                    if cnt == 0:
+                        needs_seed = True
+                if needs_seed:
                     schema_path = pathlib.Path("init-db/01_schema.sql")
                     if schema_path.exists():
                         try:
@@ -41,6 +47,12 @@ def _has_postgres() -> bool:
                         asyncio.run(seed_all(dsn=dsn, full=False))
                     except Exception:
                         pass
+                
+                # Verify that families table has at least 1 row
+                cur.execute("SELECT COUNT(*) FROM families")
+                row = cur.fetchone()
+                if not row or row[0] < 3:
+                    return False
         return True
     except Exception:
         return False

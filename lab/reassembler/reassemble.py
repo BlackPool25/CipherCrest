@@ -46,9 +46,34 @@ def get_tshark_prefs() -> list[str]:
     return list(TSHARK_REQUIRED_PREFS)
 
 
-def build_tshark_cmd(pcap_path: str | pathlib.Path) -> list[str]:
+def find_tshark_binary() -> str:
+    """Find tshark binary across Linux, macOS, and Windows.
+
+    Checks PATH first, then standard Windows installation locations:
+    - C:\\Program Files\\Wireshark\\tshark.exe
+    - C:\\Program Files (x86)\\Wireshark\\tshark.exe
+    """
+    import shutil
+    import os
+    found = shutil.which("tshark") or shutil.which("tshark.exe")
+    if found:
+        return found
+    if sys.platform.startswith("win") or os.name == "nt":
+        for cand in [
+            pathlib.Path(os.environ.get("ProgramFiles", "C:\\Program Files")) / "Wireshark" / "tshark.exe",
+            pathlib.Path(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")) / "Wireshark" / "tshark.exe",
+            pathlib.Path("C:/Program Files/Wireshark/tshark.exe"),
+            pathlib.Path("C:/Program Files (x86)/Wireshark/tshark.exe"),
+        ]:
+            if cand.exists():
+                return str(cand)
+    return "tshark"
+
+
+def build_tshark_cmd(pcap_path: str | pathlib.Path, binary: str | None = None) -> list[str]:
     """Build tshark JSON cmd with all 4 required prefs (parity harness)."""
-    cmd = ["tshark", "-r", str(pcap_path), "-T", "json"]
+    bin_name = binary or find_tshark_binary()
+    cmd = [bin_name, "-r", str(pcap_path), "-T", "json"]
     for pref in TSHARK_REQUIRED_PREFS:
         cmd.extend(["-o", pref])
     return cmd
