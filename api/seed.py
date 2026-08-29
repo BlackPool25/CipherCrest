@@ -1020,6 +1020,11 @@ async def seed_all(dsn: str | None = None, with_dashboard_run: bool = False, ups
         raise
 
 
+def _should_pre_seed_flow(fid: str) -> bool:
+    """Pre-seed only the initial 10 representative families (family-01 through family-10) for demo baseline."""
+    return fid in (f"family-{i:02d}" for i in range(1, 11))
+
+
 async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths: list[tuple[str, pathlib.Path]], with_dashboard_run: bool, full: bool) -> dict:
     conn = await AsyncConnection.connect(dsn, autocommit=True)
     try:
@@ -1039,7 +1044,7 @@ async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths
         # Build manifest family lookup for flow placeholder
         fam_lookup: dict[str, dict] = {fid: entry for fid, entry in families}
 
-        # Process families in chunks
+        # Process families in chunks (all catalog families inserted into families table)
         for chunk_idx in range(0, len(families), chunk_size):
             chunk = families[chunk_idx : chunk_idx + chunk_size]
             async with conn.transaction():
@@ -1062,18 +1067,12 @@ async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths
                         starttls_mode = "upgrade"
                     await conn.execute(_families_upsert_sql(), (family_id, display_name, port, tls_version, cipher_suite, cert_type, starttls_mode))
 
-        # Pcap + flows in chunks as well (still lpad ordered)
-        # For each pcap found, insert pcap_files and try real pipeline
-        # We also need to handle families without pcap -> still create placeholder flow
-        # So first insert pcap_files for discovered pcaps
+        # Pcap files in chunks
         for chunk_idx in range(0, len(pcap_paths), chunk_size):
             chunk = pcap_paths[chunk_idx : chunk_idx + chunk_size]
             async with conn.transaction():
                 for family_id, pcap_path in chunk:
-                    # ensure family exists for FK (locked families may not be in families list if not full, but pcap_paths includes them)
-                    # if family not in families, ensure family row exists
                     if family_id not in fam_lookup:
-                        # create minimal family for pcap
                         try:
                             await conn.execute(_families_upsert_sql(), (family_id, family_id, 587, "TLS1.2", "ECDHE-RSA-AES128-GCM-SHA256", "rsa2048", "upgrade"))
                         except Exception:
@@ -1087,12 +1086,13 @@ async def _seed_all_async(dsn: str, families: list[tuple[str, dict]], pcap_paths
                             byte_length = len(data)
                             await conn.execute(_pcap_files_upsert_sql(), (family_id, psycopg.Binary(data), sha256, byte_length))
 
-        # Flows: for each family + pcap, try real pipeline then placeholder
-        # Also handle pcap-derived flows that may have different flow_id than family_id
+        # Flows: Pre-seed ONLY the initial 10 representative families (family-01..family-10) for live demo baseline
         for chunk_idx in range(0, len(families), chunk_size):
             chunk = families[chunk_idx : chunk_idx + chunk_size]
             async with conn.transaction():
                 for family_id, entry in chunk:
+                    if not _should_pre_seed_flow(family_id):
+                        continue
                     # try real pipeline if pcap exists for this family_id
                     pcap_path = pcap_map.get(family_id)
                     # fallback manifest pcap field
@@ -1349,11 +1349,13 @@ def _seed_all_sync(dsn: str, families: list[tuple[str, dict]], pcap_paths: list[
                             with conn.cursor() as cur2:
                                 cur2.execute(_pcap_files_upsert_sql(), (family_id, _pg.Binary(data), sha256, byte_length))
 
-        # flows chunks
+        # flows chunks: Pre-seed ONLY the initial 10 representative families (family-01..family-10) for live demo baseline
         for chunk_idx in range(0, len(families), chunk_size):
             chunk = families[chunk_idx : chunk_idx + chunk_size]
             with conn.transaction():
                 for family_id, entry in chunk:
+                    if not _should_pre_seed_flow(family_id):
+                        continue
                     pcap_path = pcap_map.get(family_id)
                     if pcap_path is None and entry.get("pcap"):
                         alt = ROOT / entry["pcap"]
