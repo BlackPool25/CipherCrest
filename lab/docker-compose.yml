@@ -65,8 +65,8 @@ services:
       - POSTFIX_mydomain=lab.local
       - POSTFIX_myorigin=lab.local
     # Entrypoint override loop for 40 families (11..50) coherent cert mounts; handles all lab/certs/*.crt via /certs:ro
-    entrypoint: ["sh", "-c", "for i in $(seq 11 50); do echo \"family-$$i cert check /certs/rsa2048.crt /certs/p256.crt /certs/expired.crt\"; done; postfix start && tail -f /var/log/maillog || sleep infinity"]
-    command: ["sh", "-c", "postfix start && tail -f /var/log/maillog || sleep infinity"]
+    entrypoint: ["sh", "-c", "for i in $(seq 11 50); do echo \"family-$$i cert check /certs/rsa2048.crt /certs/p256.crt /certs/expired.crt\"; done; postfix start && touch /var/log/maillog && tail -f /var/log/maillog || sleep infinity"]
+    command: ["sh", "-c", "postfix start && touch /var/log/maillog && tail -f /var/log/maillog || sleep infinity"]
     restart: "no"
     healthcheck:
       test: ["CMD-SHELL", "postfix status || exit 1"]
@@ -123,7 +123,7 @@ services:
     # lab.local MX 10 mail.lab.local, mail.lab.local A 172.31.0.2,
     # _mta-sts.lab.local TXT "v=STSv1; id=20260825", mta-sts.lab.local A 172.31.0.5
     # + TLSA _25._tcp.mail.lab.local 3 1 1 <SPKI> via mta-sts http sidecar /.well-known/mta-sts.txt
-    command: ["dnsmasq", "-d", "--no-daemon", "--log-queries", "--address=/mta-sts.lab.local/172.31.0.5", "--address=/mail.lab.local/172.31.0.2", "--address=/lab.local/172.31.0.2", "--mx-host=lab.local,mail.lab.local,10", "--txt-record=_mta-sts.lab.local,\"v=STSv1; id=20260825\"", "--dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b"]
+    command: ["-d", "--no-daemon", "--log-queries", "--address=/mta-sts.lab.local/172.31.0.5", "--address=/mail.lab.local/172.31.0.2", "--address=/lab.local/172.31.0.2", "--mx-host=lab.local,mail.lab.local,10", "--txt-record=_mta-sts.lab.local,\"v=STSv1; id=20260825\"", "--dns-rr=_25._tcp.mail.lab.local,64,3 1 1 3082010a0282010100deadbeef30820122300d06092a864886f70d01010b"]
     restart: "no"
 
   mta-sts:
@@ -160,4 +160,5 @@ networks:
     ipam:
       config:
         - subnet: 172.31.0.0/24
+          ip_range: 172.31.0.128/25
           gateway: 172.31.0.1

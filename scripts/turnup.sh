@@ -238,7 +238,7 @@ wait_for_postgres(){
 }
 
 wait_for(){
-  url="$1"; tries="${2:-30}"; sleep_s="${3:-0.5}"
+  url="$1"; tries="${2:-120}"; sleep_s="${3:-0.5}"
   for i in $(seq 1 "$tries"); do
     if curl -sf "$url" >/dev/null 2>&1; then return 0; fi
     sleep "$sleep_s"
@@ -319,21 +319,30 @@ do_full(){
   echo "--- docker compose up -d --build ---"
   if ! command -v docker >/dev/null 2>&1; then fail "docker not found — pure Docker path requires docker"; exit 1; fi
   if ! docker compose config >/dev/null 2>&1; then fail "docker compose config invalid"; exit 1; fi
-  echo "bringing up demo: docker compose up -d --build demo"
-  if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then ok "docker compose up -d --build demo"; else fail "docker compose up -d --build demo failed"; exit 1; fi
   if [[ "$WITH_LAB" == "1" ]]; then
-    echo "WITH_LAB=1 — also bringing lab: docker compose --profile lab up -d --build"
-    if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then ok "docker compose --profile lab up -d --build"; else warn "docker compose --profile lab up -d --build failed (lab optional)"; fi
+    echo "WITH_LAB=1 — bringing up demo + lab: docker compose --profile lab up -d --build"
+    if docker compose --profile lab up -d --build 2>&1 | tee -a "$LOG_FILE"; then
+      ok "docker compose --profile lab up -d --build"
+    else
+      fail "docker compose --profile lab up -d --build failed"
+      exit 1
+    fi
   else
-    info "WITH_LAB=0 — skip lab (use --with-lab or WITH_LAB=1 to bring lab profile)"
+    echo "bringing up demo: docker compose up -d --build demo"
+    if docker compose up -d --build demo 2>&1 | tee -a "$LOG_FILE"; then
+      ok "docker compose up -d --build demo"
+    else
+      fail "docker compose up -d --build demo failed"
+      exit 1
+    fi
   fi
   echo ""
   echo "--- wait_for_postgres 20×1s pg_isready -h postgres -U app -d ciphcrest ---"
   if wait_for_postgres; then ok "postgres ready pg_isready -h postgres -U app -d ciphcrest (20×1s)"; else warn "pg_isready timeout 20s — continue to health check (postgres may still be starting)"; fi
   echo ""
   echo "--- wait_for health 30 0.5 ---"
-  if wait_for "http://localhost:${API_PORT}/health" 30 0.5; then ok "health up http://localhost:${API_PORT}/health (wait_for 30 0.5)"; else
-    if wait_for "http://localhost:${API_PORT}/flows" 30 0.5; then ok "flows up http://localhost:${API_PORT}/flows (health fallback)"; else warn "API not up after 15s — docker logs: docker compose logs demo"; docker compose logs --tail 20 demo 2>&1 | tail -20 || true; fi
+  if wait_for "http://localhost:${API_PORT}/health" 180 0.5; then ok "health up http://localhost:${API_PORT}/health (wait_for 180 0.5)"; else
+    if wait_for "http://localhost:${API_PORT}/flows" 60 0.5; then ok "flows up http://localhost:${API_PORT}/flows (health fallback)"; else warn "API not up after 90s — docker logs: docker compose logs demo"; docker compose logs --tail 20 demo 2>&1 | tail -20 || true; fi
   fi
   echo ""
   echo "--- verify API curl /analyze ---"
