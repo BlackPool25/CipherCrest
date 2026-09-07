@@ -388,6 +388,7 @@ async def upsert_flows(flows: list[FlowVerdict], source: str | None = None) -> N
                                 INSERT INTO flows (flow_id, family_id, data)
                                 VALUES (%s,%s,%s::jsonb)
                                 ON CONFLICT (flow_id) DO UPDATE SET data=EXCLUDED.data, updated_at=now()
+                                WHERE flows.data IS DISTINCT FROM EXCLUDED.data
                                 """,
                                 (f.flow_id, _fid, payload),
                             )

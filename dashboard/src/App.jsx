@@ -1280,52 +1280,215 @@ export default function App() {
   const handleInjectRandomPacket = () => {
     const randomIdx = Math.floor(Math.random() * 900 + 100)
     const newId = `live-pkt-${randomIdx}`
-    const ciphers = ['ECDHE-RSA-AES128-GCM-SHA256', 'RC4-SHA', 'DES-CBC3-SHA', 'TLS_AES_256_GCM_SHA384', 'AES128-SHA']
-    const tlsVals = ['TLS1.2', 'TLS1.3', 'TLS1.0', 'TLS1.1']
-    const ports = [587, 25, 993, 143, 110]
-    const sev = randomIdx % 4 === 0 ? 'Critical' : randomIdx % 3 === 0 ? 'High' : randomIdx % 2 === 0 ? 'Medium' : 'Low'
-    const posture = sev === 'Critical' ? 18 : sev === 'High' ? 48 : sev === 'Medium' ? 70 : 92
+
+    // Coherent, realistic cryptographic packet templates matching RFC standards and engine rules
+    const templates = [
+      // 0: Hardened Modern TLS 1.3 (Optimal, Low Risk, Posture 96)
+      {
+        proto: 'IMAPS',
+        app_protocol: 'imap',
+        port: 993,
+        starttls_mode: 'upgrade',
+        tls: {
+          version: 'TLS1.3',
+          cipher_suite: 'TLS_AES_256_GCM_SHA384',
+          cipher_strength: 'strong',
+          kex: 'ECDHE',
+          fs_flag: true,
+          is_aead: true,
+          ja4: `t13d1516h2_${Math.random().toString(16).slice(2, 10)}_000000000000`,
+        },
+        cert: {
+          leaf_present: true,
+          days_to_expiry: 180,
+          is_expired: false,
+          chain_valid: true,
+          chain_length: 3,
+          san_match: true,
+          pubkey_algo: 'RSA',
+          pubkey_bits: 2048,
+          sigalg: 'sha256WithRSAEncryption',
+        },
+        assessment: {
+          findings: [],
+          risk_level: 'Low',
+          risk_score: 4,
+          posture_score: 96,
+          calibrated_prob: 0.035,
+          anomaly_score: 1.15,
+        },
+        policy: { action: 'allow' },
+      },
+      // 1: Standard Compliant TLS 1.2 with Modern AEAD (Low Risk, Posture 88)
+      {
+        proto: 'SMTP/STARTTLS',
+        app_protocol: 'smtp',
+        port: 587,
+        starttls_mode: 'upgrade',
+        tls: {
+          version: 'TLS1.2',
+          cipher_suite: 'ECDHE-RSA-AES128-GCM-SHA256',
+          cipher_strength: 'strong',
+          kex: 'ECDHE',
+          fs_flag: true,
+          is_aead: true,
+          ja4: `t12d0800_${Math.random().toString(16).slice(2, 10)}_000000000000`,
+        },
+        cert: {
+          leaf_present: true,
+          days_to_expiry: 110,
+          is_expired: false,
+          chain_valid: true,
+          chain_length: 2,
+          san_match: true,
+          pubkey_algo: 'RSA',
+          pubkey_bits: 2048,
+          sigalg: 'sha256WithRSAEncryption',
+        },
+        assessment: {
+          findings: [{ check: '02', severity: 'Medium', spec: 'NIST SP 800-52r2 §3.3.1', label: 'TLS 1.2 outdated' }],
+          risk_level: 'Low',
+          risk_score: 12,
+          posture_score: 88,
+          calibrated_prob: 0.082,
+          anomaly_score: 3.4,
+        },
+        policy: { action: 'allow' },
+      },
+      // 2: Vulnerable Legacy Cipher 3DES / SWEET32 (High Risk, Posture 45)
+      {
+        proto: 'IMAP/STARTTLS',
+        app_protocol: 'imap',
+        port: 143,
+        starttls_mode: 'upgrade',
+        tls: {
+          version: 'TLS1.2',
+          cipher_suite: 'DES-CBC3-SHA',
+          cipher_strength: 'weak',
+          kex: 'ECDHE',
+          fs_flag: true,
+          is_aead: false,
+          ja4: `t12d0800_${Math.random().toString(16).slice(2, 10)}_000000000000`,
+        },
+        cert: {
+          leaf_present: true,
+          days_to_expiry: 75,
+          is_expired: false,
+          chain_valid: true,
+          chain_length: 2,
+          san_match: true,
+          pubkey_algo: 'RSA',
+          pubkey_bits: 2048,
+          sigalg: 'sha256WithRSAEncryption',
+        },
+        assessment: {
+          findings: [
+            { check: '04', severity: 'High', spec: 'CVE-2016-2183 SWEET32', label: '3DES SWEET32 64-bit block collision' },
+            { check: '05', severity: 'Medium', spec: 'RFC5116', label: 'CBC mode without AEAD' },
+          ],
+          risk_level: 'High',
+          risk_score: 55,
+          posture_score: 45,
+          calibrated_prob: 0.76,
+          anomaly_score: 15.4,
+        },
+        policy: { action: 'quarantine' },
+      },
+      // 3: Obsolete Protocol TLS 1.0 with RC4 & Static RSA (Critical Risk, Posture 18)
+      {
+        proto: 'POP3S',
+        app_protocol: 'pop3',
+        port: 110,
+        starttls_mode: 'upgrade',
+        tls: {
+          version: 'TLS1.0',
+          cipher_suite: 'RC4-SHA',
+          cipher_strength: 'weak',
+          kex: 'RSA',
+          fs_flag: false,
+          is_aead: false,
+          ja4: `t10d0200_${Math.random().toString(16).slice(2, 10)}_000000000000`,
+        },
+        cert: {
+          leaf_present: true,
+          days_to_expiry: -12,
+          is_expired: true,
+          chain_valid: false,
+          chain_length: 1,
+          san_match: true,
+          pubkey_algo: 'RSA',
+          pubkey_bits: 1024,
+          sigalg: 'sha1WithRSAEncryption',
+        },
+        assessment: {
+          findings: [
+            { check: '01', severity: 'Critical', spec: 'RFC8996 §4-5', label: 'TLS 1.0 officially deprecated' },
+            { check: '03', severity: 'Critical', spec: 'RFC7465 §2', label: 'Insecure RC4 cipher prohibited' },
+            { check: '06', severity: 'High', spec: 'NIST SP 800-52r2', label: 'Missing Forward Secrecy (Static RSA)' },
+          ],
+          risk_level: 'Critical',
+          risk_score: 82,
+          posture_score: 18,
+          calibrated_prob: 0.985,
+          anomaly_score: 19.8,
+        },
+        policy: { action: 'block' },
+      },
+      // 4: Active Cleartext MITM STARTTLS Stripping Attack (Critical Risk, Posture 8)
+      {
+        proto: 'SMTP',
+        app_protocol: 'smtp',
+        port: 25,
+        starttls_mode: 'stripped',
+        tls: {
+          version: 'none',
+          cipher_suite: 'none',
+          cipher_strength: 'weak',
+          kex: 'none',
+          fs_flag: false,
+          is_aead: false,
+          ja4: 'none',
+        },
+        cert: {
+          leaf_present: false,
+          days_to_expiry: null,
+          is_expired: false,
+          chain_valid: false,
+          chain_length: 0,
+          san_match: false,
+          pubkey_algo: 'none',
+          pubkey_bits: 0,
+          sigalg: 'none',
+        },
+        assessment: {
+          findings: [
+            { check: '15a', severity: 'Critical', spec: 'RFC8314 §3 / RFC3207', label: 'Cleartext STARTTLS stripping downgrade attack' },
+          ],
+          risk_level: 'Critical',
+          risk_score: 92,
+          posture_score: 8,
+          calibrated_prob: 0.992,
+          anomaly_score: 24.5,
+        },
+        policy: { action: 'block' },
+      },
+    ]
+
+    const selectedTpl = templates[randomIdx % templates.length]
 
     const newFlow = {
       flow_id: newId,
       family_id: newId,
       source: 'live',
       has_run: true,
-      app_protocol: ports[randomIdx % ports.length] === 993 ? 'imap' : 'smtp',
-      port: ports[randomIdx % ports.length],
-      starttls_mode: sev === 'Critical' ? 'stripped' : 'upgrade',
-      tls: {
-        version: tlsVals[randomIdx % tlsVals.length],
-        cipher_suite: ciphers[randomIdx % ciphers.length],
-        cipher_strength: sev === 'Critical' ? 'weak' : 'strong',
-        kex: 'ECDHE',
-        fs_flag: true,
-        is_aead: true,
-        ja4: `t12d0800_${Math.random().toString(16).slice(2, 10)}_000000000000`,
-      },
-      cert: {
-        leaf_present: true,
-        days_to_expiry: sev === 'Critical' ? -5 : 120,
-        is_expired: sev === 'Critical',
-        chain_valid: sev !== 'Critical',
-        chain_length: 2,
-        san_match: true,
-        pubkey_algo: 'RSA',
-        pubkey_bits: 2048,
-        sigalg: 'sha256WithRSAEncryption',
-      },
-      assessment: {
-        findings: sev === 'Critical' ? [{ check: '15a', severity: 'Critical', spec: 'cleartext downgrade' }] : [],
-        risk_level: sev,
-        risk_score: sev === 'Critical' ? 90 : 15,
-        posture_score: posture,
-        calibrated_prob: sev === 'Critical' ? 0.92 : 0.08,
-        anomaly_score: sev === 'Critical' ? 12.0 : 1.5,
-      },
+      app_protocol: selectedTpl.app_protocol,
+      port: selectedTpl.port,
+      starttls_mode: selectedTpl.starttls_mode,
+      tls: { ...selectedTpl.tls },
+      cert: { ...selectedTpl.cert },
+      assessment: { ...selectedTpl.assessment },
       coverage_ratio: 1.0,
-      policy: {
-        action: sev === 'Critical' ? 'block' : sev === 'High' ? 'quarantine' : 'allow',
-      },
+      policy: { ...selectedTpl.policy },
     }
 
     setFlows(prev => [newFlow, ...prev.filter(f => f.flow_id !== newId)])
