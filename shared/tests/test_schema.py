@@ -128,3 +128,28 @@ def test_ja4_rarity_span_locked():
         assert abs(v - (1 - freq)) < 1e-9
     # unknown → None (locked disjoint: unseen not imputed)
     assert get_ja4_rarity("t13d1516h2_deadbeefdead_ffffffffffff") is None
+
+
+def test_d2_transcript_fields_additive():
+    """D2 evidence fields are Optional with defaults; old fixtures still validate; extras still forbid."""
+    raw = pathlib.Path("shared/fixtures/family-01.json").read_text(encoding="utf-8")
+    base = FlowVerdict.model_validate_json(raw)
+    assert base.starttls_transcript is None
+    assert base.starttls_advertised is None
+    assert base.starttls_upgraded_at_packet_no is None
+    data = json.loads(raw)
+    data["starttls_transcript"] = [
+        {"packet_no": 4, "direction": "server_to_client", "line": "220 mail.lab.local ESMTP Postfix"},
+        {"packet_no": 5, "direction": "client_to_server", "line": "EHLO client.lab.local"},
+        {"packet_no": 6, "direction": "server_to_client", "line": "250-STARTTLS"},
+        {"packet_no": 7, "direction": "client_to_server", "line": "STARTTLS"},
+        {"packet_no": 8, "direction": "server_to_client", "line": "220 2.0.0 Ready to start TLS"},
+    ]
+    data["starttls_advertised"] = True
+    data["starttls_upgraded_at_packet_no"] = 8
+    full = FlowVerdict.model_validate_json(json.dumps(data))
+    assert len(full.starttls_transcript) == 5
+    assert full.starttls_advertised is True
+    assert full.starttls_upgraded_at_packet_no == 8
+    with pytest.raises(ValidationError):
+        FlowVerdict.model_validate_json(json.dumps({**data, "starttls_transcripit": []}))

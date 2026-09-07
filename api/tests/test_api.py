@@ -71,3 +71,17 @@ def test_missing_returns_422():
     # No file posted → 422
     r = client.post("/analyze")
     assert r.status_code == 422, r.text
+
+
+def test_d2_transcript_end_to_end():
+    from api.pipeline import _real_pipeline_for_bytes
+
+    for name, advertised, upgraded in (("family-01.pcap", True, True), ("family-09.pcap", False, False)):
+        data = pathlib.Path(f"lab/pcaps/{name}").read_bytes()
+        verdicts = _real_pipeline_for_bytes(data, name)
+        assert len(verdicts) == 1, f"{name}: expected 1 verdict got {len(verdicts)}"
+        fv = verdicts[0]
+        assert isinstance(fv.starttls_transcript, list) and len(fv.starttls_transcript) >= 1
+        assert fv.starttls_advertised is advertised
+        assert (fv.starttls_upgraded_at_packet_no is not None) is upgraded
+        FlowVerdict.model_validate(fv.model_dump())

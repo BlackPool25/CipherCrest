@@ -27,6 +27,7 @@ import { TOK } from '../tokens.js'
 import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from '../components/ThreatMatrix.jsx'
 import AIDiagnosticsView from '../components/AIDiagnosticsView.jsx'
 import PolicyRecommendationsView from '../components/PolicyRecommendationsView.jsx'
+import UpgradeTimeline from '../components/UpgradeTimeline.jsx'
 
 // Scapy synthesis reference: lab/scripts/synth_families.py --synth-one
 // scapy TLSRecord / TLSHandshakes + GREASE 16 filter RFC 8701
@@ -563,6 +564,24 @@ export default function Lab() {
     window.print()
   }
 
+  const handleDownloadCustomPcap = useCallback(() => {
+    try {
+      const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData })
+      const filename = `sandesh_kavach_synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
+      const url = URL.createObjectURL(synthBlob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setToast({ type: 'success', msg: `Customized PCAP downloaded successfully: ${filename}` })
+    } catch (err) {
+      setToast({ type: 'error', msg: `PCAP download failed: ${String(err)}` })
+    }
+  }, [port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData])
+
   return (
     <div style={{
       display: 'flex',
@@ -1051,14 +1070,14 @@ export default function Lab() {
             </div>
           </div>
 
-          {/* Full-Width Action Button */}
-          <div style={{ paddingTop: 6, marginTop: 'auto' }}>
+          {/* Action Buttons: Synthesize + Download Custom PCAP */}
+          <div style={{ paddingTop: 6, marginTop: 'auto', display: 'flex', gap: 12, alignItems: 'stretch' }}>
             <button
               type="button"
               onClick={handleSynthesizeAndAnalyze}
               disabled={busy}
               style={{
-                width: '100%',
+                flex: 1,
                 padding: '16px 24px',
                 borderRadius: 12,
                 background: busy ? TOK.borderStrong : activeGreenBg,
@@ -1081,6 +1100,34 @@ export default function Lab() {
                 <Zap size={20} color="#FFFFFF" />
               )}
               <span>{busy ? 'Synthesizing & Analyzing Pipeline…' : '⚡ Synthesize & Run Pipeline Analysis'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadCustomPcap}
+              title="Download customized binary PCAP file generated from current parameters"
+              style={{
+                padding: '16px 22px',
+                borderRadius: 12,
+                background: '#FFFFFF',
+                color: '#155C3A',
+                border: '1.5px solid #155C3A',
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: '0 2px 6px rgba(21,92,58,0.08)',
+                transition: 'all 140ms ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E7F5EC'; e.currentTarget.style.borderColor = '#1F7A4D' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#155C3A' }}
+            >
+              <Download size={18} color="#155C3A" />
+              <span>Download Custom PCAP</span>
             </button>
           </div>
         </div>
@@ -1240,6 +1287,34 @@ export default function Lab() {
 0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
               </div>
             </div>
+
+            {/* Download Wire PCAP Button */}
+            <button
+              type="button"
+              onClick={handleDownloadCustomPcap}
+              style={{
+                width: '100%',
+                padding: '11px 16px',
+                borderRadius: 9,
+                background: '#FFFFFF',
+                color: '#155C3A',
+                border: '1.5px solid #155C3A',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                transition: 'all 120ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E7F5EC' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF' }}
+            >
+              <Download size={16} color="#155C3A" />
+              <span>Download Wire PCAP (.pcap)</span>
+            </button>
           </div>
         ) : (
           /* LEETCODE-STYLE DOCKED VERTICAL RAIL (visible when preview is collapsed) */
@@ -1359,6 +1434,31 @@ export default function Lab() {
 
             <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
+                type="button"
+                onClick={handleDownloadCustomPcap}
+                title="Download this synthesized binary PCAP file"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 10,
+                  background: '#FFFFFF',
+                  color: '#155C3A',
+                  border: '1.5px solid #155C3A',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'all 120ms ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#E7F5EC' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF' }}
+              >
+                <Download size={16} color="#155C3A" />
+                <span>Download PCAP</span>
+              </button>
+              <button
                 onClick={handlePrint}
                 style={{
                   padding: '10px 20px',
@@ -1412,6 +1512,11 @@ export default function Lab() {
                 )
               })}
             </div>
+          </div>
+
+          {/* D2 DOWNGRADE-EVIDENCE TIMELINE */}
+          <div style={{ marginTop: 8 }}>
+            <UpgradeTimeline flow={analysisResult} />
           </div>
 
           {/* POLICY & REMEDIATION */}

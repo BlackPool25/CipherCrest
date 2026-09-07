@@ -82,9 +82,28 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             else:
                 _mode = "upgrade" if reasm.get("starttls_detected") else ("implicit" if tls.get("version") not in (None, "", "none") else "cleartext")
 
-            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": _mode,"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False)}
+            if _mode not in ("upgrade", "implicit", "none", "stripped"):
+                _mode = "none"  # cleartext-never-offered normalizes to none (schema Literal has no cleartext)
+
+            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": _mode,"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False),"starttls_transcript": reasm.get("starttls_transcript"),"starttls_advertised": reasm.get("starttls_advertised"),"starttls_upgraded_at_packet_no": reasm.get("starttls_upgraded_at_packet_no")}
             try:
-                findings = real_evaluate(flow_dict); rs, rl, ps = real_score(findings)
+                # D2 history-triple escalation: pass recent same-protocol flows as history so
+                # evaluate() can escalate stripping to Critical on 2-prior-upgraded-then-cleartext.
+                # Offline SQLite only, capped, never fatal — falls back to single-flow low-conf.
+                _hist = []
+                try:
+                    from api.db import query_all as _qa
+                    _prior = _qa() or []
+                    _same = [f for f in _prior if getattr(f, "app_protocol", None) == _app_proto]
+                    _same = _same if _same else list(_prior)
+                    for _pf in _same[-10:]:
+                        try:
+                            _hist.append(_pf.model_dump() if hasattr(_pf, "model_dump") else dict(_pf))
+                        except Exception:
+                            continue
+                except Exception:
+                    _hist = []
+                findings = real_evaluate(flow_dict, _hist or None); rs, rl, ps = real_score(findings)
                 flow_dict["assessment"] = {"findings": [f.model_dump() if hasattr(f, "model_dump") else f for f in findings], "risk_level": rl, "risk_score": rs, "posture_score": ps}
             except Exception: flow_dict["assessment"] = {"findings": [], "risk_level": "Low", "risk_score": 10, "posture_score": 90}
             try:

@@ -140,6 +140,13 @@ class FlowVerdict(BaseModel):
     coverage_ratio: float | None = Field(default=None, ge=0, le=1)
     pre_tls_buffer_len: int | None = Field(default=None, ge=0)
     pre_tls_buffer_injection_possible: bool | None = Field(default=None)
+    # D2 downgrade-evidence rows from lab/reassembler (evidence only, no stripping attribution)
+    starttls_transcript: list | None = Field(
+        default=None,
+        description="Ordered cleartext rows {packet_no, direction, line} before first TLS record; [] when implicit-TLS-first",
+    )
+    starttls_advertised: bool | None = Field(default=None, description="Server advertised STARTTLS/STLS in 250/CAPABILITY/CAPA")
+    starttls_upgraded_at_packet_no: int | None = Field(default=None, ge=1, description="Packet_no of 220 Ready / OK Begin TLS go-ahead, None when never upgraded")
     app_protocol: Literal["smtp", "imap", "pop3"]
     starttls_mode: Literal["upgrade", "implicit", "none", "stripped"]
     tls: TLS

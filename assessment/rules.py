@@ -118,8 +118,18 @@ def evaluate(flow, history=None):
     # 14 STARTTLS not offered RFC3207/M3AAWG → High if cleartext where opportunistic expected
     if mode in ("none","stripped") and not tls.get("handshake_success") and ver == "unknown":
         findings.append(_f("STARTTLS not offered", "High", "RFC3207 §4.1, M3AAWG §3.2", f"starttls_mode {mode} cleartext opportunistic expected on {app}/587", "Enforce STARTTLS or use implicit TLS 465/993"))
-    # 15a stripping suspected EAST 320k CVE-2021-38502 → Critical if history else High low-conf
-    if mode == "stripped" or (mode in ("none",) and ver=="unknown" and not tls.get("handshake_success")):
+    # 15a stripping suspected EAST 320k CVE-2021-38502 → Critical ONLY on history triple, else High low-conf.
+    # D2 ladder: upgrade → no finding; stripped → low-conf High single-flow; 2-prior-upgraded-then-cleartext triple → Critical.
+    # Cleartext-never-offered (mode none, no lane-A strip signal) emits ONLY check 14, never stripping — no single-PCAP inflation.
+    # Lane-A defensive: starttls_transcript / starttls_advertised consumed via .get(); absent → fall back to starttls_mode logic.
+    _lane_adv = flow.get("starttls_advertised")  # True/False when lane A present, None when absent
+    _lane_tx = flow.get("starttls_transcript")
+    _tx_low = _lane_tx.lower() if isinstance(_lane_tx, str) else ""
+    _tx_stripped = ("stripp" in _tx_low or "250-starttls removed" in _tx_low or "250 starttls removed" in _tx_low or "ehlo response modified" in _tx_low)
+    # advertised True yet stayed cleartext (mode none, no handshake) = possible strip signal; advertised False = never-offered, not stripping
+    _adv_stripped = (_lane_adv is True and mode == "none" and ver == "unknown" and not tls.get("handshake_success"))
+    _eff_stripped = (mode == "stripped") or (_tx_stripped and mode not in ("upgrade", "implicit")) or _adv_stripped
+    if _eff_stripped:
         hist_ok = False
         if history and len(history) >= 2:
             ups = sum(1 for h in history if (h.get("starttls_mode")=="upgrade" and (h.get("tls") or {}).get("handshake_success")))

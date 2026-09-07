@@ -1,6 +1,6 @@
-# SecureMailScope ,  NTRO SIH26159
+# Sandesh Kavach (संदेश कवच) — Cryptographic Mail & Posture Defense
 
-> **Banner:** AI-assisted cryptographic security posture for enterprise secure email ,  offline replay primary, honest by design.
+> **Banner:** AI-assisted cryptographic security posture for enterprise secure email — offline replay primary, honest by design.
 
 [![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)](https://github.com/ntro/SecureMailScope/actions)
 [![Coverage](https://img.shields.io/badge/coverage-SYSTEM%206.5%2F8%20interim%20honest-yellow?style=flat-square)](#background)

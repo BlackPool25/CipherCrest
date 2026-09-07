@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Outer Shield Gradient -->
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#155C3A" />
+      <stop offset="45%" stop-color="#1F7A4D" />
+      <stop offset="100%" stop-color="#0D3F27" />
+    </linearGradient>
+
+    <!-- Accent Emerald Gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <!-- Core Envelope/Message Gradient -->
+    <linearGradient id="mailGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+
+    <!-- Gold Cipher Accent -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shieldShadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0D3F27" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Base Shield -->
+  <g filter="url(#shieldShadow)">
+    <!-- Primary Armor Shield (Kavach) -->
+    <path d="M 256,36 
+             C 380,36 438,72 448,168 
+             C 456,276 388,396 256,476 
+             C 124,396 56,276 64,168 
+             C 74,72 132,36 256,36 Z" 
+          fill="url(#shieldGrad)" 
+          stroke="#34D399" 
+          stroke-width="7" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Inner Protective Contour Rim -->
+    <path d="M 256,58 
+             C 362,58 414,90 422,174 
+             C 430,266 370,370 256,444 
+             C 142,370 82,266 90,174 
+             C 98,90 150,58 256,58 Z" 
+          fill="none" 
+          stroke="url(#accentGrad)" 
+          stroke-width="3" 
+          stroke-dasharray="8 6" 
+          opacity="0.75" />
+
+    <!-- Central Sandesh (Message / Envelope / Communication Crest) -->
+    <g transform="translate(136, 150)">
+      <!-- Envelope Body with Shield Cut Base -->
+      <path d="M 12,32 
+               L 228,32 
+               C 234,32 240,37 240,44 
+               L 240,140 
+               C 240,196 186,240 120,258 
+               C 54,240 0,196 0,140 
+               L 0,44 
+               C 0,37 6,32 12,32 Z" 
+            fill="url(#mailGrad)" 
+            stroke="#155C3A" 
+            stroke-width="4" />
+
+      <!-- Envelope Flap Down / Chevron Folding Lines -->
+      <path d="M 4,40 
+               L 120,132 
+               L 236,40" 
+            fill="none" 
+            stroke="#1F7A4D" 
+            stroke-width="6" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" />
+
+      <path d="M 4,146 
+               L 88,88" 
+            fill="none" 
+            stroke="#94A3B8" 
+            stroke-width="4" 
+            stroke-linecap="round" />
+
+      <path d="M 236,146 
+               L 152,88" 
+            fill="none" 
+            stroke="#94A3B8" 
+            stroke-width="4" 
+            stroke-linecap="round" />
+
+      <!-- Cryptographic Lock Node (Heart of Sandesh Kavach) -->
+      <g transform="translate(80, 94)">
+        <!-- Padlock Shackle -->
+        <path d="M 24,24 
+                 L 24,14 
+                 C 24,5 31,0 40,0 
+                 C 49,0 56,5 56,14 
+                 L 56,24" 
+              fill="none" 
+              stroke="url(#goldGrad)" 
+              stroke-width="7" 
+              stroke-linecap="round" />
+
+        <!-- Padlock Body -->
+        <rect x="12" y="24" width="56" height="46" rx="10" fill="url(#goldGrad)" stroke="#78350F" stroke-width="2" />
+        
+        <!-- Keyhole -->
+        <circle cx="40" cy="42" r="5" fill="#155C3A" />
+        <polygon points="38,42 42,42 43,58 37,58" fill="#155C3A" />
+      </g>
+
+      <!-- Digital Telemetry Nodes & Waves -->
+      <circle cx="28" cy="190" r="4" fill="#10B981" />
+      <circle cx="212" cy="190" r="4" fill="#10B981" />
+      <line x1="34" y1="190" x2="68" y2="198" stroke="#10B981" stroke-width="2.5" stroke-dasharray="3 3" />
+      <line x1="206" y1="190" x2="172" y2="198" stroke="#10B981" stroke-width="2.5" stroke-dasharray="3 3" />
+    </g>
+
+    <!-- Top Crown Star Emblem -->
+    <path d="M 256,66 L 261,78 L 274,79 L 264,88 L 267,101 L 256,94 L 245,101 L 248,88 L 238,79 L 251,78 Z" 
+          fill="url(#goldGrad)" />
+  </g>
+</svg>

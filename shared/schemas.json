@@ -639,6 +639,47 @@
       "default": null,
       "title": "Pre Tls Buffer Injection Possible"
     },
+    "starttls_transcript": {
+      "anyOf": [
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ordered cleartext rows {packet_no, direction, line} before first TLS record; [] when implicit-TLS-first",
+      "title": "Starttls Transcript"
+    },
+    "starttls_advertised": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Server advertised STARTTLS/STLS in 250/CAPABILITY/CAPA",
+      "title": "Starttls Advertised"
+    },
+    "starttls_upgraded_at_packet_no": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Packet_no of 220 Ready / OK Begin TLS go-ahead, None when never upgraded",
+      "title": "Starttls Upgraded At Packet No"
+    },
     "app_protocol": {
       "enum": [
         "smtp",

@@ -142,7 +142,8 @@ export default function Live() {
       flow_id: flowId,
       app_protocol: raw.app_protocol || (raw.proto?.toLowerCase().includes('imap') ? 'imap' : raw.proto?.toLowerCase().includes('pop') ? 'pop3' : 'smtp'),
       port: raw.port || (raw.proto?.includes('993') ? 993 : raw.proto?.includes('110') ? 110 : raw.proto?.includes('25') ? 25 : 587),
-      starttls_mode: raw.starttls_mode || (risk === 'Critical' && raw.proto?.includes('Stripped') ? 'stripped' : 'upgrade'),
+      starttls_mode: raw.starttls_mode || raw.starttls || (risk === 'Critical' && raw.proto?.includes('Stripped') ? 'stripped' : 'upgrade'),
+      starttls_transcript: raw.starttls_transcript || raw.ehlo_transcript || raw.upgrade_transcript,
       tls: {
         version: tlsVer,
         cipher_suite: cipherSuite,

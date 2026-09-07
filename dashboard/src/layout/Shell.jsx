@@ -204,33 +204,34 @@ export function Layout() {
           justifyContent: collapsed ? 'center' : 'space-between'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-            {/* Donezo-inspired green circle logo mark */}
+            {/* Sandesh Kavach Shield & Message Emblem */}
             <div style={{
               width: 36,
               height: 36,
-              borderRadius: '50%',
-              background: TOK.primary,
+              borderRadius: 10,
+              background: 'linear-gradient(135deg, #155C3A 0%, #1F7A4D 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#FFFFFF',
-              boxShadow: '0 2px 8px rgba(31,122,77,0.25)',
+              boxShadow: '0 2px 8px rgba(21,92,58,0.28)',
               flexShrink: 0,
+              padding: 2,
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="4" fill="#FFFFFF" fillOpacity="0.4" />
-                <path d="M12 3v4" />
-                <path d="M12 17v4" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L4 5v6c0 5.25 3.4 10.18 8 11 4.6-0.82 8-5.75 8-11V5l-8-3z" fill="#155C3A" stroke="#34D399" strokeWidth="1.5" />
+                <path d="M8 9l4 3 4-3" stroke="#FFFFFF" strokeWidth="1.6" />
+                <rect x="9.5" y="12" width="5" height="4" rx="1" fill="#F59E0B" stroke="#B45309" strokeWidth="0.8" />
+                <path d="M11 12v-1.5a1 1 0 0 1 2 0V12" stroke="#F59E0B" strokeWidth="1" />
               </svg>
             </div>
             {!collapsed && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 800, fontSize: 16, color: TOK.ink, letterSpacing: -0.4, lineHeight: 1.1 }}>
-                  CipherCrest
+                  Sandesh Kavach
                 </span>
                 <span style={{ fontSize: 11, color: TOK.inkMuted, fontWeight: 500, marginTop: 2 }}>
-                  SecureMailScope
+                  Cryptographic Mail Armor
                 </span>
               </div>
             )}
@@ -612,7 +613,7 @@ export function Layout() {
                   SOC Analyst
                 </span>
                 <span style={{ fontSize: 11, color: TOK.inkMuted }}>
-                  analyst@ciphercrest.sec
+                  analyst@sandeshkavach.sec
                 </span>
               </div>
             </div>

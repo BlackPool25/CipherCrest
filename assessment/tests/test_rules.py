@@ -154,6 +154,41 @@ def test_ech_outer_info():
     assert any("ECH" in x.check or "ECH" in x.evidence for x in fs)
 
 
+def test_d2_ladder_upgrade_no_stripping():
+    v = _load("family-01.json")
+    assert v.get("starttls_mode") == "upgrade"
+    fs = evaluate(v)
+    assert not any("stripping" in x.check.lower() for x in fs), f"upgrade must emit no stripping finding: {[(x.check, x.severity) for x in fs]}"
+
+
+def test_d2_ladder_never_offered_no_stripping():
+    v = _load("family-09.json")
+    v = {**v, "starttls_mode": "none", "flow_id": "d2-never-offered"}
+    fs = evaluate(v)
+    assert not any("stripping" in x.check.lower() and x.severity == "Critical" for x in fs)
+    assert not any("stripping" in x.check.lower() for x in fs), "cleartext-never-offered must not emit stripping at all"
+    assert any(x.check == "STARTTLS not offered" and x.severity in ("Info", "High") for x in fs)
+
+
+def test_d2_ladder_laneA_advertised_false_no_stripping():
+    v = _load("family-09.json")
+    v = {**v, "starttls_mode": "none", "flow_id": "d2-laneA-false", "starttls_advertised": False,
+         "starttls_transcript": "220 mail ESMTP\r\nEHLO c\r\n250-mail\r\n250 8BITMIME\r\n"}
+    fs = evaluate(v)
+    assert not any("stripping" in x.check.lower() for x in fs)
+
+
+def test_d2_ladder_laneA_transcript_strip_signal():
+    v = _load("family-09.json")
+    v = {**v, "starttls_mode": "none", "flow_id": "d2-laneA-tx",
+         "starttls_transcript": "server sent 250-STARTTLS then EHLO response modified, STRIPPED by middlebox"}
+    fs = evaluate(v)
+    assert any(x.severity == "High" and "stripping" in x.check.lower() for x in fs)
+    assert not any(x.severity == "Critical" and "stripping" in x.check.lower() for x in fs)
+    low = [x for x in fs if "stripping" in x.check.lower()][0]
+    assert "low conf" in low.evidence.lower() and "3-flow" in low.evidence
+
+
 def test_weak_supervision_m6_triplet_cpi():
     """T9 FlyingSquid m=6 triplet CPI outer fold + brutal retrain hook."""
     import pathlib as _pl

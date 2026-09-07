@@ -16,6 +16,7 @@ import { CHECKS, severityFor, sevColor, sevBg, getFamilyDisplayName } from './Th
 import AIDiagnosticsView from './AIDiagnosticsView.jsx'
 import PolicyRecommendationsView from './PolicyRecommendationsView.jsx'
 import RunHistoryTimeline from './RunHistoryTimeline.jsx'
+import UpgradeTimeline from './UpgradeTimeline.jsx'
 
 export default function FlowInspectorModal({ flow, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('dual_ai')
@@ -315,6 +316,9 @@ export default function FlowInspectorModal({ flow, isOpen, onClose }) {
                 <div style={{ fontSize: 14, fontWeight: 700, color: TOK.ink, marginTop: 4 }}>{flow.starttls_mode || 'upgrade'}</div>
               </div>
             </div>
+          )}
+          {activeTab === 'handshake' && (
+            <UpgradeTimeline flow={flow} />
           )}
 
           {/* TAB 4: X.509 CERT */}

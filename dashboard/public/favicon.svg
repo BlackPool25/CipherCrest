@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#155C3A" />
+      <stop offset="50%" stop-color="#1F7A4D" />
+      <stop offset="100%" stop-color="#0D3F27" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+  </defs>
+  <path d="M 256,36 C 380,36 438,72 448,168 C 456,276 388,396 256,476 C 124,396 56,276 64,168 C 74,72 132,36 256,36 Z" 
+        fill="url(#shieldGrad)" stroke="#34D399" stroke-width="12" />
+  <g transform="translate(136, 150)">
+    <path d="M 12,32 L 228,32 C 234,32 240,37 240,44 L 240,140 C 240,196 186,240 120,258 C 54,240 0,196 0,140 L 0,44 C 0,37 6,32 12,32 Z" 
+          fill="#FFFFFF" stroke="#155C3A" stroke-width="6" />
+    <path d="M 4,40 L 120,132 L 236,40" fill="none" stroke="#1F7A4D" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+    <rect x="92" y="118" width="56" height="46" rx="10" fill="url(#goldGrad)" />
+    <circle cx="120" cy="136" r="5" fill="#155C3A" />
+    <polygon points="118,136 122,136 123,152 117,152" fill="#155C3A" />
+  </g>
+</svg>

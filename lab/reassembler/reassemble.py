@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -130,8 +131,117 @@ def _compute_pre_tls_buffer(reassembled_payload: bytes) -> tuple[int, bool]:
     return pre_len, pre_len > 0
 
 
-@dataclass
-class FlowState:
+# D2 downgrade-evidence transcript emitter (bytes/regex, dependency-free, offline).
+# Well-known mail ports: the side using one as source port is the server.
+D2_SERVER_PORTS: frozenset[int] = frozenset({25, 587, 465, 143, 993, 110, 995})
+
+_D2_ADVERTISED_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^250[-\s].*starttls", re.IGNORECASE),  # SMTP 250-STARTTLS
+    re.compile(r"^\*\s+capability.*starttls", re.IGNORECASE),  # IMAP * CAPABILITY ... STARTTLS
+    re.compile(r"^stls$", re.IGNORECASE),  # POP3 CAPA response STLS line
+)
+_D2_CMD_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(r"(^|\s)starttls(\s|$)", re.IGNORECASE),  # SMTP STARTTLS / IMAP tagged a002 STARTTLS
+    re.compile(r"^stls(\s|$)", re.IGNORECASE),  # POP3 STLS
+)
+_D2_GOAHEAD_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^220[-\s].*(ready|start tls|go ahead)", re.IGNORECASE),  # SMTP 220 Ready to start TLS
+    re.compile(r"ok\b.*begin\b.*tls", re.IGNORECASE),  # IMAP a002 OK Begin TLS / POP3 +OK Begin TLS
+)
+
+
+def _d2_direction(sport: int, dport: int) -> str:
+    """Return 'server_to_client' or 'client_to_server' for a TCP segment."""
+    if sport in D2_SERVER_PORTS or (sport < 1024 and dport not in D2_SERVER_PORTS):
+        return "server_to_client"
+    if dport in D2_SERVER_PORTS:
+        return "client_to_server"
+    return "server_to_client" if sport < dport else "client_to_server"
+
+
+def extract_starttls_transcript(events: list[tuple[int, str, bytes]]) -> dict:
+    """Build D2 downgrade-evidence transcript from one conversation's cleartext bytes.
+
+    Args:
+        events: list of (packet_no, direction, payload) in capture order.
+
+    Returns dict with:
+      transcript: list of {packet_no, direction, line} for cleartext lines
+        before the first TLS record (0x16 0x03). Empty (not error) for
+        implicit-TLS-first or empty flows.
+      starttls_advertised: True if a server line advertises STARTTLS/STLS.
+      upgraded_at_packet_no: packet_no of the server go-ahead (220 Ready /
+        OK Begin TLS) when a STARTTLS command + go-ahead pair was observed,
+        else packet_no of the first ClientHello when a command was observed,
+        else None (implicit / cleartext / stripped-never-upgraded).
+      client_hello_packet_no: packet_no of first 0x16 0x03, else None.
+    """
+    blob = bytearray()
+    owners: list[tuple[int, str, int, int]] = []  # (packet_no, direction, start, end)
+    for packet_no, direction, payload in events:
+        if not payload:
+            continue
+        start = len(blob)
+        blob.extend(payload)
+        owners.append((packet_no, direction, start, len(blob)))
+
+    def _owner(offset: int) -> tuple[int, str]:
+        for packet_no, direction, start, end in owners:
+            if start <= offset < end:
+                return packet_no, direction
+        pn, d, _, _ = owners[-1]
+        return pn, d
+
+    tls_at = bytes(blob).find(b"\x16\x03")
+    client_hello_packet_no: int | None = None
+    if tls_at != -1:
+        client_hello_packet_no, _ = _owner(tls_at)
+        clear = bytes(blob[:tls_at])
+    else:
+        clear = bytes(blob)
+
+    transcript: list[dict] = []
+    if owners and clear:
+        pos = 0
+        for line in clear.decode("utf-8", errors="replace").split("\r\n"):
+            if not line.strip():
+                pos += 2
+                continue
+            needle = (line + "\r\n").encode("utf-8", errors="replace")
+            at = clear.find(needle, pos)
+            if at == -1:
+                at = pos
+            pn, d = _owner(at)
+            transcript.append({"packet_no": pn, "direction": d, "line": line})
+            pos = at + len(needle)
+
+    advertised = any(
+        row["direction"] == "server_to_client" and any(rx.search(row["line"]) for rx in _D2_ADVERTISED_RES)
+        for row in transcript
+    )
+    cmd_at: int | None = None
+    goahead_at: int | None = None
+    for row in transcript:
+        if row["direction"] == "client_to_server" and cmd_at is None:
+            if any(rx.search(row["line"]) for rx in _D2_CMD_RES):
+                cmd_at = row["packet_no"]
+        if row["direction"] == "server_to_client" and goahead_at is None:
+            if any(rx.search(row["line"]) for rx in _D2_GOAHEAD_RES):
+                # only count go-ahead lines that look like TLS upgrade (not the initial banner)
+                if cmd_at is not None or "begin" in row["line"].lower():
+                    goahead_at = row["packet_no"]
+    if cmd_at is not None and goahead_at is not None:
+        upgraded_at: int | None = goahead_at
+    elif cmd_at is not None and client_hello_packet_no is not None:
+        upgraded_at = client_hello_packet_no
+    else:
+        upgraded_at = None
+    return {
+        "transcript": transcript,
+        "starttls_advertised": advertised,
+        "upgraded_at_packet_no": upgraded_at,
+        "client_hello_packet_no": client_hello_packet_no,
+    }
     flow_id: str  # "src:sport->dst:dport"
     segments: list[TcpSegment] = field(default_factory=list)
     total_payload_bytes: int = 0
@@ -240,6 +350,9 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
             "pre_tls_buffer_len": 0,
             "pre_tls_buffer_injection_possible": False,
             "reassembled_payload": b"",
+            "starttls_transcript": [],
+            "starttls_advertised": False,
+            "starttls_upgraded_at_packet_no": None,
             "per_flow": [],
             "error": "scapy not installed",
         }
@@ -249,8 +362,10 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
     # Simpler: group by (src, sport, dst, dport) directed, but also track total
     flows: dict[str, list[TcpSegment]] = defaultdict(list)
     flow_packet_payloads: dict[str, list[bytes]] = defaultdict(list)
+    conv_events: dict[tuple, list[tuple[int, str, bytes]]] = defaultdict(list)
+    flow_to_conv: dict[str, tuple] = {}
 
-    for pkt in pkts:
+    for pkt_no, pkt in enumerate(pkts, start=1):
         if not pkt.haslayer(TCP):
             continue
         ip = pkt[IP] if pkt.haslayer(IP) else None
@@ -267,6 +382,9 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
         seg = TcpSegment(seq=int(tcp.seq), payload=payload)
         flows[flow_id].append(seg)
         flow_packet_payloads[flow_id].append(payload)
+        conv = tuple(sorted(((src, int(tcp.sport)), (dst, int(tcp.dport)))))
+        flow_to_conv[flow_id] = conv
+        conv_events[conv].append((pkt_no, _d2_direction(int(tcp.sport), int(tcp.dport)), payload))
 
     per_flow_results: list[dict] = []
     total_reassembled = 0
@@ -306,6 +424,7 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
                 starttls = True
 
         pre_len, pre_inject = _compute_pre_tls_buffer(reassembled_payload)
+        d2 = extract_starttls_transcript(conv_events.get(flow_to_conv.get(flow_id, ()), []))
 
         per_flow_results.append(
             {
@@ -320,6 +439,9 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
                 "gap_detected": gap_detected,
                 "pre_tls_buffer_len": pre_len,
                 "pre_tls_buffer_injection_possible": pre_inject,
+                "ehlo_transcript": d2["transcript"],
+                "starttls_advertised": d2["starttls_advertised"],
+                "upgraded_at_packet_no": d2["upgraded_at_packet_no"],
             }
         )
         total_reassembled += reassembled_len
@@ -339,6 +461,7 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
 
     primary_flow = max(per_flow_results, key=lambda x: x["total_payload_bytes"]) if per_flow_results else None
     primary_id = primary_flow["flow_id"] if primary_flow else "unknown"
+    primary_d2 = extract_starttls_transcript(conv_events.get(flow_to_conv.get(primary_id, ()), []))
 
     all_payload = b"".join(bytes(p[Raw].load) for p in pkts if p.haslayer(Raw))
     overall_pre_len, overall_pre_inject = _compute_pre_tls_buffer(all_payload)
@@ -360,6 +483,9 @@ def reassemble(pcap_path: str | pathlib.Path, *, reassemble_out_of_order: bool =
         "gap_detected": any_gap,
         "pre_tls_buffer_len": overall_pre_len,
         "pre_tls_buffer_injection_possible": overall_pre_inject,
+        "starttls_transcript": primary_d2["transcript"],
+        "starttls_advertised": primary_d2["starttls_advertised"],
+        "starttls_upgraded_at_packet_no": primary_d2["upgraded_at_packet_no"],
         "per_flow": per_flow_results,
         "pcap": str(pcap_path),
     }

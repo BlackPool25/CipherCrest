@@ -50,9 +50,22 @@ def _dsn() -> str:
         or os.environ.get("DATABASE_URL")
         or "postgresql://app:app_dev_only@localhost:5432/ciphcrest"
     )
+    params = []
     if "connect_timeout" not in base:
+        params.append("connect_timeout=3")
+    if "keepalives" not in base:
+        params.append("keepalives=1")
+    if "keepalives_idle" not in base:
+        params.append("keepalives_idle=30")
+    if "keepalives_interval" not in base:
+        params.append("keepalives_interval=10")
+    if "keepalives_count" not in base:
+        params.append("keepalives_count=3")
+    if "tcp_user_timeout" not in base:
+        params.append("tcp_user_timeout=15000")
+    if params:
         sep = "&" if "?" in base else "?"
-        return f"{base}{sep}connect_timeout=2"
+        return f"{base}{sep}{'&'.join(params)}"
     return base
 
 
@@ -68,24 +81,39 @@ async def _get_pool() -> Any:
     now = time.time()
     if _has_pg_cached is False and (now - _last_pg_check) < 3.0:
         raise RuntimeError("PostgreSQL offline (cached)")
-    if _pool is not None:
+    if _pool is not None and not getattr(_pool, "closed", False):
         return _pool
     async with _pool_lock:
-        if _pool is not None:
+        if _pool is not None and not getattr(_pool, "closed", False):
             return _pool
         if not HAS_POOL or AsyncConnectionPool is None:
             _has_pg_cached = False
             _last_pg_check = now
             raise RuntimeError("psycopg_pool not installed")
         dsn = _dsn()
+        pool_kwargs: dict[str, Any] = {
+            "conninfo": dsn,
+            "min_size": 1,
+            "max_size": 10,
+            "max_idle": 300.0,
+            "max_lifetime": 1800.0,
+            "reconnect_timeout": 60.0,
+            "open": False,
+        }
+        if hasattr(AsyncConnectionPool, "check_connection"):
+            pool_kwargs["check"] = AsyncConnectionPool.check_connection
         try:
-            _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10, open=False)
+            _pool = AsyncConnectionPool(**pool_kwargs)
             await _pool.open()
             _has_pg_cached = True
             _last_pg_check = now
         except TypeError:
             try:
-                _pool = AsyncConnectionPool(conninfo=dsn, min_size=1, max_size=10)
+                # fallback for older pool variants without check or max_idle
+                fallback_kwargs: dict[str, Any] = {"conninfo": dsn, "min_size": 1, "max_size": 10}
+                if hasattr(AsyncConnectionPool, "check_connection"):
+                    fallback_kwargs["check"] = AsyncConnectionPool.check_connection
+                _pool = AsyncConnectionPool(**fallback_kwargs)
                 if hasattr(_pool, "open") and getattr(_pool, "open"):
                     await _pool.open()
                 _has_pg_cached = True
@@ -111,6 +139,29 @@ async def close_pool() -> None:
         except Exception:
             pass
         _pool = None
+
+
+async def check_pool_health(max_retries: int = 3) -> bool:
+    """Verify database connection health with retries and connection verification."""
+    global _pool
+    for attempt in range(max_retries):
+        try:
+            pool = await _get_pool()
+            async with pool.connection(timeout=3.0) as conn:
+                if hasattr(AsyncConnectionPool, "check_connection"):
+                    await AsyncConnectionPool.check_connection(conn)
+                else:
+                    await conn.execute("SELECT 1")
+            return True
+        except Exception:
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.1 * (2 ** attempt))
+                # reset pool if closed or broken
+                if _pool is not None and getattr(_pool, "closed", False):
+                    _pool = None
+                continue
+            return False
+    return False
 
 
 async def init_db() -> None:
@@ -337,7 +388,6 @@ async def upsert_flows(flows: list[FlowVerdict], source: str | None = None) -> N
                                 INSERT INTO flows (flow_id, family_id, data)
                                 VALUES (%s,%s,%s::jsonb)
                                 ON CONFLICT (flow_id) DO UPDATE SET data=EXCLUDED.data, updated_at=now()
-                                WHERE flows.data IS DISTINCT FROM EXCLUDED.data
                                 """,
                                 (f.flow_id, _fid, payload),
                             )
@@ -829,106 +879,113 @@ async def query_flows_filtered(
             return out
 
 
-async def query_metrics_filtered(flow_id: str | None = None) -> Any:
+async def query_metrics_filtered(flow_id: str | None = None, max_retries: int = 3) -> Any:
     """Return metrics: if flow_id given, SELECT COUNT, AVG(posture_score) WHERE flow_id=%s else mv_dashboard_metrics."""
-    pool = await _get_pool()
-    if flow_id is not None and str(flow_id).strip():
-        fid = str(flow_id).strip()
-        async with pool.connection() as conn:
-            async with conn.cursor() as cur:
-                try:
-                    await cur.execute("SELECT COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE flow_id=%s", (fid,))
-                    row = await cur.fetchone()
-                    if row is None:
-                        return {"flow_id": fid, "cnt": 0, "avg_posture": None}
-                    if isinstance(row, dict):
-                        cnt = row.get("cnt", 0)
-                        avg = row.get("avg_posture")
-                    else:
-                        cnt, avg = row[0], row[1] if len(row) > 1 else None
-                    return {"flow_id": fid, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None}
-                except Exception:
-                    return {"flow_id": fid, "cnt": 0, "avg_posture": None}
-    # No flow_id — try matview, fallback to direct SELECT
-    pool = await _get_pool()
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("SELECT risk_level, cnt, avg_posture FROM mv_dashboard_metrics")
-                rows = await cur.fetchall()
-                # If matview empty but flows exist, fallback
-                if not rows:
-                    raise RuntimeError("empty matview fallback")
-                out: list[dict] = []
-                for r in rows:
-                    if isinstance(r, dict):
-                        out.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
-                    else:
-                        rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
-                        out.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
-                return out
-            except Exception:
-                # fallback direct SELECT via generated columns
-                try:
-                    try:
-                        await conn.rollback()
-                    except Exception:
-                        pass
-                    await cur.execute("SELECT risk_level, COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE risk_level IS NOT NULL GROUP BY risk_level")
-                    rows2 = await cur.fetchall()
-                    out2: list[dict] = []
-                    for r in rows2:
-                        if isinstance(r, dict):
-                            out2.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
+    for attempt in range(max_retries):
+        try:
+            pool = await _get_pool()
+            if flow_id is not None and str(flow_id).strip():
+                fid = str(flow_id).strip()
+                async with pool.connection() as conn:
+                    async with conn.cursor() as cur:
+                        await cur.execute("SELECT COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE flow_id=%s", (fid,))
+                        row = await cur.fetchone()
+                        if row is None:
+                            return {"flow_id": fid, "cnt": 0, "avg_posture": None}
+                        if isinstance(row, dict):
+                            cnt = row.get("cnt", 0)
+                            avg = row.get("avg_posture")
                         else:
-                            rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
-                            out2.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
-                    return out2
-                except Exception:
-                    return []
+                            cnt, avg = row[0], row[1] if len(row) > 1 else None
+                        return {"flow_id": fid, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None}
+
+            # No flow_id — try matview, fallback to direct SELECT
+            async with pool.connection() as conn:
+                async with conn.cursor() as cur:
+                    try:
+                        await cur.execute("SELECT risk_level, cnt, avg_posture FROM mv_dashboard_metrics")
+                        rows = await cur.fetchall()
+                        # If matview empty but flows exist, fallback
+                        if not rows:
+                            raise RuntimeError("empty matview fallback")
+                        out: list[dict] = []
+                        for r in rows:
+                            if isinstance(r, dict):
+                                out.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
+                            else:
+                                rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
+                                out.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
+                        return out
+                    except Exception:
+                        # fallback direct SELECT via generated columns
+                        try:
+                            await conn.rollback()
+                        except Exception:
+                            pass
+                        await cur.execute("SELECT risk_level, COUNT(*)::int AS cnt, AVG(posture_score)::float AS avg_posture FROM flows WHERE risk_level IS NOT NULL GROUP BY risk_level")
+                        rows2 = await cur.fetchall()
+                        out2: list[dict] = []
+                        for r in rows2:
+                            if isinstance(r, dict):
+                                out2.append({"risk_level": r.get("risk_level"), "cnt": int(r.get("cnt", 0)), "avg_posture": float(r.get("avg_posture")) if r.get("avg_posture") is not None else None})
+                            else:
+                                rl, cnt, avg = r[0], r[1], r[2] if len(r) > 2 else None
+                                out2.append({"risk_level": str(rl) if rl else None, "cnt": int(cnt) if cnt is not None else 0, "avg_posture": float(avg) if avg is not None else None})
+                        return out2
+        except Exception:
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.15 * (attempt + 1))
+                continue
+            return []
+    return []
 
 
-async def query_protocol_stats() -> list[dict]:
-    """SELECT * FROM mv_protocol_stats else fallback direct GROUP BY."""
-    pool = await _get_pool()
-    async with pool.connection() as conn:
-        async with conn.cursor() as cur:
-            try:
-                await cur.execute("SELECT protocol, tls_version, cipher_suite, cnt FROM mv_protocol_stats")
-                rows = await cur.fetchall()
-                if not rows:
-                    raise RuntimeError("empty")
-                out: list[dict] = []
-                for r in rows:
-                    if isinstance(r, dict):
-                        out.append(dict(r))
-                    else:
-                        proto, tlsv, cipher, cnt = r[0], r[1] if len(r) > 1 else None, r[2] if len(r) > 2 else None, r[3] if len(r) > 3 else 0
-                        out.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt) if cnt is not None else 0})
-                return out
-            except Exception:
-                try:
+async def query_protocol_stats(max_retries: int = 3) -> list[dict]:
+    """SELECT * FROM mv_protocol_stats else fallback direct GROUP BY with connection retries."""
+    for attempt in range(max_retries):
+        try:
+            pool = await _get_pool()
+            async with pool.connection() as conn:
+                async with conn.cursor() as cur:
                     try:
-                        await conn.rollback()
+                        await cur.execute("SELECT protocol, tls_version, cipher_suite, cnt FROM mv_protocol_stats")
+                        rows = await cur.fetchall()
+                        if not rows:
+                            raise RuntimeError("empty")
+                        out: list[dict] = []
+                        for r in rows:
+                            if isinstance(r, dict):
+                                out.append(dict(r))
+                            else:
+                                proto, tlsv, cipher, cnt = r[0], r[1] if len(r) > 1 else None, r[2] if len(r) > 2 else None, r[3] if len(r) > 3 else 0
+                                out.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt) if cnt is not None else 0})
+                        return out
                     except Exception:
-                        pass
-                    await cur.execute(
-                        "SELECT COALESCE(data->>'app_protocol','unknown') AS protocol, "
-                        "COALESCE(data->'tls'->>'version', data->>'tls_version','unknown') AS tls_version, "
-                        "COALESCE(data->'tls'->>'cipher_suite', data->>'cipher_suite','unknown') AS cipher_suite, "
-                        "COUNT(*)::int AS cnt FROM flows GROUP BY 1,2,3"
-                    )
-                    rows2 = await cur.fetchall()
-                    out2: list[dict] = []
-                    for r in rows2:
-                        if isinstance(r, dict):
-                            out2.append(dict(r))
-                        else:
-                            proto, tlsv, cipher, cnt = r[0], r[1], r[2], r[3]
-                            out2.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt)})
-                    return out2
-                except Exception:
-                    return []
+                        try:
+                            await conn.rollback()
+                        except Exception:
+                            pass
+                        await cur.execute(
+                            "SELECT COALESCE(data->>'app_protocol','unknown') AS protocol, "
+                            "COALESCE(data->'tls'->>'version', data->>'tls_version','unknown') AS tls_version, "
+                            "COALESCE(data->'tls'->>'cipher_suite', data->>'cipher_suite','unknown') AS cipher_suite, "
+                            "COUNT(*)::int AS cnt FROM flows GROUP BY 1,2,3"
+                        )
+                        rows2 = await cur.fetchall()
+                        out2: list[dict] = []
+                        for r in rows2:
+                            if isinstance(r, dict):
+                                out2.append(dict(r))
+                            else:
+                                proto, tlsv, cipher, cnt = r[0], r[1], r[2], r[3]
+                                out2.append({"protocol": proto, "tls_version": tlsv, "cipher_suite": cipher, "cnt": int(cnt)})
+                        return out2
+        except Exception:
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.15 * (attempt + 1))
+                continue
+            return []
+    return []
 
 
 async def query_models() -> list[dict]:

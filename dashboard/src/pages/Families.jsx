@@ -40,6 +40,7 @@ import { fetchFlows, fetchFamilies } from '../services/api.js'
 import { DrillDown, PolicyRecommendationsView } from '../App.jsx'
 import HoverPlayCard from '../components/HoverPlayCard.jsx'
 import RunHistoryTimeline from '../components/RunHistoryTimeline.jsx'
+import UpgradeTimeline from '../components/UpgradeTimeline.jsx'
 
 // Cache for manifest data — kept as fallback only when DB unreachable
 let _manifestCache = null
@@ -1760,7 +1761,10 @@ export default function Families() {
               </div>
 
               {matrixTab === 'Details' ? (
-                <DrillDown flow={activeFlowObj} onDeselect={handleCloseDrawer} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <DrillDown flow={activeFlowObj} onDeselect={handleCloseDrawer} />
+                  <UpgradeTimeline flow={activeFlowObj} />
+                </div>
               ) : matrixTab === 'Recommendations' ? (
                 <div style={{ background: TOK.surface, border: `1px solid ${TOK.border}`, borderRadius: 12, padding: '16px', boxShadow: TOK.shadow }}>
                   <PolicyRecommendationsView flow={activeFlowObj} />

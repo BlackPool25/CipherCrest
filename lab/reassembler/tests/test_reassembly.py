@@ -217,3 +217,49 @@ def test_10families_distinct_ciphers() -> None:
     assert "3DES" in manifest["family-03"]["cipher"] or "DES-CBC3" in manifest["family-03"]["cipher"]
     assert "RC4" in manifest["family-04"]["cipher"]
     assert "DES" in manifest["family-08"]["cipher"]
+
+
+def test_d2_transcript_upgrade_family01() -> None:
+    from lab.reassembler.reassemble import reassemble
+
+    res = reassemble(str(PCAP_01))
+    tx = res["starttls_transcript"]
+    assert isinstance(tx, list) and len(tx) >= 5
+    assert tx[0]["line"].startswith("220") and tx[0]["direction"] == "server_to_client"
+    assert any(r["line"].startswith("EHLO") and r["direction"] == "client_to_server" for r in tx)
+    assert any("STARTTLS" in r["line"] and r["direction"] == "server_to_client" for r in tx)
+    assert any(r["line"] == "STARTTLS" for r in tx)
+    assert any(r["line"].startswith("220 2.0.0 Ready") for r in tx)
+    assert res["starttls_advertised"] is True
+    go = next(r["packet_no"] for r in tx if r["line"].startswith("220 2.0.0 Ready"))
+    assert res["starttls_upgraded_at_packet_no"] == go
+    assert all(set(r) == {"packet_no", "direction", "line"} for r in tx)
+    for pf in res["per_flow"]:
+        assert isinstance(pf["ehlo_transcript"], list) and len(pf["ehlo_transcript"]) >= 5
+        assert pf["starttls_advertised"] is True
+        assert pf["upgraded_at_packet_no"] == go
+
+
+def test_d2_transcript_cleartext_family09() -> None:
+    from lab.reassembler.reassemble import reassemble
+
+    res = reassemble(str(PCAP_09))
+    tx = res["starttls_transcript"]
+    assert isinstance(tx, list) and len(tx) > 5
+    assert tx[0]["line"].startswith("220")
+    assert not any("STARTTLS" in r["line"] for r in tx)
+    assert any(r["line"].startswith("MAIL FROM") for r in tx)
+    assert res["starttls_advertised"] is False
+    assert res["starttls_upgraded_at_packet_no"] is None
+    for pf in res["per_flow"]:
+        assert pf["starttls_advertised"] is False
+        assert pf["upgraded_at_packet_no"] is None
+
+
+def test_d2_transcript_implicit_family06() -> None:
+    from lab.reassembler.reassemble import reassemble
+
+    res = reassemble(str(PCAP_06))
+    assert isinstance(res["starttls_transcript"], list)
+    assert res["starttls_advertised"] is False
+    assert res["starttls_upgraded_at_packet_no"] is None

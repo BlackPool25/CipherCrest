@@ -191,7 +191,7 @@ async def lifespan(app: FastAPI):
             pass
 
 
-app = FastAPI(title="SecureMailScope Day1", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Sandesh Kavach", version="0.1.0", lifespan=lifespan)
 _dist = pathlib.Path(__file__).resolve().parent.parent / "dashboard" / "dist"
 
 # Mount static asset folders directly so /assets/..., /fonts/..., /dashboard resolve cleanly
@@ -565,8 +565,11 @@ async def get_flows(
 async def get_metrics(flow_id: str | None = Query(default=None)) -> Any:
     try:
         result = await query_metrics_filtered(flow_id=flow_id)
-        if result is not None and (isinstance(result, list) or isinstance(result, dict)):
-            return result
+        if result is not None:
+            if isinstance(result, list) and len(result) > 0:
+                return result
+            elif isinstance(result, dict) and (result.get("cnt", 0) > 0 or result.get("avg_posture") is not None):
+                return result
     except Exception:
         pass
     # Resilient SQLite fallback when Postgres pool is reconnecting
@@ -774,14 +777,54 @@ async def get_flow_history_by_path(
 @app.get("/health")
 @app.get("/api/health")
 async def health() -> Any:
+    """Production health check using pg_isready and connection pool check with retries."""
+    import shutil
+    import subprocess
+    from urllib.parse import urlparse
+
+    # 1. Primary check: pg_isready (industry standard tool for checking PostgreSQL liveness)
+    pg_isready_bin = shutil.which("pg_isready")
+    if pg_isready_bin:
+        try:
+            parsed = urlparse(POSTGRES_DSN)
+            host = parsed.hostname or "127.0.0.1"
+            port = str(parsed.port or 5432)
+            user = parsed.username or "app"
+            dbname = parsed.path.lstrip("/") or "ciphcrest"
+            proc = await asyncio.to_thread(
+                subprocess.run,
+                [pg_isready_bin, "-h", host, "-p", port, "-U", user, "-d", dbname, "-t", "2"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            if proc.returncode == 0:
+                from api.db_pg import check_pool_health
+                await check_pool_health(max_retries=2)
+                return {"status": "ok", "postgres": "ready"}
+        except Exception:
+            pass
+
+    # 2. Resilient pool check with retries
+    try:
+        from api.db_pg import check_pool_health
+        pool_ok = await check_pool_health(max_retries=3)
+        if pool_ok:
+            return {"status": "ok", "postgres": "ready"}
+    except Exception:
+        pass
+
+    # 3. Direct connection check fallback for testing environments
     try:
         from api.db_pg import _get_pool
         pool = await _get_pool()
-        async with pool.connection() as conn:
+        async with pool.connection(timeout=2.0) as conn:
             await conn.execute("SELECT 1")
         return {"status": "ok", "postgres": "ready"}
     except Exception:
-        return JSONResponse({"status": "ok", "postgres": "not ready"}, status_code=503, headers={"Retry-After": "2"})
+        pass
+
+    return JSONResponse({"status": "ok", "postgres": "not ready"}, status_code=503, headers={"Retry-After": "2"})
 
 @app.get("/report")
 @app.get("/api/report")
