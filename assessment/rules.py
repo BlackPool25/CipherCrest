@@ -31,6 +31,8 @@ def evaluate(flow, history=None):
     app = flow.get("app_protocol") or "smtp"
     mode = flow.get("starttls_mode") or "none"
     ver = tls.get("version") or "unknown"
+    if mode == "cleartext": mode = "none"  # Day16: same normalization as api/pipeline.py:85-86; engine must not depend on caller pre-normalization
+    if ver == "none": ver = "unknown"  # Day16: manifest-style "none" means unobserved, same as parsed "unknown"
     cipher = (tls.get("cipher_suite") or "").upper()
     kex = tls.get("kex") or "unknown"
     fs = bool(tls.get("fs_flag"))
@@ -57,12 +59,14 @@ def evaluate(flow, history=None):
     # 4 3DES SWEET32 → High
     if "DES-CBC3" in cipher or "3DES" in cipher or cipher == "DES-CBC3-SHA":
         findings.append(_f("3DES SWEET32", "High", "NIST SP 800-67, CVE-2016-2183 SWEET32", f"cipher {cipher} 3DES 64-bit birthday bound", "Disable 3DES; use AES-GCM/ChaCha20-Poly1305"))
-    # 5 CBC without AEAD → Medium-High (Medium)
-    if not is_aead and ver not in ("TLS1.3","unknown") and cipher not in ("NONE",""):
+    # 5 CBC without AEAD → Medium-High (Medium); skip unmapped suites (uncertain, not confident)
+    if not is_aead and ver not in ("TLS1.3","unknown") and cipher not in ("NONE","") and not cipher.startswith("UNKNOWN-"):
         sev5 = "High" if ver in ("TLS1.0","TLS1.1") else "Medium"
         findings.append(_f("CBC without AEAD", sev5, "RFC3268 §4, RFC5116", f"cipher {cipher} non-AEAD is_aead False", "Use AEAD only (AES-GCM/ChaCha20) per Mozilla intermediate"))
-    # 6 weak KEX RSA no-FS/DH<2048/EC<P-256 → High
-    if kex == "RSA" or (not fs and ver != "TLS1.3"):
+    # 6 weak KEX RSA no-FS/DH<2048/EC<P-256 → High; unmapped KEX → Info (uncertain, never confident)
+    if kex == "unknown" or cipher.startswith("UNKNOWN-"):
+        findings.append(_f("KEX unrecognized", "Info", "IANA TLS registry", f"kex {kex} cipher {cipher} not in parser map — posture from version/cert only", "Extend analyzer/parse.py CIPHER_MAP per IANA registry"))
+    elif kex == "RSA" or (not fs and ver != "TLS1.3"):
         findings.append(_f("Weak KEX (no FS)", "High", "NIST SP 800-52r2 §3.2, RFC8446 §E.1", f"kex {kex} fs_flag {fs} no forward secrecy", "Use ECDHE (P-256/X25519) per RFC8446"))
     # 7 weak pubkey RSA<2048/EC<P-256/DH<2048 → High (<1024 Critical) — only if cert detail present else skip (honest)
     bits = cert.get("pubkey_bits")
@@ -111,8 +115,8 @@ def evaluate(flow, history=None):
     # 12 hostname mismatch RFC7817 → High
     if cert.get("san_match") is False:
         findings.append(_f("Hostname mismatch", "High", "RFC7817 §4, RFC6125 §6", "san_match False vs mail.lab.local", "Fix SAN to include mail.lab.local per RFC7817"))
-    # 13 no FS fs_flag False → High (Medium for 1.3 always FS)
-    if not fs:
+    # 13 no FS fs_flag False → High (Medium for 1.3 always FS); unknown KEX already Info at check 6
+    if not fs and kex != "unknown":
         sev13 = "Medium" if ver == "TLS1.3" else "High"
         findings.append(_f("No forward secrecy", sev13, "RFC8446 §E.1, NIST 800-52r2", f"fs_flag False kex {kex} version {ver}", "Enable ECDHE (TLS 1.3 always FS)"))
     # 14 STARTTLS not offered RFC3207/M3AAWG → High if cleartext where opportunistic expected

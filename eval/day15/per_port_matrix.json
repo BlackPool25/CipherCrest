@@ -149,7 +149,7 @@
    },
    "587": {
     "High": 10,
-    "Medium": 34
+    "Medium": 33
    },
    "25": {
     "Medium": 5,
@@ -161,16 +161,16 @@
   },
   "Weak KEX (no FS)": {
    "143": {
-    "High": 11
+    "High": 9
    },
    "110": {
     "High": 9
    },
    "587": {
-    "High": 33
+    "High": 32
    },
    "25": {
-    "High": 6
+    "High": 4
    },
    "993": {
     "High": 3
@@ -178,16 +178,16 @@
   },
   "No forward secrecy": {
    "143": {
-    "High": 11
+    "High": 9
    },
    "110": {
     "High": 9
    },
    "587": {
-    "High": 33
+    "High": 32
    },
    "25": {
-    "High": 6
+    "High": 4
    },
    "993": {
     "High": 3
@@ -260,6 +260,17 @@
     "High": 1
    }
   },
+  "KEX unrecognized": {
+   "587": {
+    "Info": 1
+   },
+   "143": {
+    "Info": 2
+   },
+   "25": {
+    "Info": 2
+   }
+  },
   "STARTTLS not offered": {
    "587": {
     "High": 1
@@ -290,5 +301,5 @@
  },
  "n_pcaps": 116,
  "fails": [],
- "pipeline": "api/pipeline.py + Day15 unknown-version fix"
+ "pipeline": "api/pipeline.py + Day15 mode fix + Day16 cipher-map fix"
 }
