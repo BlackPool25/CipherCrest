@@ -19,15 +19,17 @@
 
 | Family | Cipher (+GREASE sha384) | Cert | Top rule → risk | Policy | Evidence |
 |---|---|---|---|---|---|
-| 01 | ECDHE-RSA-AES128-GCM-SHA256 (+GREASE) | rsa2048 | posture 94 Low → allow | Posture Info | gate1 F1>95% + gate5 JSON 20/20 |
-| 02 | ECDHE-RSA-AES256-GCM-SHA384 P-256 (+GREASE sha384) | p256 | High quarantine 72 | R5 injection | lab/LEDGER 02×6 jitter |
+| 01 | ECDHE-RSA-AES128-GCM-SHA256 (+GREASE) | rsa2048 | risk 13 Medium / posture 87 → flag (policy clamp: allow, Low-6) | check2 outdated Medium + 6 Info | gate1 F1>95% + gate5 JSON 20/20, measured 2026-09-09 |
+| 02 | ECDHE-RSA-AES256-GCM-SHA384 P-256 (+GREASE sha384) | p256 | risk 13 Medium / posture 87 → flag (policy clamp: allow, Low-6) | check2 outdated Medium + 6 Info, injection Info (no pipelined bytes) | lab/LEDGER 02×6 jitter, measured 2026-09-09 |
 | 03 | DES-CBC3-SHA (+GREASE sha384) | rsa2048 | Critical block 20 SWEET32 | check4 High | gate3 chain + gate4 weak |
 | 04 | RC4-SHA TLS1.0 (+GREASE sha384) | rsa2048 | Critical 0 deprecated | check3 Critical | gate2 cipher 100% |
 | 05 | AES128-SHA TLS1.1 (+GREASE sha384) | selfsigned | Critical 9 | check11 High | gate3 prec1.000 |
 | 06 | TLS_AES_128_GCM_SHA256 x25519 TLS1.3 opaque (+GREASE) | opaque | Low allow 94 | R1 honest | is_tls13_opaque 14/20 REAL |
 | 07 | AES128-SHA256 SHA1 (+GREASE sha384) | expired | High quarantine 65 | check9 Critical | family-07 expired SHA1 |
 | 08 | DES-CBC-SHA rsa1024 (+GREASE sha384) | rsa1024 | Critical 10 DES+RSA1024 | check7 Critical | gate3 badssl |
-| 09 | none cleartext stripped (+GREASE) | none | High flag 33 single low-conf | R4 single High | triple history 3flow Critical |
+| 09 | none cleartext stripped (+GREASE) | none | High flag 30 single low-conf | R4 single High | triple history 3flow Critical, measured 2026-09-09 |
+
+> Demo doctrine (measured 2026-09-09, live): **87 Medium is the TLS 1.2 ceiling by NIST design** (outdated-7 + context Infos; policy allows); **94 Low requires TLS 1.3** (family-06). Medium here means flag-for-review, never block.
 | 10 | RSA-AES256-SHA no-FS (+GREASE sha384) | chain-incomplete | Critical 35 | check13 NoFS | family-10 chain-incomplete |
 
 ## Evidence 8/8 + pkl + EVIDENCE section

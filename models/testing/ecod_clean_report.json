@@ -1,0 +1,9 @@
+{
+ "n_train": 8,
+ "n_eval": 127,
+ "pos_rate": 0.543,
+ "clean_roc": 0.9123,
+ "clean_pr": 0.8825,
+ "old_roc_same": 0.9263,
+ "old_pr_same": 0.8994
+}

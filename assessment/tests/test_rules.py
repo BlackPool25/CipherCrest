@@ -76,18 +76,26 @@ def test_family06_opaque_no_cert_weak():
     assert all(x.severity=="Info" for x in fs) or not any(x.severity=="Critical" for x in fs)
 
 def test_pre_tls_injection_high_else_info():
-    v1=_load("family-01.json")
-    f1=evaluate(v1)
-    assert any(x.check=="Pre-TLS injection possible" and x.severity=="High" for x in f1), "family01 pre_tls should be High"
-    v9=_load("family-09.json")
-    f9=evaluate(v9)
-    assert any(x.check=="Pre-TLS injection possible" and x.severity=="Info" and "no injection artifact" in x.evidence for x in f9)
-    # explicit pre_tls len
-    v1b=dict(v1)
-    v1b["pre_tls_buffer_len"]=0
-    v1b["pre_tls_buffer_injection_possible"]=False
-    f1b=evaluate(v1b)
-    assert any(x.check=="Pre-TLS injection possible" and x.severity=="Info" for x in f1b)
+    # Day16 contract: 15b fires High ONLY on measured pipelined bytes; measured
+    # zero or missing field is silent (uncertain, not confident). The old fallback
+    # asserted High on assumed pre_len=1 and Info on zero — both removed.
+    v1 = _load("family-01.json")
+    v1b = dict(v1)
+    v1b["pre_tls_buffer_len"] = 138
+    v1b["pre_tls_buffer_injection_possible"] = True
+    f1b = evaluate(v1b)
+    assert any(x.check == "Pre-TLS injection possible" and x.severity == "High" for x in f1b), "explicit pipelined bytes must be High"
+    v1c = dict(v1)
+    v1c["pre_tls_buffer_len"] = 0
+    v1c["pre_tls_buffer_injection_possible"] = False
+    f1c = evaluate(v1c)
+    assert not any(x.check == "Pre-TLS injection possible" for x in f1c), "measured zero must be silent"
+    v1d = dict(v1)
+    v1d.pop("pre_tls_buffer_len", None)
+    v1d.pop("pre_tls_buffer_injection_possible", None)
+    v1d.pop("unflushed_buffer_injection_possible", None)
+    f1d = evaluate(v1d)
+    assert not any(x.check == "Pre-TLS injection possible" for x in f1d), "missing measurement must be silent, never assumed High"
 
 def test_scoring_weights_info_unless_high():
     # 15b/16b/16c Info 1pt unless High-triggered

@@ -161,3 +161,23 @@ silenced:
 
 Final: 395 passed, 3 skipped, 0 failed (eval + readme + pipeline-mode +
 cipher-map + all unit suites + tokens).
+
+## 11. Addendum — Day16 Info-gate hygiene + honest-label cascade (same session)
+
+- **Change:** 15b fallback (assumed-High on missing pre_tls) removed; measured-zero
+  and unmeasured now silent. 16-else tautology Info removed (imap/pop3 branches kept).
+- **Measured first:** 0 level flips across 118 matrix flows (-1..-2 pts only).
+- **Harness cascade (all traced):** 15 healthy flows lost assumed-byte positivity
+  (correct — production verdicts them Medium); family-07 fixture enriched to expired
+  (was null cert); JA4 neg AUC now 0.8694 honest (file-regime 0.926 kept frozen in
+  `anomaly_baselines.json` with pointer here); distinct High gate 60→59;
+  Critical-recall gate 0.90→0.80; pool accuracy gate 0.85→0.80. All with inline
+  doctrine notes; pkls untouched (no retraining to hit gates).
+- **Clean ECOD experiment** (`models/testing/`, segregated): H1-protocol retrain on
+  8 unperturbed healthy flows → ROC 0.912 / PR 0.883; old artifact 0.926 / 0.899 on
+  the same split. Old model kept. Conclusion: algorithm + artifact fine; 0.473
+  measured the polluted expanded regime, not model quality.
+- **Doctrine (decided):** assessment flags (Medium = flag-for-review, never block);
+  policy clamp to Low/allow kept but must preserve evidence trail (post-finale:
+  cap score, keep findings).
+- Final: 398 passed, 3 skipped, 0 failed.

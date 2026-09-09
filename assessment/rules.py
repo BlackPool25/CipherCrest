@@ -148,17 +148,15 @@ def evaluate(flow, history=None):
     pre_len = flow.get("pre_tls_buffer_len")
     inj = flow.get("pre_tls_buffer_injection_possible") or flow.get("unflushed_buffer_injection_possible")
     if pre_len is None:
-        # fallback heuristic: if upgraded and handshake success, assume injection possible artifact
-        if mode=="upgrade" and tls.get("handshake_success"):
-            pre_len = 1
-            inj = True
-        else:
-            pre_len = 0
-            inj = False
+        # Day16: missing measurement is unevaluated — never assume pipelined bytes.
+        # (Old fallback asserted injection-possible High on assumed pre_len=1.)
+        pre_len = 0
+        inj = False
     if pre_len and pre_len>0 and inj:
         findings.append(_f("Pre-TLS injection possible", "High", "Postfix CVE-2011-0411, GHSA-9j88", f"pre_tls_buffer_len {pre_len} bytes between 220→ClientHello pipelined", "Fix unflushed buffer: discard pre-TLS pipelined bytes before ClientHello"))
-    else:
+    elif pre_len is not None and pre_len != 0:
         findings.append(_f("Pre-TLS injection possible", "Info", "Postfix CVE-2011-0411", "no injection artifact — pre_tls_buffer_len 0", "No remediation required unless pipelined bytes observed"))
+    # else: unmeasured → no finding (uncertain, not confident)
     # 16 implicit absent RFC8314 → Info/Medium
     # heuristic: implicit expected on 993/995/465
     if mode != "implicit" and app in ("imap","pop3"):
@@ -168,7 +166,9 @@ def evaluate(flow, history=None):
         else:
             findings.append(_f("Implicit TLS absent", "Info", "RFC8314 §3", "implicit TLS not offered — STARTTLS upgrade or cleartext on IMAP/POP3", "Consider implicit TLS 993/995 per RFC8314 M02"))
     else:
-        findings.append(_f("Implicit TLS absent", "Info", "RFC8314 §3", "implicit TLS check — no downgrade artifact or already implicit", "No action; track per-version"))
+        # Day16: implicit present-or-irrelevant (e.g. already implicit, or SMTP where
+        # upgrade is the norm) emits nothing — the old tautology Info added points, not signal.
+        pass
     # 16b MX/MTA-STS/DANE RFC8461/RFC7672 → Info enforce lane (MX=mail.lab.local evidence)
     mta = _load_fixture(_MTA)
     dane = _load_fixture(_DANE)

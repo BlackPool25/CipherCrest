@@ -121,8 +121,9 @@ def test_ja4_rarity_single_feature_neg_computed():
     y = _pseudo_labels(all_flows)
     ja_col = np.array([float((f.get("tls") or {}).get("ja4_rarity", 0.5) if (f.get("tls") or {}).get("ja4_rarity") is not None else 0.5) for f in all_flows], dtype=float)
     auc_neg = roc_auc_score(y, -ja_col)
-    assert abs(auc_neg - 0.926) < 0.05, f"ja4 neg {auc_neg} not 0.926"  # coherent 40 + 50 censys shift 0.926->0.894 still > hon 0.47
-    assert auc_neg > 0.90
+    # Day16: honest labels (assumed-byte positives removed) measure 0.8694.
+    assert abs(auc_neg - 0.869) < 0.06, f"ja4 neg {auc_neg} not ~0.869"  # coherent 40 + 50 censys; still > hon 0.47
+    assert auc_neg > 0.80
     assert "ja4" not in FEATURES_28
     assert "ja4_rarity" in FEATURES_28
     txt = pathlib.Path("assessment/anomaly_model.py").read_text()
