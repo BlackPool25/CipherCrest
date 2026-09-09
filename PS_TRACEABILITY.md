@@ -1,6 +1,6 @@
 # PS Traceability — SecureMailScope NTRO SIH26159
 
-> Mapping PS requirement → family → rule check → evidence 8/8 + pkl + EVIDENCE section. R1 R2 R3 R4 R5 R6 R7 R8 coverage honest 14/20 REAL +3 info per-version. n_risk45 n_prior20 n_eff10 n_families10 disclosed everywhere. WEAK SUPERVISION verbatim preserved. Shared schemas freeze additive-only Day2 00:00 via shared/CONTRIBUTING.md CODEOWNERS P1.
+> Mapping PS requirement → family → rule check → evidence 8/8 + pkl + EVIDENCE section. R1 R2 R3 R4 R5 R6 R7 R8 coverage honest 14/20 REAL +3 info per-version. Day15 measured: manifest 715 keys (680 proper + 35 jitter), splits 500 env-ids, n_eff 272 (500 quality target). WEAK SUPERVISION verbatim preserved. Shared schemas freeze additive-only Day2 00:00 via shared/CONTRIBUTING.md CODEOWNERS P1.
 
 ## Traceability Matrix — PS requirement → family → rule check → evidence
 
@@ -13,7 +13,7 @@
 | Injection via pre_tls_buffer_len (Postfix CVE-2011-0411, GHSA-9j88 pipelined EHLO/AUTH before ClientHello 0x16 0x03) | family-01 138/171 High pipelined, family-09 0 Info stripped no 0x16 0x03 | R5 pre_tls_buffer_len heuristic High if >0 else Info 15b, check15b injection | lab/LEDGER.md pre_tls_buffer_len/injection_possible + coverage_ratio 1.0 jittered 0.95-1.0, lab/reassembler/reassemble.py _compute_pre_tls_buffer 220→0x16 0x03, lab/LEDGER.md family-01 138/171 | 🟢 gated coverage 1.0 |
 | MX/MTA-STS/DANE filter (RFC8461, RFC7672) — opportunistic vs enforce, DANE TLSA | MX lab.local → mail.lab.local via mockdns | R6 fixture fallback, check16b MX Info enforce lane 16b | shared/data/mta-sts-fixture.json + dane-tlsa-fixture.json, lab/manifest.json MX=mail.lab.local, docs/TSHARK.md 2-lane offline primary | 🟢 gated 15b/16b info-greyed |
 | 0-RTT early_data replay, ECH outer (RFC8446 §8, RFC9846 §8, RFC9849) | early_data_offered/psk/ticket_age + ech_outer_present toggles via PcapCustomizer | R7 0-RTT Medium if reusable else Info 16c, R8 ECH INFO only check16c, check16c 0-RTT + ECH INFO | analyzer/parse.py early_data 0x002a + ech_outer_present, assessment/rules.py 16c, dashboard PcapCustomizer toggles, eval/EVIDENCE_Day12.md R1-R8 annex | 🟢 gated 16c info |
-| Mail lane hybrid single port 8000 — API enrich + dashboard + offline replay | 45 envs =10 base +35 jitter 7 families×5 slices, n_risk45 n_prior20 n_eff10 n_families10 | All 23 checks posture 0-100 policy decide allow/quarantine/block/flag | eval/EVIDENCE_Day12.md FINAL SYSTEM 8/8 gates 1-8 + eval/metrics.json + eval/LEAKAGE_REPORT.md gap 0.09 + eval/anomaly_baselines.json dual 0.47 vs 0.87 ja4 0.926 + TOP5 LOFAM stump + Platt 2-bin + pkls | 🟢 gated 8/8 |
+| Mail lane hybrid single port 8000 — API enrich + dashboard + offline replay | Day15: manifest 715 keys (680 proper + 35 jitter), splits 500 env-ids, 10 families pre-seeded demo baseline + Not Run standby, n_eff272 measured (500 target) | All 23 checks posture 0-100 policy decide allow/quarantine/block/flag | eval/EVIDENCE_Day15.md CLOSURE + eval/EVIDENCE_Day14.md + eval/metrics.json + eval/LEAKAGE_REPORT.md holdout/nested gap 0.262 + eval/anomaly_baselines.json ECOD 0.473 advisory-only vs inverted 0.871 ja4 0.926 + TOP5 LOFAM stump + Platt 2-bin + pkls | 🟢 gated 8/8 |
 
 ## Family → Rule → Evidence quick map (10 families)
 
@@ -63,6 +63,6 @@ Hybrid image: `ghcr.io/ntro/securemailscope:demo` 3-stage Dockerfile (node:20-bo
 
 - Plan: `.omo/plans/sih26159-securemailscope-implementation.md` §0.3 quality Gantt + §8 cut order, `.omo/plans/sih26159-day10-day12-closure-audit-ux.md` 13 todos Wave1-4
 - Ledgers: `lab/LEDGER.md` 45 rows pcap sha256 STARTTLS Bennett Cipher (+GREASE sha384) Cert tshark parity PASS coverage_ratio 1.0 jittered 0.95-1.0 pre_tls_buffer_len/injection_possible source_id n_eff 1, `assessment/LEDGER.md` TOP5 LOFAM stump honest + LEAKAGE_REPORT gap 0.09 + Platt 2-bin + dual ECOD honest 0.47 + ja4 0.926 + WEAK SUPERVISION verbatim, `shared/progress.md` Wave1-4 daily poll Clock|Agent|Milestone|Artifact|CI gate|Blocked on 🟢 gated
-- Evidence: `eval/EVIDENCE_Day12.md` FINAL 8/8 + `eval/metrics.json` hard-fail via `shared/schemas_eval.py` n_risk45 n_prior20 n_eff10 + `eval/LEAKAGE_REPORT.md` + `eval/anomaly_baselines.json` + `eval/human_grades.csv` 20×3 κ0.81/0.78
+- Evidence: `eval/EVIDENCE_Day15.md` CLOSURE + `eval/EVIDENCE_Day14.md` + `eval/metrics.json` hard-fail via `shared/schemas_eval.py` (measured n_eff 272; Day-10 `n_risk45 n_prior20 n_eff10` retained as history in Day-10 file) + `eval/LEAKAGE_REPORT.md` + `eval/anomaly_baselines.json` + `eval/human_grades.csv` 20×3 κ0.81/0.78
 - Docs: `lab/reassembler/README.md` 4-prefs, `docs/TSHARK.md` 2-lane offline primary vs oracle parity 4 prefs, `docs/LARGE_FILES.md` Releases 2GB/asset strategy
 - Code: `api/app.py` mount `/dashboard` StaticFiles, `scripts/turnup.sh` WITH_DOCKER=1 hybrid, `shared/CONTRIBUTING.md` CODEOWNERS shared, `shared/schemas.py` freeze additive-only Day2 00:00

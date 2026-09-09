@@ -1,0 +1,8 @@
+{
+  "flow": "family-09 (220 banner, no 250-STARTTLS, cleartext MAIL FROM)",
+  "single_stripped_mode_15a": "High",
+  "triple_stripped_plus_2_prior_upgraded_15a": "Critical",
+  "never_offered_mode_none_15a": "ABSENT (only check-14 STARTTLS-not-offered High fires)",
+  "method": "assessment.rules.evaluate(flow, history) direct, PYTHONHASHSEED=0, 2026-09-09",
+  "verdict": "Ladder holds: upgrade->no finding; stripped single->High low-conf; 2-prior-upgraded-then-cleartext triple->Critical"
+}

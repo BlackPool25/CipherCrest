@@ -1,0 +1,95 @@
+{
+ "pcap": "lab/pcaps/family-09.pcap",
+ "transcript": [
+  {
+   "packet_no": 4,
+   "direction": "server_to_client",
+   "line": "220 mail.lab.local ESMTP Postfix"
+  },
+  {
+   "packet_no": 5,
+   "direction": "client_to_server",
+   "line": "EHLO client.lab.local"
+  },
+  {
+   "packet_no": 6,
+   "direction": "server_to_client",
+   "line": "250-mail.lab.local"
+  },
+  {
+   "packet_no": 6,
+   "direction": "server_to_client",
+   "line": "250-PIPELINING"
+  },
+  {
+   "packet_no": 6,
+   "direction": "server_to_client",
+   "line": "250-SIZE 10240000"
+  },
+  {
+   "packet_no": 6,
+   "direction": "server_to_client",
+   "line": "250-ENHANCEDSTATUSCODES"
+  },
+  {
+   "packet_no": 6,
+   "direction": "server_to_client",
+   "line": "250 8BITMIME"
+  },
+  {
+   "packet_no": 7,
+   "direction": "client_to_server",
+   "line": "MAIL FROM:<alice@lab.local>"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250 2.1.0 Ok"
+  },
+  {
+   "packet_no": 9,
+   "direction": "client_to_server",
+   "line": "RCPT TO:<bob@lab.local>"
+  },
+  {
+   "packet_no": 10,
+   "direction": "server_to_client",
+   "line": "250 2.1.5 Ok"
+  },
+  {
+   "packet_no": 11,
+   "direction": "client_to_server",
+   "line": "DATA"
+  },
+  {
+   "packet_no": 12,
+   "direction": "server_to_client",
+   "line": "354 End data with <CR><LF>.<CR><LF>"
+  },
+  {
+   "packet_no": 13,
+   "direction": "client_to_server",
+   "line": "Subject: Test"
+  },
+  {
+   "packet_no": 13,
+   "direction": "client_to_server",
+   "line": "Hello world"
+  },
+  {
+   "packet_no": 13,
+   "direction": "client_to_server",
+   "line": "."
+  },
+  {
+   "packet_no": 14,
+   "direction": "server_to_client",
+   "line": "250 2.0.0 Ok: queued as 12345"
+  }
+ ],
+ "advertised": false,
+ "upgraded_at_packet_no": null,
+ "coverage": 1.0,
+ "cipher": "none",
+ "mode": "implicit"
+}

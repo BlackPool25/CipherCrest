@@ -1,0 +1,20 @@
+{
+ "wireshark-wiki-smtp-2009.pcap": {
+  "n_flows": 1,
+  "first": {
+   "mode": "upgrade",
+   "risk": 37,
+   "level": "High",
+   "posture": 63
+  }
+ },
+ "weberblog-ultimate-mail-ports.pcap": {
+  "n_flows": 1,
+  "first": {
+   "mode": "upgrade",
+   "risk": 50,
+   "level": "Critical",
+   "posture": 50
+  }
+ }
+}

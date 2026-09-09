@@ -1,0 +1,294 @@
+{
+ "matrix": {
+  "TLS version outdated": {
+   "587": {
+    "Medium": 42
+   },
+   "25": {
+    "Medium": 16
+   },
+   "143": {
+    "Medium": 12
+   },
+   "993": {
+    "Medium": 6
+   },
+   "110": {
+    "Medium": 3
+   }
+  },
+  "Pre-TLS injection possible": {
+   "587": {
+    "Info": 57,
+    "High": 3
+   },
+   "25": {
+    "Info": 19,
+    "High": 1
+   },
+   "143": {
+    "High": 11,
+    "Info": 3
+   },
+   "110": {
+    "Info": 11
+   },
+   "993": {
+    "Info": 9,
+    "High": 2
+   }
+  },
+  "Implicit TLS absent": {
+   "587": {
+    "Info": 60
+   },
+   "25": {
+    "Info": 20
+   },
+   "143": {
+    "Info": 14
+   },
+   "110": {
+    "Info": 11
+   },
+   "993": {
+    "Info": 11
+   }
+  },
+  "MX/MTA-STS/DANE": {
+   "587": {
+    "Info": 60
+   },
+   "25": {
+    "Info": 20
+   },
+   "143": {
+    "Info": 14
+   },
+   "110": {
+    "Info": 11
+   },
+   "993": {
+    "Info": 11
+   }
+  },
+  "0-RTT / ECH": {
+   "587": {
+    "Info": 60
+   },
+   "25": {
+    "Info": 20
+   },
+   "143": {
+    "Info": 14
+   },
+   "110": {
+    "Info": 11
+   },
+   "993": {
+    "Info": 11
+   }
+  },
+  "KeyUsage missing": {
+   "587": {
+    "Info": 30,
+    "High": 30
+   },
+   "25": {
+    "Info": 16,
+    "High": 4
+   },
+   "143": {
+    "Info": 13,
+    "High": 1
+   },
+   "110": {
+    "Info": 10,
+    "High": 1
+   },
+   "993": {
+    "Info": 8,
+    "High": 3
+   }
+  },
+  "ExtendedKeyUsage not serverAuth": {
+   "587": {
+    "Info": 60
+   },
+   "25": {
+    "Info": 20
+   },
+   "143": {
+    "Info": 14
+   },
+   "110": {
+    "Info": 11
+   },
+   "993": {
+    "Info": 11
+   }
+  },
+  "3DES SWEET32": {
+   "143": {
+    "High": 8
+   },
+   "25": {
+    "High": 1
+   },
+   "587": {
+    "High": 1
+   }
+  },
+  "CBC without AEAD": {
+   "143": {
+    "Medium": 9
+   },
+   "110": {
+    "High": 8,
+    "Medium": 1
+   },
+   "587": {
+    "High": 10,
+    "Medium": 34
+   },
+   "25": {
+    "Medium": 5,
+    "High": 2
+   },
+   "993": {
+    "Medium": 4
+   }
+  },
+  "Weak KEX (no FS)": {
+   "143": {
+    "High": 11
+   },
+   "110": {
+    "High": 9
+   },
+   "587": {
+    "High": 33
+   },
+   "25": {
+    "High": 6
+   },
+   "993": {
+    "High": 3
+   }
+  },
+  "No forward secrecy": {
+   "143": {
+    "High": 11
+   },
+   "110": {
+    "High": 9
+   },
+   "587": {
+    "High": 33
+   },
+   "25": {
+    "High": 6
+   },
+   "993": {
+    "High": 3
+   }
+  },
+  "TLS version deprecated": {
+   "110": {
+    "Critical": 8
+   },
+   "587": {
+    "Critical": 10
+   },
+   "25": {
+    "Critical": 2
+   }
+  },
+  "Weak cipher (RC4/NULL/EXPORT/DES)": {
+   "110": {
+    "Critical": 9
+   },
+   "587": {
+    "Critical": 9
+   },
+   "25": {
+    "Critical": 1
+   },
+   "993": {
+    "Critical": 2
+   },
+   "143": {
+    "Critical": 1
+   }
+  },
+  "Chain incomplete/self-signed": {
+   "587": {
+    "Medium": 31
+   },
+   "143": {
+    "Medium": 2
+   },
+   "25": {
+    "Medium": 5
+   },
+   "110": {
+    "Medium": 1
+   },
+   "993": {
+    "Medium": 3
+   }
+  },
+  "Certificate expired": {
+   "587": {
+    "Critical": 7
+   },
+   "25": {
+    "Critical": 1
+   },
+   "993": {
+    "Critical": 1
+   }
+  },
+  "Weak pubkey (<2048 / <P-256)": {
+   "587": {
+    "High": 6
+   },
+   "993": {
+    "High": 1
+   },
+   "25": {
+    "High": 1
+   }
+  },
+  "STARTTLS not offered": {
+   "587": {
+    "High": 1
+   },
+   "143": {
+    "High": 2
+   },
+   "25": {
+    "High": 2
+   }
+  },
+  "pathLen violation": {
+   "587": {
+    "Info": 1
+   },
+   "143": {
+    "Info": 2
+   },
+   "25": {
+    "Info": 2
+   }
+  }
+ },
+ "modes": {
+  "upgrade": 106,
+  "implicit": 5,
+  "none": 5
+ },
+ "n_pcaps": 116,
+ "fails": [],
+ "pipeline": "api/pipeline.py + Day15 unknown-version fix"
+}

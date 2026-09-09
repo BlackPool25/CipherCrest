@@ -435,7 +435,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
 - [x] TLS 1.0 / 1.1 Deprecation (RFC 8996): ${flows.filter(f => f.tls?.version === 'TLS1.0' || f.tls?.version === 'TLS1.1').length === 0 ? 'PASS' : 'FAIL'}
 - [x] Forward Secrecy ECDHE (RFC 8446): ${flows.filter(f => f.tls?.fs_flag).length}/${flows.length} flows
 - [x] AEAD Cipher Suites (RFC 5116): ${flows.filter(f => f.tls?.is_aead).length}/${flows.length} flows
-- [x] MTA-STS & DANE Readiness (RFC 8461/7672): ACTIVE
+- [x] MTA-STS & DANE Readiness (RFC 8461/7672): FIXTURE-SIMULATED (offline, no live DNS)
     `.trim()
 
     navigator.clipboard.writeText(md)
@@ -1531,7 +1531,7 @@ ${prioritizedVulnerabilities.slice(0, 5).map((v, i) => `### ${i + 1}. [${v.sever
               {[
                 { standard: 'RFC 8996 (TLS 1.0/1.1 Deprecation)', status: '92% Compliant', pass: true, desc: 'Legacy SSLv3/TLS 1.0/TLS 1.1 disabled across production mail exchangers.' },
                 { standard: 'NIST SP 800-52 Rev 2', status: '88% Compliant', pass: true, desc: 'Enforcement of modern AEAD ciphers (AES-GCM) and minimum 2048-bit RSA keys.' },
-                { standard: 'RFC 8461 (MTA-STS)', status: 'Enforce Mode', pass: true, desc: 'Strict transport security policy published to prevent active downgrade attacks.' },
+                { standard: 'RFC 8461 (MTA-STS)', status: 'Fixture (offline)', pass: true, desc: 'Offline fixture fallback (mockdns + local policy file); no live DNS lookup performed.' },
                 { standard: 'PCI-DSS v4.0 §4.2 Transit Security', status: 'Compliant', pass: true, desc: 'Cardholder data in transit protected with strong industry cryptography.' },
               ].map((comp, i) => (
                 <div

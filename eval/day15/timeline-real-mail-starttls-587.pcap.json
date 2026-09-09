@@ -1,0 +1,55 @@
+{
+ "pcap": "lab/pcaps/real-mail-starttls-587.pcap",
+ "transcript": [
+  {
+   "packet_no": 4,
+   "direction": "server_to_client",
+   "line": "220 mail.lab.local ESMTP Postfix 3.9.0"
+  },
+  {
+   "packet_no": 6,
+   "direction": "client_to_server",
+   "line": "EHLO client.lab.local"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250-mail.lab.local"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250-PIPELINING"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250-ENHANCEDSTATUSCODES"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250-STARTTLS"
+  },
+  {
+   "packet_no": 8,
+   "direction": "server_to_client",
+   "line": "250 SMTPUTF8"
+  },
+  {
+   "packet_no": 10,
+   "direction": "client_to_server",
+   "line": "STARTTLS"
+  },
+  {
+   "packet_no": 12,
+   "direction": "server_to_client",
+   "line": "220 2.0.0 Ready to start TLS"
+  }
+ ],
+ "advertised": true,
+ "upgraded_at_packet_no": 12,
+ "coverage": 1.0,
+ "cipher": "ECDHE-RSA-AES256-GCM-SHA384",
+ "mode": "upgrade"
+}

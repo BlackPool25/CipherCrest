@@ -80,7 +80,7 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             elif "upgrade" in hint_name.lower() or reasm.get("starttls_detected") or any(x in hint_name for x in ["587", "25", "143", "110"]):
                 _mode = "upgrade"
             else:
-                _mode = "upgrade" if reasm.get("starttls_detected") else ("implicit" if tls.get("version") not in (None, "", "none") else "cleartext")
+                _mode = "upgrade" if reasm.get("starttls_detected") else ("implicit" if (tls.get("version") not in (None, "", "none", "unknown") and tls.get("handshake_success")) else "none")  # Day15: unknown/no-handshake is never implicit — cleartext falls to none so check-14 fires instead of a bogus implicit verdict
 
             if _mode not in ("upgrade", "implicit", "none", "stripped"):
                 _mode = "none"  # cleartext-never-offered normalizes to none (schema Literal has no cleartext)
