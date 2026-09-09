@@ -46,3 +46,4 @@ catboost_info/
 # Postgres persistence — pgdata named volume (NOT bind), ignore accidental bind if ever created
 pgdata/
 pgdata
+press_enter.sh

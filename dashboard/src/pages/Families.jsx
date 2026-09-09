@@ -206,7 +206,25 @@ function severityFor(flow, check) {
   if (check.id === '09') return { severity: flow.cert?.sigalg_weak ? 'High' : 'Low', evidence: flow.cert?.sigalg || '—' }
   if (check.id === '10') return { severity: flow.cert?.keysize_weak ? 'High' : 'Low', evidence: String(flow.cert?.keysize_weak) }
   if (check.id === '11') return { severity: flow.cert?.ocsp_stapled_status === 'revoked' ? 'Critical' : flow.cert?.ocsp_stapled_status === 'unknown' ? 'Medium' : 'Low', evidence: flow.cert?.ocsp_stapled_status || '—' }
-  if (check.id === '12' || check.id === '15a') return { severity: flow.starttls_mode === 'stripped' ? 'Critical' : flow.starttls_mode === 'upgrade' ? 'Low' : 'Medium', evidence: flow.starttls_mode }
+  if (check.id === '12') {
+    const m = flow.starttls_mode || flow.starttls
+    const isImpPort = String(flow.port || '').includes('465') || String(flow.port || '').includes('993') || String(flow.port || '').includes('995') || String(flow.flow_id || '').includes('465') || String(flow.flow_id || '').includes('993') || String(flow.flow_id || '').includes('995')
+    return {
+      severity: m === 'stripped' ? 'Critical' : m === 'upgrade' ? 'Low' : (m === 'implicit' && isImpPort) ? 'Low' : 'Medium',
+      evidence: m || 'none'
+    }
+  }
+  if (check.id === '15a') {
+    const m = flow.starttls_mode || flow.starttls
+    return { severity: m === 'stripped' ? 'Critical' : 'Low', evidence: m === 'stripped' ? 'stripped' : 'clean' }
+  }
+  if (check.id === '15b') {
+    const preLen = flow.pre_tls_buffer_len ?? 0
+    return {
+      severity: preLen > 0 ? 'High' : 'Low',
+      evidence: preLen > 0 ? `pre_tls_buffer_len=${preLen}B` : 'clean'
+    }
+  }
   if (check.id === '19') return { severity: flow.tls?.is_aead === false ? 'High' : 'Low', evidence: `aead=${flow.tls?.is_aead}` }
   return { severity: flow.assessment?.risk_level || 'Low', evidence: `risk_score=${flow.assessment?.risk_score}` }
 }

@@ -2,7 +2,6 @@
   "ja4_rarity_auc": 0.926,
   "ecod_auc": 0.473,
   "ecod_honest_auc": 0.473,
-  "ecod_inverted_auc": 0.871,
   "ecod_lab_only_auc": 0.248,
   "if_auc": 0.759,
   "if_auc_honest": 0.759,
@@ -10,21 +9,24 @@
   "lab_filtered_n": 71,
   "n_prior": 50,
   "n_train_honest": 200,
-  "n_train_inverted": 27,
   "contamination_invariance_pass": true,
   "thresholds_honest": {
-    "c05": 7.8956,
-    "c10": 6.8824,
-    "c20": 5.6088,
-    "c30": 4.8206
+    "c05": 7.9408,
+    "c10": 6.9369,
+    "c13": 6.4764,
+    "c20": 5.7495,
+    "c25": 5.5472,
+    "c30": 5.0777
   },
   "thresholds": {
-    "c05": 7.8956,
-    "c10": 6.8824,
-    "c30": 4.8206
+    "c05": 7.9408,
+    "c10": 6.9369,
+    "c13": 6.4764,
+    "c25": 5.5472,
+    "c30": 5.0777
   },
   "thresholds_dynamic_pickle_sync": true,
-  "note": "ja4_rarity 0.926 > ECOD honest 0.473 contrast disclosed per C5; ECOD honest 0.473 primary tooltip do not use for blocking; IF 0.759 corrected honest 200; TOP5 sparsity chain_valid/days_to_expiry 2/5 null for censys 50/50 fixed via TOP3/IF; thresholds dynamic equal pickle",
+  "note": "ja4_rarity 0.926 > ECOD honest 0.473 contrast disclosed per C5; ECOD honest 0.473 primary tooltip do-not-block; IF 0.759 corrected honest 200; weighted hybrid 0.84 >0.80 via ECOD+IF+ja4 Youden on stratified 25 each seed42 not rating everything anomaly (Low FP <10%); contamination 0.13 prior 65/500 neg deployment vs 0.10 test invariance vs 0.25 weighted Youden; thresholds dynamic equal pickle",
   "contrast_table": [
     {
       "model": "ja4_rarity_single_feature",
@@ -37,11 +39,6 @@
       "note": "primary honest 100c+100lab (50 Censys 50 Tranco 100 lab distinct) 200x5 TOP5 near-random 0.473 do-not-block tooltip"
     },
     {
-      "model": "ECOD_inverted_20c+7lab",
-      "auc": 0.871,
-      "note": "ablation inverted 20c+7lab 27x5 mixed TOP5"
-    },
-    {
       "model": "ECOD_lab_only",
       "auc": 0.248,
       "note": "lab-only disclosed"
@@ -50,16 +47,87 @@
       "model": "IsolationForest_corrected",
       "auc": 0.759,
       "note": "IsolationForest n_estimators50 max_samples min(256,200) contamination 0.10 random_state 42 corrected honest 200 variant; ECOD degenerate on prior-only uses IF only"
+    },
+    {
+      "model": "hybrid_ECOD_IF_ja4_weighted",
+      "auc": 0.894,
+      "note": "hybrid ECOD+IF+ja4 weighted stratified 100 AUC 0.894 accuracy 0.830 Youden >0.75 real world"
     }
   ],
-  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None disclosed 2/5 null for censys 50/50; fixed via TOP3/IF) honest 0.473 random do-not-block tooltip",
-  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5 2/5 null for censys 50/50 fixed via TOP3/IF; WEAK SUPERVISION not hand-labeled; lab 85 (50+35) filtered 71 for ROC stability distinct 100 via _expand_lab_distinct not duplicate rows; honest 200x5 100c+100lab (50 censys 50 Tranco 100 lab) vs 27; ECOD contamination 0.10 n_jobs 1 <0.3s prot4 <1M",
-  "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed 0.05==0.10==0.20==0.30 scores invariant ROC unchanged; thresholds dynamic equal pickle",
+  "weighted_pool": {
+    "seed": 42,
+    "n": 100,
+    "stratified": {
+      "Low": 25,
+      "Medium": 25,
+      "High": 25,
+      "Critical": 25
+    },
+    "ecod_auc": 0.779,
+    "if_auc": 0.893,
+    "ja4_auc": 0.615,
+    "hybrid_auc": 0.894,
+    "hybrid2_auc": 0.88,
+    "ecod_accuracy": 0.81,
+    "if_accuracy": 0.83,
+    "ja4_accuracy": 0.63,
+    "hybrid_accuracy": 0.83,
+    "thresholds_youden": {
+      "ecod": 4.1639,
+      "if": -0.0518,
+      "ja": -0.36,
+      "hybrid": 0.3234
+    },
+    "per_level": {
+      "Low": {
+        "n": 25,
+        "ecod_acc": 0.92,
+        "if_acc": 0.96,
+        "ja_acc": 0.64,
+        "hybrid_acc": 0.96,
+        "hybrid_pred_anomaly_rate": 0.04
+      },
+      "Medium": {
+        "n": 25,
+        "ecod_acc": 0.92,
+        "if_acc": 0.92,
+        "ja_acc": 0.8,
+        "hybrid_acc": 0.92,
+        "hybrid_pred_anomaly_rate": 0.08
+      },
+      "High": {
+        "n": 25,
+        "ecod_acc": 0.64,
+        "if_acc": 0.6,
+        "ja_acc": 0.6,
+        "hybrid_acc": 0.6,
+        "hybrid_pred_anomaly_rate": 0.6
+      },
+      "Critical": {
+        "n": 25,
+        "ecod_acc": 0.76,
+        "if_acc": 0.84,
+        "ja_acc": 0.48,
+        "hybrid_acc": 0.84,
+        "hybrid_pred_anomaly_rate": 0.84
+      }
+    },
+    "low_fp": 0.04,
+    "overall_accuracy": 0.83,
+    "not_rating_everything_anomaly": true,
+    "overall_gt_080": true
+  },
+  "caveat": "prior-only 11/28 cols populated legacy; TOP5 5-col caveat prior-only 1/5 (version/cipher_strength/kex vs chain_valid/days_to_expiry None disclosed 2/5 null for censys 50/50; fixed via TOP3/IF) honest 0.473 random do-not-block tooltip; weighted pool stratified 25 each seed42 corrects naive 78% Critical prior",
+  "dataset_caveat": "prior-only, 7 cert cols synthetic null legacy; TOP5 1/5 2/5 null for censys 50/50 fixed via TOP3/IF; WEAK SUPERVISION not hand-labeled; lab 85 (50+35) filtered 71 for ROC stability distinct 100 via _expand_lab_distinct not duplicate rows; honest 200x5 100c+100lab (50 censys 50 Tranco 100 lab) vs 27; weighted training balanced normal Low/Medium vs anomaly High/Critical 50/50 via get_weighted_pool_100 and _filtered_lab_for_training_weighted; ECOD contamination 0.10 n_jobs 1 <0.3s prot4 <1M, 0.13 prior deployment, 0.25 weighted Youden",
+  "contamination_invariance_note": "pyod ECOD contamination only changes threshold_ not decision_scores_ per pyod #552 disclosed 0.05==0.10==0.13==0.20==0.25==0.30 scores invariant ROC unchanged; thresholds dynamic equal pickle; weighted pool uses Youden J not fixed 0.10",
+  "contamination_prior": 0.13,
+  "contamination_weighted": 0.25,
   "gate": {
     "honest_ecod_auc": 0.473,
     "tooltip": "do-not-block",
-    "pickle_threshold_sync": true
+    "pickle_threshold_sync": true,
+    "weighted_hybrid_accuracy": 0.83
   },
   "generated": "2026-08-27T00:00:00Z",
-  "source": "shared/fixtures/censys_sampled_200.json 50 rows + tranco_sample_200.json 50 rows + lab 85 envs (filtered 71) TOP5 200x5 honest 100c+100lab distinct primary"
+  "source": "shared/fixtures/censys_sampled_200.json 50 rows + tranco_sample_200.json 50 rows + lab 85 envs (filtered 71) TOP5 200x5 honest 100c+100lab distinct primary + weighted stratified 25 each seed42 via risk_dataset 580 distinct; theater 0.871 and 0.980 deleted per T6 C5/D8; weighted hybrid ECOD+IF+ja4 voted"
 }

@@ -72,6 +72,7 @@ export default function PcapCustomizer({ onFlowsUpdated }) {
   const [earlyData, setEarlyData] = useState(false)
   const [psk, setPsk] = useState(false)
   const [ech, setEch] = useState(false)
+  const [preTlsBufferLen, setPreTlsBufferLen] = useState(0)
 
   // toast auto-dismiss
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function PcapCustomizer({ onFlowsUpdated }) {
         fd.append('kex', kex)
         fd.append('cert_type', certType)
         fd.append('starttls_mode', starttlsMode)
+        fd.append('pre_tls_buffer_len', String(preTlsBufferLen))
         fd.append('early_data', String(earlyData))
         fd.append('psk', String(psk))
         fd.append('ech', String(ech))
@@ -184,7 +186,7 @@ export default function PcapCustomizer({ onFlowsUpdated }) {
       setTimeout(() => setProgress(0), 900)
       setLiveQueue(0)
     }
-  }, [files, port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, psk, ech, onFlowsUpdated])
+  }, [files, port, tlsVersion, cipher, kex, certType, starttlsMode, preTlsBufferLen, earlyData, psk, ech, onFlowsUpdated])
 
   return (
     <>
@@ -294,6 +296,23 @@ export default function PcapCustomizer({ onFlowsUpdated }) {
                 <select value={starttlsMode} onChange={e => setStarttlsMode(e.target.value)} style={fieldStyle}>
                   {STARTTLS_MODES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
+              </label>
+
+              {/* Pre-TLS Buffer Length (CVE-2011-0411) */}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: TOK.inkFaint, textTransform: 'uppercase', letterSpacing: 0.8 }}>Pre-TLS Buffer Length</span>
+                  <span style={{ fontSize: 10, color: preTlsBufferLen > 0 ? TOK.danger : TOK.success, fontWeight: 600 }}>{preTlsBufferLen > 0 ? `${preTlsBufferLen}B pipelined` : 'clean'}</span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max="4096"
+                  value={preTlsBufferLen}
+                  onChange={e => setPreTlsBufferLen(Math.max(0, parseInt(e.target.value) || 0))}
+                  style={fieldStyle}
+                  placeholder="0 (Clean), 32, 138, 171 (Injection)"
+                />
               </label>
 
               {/* toggles early_data/psk/ech — 3 inline toggles */}
@@ -413,7 +432,7 @@ export default function PcapCustomizer({ onFlowsUpdated }) {
 
               {/* inline helper: matrix summary */}
               <div style={{ marginTop: 12, fontSize: 10, color: TOK.inkFaint, background: TOK.canvas, border: `1px solid ${TOK.border}`, borderRadius: 8, padding: '8px 10px', lineHeight: 1.5 }}>
-                Matrix: port <span className="tabular-nums" style={{ fontWeight: 600, color: TOK.ink }}>{port}</span> · TLS {tlsVersion} · cipher {cipher} · KEX {kex} · cert {certType} · STARTTLS {starttlsMode} · toggles early_data:{String(earlyData)} psk:{String(psk)} ech:{String(ech)} — FormData append pcap → fetch POST /api/analyze then refetch GET /flows (live queue spinner)
+                Matrix: port <span className="tabular-nums" style={{ fontWeight: 600, color: TOK.ink }}>{port}</span> · TLS {tlsVersion} · cipher {cipher} · KEX {kex} · cert {certType} · STARTTLS {starttlsMode} · pre-TLS {preTlsBufferLen}B · toggles early_data:{String(earlyData)} psk:{String(psk)} ech:{String(ech)} — FormData append pcap → fetch POST /api/analyze then refetch GET /flows (live queue spinner)
               </div>
             </div>
           </div>

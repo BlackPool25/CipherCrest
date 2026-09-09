@@ -89,7 +89,7 @@ const STARTTLS_MODES = [
 ]
 
 // Client-side valid binary pcap synthesis
-function synthesizePcapBlob({ port = 587, tlsVersion = 'TLS1.3', cipher = 'TLS_AES_128_GCM_SHA256', kex = 'ECDHE', certType = 'rsa2048', starttlsMode = 'upgrade', earlyData = false }) {
+function synthesizePcapBlob({ port = 587, tlsVersion = 'TLS1.3', cipher = 'TLS_AES_128_GCM_SHA256', kex = 'ECDHE', certType = 'rsa2048', starttlsMode = 'upgrade', earlyData = false, preTlsBufferLen = 0 }) {
   const cipherMap = {
     'ECDHE-RSA-AES128-GCM-SHA256': 0xC02F,
     'ECDHE-RSA-AES256-GCM-SHA384': 0xC030,
@@ -235,7 +235,18 @@ function synthesizePcapBlob({ port = 587, tlsVersion = 'TLS1.3', cipher = 'TLS_A
     packets.push(makePacket(srvIp, cliIp, port, clientPort, 135, 25, 0x18, enc.encode('250-STARTTLS\r\n250 DSN\r\n')))
     packets.push(makePacket(cliIp, srvIp, clientPort, port, 25, 160, 0x18, enc.encode('STARTTLS\r\n')))
     packets.push(makePacket(srvIp, cliIp, port, clientPort, 160, 35, 0x18, enc.encode('220 2.0.0 Ready to start TLS\r\n')))
-    if (tlsRecord.length > 0) packets.push(makePacket(cliIp, srvIp, clientPort, port, 35, 190, 0x18, tlsRecord))
+    let clientSeq = 35
+    if (preTlsBufferLen > 0) {
+      // Injected pipelined command bytes between 220 Ready banner and ClientHello (CVE-2011-0411)
+      const filler = new Uint8Array(preTlsBufferLen)
+      const sampleCmd = enc.encode('RSET\r\nNOOP\r\n')
+      for (let i = 0; i < preTlsBufferLen; i++) {
+        filler[i] = i < sampleCmd.length ? sampleCmd[i] : 0x58 // 'X'
+      }
+      packets.push(makePacket(cliIp, srvIp, clientPort, port, clientSeq, 190, 0x18, filler))
+      clientSeq += preTlsBufferLen
+    }
+    if (tlsRecord.length > 0) packets.push(makePacket(cliIp, srvIp, clientPort, port, clientSeq, 190, 0x18, tlsRecord))
   } else if (starttlsMode === 'stripped') {
     packets.push(makePacket(srvIp, cliIp, port, clientPort, 100, 1, 0x18, enc.encode('220 mail.lab.local ESMTP Postfix\r\n')))
     packets.push(makePacket(cliIp, srvIp, clientPort, port, 1, 135, 0x18, enc.encode('EHLO client.lab.local\r\n')))
@@ -324,6 +335,7 @@ export default function Lab() {
   const [earlyData, setEarlyData] = useState(false)
   const [psk, setPsk] = useState(false)
   const [ech, setEch] = useState(false)
+  const [preTlsBufferLen, setPreTlsBufferLen] = useState(0)
 
   // LeetCode-Style Collapsible Sidebar
   const [showPreview, setShowPreview] = useState(true)
@@ -419,6 +431,11 @@ export default function Lab() {
       findingsList.push({ check: '21', severity: 'Medium', spec: '0-RTT Early Data Anti-Replay Exposure (RFC 8446 §8)' })
     }
 
+    if (preTlsBufferLen > 0) {
+      riskDeduction += 15
+      findingsList.push({ check: '15b', severity: 'High', spec: `Pre-TLS Buffer Pipelining Injection (${preTlsBufferLen}B, Postfix CVE-2011-0411)` })
+    }
+
     let finalScore = Math.max(5, Math.min(100, 100 - riskDeduction))
     
     // Pristine tier calibration when no vulnerabilities exist
@@ -451,7 +468,7 @@ export default function Lab() {
       anomaly: anomaly,
       findings: findingsList,
     }
-  }, [starttlsMode, tlsVersion, cipher, kex, certType, earlyData, ech])
+  }, [starttlsMode, tlsVersion, cipher, kex, certType, earlyData, ech, preTlsBufferLen])
 
   const previewScore = calculatedPosture.score
   const previewRisk = calculatedPosture.risk
@@ -480,8 +497,10 @@ export default function Lab() {
   const handleSynthesizeAndAnalyze = useCallback(async () => {
     setBusy(true)
     try {
-      const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData })
-      const name = `synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
+      const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, preTlsBufferLen })
+      const name = preTlsBufferLen > 0
+        ? `synth_${port}_${starttlsMode}_buf${preTlsBufferLen}_${tlsVersion}_${cipher}_${certType}.pcap`
+        : `synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
 
       const fd = new FormData()
       fd.append('pcap', synthBlob, name)
@@ -491,10 +510,11 @@ export default function Lab() {
       fd.append('kex', kex)
       fd.append('cert_type', certType)
       fd.append('starttls_mode', starttlsMode)
+      fd.append('pre_tls_buffer_len', String(preTlsBufferLen))
       fd.append('early_data', String(earlyData))
       fd.append('psk', String(psk))
       fd.append('ech', String(ech))
-      fd.append('synth_cmd', `lab/scripts/synth_families.py --synth-one --port ${port} --tls ${tlsVersion} --cipher ${cipher} --kex ${kex} --cert ${certType} --starttls ${starttlsMode} --early ${earlyData} --out /tmp/synth.pcap scapy TLSRecord/TLSHandshakes`)
+      fd.append('synth_cmd', `lab/scripts/synth_families.py --synth-one --port ${port} --tls ${tlsVersion} --cipher ${cipher} --kex ${kex} --cert ${certType} --starttls ${starttlsMode} --pre-tls ${preTlsBufferLen} --early ${earlyData} --out /tmp/synth.pcap scapy TLSRecord/TLSHandshakes`)
 
       let resultVerdict = null
       try {
@@ -512,6 +532,8 @@ export default function Lab() {
           port: port,
           starttls_mode: starttlsMode,
           source_id: 'scapy-synth-' + Math.random().toString(16).slice(2, 10),
+          pre_tls_buffer_len: preTlsBufferLen,
+          pre_tls_buffer_injection_possible: preTlsBufferLen > 0,
           tls: {
             version: tlsVersion,
             is_deprecated: isDep,
@@ -558,7 +580,7 @@ export default function Lab() {
     } finally {
       setBusy(false)
     }
-  }, [port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, psk, ech, cipherStrength, isDep, isStripped, isWeakCipher, isExpiredCert, isSelfSigned, isWeakKey, isNoFS, previewRisk, previewScore, previewProb, previewAnomaly, previewJA4])
+  }, [port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, psk, ech, preTlsBufferLen, cipherStrength, isDep, isStripped, isWeakCipher, isExpiredCert, isSelfSigned, isWeakKey, isNoFS, previewRisk, previewScore, previewProb, previewAnomaly, previewJA4])
 
   const handlePrint = () => {
     window.print()
@@ -566,8 +588,10 @@ export default function Lab() {
 
   const handleDownloadCustomPcap = useCallback(() => {
     try {
-      const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData })
-      const filename = `sandesh_kavach_synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
+      const synthBlob = synthesizePcapBlob({ port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, preTlsBufferLen })
+      const filename = preTlsBufferLen > 0
+        ? `sandesh_kavach_synth_${port}_${starttlsMode}_buf${preTlsBufferLen}_${tlsVersion}_${cipher}_${certType}.pcap`
+        : `sandesh_kavach_synth_${port}_${starttlsMode}_${tlsVersion}_${cipher}_${certType}.pcap`
       const url = URL.createObjectURL(synthBlob)
       const a = document.createElement('a')
       a.href = url
@@ -580,7 +604,7 @@ export default function Lab() {
     } catch (err) {
       setToast({ type: 'error', msg: `PCAP download failed: ${String(err)}` })
     }
-  }, [port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData])
+  }, [port, tlsVersion, cipher, kex, certType, starttlsMode, earlyData, preTlsBufferLen])
 
   return (
     <div style={{
@@ -997,6 +1021,81 @@ export default function Lab() {
                 ))}
               </select>
             </div>
+
+            {/* Pre-TLS Buffer Length (CVE-2011-0411 / GHSA-9j88) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Terminal size={18} color={preTlsBufferLen > 0 ? '#DC2626' : TOK.inkMuted} />
+                  <label style={{ fontSize: 13, fontWeight: 800, color: TOK.ink }}>Pre-TLS Buffer Length</label>
+                </div>
+                {preTlsBufferLen > 0 ? (
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#DC2626', background: '#FEE2E2', padding: '2px 8px', borderRadius: 6 }}>
+                    Check 15b High Risk
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', background: '#DCFCE7', padding: '2px 8px', borderRadius: 6 }}>
+                    0 B (Clean)
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="4096"
+                  value={preTlsBufferLen}
+                  onChange={e => setPreTlsBufferLen(Math.max(0, parseInt(e.target.value) || 0))}
+                  disabled={busy}
+                  placeholder="0"
+                  style={{
+                    width: 80,
+                    padding: '11px 10px',
+                    borderRadius: 10,
+                    border: `1.5px solid ${preTlsBufferLen > 0 ? '#DC2626' : TOK.border}`,
+                    background: '#FFFFFF',
+                    color: preTlsBufferLen > 0 ? '#DC2626' : TOK.ink,
+                    fontSize: 13,
+                    fontWeight: 800,
+                    outline: 'none',
+                    textAlign: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                  {[
+                    { label: '0 B', val: 0 },
+                    { label: '32 B', val: 32 },
+                    { label: '138 B', val: 138 },
+                    { label: '171 B', val: 171 },
+                  ].map(p => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setPreTlsBufferLen(p.val)}
+                      disabled={busy}
+                      style={{
+                        flex: '1 1 auto',
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        border: `1.5px solid ${preTlsBufferLen === p.val ? (p.val > 0 ? '#DC2626' : '#155C3A') : TOK.border}`,
+                        background: preTlsBufferLen === p.val ? (p.val > 0 ? '#FEE2E2' : '#E7F5EC') : '#FFFFFF',
+                        color: preTlsBufferLen === p.val ? (p.val > 0 ? '#991B1B' : '#155C3A') : TOK.ink,
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 120ms ease',
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ fontSize: 11, color: TOK.inkMuted, lineHeight: 1.35 }}>
+                Pipelined bytes between <code>220 Ready</code> and <code>ClientHello</code>. Tests Postfix CVE-2011-0411 / GHSA-9j88.
+              </div>
+            </div>
           </div>
 
           {/* Section 5: Protocol Feature Toggle Cards (Rich 3-Column Layout) */}
@@ -1259,6 +1358,20 @@ export default function Lab() {
                   mail.lab.local
                 </div>
               </div>
+
+              <div style={{ gridColumn: '1 / -1', background: preTlsBufferLen > 0 ? '#FEF2F2' : '#FFFFFF', padding: '8px 10px', borderRadius: 8, border: `1px solid ${preTlsBufferLen > 0 ? '#FCA5A5' : TOK.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 9.5, color: preTlsBufferLen > 0 ? '#991B1B' : TOK.inkMuted, textTransform: 'uppercase', fontWeight: 700 }}>Pre-TLS Buffer</div>
+                  <div className="mono" style={{ fontFamily: TOK.fontMono, fontSize: 12.5, fontWeight: 800, color: preTlsBufferLen > 0 ? '#DC2626' : '#155C3A', marginTop: 1 }}>
+                    {preTlsBufferLen} B {preTlsBufferLen > 0 ? '⚠ Pipelined (15b)' : '✓ Clean'}
+                  </div>
+                </div>
+                {preTlsBufferLen > 0 && (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#991B1B', background: '#FEE2E2', padding: '2px 6px', borderRadius: 4 }}>
+                    CVE-2011-0411
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Synthesized PCAP Frame Hex Preview */}
@@ -1276,15 +1389,13 @@ export default function Lab() {
               minHeight: 140,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#E2E8F0', borderBottom: '1px solid #334155', paddingBottom: 6 }}>
-                <span style={{ fontWeight: 700 }}>PCAP Frame (TLSRecord)</span>
-                <span style={{ fontSize: 9.5, color: '#10B981' }}>Wire Hex</span>
+                <span style={{ fontWeight: 700 }}>PCAP Frame ({preTlsBufferLen > 0 ? `+${preTlsBufferLen}B Pipelined` : 'TLSRecord'})</span>
+                <span style={{ fontSize: 9.5, color: preTlsBufferLen > 0 ? '#F87171' : '#10B981' }}>{preTlsBufferLen > 0 ? 'CVE-2011-0411' : 'Wire Hex'}</span>
               </div>
               <div style={{ overflowX: 'auto', overflowY: 'auto', whiteSpace: 'pre', lineHeight: 1.4, color: '#38BDF8', flex: 1 }}>
-                {`0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00
-0010   00 68 12 34 00 00 40 06  7c a8 7f 00 00 0b 7f 00
-0020   00 01 d4 31 02 4b 00 00  00 01 00 00 00 64 50 18
-0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03
-0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
+                {preTlsBufferLen > 0
+                  ? `0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00\n0010   ... [220 2.0.0 Ready to start TLS\\r\\n]\n0020   [${preTlsBufferLen} BYTES PIPELINED INJECTION (CVE-2011-0411)]\n0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03\n0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`
+                  : `0000   00 00 00 00 00 02 00 00  00 00 00 01 08 00 45 00\n0010   00 68 12 34 00 00 40 06  7c a8 7f 00 00 0b 7f 00\n0020   00 01 d4 31 02 4b 00 00  00 01 00 00 00 64 50 18\n0030   fb b0 00 00 00 00 16 03  03 00 3c 01 00 00 38 03\n0040   03 aa aa aa aa aa aa aa  aa aa aa aa aa aa aa aa`}
               </div>
             </div>
 

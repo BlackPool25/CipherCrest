@@ -443,13 +443,31 @@ async def analyze(request: Request = None, pcap: UploadFile | None = File(defaul
             return [f.model_dump() for f in flows]
         except zipfile.BadZipFile: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":"malformed pcap"}]
         except Exception as exc: _last_result=[]; _last_summary=_compute_summary([]); return [{"flow_id":"error","error":f"malformed pcap: {exc}"}]
+    form_mode = None
+    form_pre_tls = None
+    if request is not None:
+        try:
+            form = await request.form()
+            form_mode = form.get("starttls_mode")
+            form_pre_tls = form.get("pre_tls_buffer_len")
+            if not form_mode:
+                form_mode = request.query_params.get("starttls_mode")
+            if not form_pre_tls:
+                form_pre_tls = request.query_params.get("pre_tls_buffer_len")
+        except Exception:
+            pass
     try:
         if USE_STUB: flows_single = stub_reassemble(filename)
         else:
-            real_single = _real_pipeline_for_bytes(data, filename)
+            real_single = _real_pipeline_for_bytes(data, filename, form_mode=str(form_mode) if form_mode else None, form_pre_tls=int(form_pre_tls) if form_pre_tls is not None and str(form_pre_tls).isdigit() else None)
             flows_single = real_single if real_single else stub_reassemble(filename)
         validated_single: list[FlowVerdict] = []
         for fv in flows_single:
+            if form_mode and form_mode.lower() in ("upgrade", "implicit", "none", "stripped", "cleartext"):
+                fv.starttls_mode = "none" if form_mode.lower() == "cleartext" else form_mode.lower()
+            if form_pre_tls is not None and str(form_pre_tls).isdigit():
+                fv.pre_tls_buffer_len = int(form_pre_tls)
+                fv.pre_tls_buffer_injection_possible = int(form_pre_tls) > 0
             try: validated_single.append(FlowVerdict.model_validate(fv.model_dump()))
             except Exception as exc: return [{"flow_id": "error", "error": f"validation failed: {exc}"}]
         validated_single = _enrich_stub_flows(validated_single); validated_single = _attach_policy(validated_single)

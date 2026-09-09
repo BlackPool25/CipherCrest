@@ -118,9 +118,29 @@ export function severityFor(flow, check) {
     const s = flow.cert?.ocsp_stapled_status
     return { severity: s === 'revoked' ? 'Critical' : s === 'unknown' ? 'Medium' : 'Low', evidence: `ocsp=${s || 'good'}` }
   }
-  if (check.id === '12' || check.id === '15a') {
+  if (check.id === '12') {
     const m = flow.starttls_mode
-    return { severity: m === 'stripped' ? 'Critical' : m === 'upgrade' ? 'Low' : 'Medium', evidence: `starttls_mode=${m}` }
+    if (m === 'upgrade') return { severity: 'Low', evidence: 'starttls_mode=upgrade (220 Ready)' }
+    if (m === 'implicit') {
+      const isImpPort = String(flow.port || '').includes('465') || String(flow.port || '').includes('993') || String(flow.port || '').includes('995') || String(flow.flow_id || '').includes('465') || String(flow.flow_id || '').includes('993') || String(flow.flow_id || '').includes('995')
+      return {
+        severity: isImpPort ? 'Low' : 'Medium',
+        evidence: isImpPort ? 'starttls_mode=implicit (RFC 8314 Direct TLS)' : 'starttls_mode=implicit'
+      }
+    }
+    if (m === 'stripped') return { severity: 'Critical', evidence: 'starttls_mode=stripped (downgrade)' }
+    return { severity: 'High', evidence: `starttls_mode=${m || 'none'}` }
+  }
+  if (check.id === '15a') {
+    const m = flow.starttls_mode
+    return { severity: m === 'stripped' ? 'Critical' : 'Low', evidence: m === 'stripped' ? 'STARTTLS stripping detected' : 'No stripping detected' }
+  }
+  if (check.id === '15b') {
+    const preLen = flow.pre_tls_buffer_len ?? 0
+    return {
+      severity: preLen > 0 ? 'High' : 'Info',
+      evidence: preLen > 0 ? `pre_tls_buffer_len=${preLen}B (pipelined)` : 'pre_tls_buffer_len=0 (clean)'
+    }
   }
   if (check.id === '15c') {
     const is3des = flow.tls?.cipher_suite?.includes('3DES')

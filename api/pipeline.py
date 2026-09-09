@@ -15,7 +15,7 @@ except Exception:
     real_validate = None
 import api.ml_enrich as _ml
 
-def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
+def _real_pipeline_for_bytes(data: bytes, hint_name: str, form_mode: str | None = None, form_pre_tls: int | None = None) -> list[FlowVerdict]:
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pcap") as tf:
             tf.write(data); tf.flush(); tmp = tf.name
@@ -63,21 +63,27 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
                         if _pt in (25, 587, 465): _fam_proto = "smtp"
                         elif _pt in (143, 993): _fam_proto = "imap"
                         elif _pt in (110, 995): _fam_proto = "pop3"
-                    if _fam.get("starttls_mode"):
-                        _fam_starttls = _fam.get("starttls_mode")
+                    if _fam.get("starttls_mode") or _fam.get("starttls"):
+                        _fam_starttls = _fam.get("starttls_mode") or _fam.get("starttls")
             except Exception: pass
             
             _app_proto = _fam_proto if _fam_proto else ("smtp" if any(x in hint_name for x in ["smtp", "587", "25", "465"]) else ("imap" if any(x in hint_name for x in ["imap", "143", "993"]) else ("pop3" if any(x in hint_name for x in ["pop3", "110", "995"]) else "smtp")))
             
-            if _fam_starttls:
-                _mode = _fam_starttls
+            if form_mode and form_mode.lower() in ("upgrade", "implicit", "none", "stripped", "cleartext"):
+                _mode = "none" if form_mode.lower() == "cleartext" else form_mode.lower()
+            elif _fam_starttls:
+                _mode = "none" if _fam_starttls == "cleartext" else _fam_starttls
             elif "stripped" in hint_name.lower():
                 _mode = "stripped"
-            elif "cleartext" in hint_name.lower():
-                _mode = "cleartext"
-            elif "implicit" in hint_name.lower() or any(x in hint_name for x in ["465", "993", "995"]):
+            elif "upgrade" in hint_name.lower() or reasm.get("starttls_detected"):
+                _mode = "upgrade"
+            elif "implicit" in hint_name.lower():
                 _mode = "implicit"
-            elif "upgrade" in hint_name.lower() or reasm.get("starttls_detected") or any(x in hint_name for x in ["587", "25", "143", "110"]):
+            elif "cleartext" in hint_name.lower():
+                _mode = "none"
+            elif any(x in hint_name for x in ["465", "993", "995"]):
+                _mode = "implicit"
+            elif any(x in hint_name for x in ["587", "25", "143", "110"]):
                 _mode = "upgrade"
             else:
                 _mode = "upgrade" if reasm.get("starttls_detected") else ("implicit" if (tls.get("version") not in (None, "", "none", "unknown") and tls.get("handshake_success")) else "none")  # Day15: unknown/no-handshake is never implicit — cleartext falls to none so check-14 fires instead of a bogus implicit verdict
@@ -85,7 +91,20 @@ def _real_pipeline_for_bytes(data: bytes, hint_name: str) -> list[FlowVerdict]:
             if _mode not in ("upgrade", "implicit", "none", "stripped"):
                 _mode = "none"  # cleartext-never-offered normalizes to none (schema Literal has no cleartext)
 
-            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": _mode,"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": reasm.get("pre_tls_buffer_len", 0),"pre_tls_buffer_injection_possible": reasm.get("pre_tls_buffer_injection_possible", False),"starttls_transcript": reasm.get("starttls_transcript"),"starttls_advertised": reasm.get("starttls_advertised"),"starttls_upgraded_at_packet_no": reasm.get("starttls_upgraded_at_packet_no")}
+            _reasm_pre_len = reasm.get("pre_tls_buffer_len", 0)
+            if form_pre_tls is not None:
+                _pre_len = int(form_pre_tls)
+            elif _reasm_pre_len > 0:
+                _pre_len = _reasm_pre_len
+            elif "buf" in hint_name.lower():
+                import re as _re_buf
+                _mbuf = _re_buf.search(r"buf(\d+)", hint_name.lower())
+                _pre_len = int(_mbuf.group(1)) if _mbuf else 0
+            else:
+                _pre_len = _reasm_pre_len
+            _pre_inject = _pre_len > 0
+
+            flow_dict = {"flow_id": hint_name.replace(".pcap","") if hint_name else "real-01","app_protocol": _app_proto,"starttls_mode": _mode,"tls": tls, "cert": cert,"environment_id": reasm.get("flow_id","real-env"),"capture_epoch": "2026-08-27T00:00:00Z","source_id": hashlib.sha256(data).hexdigest()[:8],"coverage_ratio": reasm.get("coverage_ratio", 1.0),"pre_tls_buffer_len": _pre_len,"pre_tls_buffer_injection_possible": _pre_inject,"starttls_transcript": reasm.get("starttls_transcript"),"starttls_advertised": reasm.get("starttls_advertised"),"starttls_upgraded_at_packet_no": reasm.get("starttls_upgraded_at_packet_no")}
             try:
                 # D2 history-triple escalation: pass recent same-protocol flows as history so
                 # evaluate() can escalate stripping to Critical on 2-prior-upgraded-then-cleartext.

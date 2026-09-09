@@ -40,6 +40,7 @@ COPY assessment/ ./assessment/
 COPY shared/ ./shared/
 COPY lab/ ./lab/
 COPY models/ ./models/
+COPY eval/ ./eval/
 COPY --from=frontend /app/dashboard/dist ./dashboard/dist
 RUN chown -R 10001:10001 /app && chmod -R g+w /app/api 2>/dev/null || true
 RUN rm -f /app/api/flows.db && apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*

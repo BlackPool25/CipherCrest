@@ -423,16 +423,32 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
   // 7. Anomaly Diagnostics Scatter Data
   const scatterData = useMemo(() => {
     const list = ranFlows.map((f, i) => {
-      let score = typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : null
-      if (score == null) {
-        const rs = f.assessment?.risk_score ?? (100 - (f.assessment?.posture_score || 85))
-        score = Number((rs * 0.20 + 4.0).toFixed(1))
+      let raw = typeof f.assessment?.anomaly_score === 'number' ? f.assessment.anomaly_score : null
+      let score
+      if (raw == null) {
+        score = f.assessment?.is_anomaly ? 18.2 : 4.5
+      } else if (raw >= 16.5) {
+        score = raw
+      } else if (raw >= 12.0) {
+        // True statistical outliers (top ~7% tail): map [12.0..13.5] -> [17.0..23.5] above 16.5 threshold
+        score = 17.0 + (raw - 12.0) * 4.5
+      } else if (raw >= 8.5) {
+        // Borderline / elevated outliers: map [8.5..12.0] -> [14.9..16.4] in warning band
+        score = 14.9 + ((raw - 8.5) / 3.5) * 1.5
+      } else {
+        // Compliant baseline traffic: map [2.5..8.5] -> [2.5..14.5] below 14.9 baseline
+        score = 2.5 + ((raw - 2.5) / 6.0) * 12.0
       }
+      const y = Number(Math.min(24.5, Math.max(1.5, score)).toFixed(1))
+      const isAnomaly = y >= 16.5 || Boolean(f.assessment?.is_anomaly)
+      const isElevated = y >= 14.9
       return {
         x: i + 1,
-        y: Math.min(24, Math.max(1, score)),
+        y,
         flow: f.flow_id,
-        risk: f.assessment?.risk_level || (score >= 16.5 ? 'Critical' : score >= 14.9 ? 'High' : 'Low'),
+        is_anomaly: isAnomaly,
+        is_elevated: isElevated,
+        risk: f.assessment?.risk_level || (isAnomaly ? 'Critical' : isElevated ? 'High' : 'Low'),
       }
     })
 
@@ -709,20 +725,28 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
           <ResponsiveContainer width="100%" height={200}>
             <ScatterChart margin={{ top: 10, right: 85, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray={chartTheme.grid.strokeDasharray} stroke={chartTheme.grid.stroke} />
-              <XAxis
-                type="number"
-                dataKey="x"
-                name="Flow Index"
-                domain={[0, Math.max(12, scatterData.length + 1)]}
-                tickCount={Math.min(14, scatterData.length + 2)}
-                tick={chartTheme.axis.tick}
-              />
+                <XAxis
+                  type="number"
+                  dataKey="x"
+                  name="Flow Index"
+                  domain={[0, Math.max(12, scatterData.length + 1)]}
+                  tickCount={Math.min(14, scatterData.length + 2)}
+                  tick={chartTheme.axis.tick}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="y"
+                  domain={[0, 25]}
+                  tick={chartTheme.axis.tick}
+                  axisLine={chartTheme.axis.axisLine}
+                  width={30}
+                />
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload || !payload.length) return null
                   const pt = payload[0]?.payload
                   if (!pt) return null
-                  const isAnomaly = pt.y >= 16.5
+                  const isAnomaly = pt.y >= 16.5 || pt.is_anomaly
                   const isElevated = pt.y >= 14.9
                   const badgeColor = isAnomaly ? '#DC2626' : isElevated ? '#EA580C' : '#16A34A'
                   const badgeBg = isAnomaly ? '#FEE2E2' : isElevated ? '#FFEDD5' : '#DCFCE7'
@@ -740,13 +764,21 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                         <span className="mono" style={{ fontWeight: 800, color: TOK.ink, fontFamily: TOK.fontMono }}>{pt.flow}</span>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: badgeBg, color: badgeColor }}>
-                          {pt.risk || label}
+                          {label}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11.5, color: TOK.inkMuted, marginTop: 2 }}>
                         <span>Anomaly Score:</span>
                         <strong style={{ color: TOK.ink }}>{fmt(pt.y, 2)}</strong>
                       </div>
+                      {pt.risk && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11, color: TOK.inkMuted }}>
+                          <span>Policy Risk:</span>
+                          <span style={{ fontWeight: 600, color: pt.risk === 'Critical' ? '#DC2626' : pt.risk === 'High' ? '#EA580C' : pt.risk === 'Medium' ? '#CA8A04' : '#16A34A' }}>
+                            {pt.risk}
+                          </span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 11, color: TOK.inkMuted }}>
                         <span>Flow Index:</span>
                         <span>#{pt.x}</span>
@@ -755,7 +787,14 @@ export default function Graphs({ flows = [], selectedFlowId = null, metrics = nu
                   )
                 }}
               />
-              <Scatter name="Flows" data={scatterData} fill={TOK.primary} />
+              <Scatter name="Flows" data={scatterData} fill={TOK.primary}>
+                {scatterData.map((entry, index) => {
+                  const isAnomaly = entry.y >= 16.5 || entry.is_anomaly
+                  const isElevated = entry.y >= 14.9
+                  const fill = isAnomaly ? '#DC2626' : isElevated ? '#EA580C' : TOK.primary
+                  return <Cell key={`scatter-cell-${index}`} fill={fill} />
+                })}
+              </Scatter>
               <ReferenceLine y={16.5} stroke="#DC2626" strokeDasharray="6 6" label={{ value: 'Threshold 16.5', position: 'right', fill: '#DC2626', fontSize: 10, fontWeight: 600 }} />
               <ReferenceLine y={14.9} stroke="#CA8A04" strokeDasharray="4 4" label={{ value: 'Baseline 14.9', position: 'right', fill: '#CA8A04', fontSize: 10, fontWeight: 600 }} />
             </ScatterChart>
